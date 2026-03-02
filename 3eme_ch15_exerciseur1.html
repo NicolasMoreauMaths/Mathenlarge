@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probabilités — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Space+Mono:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0f0f14;--grid:#1a1a24;--card:#1f1f28;
+--gold:#f4cf6d;--gold-light:#fde68a;--gold-pale:rgba(244,207,109,.12);--gold-border:rgba(244,207,109,.35);
+--red:#fb7185;--red-light:#fda4af;--red-pale:rgba(251,113,133,.12);
+--green:#34d399;--green-pale:rgba(52,211,153,.15);
+--purple:#a78bfa;--purple-pale:rgba(167,139,250,.12);
+--text:#f1f5f9;--text-light:#cbd5e1;--border:#334155;--shadow:rgba(0,0,0,.4);
+}
+body{font-family:'Outfit',sans-serif;min-height:100vh;background:var(--bg);
+background-image:
+radial-gradient(circle at 20% 50%, rgba(212,175,55,.03) 0%, transparent 50%),
+radial-gradient(circle at 80% 50%, rgba(225,29,72,.03) 0%, transparent 50%),
+linear-gradient(var(--grid) 1.5px,transparent 1.5px),
+linear-gradient(90deg,var(--grid) 1.5px,transparent 1.5px);
+background-size:100% 100%,100% 100%,30px 30px,30px 30px;
+display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.app{max-width:860px;width:100%}
+.app-header{
+background:linear-gradient(135deg, #1a1a24 0%, #2d2d3a 100%);
+border:2px solid var(--gold-border);
+color:var(--gold);padding:18px 24px;border-radius:16px 16px 0 0;
+display:flex;align-items:center;justify-content:space-between;
+box-shadow:0 8px 32px rgba(212,175,55,.15);position:relative;overflow:hidden}
+.app-header::before{
+content:'🎲';position:absolute;right:20px;font-size:3em;opacity:.08;
+animation:float 6s ease-in-out infinite;transform-origin:center}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(5deg)}}
+.app-title{font-family:'Playfair Display',serif;font-size:1.3em;font-weight:900;letter-spacing:1px;position:relative}
+.main{background:var(--card);border:2px solid var(--border);border-top:none;border-radius:0 0 16px 16px;
+padding:32px 28px;box-shadow:0 12px 40px var(--shadow);min-height:50vh;
+background:linear-gradient(135deg, #1f1f28 0%, #252532 100%)}
+.screen{display:none;animation:fadeIn .35s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+h1{font-family:'Playfair Display',serif;font-size:1.6em;font-weight:900;text-align:center;margin-bottom:8px;color:var(--gold)}
+.sub{text-align:center;font-size:.94em;color:var(--text-light);margin-bottom:24px;line-height:1.6}
+.btn{font-family:'Outfit',sans-serif;padding:12px 28px;border-radius:12px;font-size:.94em;font-weight:600;
+cursor:pointer;transition:all .25s;border:2px solid;-webkit-tap-highlight-color:transparent;
+min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-gold{background:linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);color:#000;border-color:var(--gold);
+box-shadow:0 4px 16px rgba(212,175,55,.25)}
+.btn-gold:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 24px rgba(212,175,55,.35)}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--grid);border-color:var(--gold-border)}
+.controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+
+/* METHOD SHEET */
+.method-sheet{background:linear-gradient(135deg, rgba(167,139,250,.15) 0%, rgba(244,207,109,.12) 100%);
+border:2px solid var(--gold-border);border-radius:14px;padding:24px;margin-bottom:24px}
+.method-sheet h2{font-family:'Playfair Display',serif;font-size:1.3em;color:var(--gold);margin-bottom:16px;text-align:center}
+.vocab-grid{display:grid;gap:14px}
+.vocab-item{background:rgba(31,31,40,.8);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.vocab-term{font-family:'Space Mono',monospace;font-weight:700;color:var(--gold);font-size:.95em;margin-bottom:4px}
+.vocab-def{color:var(--text);font-size:.88em;line-height:1.5}
+.vocab-example{color:var(--purple);font-style:italic;font-size:.84em;margin-top:6px}
+
+/* MENU */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:20px 0}
+.mc{background:linear-gradient(135deg, var(--card) 0%, var(--grid) 100%);
+border:2px solid var(--border);border-radius:14px;
+padding:24px 18px;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold-pale),transparent 70%);
+opacity:0;transition:opacity .3s}
+.mc:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 12px 28px rgba(212,175,55,.2)}
+.mc:hover::before{opacity:1}
+.mc-icon{font-size:2em;margin-bottom:8px;position:relative}
+.mc-t{font-family:'Playfair Display',serif;font-size:1.05em;color:var(--gold);font-weight:700;margin-bottom:4px;position:relative}
+.mc-d{font-size:.82em;color:var(--text-light);position:relative}
+.mc-badge{position:absolute;top:10px;right:10px;background:var(--red-pale);color:var(--red);
+font-size:.7em;font-weight:700;padding:3px 10px;border-radius:12px;border:1px solid var(--red)}
+
+/* EXERCISE HEADER */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.ex-badge{background:var(--gold-pale);color:var(--gold);padding:6px 16px;border-radius:20px;
+font-size:.88em;font-weight:700;border:1px solid var(--gold-border)}
+.ex-score{font-size:.9em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:6px;height:5px;overflow:hidden;margin-bottom:18px}
+.pfill{height:100%;background:linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 100%);
+border-radius:6px;transition:width .4s;box-shadow:0 0 10px rgba(212,175,55,.5)}
+
+/* DICE & VISUAL ELEMENTS */
+.dice-visual{display:inline-flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
+.die{width:48px;height:48px;background:linear-gradient(135deg, #fff 0%, #f1f5f9 100%);
+border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3),inset 0 -2px 4px rgba(0,0,0,.1);
+display:flex;align-items:center;justify-content:center;font-size:1.3em;font-weight:700;
+position:relative;border:2px solid #e2e8f0}
+.die::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent);
+border-radius:6px}
+
+/* STATEMENT BOX */
+.statement{background:linear-gradient(135deg, rgba(244,207,109,.15) 0%, rgba(167,139,250,.1) 100%);
+border:2px solid var(--gold-border);border-radius:14px;padding:20px 22px;margin-bottom:18px;
+font-size:1.02em;line-height:1.7;box-shadow:0 4px 16px rgba(244,207,109,.15)}
+.statement .hl{color:var(--gold);font-weight:700}
+.statement .formula{font-family:'Space Mono',monospace;background:rgba(0,0,0,.5);
+padding:2px 8px;border-radius:6px;color:var(--gold);font-weight:700}
+
+/* INPUTS */
+.input-group{display:flex;gap:10px;align-items:center;justify-content:center;margin:16px 0;flex-wrap:wrap}
+.inp{font-family:'Space Mono',monospace;font-size:1.1em;width:80px;text-align:center;
+border:2px solid var(--gold-border);border-radius:10px;background:rgba(0,0,0,.4);
+padding:10px 8px;outline:none;color:var(--text);font-weight:700;transition:all .25s;
+min-height:44px;touch-action:manipulation}
+.inp:focus{border-color:var(--gold);box-shadow:0 0 0 4px var(--gold-pale)}
+.inp.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.inp.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* TABLE (for double entry) */
+.table-wrapper{overflow-x:auto;margin:16px auto;max-width:100%;-webkit-overflow-scrolling:touch;
+padding-bottom:8px}
+.prob-table{border-collapse:collapse;margin:0 auto;background:rgba(0,0,0,.3)}
+.prob-table th{background:linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+color:#000;padding:10px 12px;font-size:.85em;font-weight:700;border:2px solid var(--gold);text-align:center;min-width:60px}
+.prob-table td{padding:10px 12px;border:2px solid var(--border);text-align:center;
+font-family:'Space Mono',monospace;font-size:1em;font-weight:700;background:rgba(24,24,31,.8);min-width:60px}
+.prob-table .header-cell{background:var(--purple-pale);color:var(--purple);font-size:.8em;font-weight:600;
+font-family:'Outfit',sans-serif;border:2px solid var(--purple)}
+.prob-table .input-cell{background:rgba(0,0,0,.5)}
+.prob-table input{font-family:'Space Mono',monospace;font-size:.95em;width:46px;text-align:center;
+border:2px dashed var(--gold-border);border-radius:6px;background:rgba(0,0,0,.6);padding:8px 4px;
+outline:none;color:var(--text);font-weight:700;transition:all .2s;min-height:40px;touch-action:manipulation}
+.prob-table input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-pale)}
+.prob-table input.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.prob-table input.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s}
+
+/* FEEDBACK */
+.fb{margin-top:18px;padding:14px 18px;border-radius:12px;font-size:.94em;text-align:center;
+display:none;animation:fadeIn .3s;font-weight:600;line-height:1.6}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:2px solid var(--green)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:2px solid var(--red)}
+
+/* RESULTS */
+.rc{width:140px;height:140px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:20px auto;border:6px solid;position:relative}
+.rc::before{content:'';position:absolute;inset:-6px;border-radius:50%;
+background:radial-gradient(circle, rgba(212,175,55,.1) 0%, transparent 70%);z-index:-1}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:var(--gold);background:var(--gold-pale)}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-family:'Playfair Display',serif;font-size:2.2em;font-weight:900;line-height:1}
+.rm{font-size:1.08em;text-align:center;margin:16px 0;color:var(--text-light)}
+
+/* LABEL for fractions and mathematical notation */
+.math{font-family:'Space Mono',monospace;display:inline-flex;flex-direction:column;
+align-items:center;vertical-align:middle;margin:0 4px}
+.math .num,.math .den{padding:2px 6px}
+.math .frac-line{width:100%;height:2px;background:currentColor;margin:2px 0}
+.math-inline{font-family:'Space Mono',monospace;font-weight:700;color:var(--gold-light)}
+
+/* Event notation with overline */
+.event-bar{position:relative;display:inline-block;padding-top:3px}
+.event-bar::before{content:'';position:absolute;top:0;left:-1px;right:-1px;height:2px;background:currentColor}
+
+/* MOBILE OPTIMIZATIONS */
+@media (max-width: 640px) {
+.app{max-width:100%}
+.main{padding:24px 16px}
+.app-header{padding:14px 16px}
+.app-title{font-size:1.1em}
+h1{font-size:1.35em}
+.sub{font-size:.88em}
+.method-sheet{padding:18px 14px}
+.vocab-item{padding:12px 14px}
+.vocab-term{font-size:.9em}
+.vocab-def{font-size:.85em}
+.statement{padding:16px 18px;font-size:.98em}
+.inp{width:70px;font-size:1em;padding:10px 6px}
+.input-group{gap:8px}
+.menu-grid{grid-template-columns:1fr;gap:12px}
+.mc{padding:20px 16px}
+.mc-icon{font-size:1.4em}
+.mc-t{font-size:1em}
+.prob-table th{padding:8px 10px;font-size:.8em;min-width:50px}
+.prob-table td{padding:8px 10px;min-width:50px}
+.prob-table input{width:40px;font-size:.9em;padding:7px 3px}
+.btn{padding:11px 20px;font-size:.9em;min-height:42px}
+.controls{gap:10px}
+.ex-top{gap:8px;margin-bottom:10px}
+.ex-badge{font-size:.82em;padding:5px 12px}
+.rc{width:120px;height:120px;border:5px solid}
+.rp{font-size:2em}
+}
+
+@media (max-width: 400px) {
+.main{padding:20px 12px}
+.app-header{padding:12px 14px}
+h1{font-size:1.2em}
+.method-sheet{padding:16px 12px}
+.statement{padding:14px 16px;font-size:.95em}
+.inp{width:60px}
+.prob-table th{padding:6px 8px;font-size:.75em;min-width:45px}
+.prob-table td{padding:6px 8px;min-width:45px}
+.prob-table input{width:36px;font-size:.85em}
+.btn{padding:10px 16px;font-size:.88em}
+.mc{padding:18px 14px}
+.rc{width:100px;height:100px}
+.rp{font-size:1.8em}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header class="app-header">
+<div class="app-title">PROBABILITÉS</div>
+</header>
+<main class="main">
+
+<!-- HOME SCREEN -->
+<div id="S_home" class="screen active">
+<h1>Exerciseur de Probabilités</h1>
+<p class="sub">Maîtrise les probabilités à travers des exercices progressifs du niveau 5ème au niveau 3ème</p>
+
+<div class="method-sheet">
+<h2>📚 Fiche Méthode</h2>
+<div class="vocab-grid">
+<div class="vocab-item">
+<div class="vocab-term">Expérience aléatoire</div>
+<div class="vocab-def">Expérience dont on ne peut pas prévoir le résultat à l'avance.</div>
+<div class="vocab-example">Ex : lancer un dé, tirer une carte</div>
+</div>
+<div class="vocab-item">
+<div class="vocab-term">Issue</div>
+<div class="vocab-def">Résultat possible d'une expérience aléatoire.</div>
+<div class="vocab-example">Ex : pour un dé à 6 faces, les issues sont 1, 2, 3, 4, 5, 6</div>
+</div>
+<div class="vocab-item">
+<div class="vocab-term">Événement</div>
+<div class="vocab-def">Ensemble d'issues. On le note souvent par une lettre (A, B, C...).</div>
+<div class="vocab-example">Ex : A = "obtenir un nombre pair" = {2, 4, 6}</div>
+</div>
+<div class="vocab-item">
+<div class="vocab-term">Probabilité</div>
+<div class="vocab-def">Nombre entre 0 et 1 qui mesure la chance qu'un événement se réalise. On note P(A) la probabilité de l'événement A.</div>
+<div class="vocab-example">Ex : P(A) = nombre d'issues favorables / nombre d'issues possibles</div>
+</div>
+<div class="vocab-item">
+<div class="vocab-term">Équiprobabilité</div>
+<div class="vocab-def">Situation où toutes les issues ont la même probabilité de se réaliser.</div>
+<div class="vocab-example">Ex : dé équilibré, pièce non truquée</div>
+</div>
+<div class="vocab-item">
+<div class="vocab-term">Événement contraire</div>
+<div class="vocab-def">Événement qui se réalise quand A ne se réalise pas. On le note avec une barre au-dessus : <span class="event-bar">A</span>. On a : P(<span class="event-bar">A</span>) = 1 - P(A).</div>
+<div class="vocab-example">Ex : Si A = "pair", alors <span class="event-bar">A</span> = "impair"</div>
+</div>
+<div class="vocab-item">
+<div class="vocab-term">Événement certain</div>
+<div class="vocab-def">Événement qui se réalise toujours. Sa probabilité est 1.</div>
+<div class="vocab-example">Ex : "Obtenir un nombre entre 1 et 6 avec un dé"</div>
+</div>
+<div class="vocab-item">
+<div class="vocab-term">Événement impossible</div>
+<div class="vocab-def">Événement qui ne peut jamais se réaliser. Sa probabilité est 0.</div>
+<div class="vocab-example">Ex : "Obtenir 7 avec un dé à 6 faces"</div>
+</div>
+</div>
+</div>
+
+<div class="menu-grid">
+<div class="mc" onclick="go(1)">
+<div class="mc-icon">🎲</div>
+<div class="mc-t">Niveau 5ème</div>
+<div class="mc-d">Calculs simples de probabilités</div>
+<div class="mc-badge">FACILE</div>
+</div>
+<div class="mc" onclick="go(2)">
+<div class="mc-icon">🎯</div>
+<div class="mc-t">Niveau 4ème</div>
+<div class="mc-d">Utilisation du vocabulaire</div>
+</div>
+<div class="mc" onclick="go(3)">
+<div class="mc-icon">🎰</div>
+<div class="mc-t">Niveau 3ème</div>
+<div class="mc-d">Tableaux à double entrée</div>
+<div class="mc-badge">DIFFICILE</div>
+</div>
+</div>
+<div class="controls">
+<button class="btn btn-ghost" onclick="show('S_home')">🏠 Accueil</button>
+</div>
+</div>
+
+<!-- EXERCISE SCREEN -->
+<div id="S_ex" class="screen">
+<div class="ex-top">
+<div class="ex-badge" id="badge">Niveau</div>
+<div class="ex-score" id="scLbl">0 / 0</div>
+</div>
+<div class="pbar"><div class="pfill" id="pfill"></div></div>
+<div id="zone"></div>
+<div class="fb" id="fb"></div>
+<div class="controls">
+<button class="btn btn-ghost" onclick="if(confirm('Êtes-vous sûr de vouloir quitter ? Votre progression sera perdue.'))show('S_home')">🏠 Menu</button>
+<button class="btn btn-gold" id="nxt" onclick="nxtQ()" style="display:none">Suivant →</button>
+</div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="S_res" class="screen">
+<h1>Résultats</h1>
+<div id="rCirc" class="rc">
+<div class="rp" id="rPct">0%</div>
+</div>
+<p class="rm" id="rMsg"></p>
+<div class="controls">
+<button class="btn btn-gold" onclick="go(lv)">🔄 Recommencer</button>
+<button class="btn btn-ghost" onclick="show('S_home')">🏠 Accueil</button>
+</div>
+</div>
+
+</main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function show(s){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(s).classList.add('active')}
+const LVNAMES={1:'Niveau 5ème',2:'Niveau 4ème',3:'Niveau 3ème'};
+let lv=0,sc=0,qi=0,qs=[],cq=null;
+
+// UTILITY
+function rv(a){return a[Math.floor(Math.random()*a.length)]}
+function sh(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function rInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function gcd(a,b){while(b){const t=b;b=a%b;a=t}return a}
+function simplify(num,den){const g=gcd(Math.abs(num),Math.abs(den));return[num/g,den/g]}
+
+// FRACTION DISPLAY
+function frac(n,d){
+const[sn,sd]=simplify(n,d);
+return `<span class="math"><span class="num">${sn}</span><span class="frac-line"></span><span class="den">${sd}</span></span>`;
+}
+
+// Check if two fractions are equal
+function fracEq(n1,d1,n2,d2){
+const[sn1,sd1]=simplify(n1,d1);
+const[sn2,sd2]=simplify(n2,d2);
+return sn1===sn2&&sd1===sd2;
+}
+
+// Parse fraction input "3/4" or "0.75"
+function parseFrac(str){
+str=str.trim();
+if(str.includes('/')){
+const parts=str.split('/');
+if(parts.length!==2)return null;
+const n=parseInt(parts[0]);const d=parseInt(parts[1]);
+if(isNaN(n)||isNaN(d)||d===0)return null;
+return[n,d];
+}
+const val=parseFloat(str);
+if(isNaN(val))return null;
+// Convert decimal to fraction (simple method)
+const dec=val.toString().split('.')[1]||'';
+const den=Math.pow(10,dec.length);
+const num=Math.round(val*den);
+return simplify(num,den);
+}
+
+// ===== LEVEL 1: 5ème - Simple probabilities =====
+function genL1(){
+const pool=[
+// Dice exercises
+()=>{
+const faces=rv([4,6,8,10,20]);
+const target=rInt(1,Math.min(faces,6));
+return{
+type:'simple',
+statement:`On lance un dé à ${faces} faces numérotées de 1 à ${faces}. Quelle est la probabilité d'obtenir ${target} ?`,
+num:1,den:faces,
+visual:{type:'die',value:target}
+};
+},
+()=>{
+const faces=6;
+const targets=[2,4,6];
+return{
+type:'simple',
+statement:`On lance un dé à ${faces} faces. Quelle est la probabilité d'obtenir un nombre pair ?`,
+num:3,den:6,
+visual:{type:'dice',count:1}
+};
+},
+()=>{
+const faces=6;
+const target=rInt(4,6);
+return{
+type:'simple',
+statement:`On lance un dé à ${faces} faces. Quelle est la probabilité d'obtenir un nombre supérieur ou égal à ${target} ?`,
+num:faces-target+1,den:faces,
+visual:{type:'dice',count:1}
+};
+},
+// Coin exercises
+()=>{
+return{
+type:'simple',
+statement:`On lance une pièce de monnaie équilibrée. Quelle est la probabilité d'obtenir "Pile" ?`,
+num:1,den:2,
+visual:{type:'coin'}
+};
+},
+// Marble exercises
+()=>{
+const red=rInt(2,5);
+const blue=rInt(2,5);
+const total=red+blue;
+return{
+type:'simple',
+statement:`Un sac contient ${red} billes rouges et ${blue} billes bleues. On tire une bille au hasard. Quelle est la probabilité de tirer une bille rouge ?`,
+num:red,den:total,
+visual:{type:'marbles',red,blue}
+};
+},
+()=>{
+const colors=['rouge','bleue','verte'];
+const counts=[rInt(2,4),rInt(2,4),rInt(2,4)];
+const total=counts[0]+counts[1]+counts[2];
+const targetIdx=rInt(0,2);
+return{
+type:'simple',
+statement:`Un sac contient ${counts[0]} billes rouges, ${counts[1]} billes bleues et ${counts[2]} billes vertes. On tire une bille au hasard. Quelle est la probabilité de tirer une bille ${colors[targetIdx]} ?`,
+num:counts[targetIdx],den:total,
+visual:{type:'bag'}
+};
+},
+// Card exercises
+()=>{
+const target=rv(['Cœur','Carreau','Trèfle','Pique']);
+return{
+type:'simple',
+statement:`On tire une carte au hasard dans un jeu de 32 cartes. Quelle est la probabilité de tirer un ${target} ?`,
+num:8,den:32,
+visual:{type:'cards'}
+};
+},
+()=>{
+return{
+type:'simple',
+statement:`On tire une carte au hasard dans un jeu de 52 cartes. Quelle est la probabilité de tirer un As ?`,
+num:4,den:52,
+visual:{type:'cards'}
+};
+},
+// Spinner
+()=>{
+const sectors=rv([4,5,6,8]);
+const target=rInt(1,sectors);
+return{
+type:'simple',
+statement:`Une roue est divisée en ${sectors} secteurs numérotés de 1 à ${sectors}. On fait tourner la roue. Quelle est la probabilité de tomber sur le secteur ${target} ?`,
+num:1,den:sectors,
+visual:{type:'spinner'}
+};
+},
+// Certain event
+()=>{
+return{
+type:'simple',
+statement:`On lance un dé à 6 faces. Quelle est la probabilité d'obtenir un nombre entre 1 et 6 ?`,
+num:1,den:1,
+visual:{type:'dice',count:1}
+};
+},
+// Impossible event
+()=>{
+return{
+type:'simple',
+statement:`On lance un dé à 6 faces. Quelle est la probabilité d'obtenir le nombre 7 ?`,
+num:0,den:1,
+visual:{type:'dice',count:1}
+};
+}
+];
+
+const selected=[];
+const used=new Set();
+while(selected.length<10){
+const ex=rv(pool)();
+const key=ex.statement;
+if(!used.has(key)){
+selected.push(ex);
+used.add(key);
+}
+}
+return selected;
+}
+
+function renderL1(q){
+const Z=$('zone');
+let h=`<div class="statement">${q.statement}</div>`;
+h+=`<div class="input-group">
+<span style="font-size:1.1em;color:var(--text-light)">Probabilité = </span>
+<input type="text" class="inp" id="l1num" placeholder="...">
+<span style="font-size:1.1em;color:var(--text-light)">/</span>
+<input type="text" class="inp" id="l1den" placeholder="...">
+</div>`;
+h+=`<div class="controls"><button class="btn btn-gold" onclick="chkL1()">Valider</button></div>`;
+Z.innerHTML=h;
+}
+
+function chkL1(){
+const num=parseInt($('l1num').value);
+const den=parseInt($('l1den').value);
+$('l1num').classList.remove('err','ok');
+$('l1den').classList.remove('err','ok');
+if(isNaN(num)||isNaN(den)||den===0){
+$('l1num').classList.add('err');
+$('l1den').classList.add('err');
+return;
+}
+const ok=fracEq(num,den,cq.num,cq.den);
+if(ok){
+$('l1num').classList.add('ok');
+$('l1den').classList.add('ok');
+finish(true,'');
+}else{
+$('l1num').classList.add('err');
+$('l1den').classList.add('err');
+const[sn,sd]=simplify(cq.num,cq.den);
+finish(false,`La bonne réponse est ${frac(sn,sd)}`);
+}
+}
+
+// ===== LEVEL 2: 4ème - With vocabulary =====
+function genL2(){
+const pool=[
+// Event notation P(A)
+()=>{
+const faces=6;
+const target=rInt(1,6);
+return{
+type:'vocab',
+statement:`On lance un dé à 6 faces. On note A l'événement : "Obtenir ${target}".`,
+questions:[
+{text:'Calculer P(A)',num:1,den:6}
+]
+};
+},
+()=>{
+const faces=6;
+return{
+type:'vocab',
+statement:`On lance un dé à 6 faces. On note A l'événement : "Obtenir un nombre pair".`,
+questions:[
+{text:'Calculer P(A)',num:3,den:6}
+]
+};
+},
+// Contrary event
+()=>{
+const total=10;
+const red=rInt(3,6);
+const notRed=total-red;
+return{
+type:'vocab',
+statement:`Un sac contient ${red} billes rouges et ${notRed} billes vertes. On tire une bille au hasard. On note A l'événement : "Tirer une bille rouge".`,
+questions:[
+{text:'Calculer P(A)',num:red,den:total},
+{text:'Calculer P(<span class="event-bar">A</span>) (événement contraire de A)',num:notRed,den:total}
+]
+};
+},
+()=>{
+return{
+type:'vocab',
+statement:`On lance une pièce équilibrée. On note A l'événement : "Obtenir Pile".`,
+questions:[
+{text:'Calculer P(A)',num:1,den:2},
+{text:'Calculer P(<span class="event-bar">A</span>)',num:1,den:2}
+]
+};
+},
+// Multiple events
+()=>{
+const faces=6;
+return{
+type:'vocab',
+statement:`On lance un dé à 6 faces. On note A : "Obtenir un multiple de 3" et B : "Obtenir un nombre impair".`,
+questions:[
+{text:'Calculer P(A)',num:2,den:6},
+{text:'Calculer P(B)',num:3,den:6}
+]
+};
+},
+()=>{
+const total=12;
+const red=4;
+const blue=5;
+const green=3;
+return{
+type:'vocab',
+statement:`Un sac contient ${red} billes rouges, ${blue} billes bleues et ${green} billes vertes. On tire une bille. On note R : "Tirer une bille rouge" et B : "Tirer une bille bleue".`,
+questions:[
+{text:'Calculer P(R)',num:red,den:total},
+{text:'Calculer P(B)',num:blue,den:total}
+]
+};
+},
+// Certain and impossible
+()=>{
+return{
+type:'vocab',
+statement:`On lance un dé à 6 faces. On note C l'événement : "Obtenir un nombre entre 1 et 6" et I l'événement : "Obtenir 8".`,
+questions:[
+{text:'Calculer P(C) (événement certain)',num:1,den:1},
+{text:'Calculer P(I) (événement impossible)',num:0,den:1}
+]
+};
+},
+// Card problems
+()=>{
+return{
+type:'vocab',
+statement:`On tire une carte dans un jeu de 32 cartes. On note C l'événement : "Tirer un Cœur".`,
+questions:[
+{text:'Calculer P(C)',num:8,den:32}
+]
+};
+},
+()=>{
+return{
+type:'vocab',
+statement:`On tire une carte dans un jeu de 52 cartes. On note R l'événement : "Tirer une carte rouge" (Cœur ou Carreau).`,
+questions:[
+{text:'Calculer P(R)',num:26,den:52},
+{text:'Calculer P(<span class="event-bar">R</span>)',num:26,den:52}
+]
+};
+},
+// Superior/inferior
+()=>{
+const faces=6;
+const target=4;
+const count=faces-target+1;
+return{
+type:'vocab',
+statement:`On lance un dé à 6 faces. On note S l'événement : "Obtenir un nombre supérieur ou égal à ${target}".`,
+questions:[
+{text:'Calculer P(S)',num:count,den:faces}
+]
+};
+}
+];
+
+const selected=[];
+const used=new Set();
+while(selected.length<10){
+const ex=rv(pool)();
+const key=ex.statement;
+if(!used.has(key)){
+selected.push(ex);
+used.add(key);
+}
+}
+return selected;
+}
+
+function renderL2(q){
+const Z=$('zone');
+let h=`<div class="statement">${q.statement}</div>`;
+q.questions.forEach((quest,idx)=>{
+h+=`<div class="input-group" style="margin:20px 0">
+<span style="font-size:1em;color:var(--gold-light)">${quest.text} = </span>
+<input type="text" class="inp" id="l2n${idx}" placeholder="..." style="width:70px">
+<span style="font-size:1em;color:var(--text-light)">/</span>
+<input type="text" class="inp" id="l2d${idx}" placeholder="..." style="width:70px">
+</div>`;
+});
+h+=`<div class="controls"><button class="btn btn-gold" onclick="chkL2()">Valider</button></div>`;
+Z.innerHTML=h;
+}
+
+function chkL2(){
+let allOk=true;
+cq.questions.forEach((quest,idx)=>{
+const num=parseInt($(`l2n${idx}`).value);
+const den=parseInt($(`l2d${idx}`).value);
+$(`l2n${idx}`).classList.remove('err','ok');
+$(`l2d${idx}`).classList.remove('err','ok');
+if(isNaN(num)||isNaN(den)||den===0){
+$(`l2n${idx}`).classList.add('err');
+$(`l2d${idx}`).classList.add('err');
+allOk=false;
+return;
+}
+const ok=fracEq(num,den,quest.num,quest.den);
+if(ok){
+$(`l2n${idx}`).classList.add('ok');
+$(`l2d${idx}`).classList.add('ok');
+}else{
+$(`l2n${idx}`).classList.add('err');
+$(`l2d${idx}`).classList.add('err');
+allOk=false;
+}
+});
+if(allOk){
+finish(true,'');
+}else{
+let msg='Réponses attendues : ';
+cq.questions.forEach((q,i)=>{
+const[sn,sd]=simplify(q.num,q.den);
+msg+=`${frac(sn,sd)}${i<cq.questions.length-1?' et ':''}`;
+});
+finish(false,msg);
+}
+}
+
+// ===== LEVEL 3: 3ème - Double entry tables =====
+function genL3(){
+const pool=[
+// Two dice sum - various targets
+()=>{
+const target=7;
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i+j===target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la somme des deux dés, puis calculez la probabilité que la somme soit égale à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'sum',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+const target=rInt(8,11);
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i+j>=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la somme des deux dés, puis calculez la probabilité que la somme soit supérieure ou égale à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'sum',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val>=target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+const target=rInt(3,5);
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i+j<=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la somme des deux dés, puis calculez la probabilité que la somme soit inférieure ou égale à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'sum',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val<=target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if((i+j)%2===0)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la somme des deux dés, puis calculez la probabilité que la somme soit paire.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'sum',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val%2===0,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if((i+j)%2===1)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la somme des deux dés, puis calculez la probabilité que la somme soit impaire.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'sum',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val%2===1,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if((i+j)%3===0)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la somme des deux dés, puis calculez la probabilité que la somme soit un multiple de 3.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'sum',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val%3===0,
+answerNum:count,
+answerDen:36
+};
+},
+// Two dice product
+()=>{
+const target=12;
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i*j===target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le produit des deux dés, puis calculez la probabilité que le produit soit égal à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'product',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+const target=rInt(15,20);
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i*j>=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le produit des deux dés, puis calculez la probabilité que le produit soit supérieur ou égal à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'product',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val>=target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if((i*j)%2===0)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le produit des deux dés, puis calculez la probabilité que le produit soit pair.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'product',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val%2===0,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i*j>i+j)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le produit des deux dés, puis calculez la probabilité que le produit soit strictement supérieur à la somme.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'product',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val,r,c)=>r*c>r+c,
+answerNum:count,
+answerDen:36
+};
+},
+// Coin and die combinations
+()=>{
+const target=rInt(4,6);
+let count=0;
+const coins=['P','F'];
+for(let i=0;i<2;i++){
+for(let j=1;j<=6;j++){
+if(j>=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance une pièce de monnaie (P=Pile, F=Face) et un dé à 6 faces. Complétez le tableau à double entrée avec le résultat du dé, puis calculez la probabilité que le dé montre un nombre supérieur ou égal à ${target}.`,
+rows:['P','F'],
+cols:[1,2,3,4,5,6],
+operation:'die-only',
+rowLabel:'Pièce',
+colLabel:'Dé',
+condition:(die)=>die>=target,
+answerNum:count,
+answerDen:12
+};
+},
+()=>{
+let count=0;
+for(let i=0;i<2;i++){
+for(let j=1;j<=6;j++){
+if(j%2===0)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance une pièce de monnaie (P=Pile, F=Face) et un dé à 6 faces. Complétez le tableau à double entrée avec le résultat du dé, puis calculez la probabilité que le dé montre un nombre pair.`,
+rows:['P','F'],
+cols:[1,2,3,4,5,6],
+operation:'die-only',
+rowLabel:'Pièce',
+colLabel:'Dé',
+condition:(die)=>die%2===0,
+answerNum:count,
+answerDen:12
+};
+},
+()=>{
+let count=0;
+for(let i=0;i<2;i++){
+for(let j=1;j<=6;j++){
+if(i===0&&j%2===0)count++; // Pile AND even
+}
+}
+return{
+type:'table',
+statement:`On lance une pièce de monnaie (P=Pile, F=Face) et un dé à 6 faces. Complétez le tableau à double entrée avec le résultat du dé, puis calculez la probabilité d'obtenir Pile ET un nombre pair sur le dé.`,
+rows:['P','F'],
+cols:[1,2,3,4,5,6],
+operation:'die-only',
+rowLabel:'Pièce',
+colLabel:'Dé',
+condition:(die,coin)=>coin==='P'&&die%2===0,
+answerNum:count,
+answerDen:12
+};
+},
+// Spinners with different sizes
+()=>{
+const spinnerA=[1,2,3,4];
+const spinnerB=[1,2,3];
+const target=rInt(5,7);
+let count=0;
+for(let i of spinnerA){
+for(let j of spinnerB){
+if(i+j>=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On fait tourner deux roues : la première a 4 secteurs (1, 2, 3, 4) et la seconde a 3 secteurs (1, 2, 3). Complétez le tableau à double entrée avec la somme, puis calculez la probabilité que la somme soit supérieure ou égale à ${target}.`,
+rows:spinnerA,
+cols:spinnerB,
+operation:'sum',
+rowLabel:'Roue 1',
+colLabel:'Roue 2',
+condition:(val)=>val>=target,
+answerNum:count,
+answerDen:12
+};
+},
+()=>{
+const spinnerA=[1,2,3,4];
+const spinnerB=[1,2,3];
+let count=0;
+for(let i of spinnerA){
+for(let j of spinnerB){
+if(i*j>=6)count++;
+}
+}
+return{
+type:'table',
+statement:`On fait tourner deux roues : la première a 4 secteurs (1, 2, 3, 4) et la seconde a 3 secteurs (1, 2, 3). Complétez le tableau à double entrée avec le produit, puis calculez la probabilité que le produit soit supérieur ou égal à 6.`,
+rows:[1,2,3,4],
+cols:[1,2,3],
+operation:'product',
+rowLabel:'Roue 1',
+colLabel:'Roue 2',
+condition:(val)=>val>=6,
+answerNum:count,
+answerDen:12
+};
+},
+()=>{
+const spinnerA=[2,4,6,8];
+const spinnerB=[1,3,5];
+const target=rInt(8,12);
+let count=0;
+for(let i of spinnerA){
+for(let j of spinnerB){
+if(i+j>=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On fait tourner deux roues : la première a 4 secteurs (2, 4, 6, 8) et la seconde a 3 secteurs (1, 3, 5). Complétez le tableau à double entrée avec la somme, puis calculez la probabilité que la somme soit supérieure ou égale à ${target}.`,
+rows:spinnerA,
+cols:spinnerB,
+operation:'sum',
+rowLabel:'Roue 1',
+colLabel:'Roue 2',
+condition:(val)=>val>=target,
+answerNum:count,
+answerDen:12
+};
+},
+// Maximum operations
+()=>{
+const target=5;
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(Math.max(i,j)===target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le maximum des deux dés, puis calculez la probabilité que le maximum soit égal à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'max',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+const target=rInt(4,6);
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(Math.max(i,j)>=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le maximum des deux dés, puis calculez la probabilité que le maximum soit supérieur ou égal à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'max',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val>=target,
+answerNum:count,
+answerDen:36
+};
+},
+// Minimum operations
+()=>{
+const target=3;
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(Math.min(i,j)===target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le minimum des deux dés, puis calculez la probabilité que le minimum soit égal à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'min',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+const target=rInt(2,4);
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(Math.min(i,j)<=target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec le minimum des deux dés, puis calculez la probabilité que le minimum soit inférieur ou égal à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'min',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val<=target,
+answerNum:count,
+answerDen:36
+};
+},
+// Difference (absolute value)
+()=>{
+const target=rInt(2,4);
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(Math.abs(i-j)===target)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la différence (valeur absolue) des deux dés, puis calculez la probabilité que cette différence soit égale à ${target}.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'diff',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===target,
+answerNum:count,
+answerDen:36
+};
+},
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(Math.abs(i-j)<=1)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec la différence (valeur absolue) des deux dés, puis calculez la probabilité que cette différence soit inférieure ou égale à 1.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'diff',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val<=1,
+answerNum:count,
+answerDen:36
+};
+},
+// Same result
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i===j)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec 1 si les deux dés montrent le même résultat, 0 sinon. Puis calculez la probabilité d'obtenir le même résultat sur les deux dés.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'same',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===1,
+answerNum:count,
+answerDen:36
+};
+},
+// Both even
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i%2===0&&j%2===0)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec 1 si les deux dés sont pairs, 0 sinon. Puis calculez la probabilité que les deux dés soient pairs.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'both-even',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===1,
+answerNum:count,
+answerDen:36
+};
+},
+// At least one even
+()=>{
+let count=0;
+for(let i=1;i<=6;i++){
+for(let j=1;j<=6;j++){
+if(i%2===0||j%2===0)count++;
+}
+}
+return{
+type:'table',
+statement:`On lance deux dés à 6 faces. Complétez le tableau à double entrée avec 1 si au moins un dé est pair, 0 sinon. Puis calculez la probabilité qu'au moins un dé soit pair.`,
+rows:[1,2,3,4,5,6],
+cols:[1,2,3,4,5,6],
+operation:'at-least-one-even',
+rowLabel:'Dé 1',
+colLabel:'Dé 2',
+condition:(val)=>val===1,
+answerNum:count,
+answerDen:36
+};
+}
+];
+
+const selected=[];
+const used=new Set();
+while(selected.length<12){
+const ex=rv(pool)();
+const key=ex.statement;
+if(!used.has(key)){
+selected.push(ex);
+used.add(key);
+}
+}
+return selected;
+}
+
+function renderL3(q){
+const Z=$('zone');
+let h=`<div class="statement">${q.statement}</div>`;
+h+=`<div class="table-wrapper">`;
+h+=`<table class="prob-table">`;
+h+=`<tr><th></th>`;
+q.cols.forEach(c=>h+=`<th>${c}</th>`);
+h+=`</tr>`;
+q.rows.forEach(r=>{
+h+=`<tr><th>${r}</th>`;
+q.cols.forEach(c=>{
+const id=`t_${r}_${c}`;
+h+=`<td class="input-cell"><input type="text" id="${id}" data-row="${r}" data-col="${c}"></td>`;
+});
+h+=`</tr>`;
+});
+h+=`</table></div>`;
+h+=`<div class="controls"><button class="btn btn-gold" onclick="chkL3Table()">Valider le tableau</button></div>`;
+h+=`<div id="questionPhase" style="display:none;margin-top:24px">`;
+h+=`<div class="input-group">
+<span style="font-size:1.05em;color:var(--gold-light)">Probabilité = </span>
+<input type="text" class="inp" id="l3num" placeholder="...">
+<span style="font-size:1.05em;color:var(--text-light)">/</span>
+<input type="text" class="inp" id="l3den" placeholder="...">
+</div>`;
+h+=`<div class="controls"><button class="btn btn-gold" onclick="chkL3Answer()">Valider la réponse</button></div>`;
+h+=`</div>`;
+Z.innerHTML=h;
+cq._tableValidated=false;
+}
+
+function chkL3Table(){
+let allOk=true;
+cq.rows.forEach(r=>{
+cq.cols.forEach(c=>{
+const input=$(`t_${r}_${c}`);
+const val=parseInt(input.value);
+input.classList.remove('err','ok');
+let expected;
+if(cq.operation==='sum'){
+expected=Number(r)+Number(c);
+}else if(cq.operation==='product'){
+expected=Number(r)*Number(c);
+}else if(cq.operation==='max'){
+expected=Math.max(Number(r),Number(c));
+}else if(cq.operation==='min'){
+expected=Math.min(Number(r),Number(c));
+}else if(cq.operation==='diff'){
+expected=Math.abs(Number(r)-Number(c));
+}else if(cq.operation==='same'){
+expected=Number(r)===Number(c)?1:0;
+}else if(cq.operation==='both-even'){
+expected=(Number(r)%2===0&&Number(c)%2===0)?1:0;
+}else if(cq.operation==='at-least-one-even'){
+expected=(Number(r)%2===0||Number(c)%2===0)?1:0;
+}else if(cq.operation==='die-only'){
+expected=Number(c);
+}
+if(val===expected){
+input.classList.add('ok');
+input.disabled=true;
+}else{
+input.classList.add('err');
+allOk=false;
+}
+});
+});
+if(allOk){
+cq._tableValidated=true;
+$('questionPhase').style.display='block';
+const fb=$('fb');
+fb.className='fb ok';
+fb.textContent='✅ Tableau correct ! Maintenant, répondez à la question.';
+}else{
+const fb=$('fb');
+fb.className='fb bad';
+fb.textContent='❌ Certaines cases sont incorrectes. Vérifiez vos calculs.';
+}
+}
+
+function chkL3Answer(){
+if(!cq._tableValidated){
+const fb=$('fb');
+fb.className='fb bad';
+fb.textContent='❌ Veuillez d\'abord valider le tableau.';
+return;
+}
+const num=parseInt($('l3num').value);
+const den=parseInt($('l3den').value);
+$('l3num').classList.remove('err','ok');
+$('l3den').classList.remove('err','ok');
+if(isNaN(num)||isNaN(den)||den===0){
+$('l3num').classList.add('err');
+$('l3den').classList.add('err');
+return;
+}
+const ok=fracEq(num,den,cq.answerNum,cq.answerDen);
+if(ok){
+$('l3num').classList.add('ok');
+$('l3den').classList.add('ok');
+finish(true,'');
+}else{
+$('l3num').classList.add('err');
+$('l3den').classList.add('err');
+const[sn,sd]=simplify(cq.answerNum,cq.answerDen);
+finish(false,`La bonne réponse est ${frac(sn,sd)}`);
+}
+}
+
+// ===== FLOW CONTROL =====
+function go(l){
+lv=l;sc=0;qi=0;
+if(l===1)qs=genL1();
+else if(l===2)qs=genL2();
+else qs=genL3();
+$('badge').textContent=LVNAMES[l];
+show('S_ex');
+loadQ();
+}
+
+function loadQ(){
+cq=qs[qi];
+$('scLbl').textContent=`${sc} / ${qi}`;
+$('pfill').style.width=(qi/qs.length*100)+'%';
+$('fb').className='fb';
+$('nxt').style.display='none';
+$('zone').innerHTML='';
+if(lv===1)renderL1(cq);
+else if(lv===2)renderL2(cq);
+else renderL3(cq);
+}
+
+function finish(ok,msg){
+if(ok)sc++;
+$('scLbl').textContent=`${sc} / ${qi+1}`;
+const fb=$('fb');
+fb.className=ok?'fb ok':'fb bad';
+if(ok){
+fb.innerHTML='✅ Correct !';
+}else{
+fb.innerHTML=`❌ ${msg||'Incorrect.'}`;
+}
+$('nxt').style.display='';
+}
+
+function nxtQ(){
+qi++;
+if(qi>=qs.length)showRes();
+else loadQ();
+}
+
+function showRes(){
+const tot=qs.length;
+const pct=tot>0?Math.round(sc/tot*100):0;
+const tier=pct>=80?'good':pct>=50?'mid':'bad';
+$('rCirc').className=`rc ${tier}`;
+const rp=$('rPct');
+rp.textContent=`${pct}%`;
+rp.style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--gold)':'var(--red)';
+$('rMsg').textContent=pct===100?'Parfait ! 🎉':pct>=80?'Très bien ! 👏':pct>=60?'Continue tes efforts ! 💪':'Reprends la fiche méthode et réessaie. 📚';
+show('S_res');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

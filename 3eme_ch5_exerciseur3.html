@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réciproque de Pythagore — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Nunito:wght@400;500;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#f5efe6;--grid:#e8dcc8;--card:#fff;--soft:#fdf9f4;
+--green:#1a4731;--gmid:#2d6a4f;--glight:#d1e8dc;--gborder:#a3c4b0;
+--amber:#92400e;--alight:#fef3c7;--aborder:#fcd34d;
+--gold:#b45309;--gpale:#fffbeb;
+--ok:#15803d;--okp:#f0fdf4;
+--err:#b91c1c;--errp:#fef2f2;
+--text:#1c1917;--dim:#78716c;--border:#d6cfc4;--shadow:rgba(28,25,23,.1);
+--purple:#5b21b6;--pp:#f5f3ff;--pborder:#c4b5fd;
+}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:var(--bg);
+background-image:repeating-linear-gradient(0deg,transparent,transparent 27px,var(--grid) 27px,var(--grid) 28px),
+repeating-linear-gradient(90deg,transparent,transparent 27px,var(--grid) 27px,var(--grid) 28px);
+background-size:28px 28px;display:flex;justify-content:center;
+padding:16px 10px 80px;color:var(--text);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+.app{max-width:900px;width:100%}
+
+.hdr{background:var(--green);color:#fff;padding:15px 24px;border-radius:14px 14px 0 0;
+display:flex;align-items:center;justify-content:space-between;
+box-shadow:0 4px 20px rgba(26,71,49,.3);position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;inset:0;
+background:repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,255,255,.04) 12px,rgba(255,255,255,.04) 24px);
+pointer-events:none}
+.hdr-title{font-family:'Playfair Display',serif;font-size:1.15em;font-weight:700;position:relative}
+.hdr-title::before{content:'△ ';opacity:.7}
+.hdr-badge{background:rgba(255,255,255,.2);color:#fff;padding:4px 12px;border-radius:20px;font-size:.8em;font-weight:700;display:none}
+
+.main{background:var(--card);border:2px solid var(--border);border-top:none;border-radius:0 0 14px 14px;
+padding:28px 24px;box-shadow:0 8px 30px var(--shadow);min-height:50vh;position:relative}
+.main::after{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+background:linear-gradient(90deg,transparent,var(--gborder),transparent)}
+
+.screen{display:none;animation:fadeIn .35s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+
+h1{font-family:'Playfair Display',serif;font-size:1.5em;font-weight:700;text-align:center;margin-bottom:8px;color:var(--green)}
+.sub{text-align:center;font-size:.93em;color:var(--dim);margin-bottom:22px;line-height:1.6}
+
+.btn{font-family:'Nunito',sans-serif;padding:10px 22px;border-radius:10px;font-size:.93em;font-weight:700;
+cursor:pointer;transition:all .22s;border:2px solid;min-height:44px;touch-action:manipulation;
+display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-g{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 2px 10px rgba(26,71,49,.2)}
+.btn-g:hover:not(:disabled){background:var(--gmid);transform:translateY(-1px)}
+.btn-a{background:var(--amber);color:#fff;border-color:var(--amber)}
+.btn-a:hover:not(:disabled){background:var(--gold)}
+.btn-gh{background:transparent;color:var(--dim);border-color:var(--border)}
+.btn-gh:hover{background:var(--bg)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+
+/* WELCOME */
+.wbox{background:var(--soft);border:2px solid var(--gborder);border-radius:16px;padding:26px 22px;margin:18px 0;text-align:center}
+.wicon{font-size:3.2em;margin-bottom:10px}
+.wtitle{font-family:'Playfair Display',serif;font-size:1.25em;color:var(--green);font-weight:700;margin-bottom:10px}
+.wdesc{font-size:.93em;color:var(--dim);line-height:1.7}
+.wtag{display:inline-block;background:var(--alight);color:var(--amber);border:1px solid var(--aborder);
+border-radius:20px;padding:4px 14px;font-size:.82em;font-weight:700;margin-top:12px}
+
+/* EX HEADER */
+.extop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.exbadge{background:var(--glight);color:var(--green);padding:5px 14px;border-radius:20px;font-size:.84em;font-weight:700;border:1px solid var(--gborder)}
+.exscore{font-family:'Playfair Display',serif;font-size:1em;color:var(--gold);font-weight:700}
+.pbar{width:100%;background:var(--border);border-radius:6px;height:5px;overflow:hidden;margin-bottom:20px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--green),#52b788);border-radius:6px;transition:width .5s}
+
+/* TRIANGLE */
+.trizone{background:var(--soft);border:2px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.trilabel{font-size:.74em;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px;text-align:center}
+.cwrap{text-align:center}
+canvas{background:#fff;border:1px solid var(--border);border-radius:10px;max-width:100%;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+/* FORMULAS */
+.fline{font-family:'Kalam',cursive;font-size:1.25em;display:flex;align-items:center;
+justify-content:center;gap:3px;flex-wrap:wrap;margin:5px 0;line-height:2}
+.fs{color:var(--text);font-weight:700}
+.fo{color:var(--gold);font-weight:700;margin:0 2px}
+.fsup{font-size:.58em;vertical-align:super;line-height:0;color:var(--gold);font-weight:700}
+.fi{font-family:'Kalam',cursive;font-size:.88em;font-weight:700;text-align:center;
+border:2px dashed var(--gborder);border-radius:8px;background:var(--glight);
+padding:5px 4px;outline:none;color:var(--text);transition:all .22s}
+.fi:focus{border-color:var(--green);border-style:solid;background:#fff;box-shadow:0 0 0 3px rgba(26,71,49,.1)}
+.fi.ok{border-color:var(--ok)!important;border-style:solid!important;background:var(--okp)!important;color:var(--ok)!important}
+.fi.err{border-color:var(--err)!important;border-style:solid!important;background:var(--errp)!important;animation:shake .35s}
+.fw{width:62px}.fn{width:50px}.fnw{width:62px}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.side{background:var(--soft);border:2px solid var(--border);border-radius:14px;padding:16px 14px}
+.side.sl{border-color:var(--aborder)}.side.sr{border-color:var(--gborder)}
+.shead{font-family:'Playfair Display',serif;font-size:1em;font-weight:700;
+text-align:center;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid}
+.shead.l{color:var(--amber);border-color:var(--aborder)}
+.shead.r{color:var(--green);border-color:var(--gborder)}
+.slbl{font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin-bottom:6px;text-align:center}
+.sblock{margin-top:12px;animation:pop .3s ease}
+.vw{text-align:center;margin-top:10px}
+
+/* COMPARE / THM / CONCLUSION */
+.cmpzone{background:var(--gpale);border:2px solid var(--aborder);border-radius:14px;padding:18px 16px;margin:14px 0;animation:pop .4s ease}
+.cmptitle{font-family:'Playfair Display',serif;font-size:1em;color:var(--amber);font-weight:700;margin-bottom:12px;text-align:center}
+.cmpbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.cb{font-family:'Nunito',sans-serif;font-size:.97em;font-weight:700;padding:12px 22px;
+border-radius:12px;cursor:pointer;border:3px solid;transition:all .22s;background:#fff;min-height:46px;touch-action:manipulation}
+.cb.eq{color:var(--ok);border-color:var(--ok)}.cb.eq:hover:not(:disabled){background:var(--okp)}
+.cb.neq{color:var(--err);border-color:var(--err)}.cb.neq:hover:not(:disabled){background:var(--errp)}
+.cb.correct{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important}
+.cb.wrong{background:var(--err)!important;border-color:var(--err)!important;color:#fff!important;opacity:1!important}
+.cb.to-click{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important;cursor:pointer!important}
+.cb:disabled{cursor:not-allowed}
+
+.thmzone{background:var(--pp);border:2px solid var(--pborder);border-radius:14px;padding:18px 16px;margin:14px 0;animation:pop .4s ease}
+.thmtitle{font-family:'Playfair Display',serif;font-size:1em;color:var(--purple);font-weight:700;margin-bottom:12px;text-align:center}
+.thmbtns{display:flex;flex-direction:column;gap:10px}
+.tb{font-family:'Nunito',sans-serif;font-size:.93em;font-weight:700;padding:12px 18px;
+border-radius:12px;cursor:pointer;border:2px solid var(--pborder);background:#fff;color:var(--purple);
+transition:all .22s;min-height:46px;touch-action:manipulation;text-align:left;line-height:1.4;width:100%}
+.tb:hover:not(:disabled){background:var(--pp);border-color:var(--purple)}
+.tb.correct{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important}
+.tb.wrong{background:var(--err)!important;border-color:var(--err)!important;color:#fff!important;opacity:1!important}
+.tb.to-click{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important;cursor:pointer!important}
+.tb:disabled{cursor:not-allowed}
+
+.conclzone{border:2px solid;border-radius:14px;padding:18px 20px;margin:14px 0;animation:pop .4s ease;text-align:center}
+.conclzone.good{background:var(--okp);border-color:rgba(21,128,61,.3)}
+.conclzone.bad{background:var(--errp);border-color:rgba(185,28,28,.25)}
+.concltext{font-family:'Playfair Display',serif;font-size:1em;line-height:1.8}
+.conclzone.good .concltext{color:var(--green)}
+.conclzone.bad .concltext{color:var(--err)}
+
+/* FEEDBACK */
+.fb{margin-top:16px;padding:13px 17px;border-radius:12px;font-size:.93em;
+text-align:center;display:none;animation:fadeIn .3s;font-weight:600;line-height:1.6;border:2px solid}
+.fb.ok{display:block;background:var(--okp);color:var(--ok);border-color:rgba(21,128,61,.25)}
+.fb.bad{display:block;background:var(--errp);color:var(--err);border-color:rgba(185,28,28,.2)}
+
+/* DOTS */
+.pd{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:all .3s}
+.dot.active{background:var(--green);box-shadow:0 0 0 3px var(--glight)}
+.dot.done{background:var(--ok)}
+
+/* RESULTS */
+.rc{width:140px;height:140px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:22px auto;border:5px solid;position:relative;overflow:hidden}
+.rc::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.4),transparent)}
+.rc.good{border-color:var(--ok);background:var(--okp)}
+.rc.mid{border-color:var(--gold);background:var(--gpale)}
+.rc.bad{border-color:var(--err);background:var(--errp)}
+.rp{font-family:'Playfair Display',serif;font-size:2.4em;font-weight:700;line-height:1;position:relative;z-index:1}
+.rc.good .rp{color:var(--ok)}.rc.mid .rp{color:var(--gold)}.rc.bad .rp{color:var(--err)}
+.rm{font-family:'Playfair Display',serif;font-size:1.1em;text-align:center;margin:16px 0;font-weight:600;color:var(--green)}
+
+/* CALCULATRICE */
+#calcBtn{position:fixed;bottom:20px;right:20px;width:62px;height:62px;border-radius:50%;
+background:var(--green);color:#fff;font-size:1.7em;border:none;cursor:pointer;
+box-shadow:0 4px 18px rgba(26,71,49,.4);z-index:1000;transition:all .25s;
+display:flex;align-items:center;justify-content:center}
+#calcBtn:hover{background:var(--gmid);transform:scale(1.1)}
+#calcBtn.open{background:var(--amber)}
+#calcPanel{position:fixed;bottom:94px;right:16px;background:#fff;border:2px solid var(--border);
+border-radius:18px;padding:16px;box-shadow:0 8px 32px var(--shadow);z-index:999;display:none;width:260px}
+#calcPanel.vis{display:block;animation:pop .25s ease}
+#calcDisp{background:#f8f8f6;border:2px solid var(--border);border-radius:10px;
+padding:11px 14px;font-family:'Kalam',cursive;font-size:1.4em;font-weight:700;
+color:var(--text);text-align:right;margin-bottom:12px;min-height:50px;word-break:break-all;line-height:1.3}
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ck{font-family:'Nunito',sans-serif;font-weight:700;font-size:1em;padding:11px 4px;
+border-radius:9px;border:none;cursor:pointer;transition:all .15s;min-height:44px}
+.ck:active{transform:scale(.93)}
+.ck.n{background:#f0ede8;color:var(--text)}.ck.n:hover{background:var(--border)}
+.ck.o{background:var(--alight);color:var(--amber)}.ck.o:hover{background:var(--aborder)}
+.ck.e{background:var(--green);color:#fff;grid-column:span 2}.ck.e:hover{background:var(--gmid)}
+.ck.c{background:var(--errp);color:var(--err)}.ck.c:hover{background:#fecaca}
+.ck.s{background:var(--pp);color:var(--purple)}.ck.s:hover{background:var(--pborder)}
+
+/* RESPONSIVE */
+@media(max-width:680px){
+.split{grid-template-columns:1fr}.main{padding:18px 12px}
+.fline{font-size:1.05em}.fw{width:52px}.fn{width:42px}.fnw{width:52px}
+h1{font-size:1.25em}.cmpbtns{flex-direction:column;align-items:center}
+.cb{width:100%;max-width:280px}
+#calcPanel{right:8px;width:240px}
+}
+@media(max-width:420px){
+.fline{font-size:.95em}.fw{width:44px}.fn{width:36px}.fnw{width:46px}
+.btn{padding:9px 16px;font-size:.88em}.main{padding:14px 10px}
+#calcPanel{width:210px}.ck{font-size:.9em;padding:9px 2px}
+#calcBtn{width:56px;height:56px;font-size:1.5em}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr">
+<div class="hdr-title">Réciproque de Pythagore</div>
+<div class="hdr-badge" id="hdrbadge">Exercices</div>
+</div>
+<div class="main">
+
+<div id="S_welcome" class="screen active">
+<div class="wbox">
+<div class="wicon">🔺</div>
+<div class="wtitle">Le triangle est-il rectangle ?</div>
+<div class="wdesc">Un triangle est affiché avec ses trois côtés. Calcule séparément <b>Gauche</b> (le carré du plus grand côté) et <b>Droite</b> (la somme des carrés des deux autres), compare-les, puis conclus avec le bon théorème.</div>
+<div class="wtag">14 exercices par session · 50 triangles au total · Réciproque &amp; Contraposée</div>
+</div>
+<div class="controls"><button class="btn btn-g" onclick="startEx()">Commencer →</button></div>
+</div>
+
+<div id="S_ex" class="screen">
+<div class="extop">
+<div class="exbadge" id="exbadge">Question 1 / 10</div>
+<div class="exscore" id="sclbl">0 / 0</div>
+</div>
+<div class="pbar"><div class="pfill" id="pfill"></div></div>
+<div id="zone"></div>
+<div id="fb" class="fb"></div>
+<div class="controls">
+<button type="button" class="btn btn-gh" onclick="backHome()">← Accueil</button>
+</div>
+</div>
+
+<div id="S_res" class="screen">
+<h1>Résultats</h1>
+<div id="rcirc" class="rc good"><div class="rp" id="rpct">100%</div></div>
+<div class="rm" id="rmsg">Parfait !</div>
+<div class="controls">
+<button class="btn btn-g" onclick="startEx()">Rejouer</button>
+<button class="btn btn-gh" onclick="show('S_welcome')">← Accueil</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- CALCULATRICE -->
+<button id="calcBtn" onclick="toggleCalc()" title="Calculatrice">
+<span style="font-size:.55em;display:block;line-height:1;opacity:.85">calc</span>
+🖩
+</button>
+<div id="calcPanel">
+<div id="calcDisp">0</div>
+<div class="cgrid">
+<button class="ck c" onclick="cClear()" style="grid-column:span 2">C</button>
+<button class="ck s" onclick="cSq()">x²</button>
+<button class="ck o" onclick="cOp('/')">÷</button>
+<button class="ck n" onclick="cNum('7')">7</button>
+<button class="ck n" onclick="cNum('8')">8</button>
+<button class="ck n" onclick="cNum('9')">9</button>
+<button class="ck o" onclick="cOp('*')">×</button>
+<button class="ck n" onclick="cNum('4')">4</button>
+<button class="ck n" onclick="cNum('5')">5</button>
+<button class="ck n" onclick="cNum('6')">6</button>
+<button class="ck o" onclick="cOp('-')">−</button>
+<button class="ck n" onclick="cNum('1')">1</button>
+<button class="ck n" onclick="cNum('2')">2</button>
+<button class="ck n" onclick="cNum('3')">3</button>
+<button class="ck o" onclick="cOp('+')">+</button>
+<button class="ck n" onclick="cNum('0')">0</button>
+<button class="ck n" onclick="cNum('.')">.</button>
+<button class="ck e" onclick="cEq()">=</button>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')};
+let qs=[],cq=null,qi=0,sc=0;
+
+function rv(a){return a[Math.floor(Math.random()*a.length)]}
+function sh(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function normN(s){return s.toUpperCase().trim().split('').sort().join('')}
+function pf(n){return parseFloat(n.toFixed(4))}
+function fmt(n){const r=Math.round(n*100)/100;return Number.isInteger(r)?r:r}
+
+// ===== CALCULATRICE =====
+let cExpr='0',cPrev=null,cOper_=null,cNew=true;
+function toggleCalc(){$('calcPanel').classList.toggle('vis');$('calcBtn').classList.toggle('open')}
+function updDisp(v){const d=$('calcDisp');const s=String(v);d.textContent=s.length>13?parseFloat(v).toExponential(5):s}
+function cNum(n){if(cNew){cExpr=n==='.'?'0.':n;cNew=false;}else{if(n==='.'&&cExpr.includes('.'))return;cExpr+=n;}updDisp(cExpr)}
+function cOp(op){if(!cNew){cPrev=parseFloat(cExpr)||0;cOper_=op;cNew=true;updDisp(cPrev);}else cOper_=op}
+function cEq(){if(cOper_===null||cNew)return;const cur=parseFloat(cExpr)||0;let r;
+switch(cOper_){case'+':r=cPrev+cur;break;case'-':r=cPrev-cur;break;case'*':r=cPrev*cur;break;case'/':r=cur===0?NaN:cPrev/cur;break;default:r=cur}
+cExpr=isNaN(r)?'Erreur':String(parseFloat(r.toFixed(10)));updDisp(cExpr);cOper_=null;cPrev=null;cNew=true}
+function cSq(){const v=parseFloat(cExpr)||0;cExpr=String(parseFloat((v*v).toFixed(10)));updDisp(cExpr);cNew=true}
+function cClear(){cExpr='0';cPrev=null;cOper_=null;cNew=true;updDisp('0')}
+
+// ===== DONNÉES =====
+function genEx(){
+const pool=['E','F','G','H','I','J','K','M','N','P','Q','R','S','T','U','V'];
+
+// TRIANGLES RECTANGLES : c² = a² + b² vérifié pour chaque entrée
+const right=[
+// Triplets classiques entiers
+{a:3,  b:4,   c:5},    // 9+16=25 ✓
+{a:5,  b:12,  c:13},   // 25+144=169 ✓
+{a:6,  b:8,   c:10},   // 36+64=100 ✓
+{a:8,  b:15,  c:17},   // 64+225=289 ✓
+{a:9,  b:12,  c:15},   // 81+144=225 ✓
+{a:7,  b:24,  c:25},   // 49+576=625 ✓
+{a:20, b:21,  c:29},   // 400+441=841 ✓
+{a:10, b:24,  c:26},   // 100+576=676 ✓
+{a:12, b:35,  c:37},   // 144+1225=1369 ✓
+{a:16, b:30,  c:34},   // 256+900=1156 ✓
+{a:20, b:48,  c:52},   // 400+2304=2704 ✓
+{a:28, b:45,  c:53},   // 784+2025=2809 ✓
+{a:33, b:56,  c:65},   // 1089+3136=4225 ✓
+{a:36, b:77,  c:85},   // 1296+5929=7225 ✓
+{a:15, b:20,  c:25},   // 225+400=625 ✓
+{a:11, b:60,  c:61},   // 121+3600=3721 ✓
+// Décimaux
+{a:1.5,b:2,   c:2.5},  // 2.25+4=6.25 ✓
+{a:2.5,b:6,   c:6.5},  // 6.25+36=42.25 ✓
+{a:0.3,b:0.4, c:0.5},  // 0.09+0.16=0.25 ✓
+{a:0.6,b:0.8, c:1},    // 0.36+0.64=1 ✓
+{a:2.4,b:3.2, c:4},    // 5.76+10.24=16 ✓
+{a:3.6,b:4.8, c:6},    // 12.96+23.04=36 ✓
+{a:4.5,b:6,   c:7.5},  // 20.25+36=56.25 ✓
+{a:6,  b:2.5, c:6.5},  // 36+6.25=42.25 ✓
+];
+
+// TRIANGLES NON RECTANGLES : c² ≠ a² + b² vérifié pour chaque entrée
+const notRight=[
+{a:3,  b:4,   c:6},    // 9+16=25 ≠ 36 ✓
+{a:5,  b:5,   c:7},    // 25+25=50 ≠ 49 ✓ (proche!)
+{a:4,  b:5,   c:7},    // 16+25=41 ≠ 49 ✓
+{a:5,  b:7,   c:9},    // 25+49=74 ≠ 81 ✓
+{a:4,  b:7,   c:8},    // 16+49=65 ≠ 64 ✓ (proche!)
+{a:3,  b:6,   c:7},    // 9+36=45 ≠ 49 ✓
+{a:2,  b:3,   c:4},    // 4+9=13 ≠ 16 ✓
+{a:6,  b:6,   c:9},    // 36+36=72 ≠ 81 ✓
+{a:4,  b:6,   c:8},    // 16+36=52 ≠ 64 ✓
+{a:5,  b:8,   c:10},   // 25+64=89 ≠ 100 ✓
+{a:2,  b:4,   c:5},    // 4+16=20 ≠ 25 ✓
+{a:6,  b:7,   c:10},   // 36+49=85 ≠ 100 ✓
+{a:5,  b:6,   c:8},    // 25+36=61 ≠ 64 ✓
+{a:7,  b:8,   c:11},   // 49+64=113 ≠ 121 ✓
+{a:3,  b:5,   c:6},    // 9+25=34 ≠ 36 ✓
+{a:4,  b:6,   c:7},    // 16+36=52 ≠ 49 ✓
+{a:8,  b:9,   c:12},   // 64+81=145 ≠ 144 ✓ (proche!)
+{a:6,  b:9,   c:11},   // 36+81=117 ≠ 121 ✓
+{a:4,  b:5,   c:8},    // 16+25=41 ≠ 64 ✓
+{a:7,  b:10,  c:12},   // 49+100=149 ≠ 144 ✓
+{a:3,  b:7,   c:8},    // 9+49=58 ≠ 64 ✓
+{a:6,  b:8,   c:11},   // 36+64=100 ≠ 121 ✓
+{a:9,  b:10,  c:14},   // 81+100=181 ≠ 196 ✓
+{a:10, b:11,  c:15},   // 100+121=221 ≠ 225 ✓ (proche!)
+{a:1.5,b:3,   c:3.5},  // 2.25+9=11.25 ≠ 12.25 ✓
+{a:2.5,b:5,   c:5.5},  // 6.25+25=31.25 ≠ 30.25 ✓
+];
+
+const sel=[...sh(right).slice(0,7),...sh(notRight).slice(0,7)];
+return sh(sel).map(tri=>{
+const [lA,lB,lC]=sh(pool).slice(0,3);
+const cSq=pf(tri.c*tri.c),aSq=pf(tri.a*tri.a),bSq=pf(tri.b*tri.b);
+const isRect=Math.abs(cSq-(aSq+bSq))<0.01;
+return{dims:tri,labels:{A:lA,B:lB,C:lC},
+hypName:lA+lB,c1Name:lA+lC,c2Name:lB+lC,
+hypVal:tri.c,hypSq:fmt(tri.c*tri.c),
+v1:tri.a,sq1:fmt(tri.a*tri.a),v2:tri.b,sq2:fmt(tri.b*tri.b),
+droite:fmt(tri.a*tri.a+tri.b*tri.b),
+isRect,rightV:lC};
+});
+}
+
+// ===== DESSIN =====
+function drawTri(q){
+const cv=$('triCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height;
+ctx.clearRect(0,0,W,H);
+const{a,b,c}=q.dims;
+// Loi des cosinus (angle en C, entre côtés a et b)
+const cosC=(a*a+b*b-c*c)/(2*a*b);
+const sinC=Math.sqrt(Math.max(0,1-cosC*cosC));
+// Coordonnées mathématiques (y vers le haut)
+const rC={x:0,y:0},rB={x:b,y:0},rA={x:a*cosC,y:a*sinC};
+// Bounding box
+const xs=[rC.x,rB.x,rA.x],ys=[rC.y,rB.y,rA.y];
+const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+const tw=x1-x0,th=y1-y0;
+// Marge = 22% pour les labels
+const mg=Math.min(W,H)*0.22;
+const sc=Math.min((W-2*mg)/tw,(H-2*mg)/th);
+// Conversion canvas (y inversé) + centrage
+const toCv=p=>{
+const sx=(p.x-x0)*sc,sy=(p.y-y0)*sc;
+const offX=W/2-(tw*sc/2),offY=H/2-(th*sc/2);
+return{x:offX+sx,y:H-(offY+sy)};
+};
+const pC=toCv(rC),pB=toCv(rB),pA=toCv(rA);
+const cent={x:(pA.x+pB.x+pC.x)/3,y:(pA.y+pB.y+pC.y)/3};
+
+// Grille légère
+ctx.strokeStyle='rgba(26,71,49,.09)';ctx.lineWidth=1;ctx.setLineDash([4,5]);
+ctx.beginPath();
+[pA,pB,pC].forEach(p=>{ctx.moveTo(0,p.y);ctx.lineTo(W,p.y);ctx.moveTo(p.x,0);ctx.lineTo(p.x,H)});
+ctx.stroke();ctx.setLineDash([]);
+
+// Triangle
+ctx.strokeStyle='#1a4731';ctx.lineWidth=3;ctx.shadowColor='rgba(26,71,49,.15)';ctx.shadowBlur=5;
+ctx.beginPath();ctx.moveTo(pA.x,pA.y);ctx.lineTo(pB.x,pB.y);ctx.lineTo(pC.x,pC.y);ctx.closePath();ctx.stroke();ctx.shadowBlur=0;
+
+// Points
+[pA,pB,pC].forEach(p=>{
+ctx.fillStyle='#1a4731';ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
+});
+
+// Labels sommets
+const fS=Math.max(14,Math.round(W*0.052));
+ctx.font=`bold ${fS}px 'Playfair Display',serif`;
+ctx.fillStyle='#1a4731';ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.textAlign='center';
+const lOff=Math.round(W*0.072);
+[[q.labels.A,pA],[q.labels.B,pB],[q.labels.C,pC]].forEach(([l,p])=>{
+const dx=p.x-cent.x,dy=p.y-cent.y,d=Math.hypot(dx,dy)||1;
+ctx.strokeText(l,p.x+dx/d*lOff,p.y+dy/d*lOff+fS*.35);
+ctx.fillText(l,p.x+dx/d*lOff,p.y+dy/d*lOff+fS*.35);
+});
+
+// Longueurs
+const fS2=Math.max(11,Math.round(W*0.044));
+ctx.font=`bold ${fS2}px 'Kalam',cursive`;
+ctx.fillStyle='#92400e';ctx.strokeStyle='#fff';ctx.lineWidth=4;
+const sOff=Math.round(W*0.066);
+function sideLbl(p1,p2,val){
+const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;
+const dx=p2.x-p1.x,dy=p2.y-p1.y,l=Math.hypot(dx,dy)||1;
+let nx=-dy/l,ny=dx/l;
+if((mx+nx*sOff-cent.x)*nx+(my+ny*sOff-cent.y)*ny<0){nx=-nx;ny=-ny}
+ctx.strokeText(val,mx+nx*sOff,my+ny*sOff+fS2*.35);
+ctx.fillText(val,mx+nx*sOff,my+ny*sOff+fS2*.35);
+}
+sideLbl(pA,pB,q.dims.c);sideLbl(pA,pC,q.dims.a);sideLbl(pB,pC,q.dims.b);
+}
+
+// ===== RENDU =====
+function renderQ(q){
+const Z=$('zone');
+Z.innerHTML=`
+<div class="trizone">
+<div class="trilabel">Triangle ${q.labels.A}${q.labels.B}${q.labels.C} — ce triangle est-il rectangle ?</div>
+<div class="cwrap"><canvas id="triCanvas"></canvas></div>
+</div>
+<div class="pd">
+<div class="dot active" id="d1"></div>
+<div class="dot" id="d2"></div>
+<div class="dot" id="d3"></div>
+<div class="dot" id="d4"></div>
+</div>
+<div class="split">
+  <div class="side sl">
+    <div class="shead l">Gauche</div>
+    <div class="slbl">Le plus grand côté au carré</div>
+    <div class="fline">
+      <input class="fi fw" id="g1" placeholder="côté" maxlength="3" autocomplete="off">
+      <sup class="fsup">2</sup>
+    </div>
+    <div class="vw"><button type="button" class="btn btn-a" onclick="chkG1()" id="bG1">Valider →</button></div>
+    <div id="g2" style="display:none" class="sblock">
+      <div class="slbl" style="margin-top:10px">La valeur</div>
+      <div class="fline">
+        <span class="fs" id="g1s"></span><sup class="fsup">2</sup>
+        <span class="fo">=</span>
+        <input class="fi fn" id="g2v" placeholder="?" type="text" inputmode="decimal">
+        <sup class="fsup">2</sup>
+        <span class="fo">=</span>
+        <input class="fi fnw" id="g2r" placeholder="?" type="text" inputmode="decimal">
+      </div>
+      <div class="vw"><button type="button" class="btn btn-a" onclick="chkG2()" id="bG2">Valider →</button></div>
+    </div>
+  </div>
+  <div class="side sr">
+    <div class="shead r">Droite</div>
+    <div class="slbl">Les deux autres côtés</div>
+    <div class="fline">
+      <input class="fi fw" id="d1i" placeholder="côté" maxlength="3" autocomplete="off">
+      <sup class="fsup">2</sup>
+      <span class="fo">+</span>
+      <input class="fi fw" id="d2i" placeholder="côté" maxlength="3" autocomplete="off">
+      <sup class="fsup">2</sup>
+    </div>
+    <div class="vw"><button type="button" class="btn btn-g" onclick="chkD1()" id="bD1">Valider →</button></div>
+    <div id="d2b" style="display:none" class="sblock">
+      <div class="slbl" style="margin-top:10px">Les valeurs</div>
+      <div class="fline">
+        <span class="fs" id="d1s"></span><sup class="fsup">2</sup>
+        <span class="fo">+</span>
+        <span class="fs" id="d2s"></span><sup class="fsup">2</sup>
+        <span class="fo">=</span>
+        <input class="fi fn" id="dv1" placeholder="?" type="text" inputmode="decimal">
+        <sup class="fsup">2</sup>
+        <span class="fo">+</span>
+        <input class="fi fn" id="dv2" placeholder="?" type="text" inputmode="decimal">
+        <sup class="fsup">2</sup>
+      </div>
+      <div class="vw"><button type="button" class="btn btn-g" onclick="chkD2()" id="bD2">Valider →</button></div>
+    </div>
+    <div id="d3b" style="display:none" class="sblock">
+      <div class="slbl" style="margin-top:10px">Carrés et somme</div>
+      <div class="fline">
+        <span class="fo">=</span>
+        <input class="fi fnw" id="ds1" placeholder="?" type="text" inputmode="decimal">
+        <span class="fo">+</span>
+        <input class="fi fnw" id="ds2" placeholder="?" type="text" inputmode="decimal">
+        <span class="fo">=</span>
+        <input class="fi fnw" id="dtot" placeholder="?" type="text" inputmode="decimal">
+      </div>
+      <div class="vw"><button type="button" class="btn btn-g" onclick="chkD3()" id="bD3">Valider →</button></div>
+    </div>
+  </div>
+</div>
+<div id="cmpZ" style="display:none"></div>
+<div id="thmZ" style="display:none"></div>
+<div id="conclZ" style="display:none"></div>
+`;
+// Canvas responsive
+const cv=$('triCanvas'),wrap=cv.parentElement;
+const sz=Math.min(wrap.offsetWidth-6,420);
+cv.width=sz;cv.height=Math.round(sz*0.70);
+cv.style.maxWidth='100%';
+drawTri(q);
+// Init
+cq._gDone=cq._dDone=false;cq._gVal=cq._dVal=cq._dOrd=null;
+// Enter keys
+$('g1').addEventListener('keypress',e=>{if(e.key==='Enter')chkG1()});
+$('d1i').addEventListener('keypress',e=>{if(e.key==='Enter')chkD1()});
+$('d2i').addEventListener('keypress',e=>{if(e.key==='Enter')chkD1()});
+}
+
+// Gauche
+function chkG1(){
+const i=$('g1');i.classList.remove('ok','err');
+if(normN(i.value)===normN(cq.hypName)){
+i.classList.add('ok');i.disabled=true;$('bG1').disabled=true;
+$('g1s').textContent=i.value.toUpperCase().trim();
+$('g2').style.display='block';$('d2').classList.add('active');
+['g2v','g2r'].forEach(id=>$(id).addEventListener('keypress',e=>{if(e.key==='Enter')chkG2()}));
+}else i.classList.add('err');
+}
+function chkG2(){
+const q=cq;
+const v=parseFloat(String($('g2v').value).replace(',','.')),r=parseFloat(String($('g2r').value).replace(',','.'));
+['g2v','g2r'].forEach(id=>$(id).classList.remove('ok','err'));
+let ok=true;
+if(isNaN(v)||Math.abs(v-q.hypVal)>0.01){$('g2v').classList.add('err');ok=false;}else $('g2v').classList.add('ok');
+if(isNaN(r)||Math.abs(r-q.hypSq)>0.01){$('g2r').classList.add('err');ok=false;}else $('g2r').classList.add('ok');
+if(ok){[$('g2v'),$('g2r')].forEach(i=>i.disabled=true);$('bG2').disabled=true;
+$('d2').classList.remove('active');$('d2').classList.add('done');
+cq._gDone=true;cq._gVal=q.hypSq;checkBoth();}
+}
+
+// Droite
+function chkD1(){
+const c1=$('d1i'),c2=$('d2i');[c1,c2].forEach(i=>i.classList.remove('ok','err'));
+const n1=normN(c1.value),n2=normN(c2.value);
+const e1=normN(cq.c1Name),e2=normN(cq.c2Name);
+let ord=null;
+if(n1===e1&&n2===e2&&n1!==n2)ord=1;
+else if(n1===e2&&n2===e1&&n1!==n2)ord=2;
+if(ord){
+c1.classList.add('ok');c2.classList.add('ok');c1.disabled=true;c2.disabled=true;$('bD1').disabled=true;
+cq._dOrd=ord;
+$('d1s').textContent=c1.value.toUpperCase().trim();$('d2s').textContent=c2.value.toUpperCase().trim();
+$('d2b').style.display='block';$('d3').classList.add('active');
+['dv1','dv2'].forEach(id=>$(id).addEventListener('keypress',e=>{if(e.key==='Enter')chkD2()}));
+}else{c1.classList.add('err');c2.classList.add('err');}
+}
+function chkD2(){
+const q=cq,ord=cq._dOrd;
+const eV1=ord===1?q.v1:q.v2,eV2=ord===1?q.v2:q.v1;
+const v1=parseFloat(String($('dv1').value).replace(',','.')),v2=parseFloat(String($('dv2').value).replace(',','.'));
+['dv1','dv2'].forEach(id=>$(id).classList.remove('ok','err'));
+let ok=true;
+if(isNaN(v1)||Math.abs(v1-eV1)>0.01){$('dv1').classList.add('err');ok=false;}else $('dv1').classList.add('ok');
+if(isNaN(v2)||Math.abs(v2-eV2)>0.01){$('dv2').classList.add('err');ok=false;}else $('dv2').classList.add('ok');
+if(ok){$('dv1').disabled=true;$('dv2').disabled=true;$('bD2').disabled=true;
+$('d3b').style.display='block';
+['ds1','ds2','dtot'].forEach(id=>$(id).addEventListener('keypress',e=>{if(e.key==='Enter')chkD3()}));}
+}
+function chkD3(){
+const q=cq,ord=cq._dOrd;
+const eS1=ord===1?q.sq1:q.sq2,eS2=ord===1?q.sq2:q.sq1;
+const s1=parseFloat(String($('ds1').value).replace(',','.')),s2=parseFloat(String($('ds2').value).replace(',','.'));
+const tot=parseFloat(String($('dtot').value).replace(',','.'));
+['ds1','ds2','dtot'].forEach(id=>$(id).classList.remove('ok','err'));
+let ok=true;
+if(isNaN(s1)||Math.abs(s1-eS1)>0.01){$('ds1').classList.add('err');ok=false;}else $('ds1').classList.add('ok');
+if(isNaN(s2)||Math.abs(s2-eS2)>0.01){$('ds2').classList.add('err');ok=false;}else $('ds2').classList.add('ok');
+if(isNaN(tot)||Math.abs(tot-q.droite)>0.01){$('dtot').classList.add('err');ok=false;}else $('dtot').classList.add('ok');
+if(ok){$('ds1').disabled=true;$('ds2').disabled=true;$('dtot').disabled=true;$('bD3').disabled=true;
+$('d3').classList.remove('active');$('d3').classList.add('done');
+cq._dDone=true;cq._dVal=q.droite;checkBoth();}
+}
+
+function checkBoth(){
+if(!cq._gDone||!cq._dDone)return;
+const z=$('cmpZ');
+z.innerHTML=`<div class="cmpzone">
+<div class="cmptitle">Gauche = Droite ?</div>
+<div class="cmpbtns">
+<button class="cb eq" id="btnEq">Gauche = Droite</button>
+<button class="cb neq" id="btnNeq">Gauche ≠ Droite</button>
+</div></div>`;
+z.style.display='block';
+$('btnEq').addEventListener('click',()=>chkCmp(true));
+$('btnNeq').addEventListener('click',()=>chkCmp(false));
+setTimeout(()=>z.scrollIntoView({behavior:'smooth',block:'nearest'}),120);
+}
+
+function chkCmp(userEq){
+const q=cq,correct=(q.isRect===userEq);
+const z=$('cmpZ');
+// Afficher le résultat visuel
+const eqTxt='Gauche = Droite', neqTxt='Gauche ≠ Droite';
+const goodTxt=q.isRect?eqTxt:neqTxt, badTxt=q.isRect?neqTxt:eqTxt;
+if(correct){
+z.innerHTML=`<div class="cmpzone"><div class="cmptitle" style="color:var(--ok)">✅ ${goodTxt} — Correct !</div></div>`;
+}else{
+z.innerHTML=`<div class="cmpzone">
+<div class="cmptitle">Gauche = Droite ?</div>
+<div class="cmpbtns" style="gap:10px;margin-top:8px">
+<button class="cb wrong" style="pointer-events:none">${userEq?eqTxt:neqTxt} ✗</button>
+<button class="cb correct" style="pointer-events:none">${userEq?neqTxt:eqTxt} ✓</button>
+</div></div>`;
+}
+showThmChoice();
+}
+
+function showThmChoice(){
+const z=$('thmZ');
+z.innerHTML=`<div class="thmzone">
+<div class="thmtitle">Quel théorème utilises-tu pour conclure ?</div>
+<div class="thmbtns">
+<button type="button" class="tb" id="tbR"><b>Réciproque</b> — Si Gauche = Droite, alors le triangle est rectangle</button>
+<button type="button" class="tb" id="tbC"><b>Contraposée</b> — Si Gauche ≠ Droite, alors le triangle n'est pas rectangle</button>
+</div></div>`;
+z.style.display='block';
+$('tbR').addEventListener('click',function(){chkThm(true)},{once:true});
+$('tbC').addEventListener('click',function(){chkThm(false)},{once:true});
+setTimeout(function(){z.scrollIntoView({behavior:'smooth',block:'nearest'})},140);
+}
+
+function chkThm(userRecip){
+const q=cq;
+const correct=(q.isRect===userRecip);
+finish(correct);
+// Afficher le résultat visuel du théorème
+const z=$('thmZ');
+const recipTxt='<b>Réciproque</b> — Si Gauche = Droite, alors le triangle est rectangle';
+const contraTxt='<b>Contraposée</b> — Si Gauche ≠ Droite, alors le triangle n\'est pas rectangle';
+const goodTxt=q.isRect?recipTxt:contraTxt;
+const badTxt=q.isRect?contraTxt:recipTxt;
+if(correct){
+z.innerHTML=`<div class="thmzone"><div class="thmtitle" style="color:var(--ok)">✅ Bon théorème !</div></div>`;
+}else{
+z.innerHTML=`<div class="thmzone">
+<div class="thmtitle">Quel théorème utilises-tu pour conclure ?</div>
+<div class="thmbtns" style="margin-top:8px">
+<button class="tb wrong" style="pointer-events:none">${userRecip?recipTxt:contraTxt} ✗</button>
+<button class="tb correct" style="pointer-events:none">${userRecip?contraTxt:recipTxt} ✓</button>
+</div></div>`;
+}
+// Toujours afficher la conclusion + bouton suivant, correct ou pas
+showConclusion(q);
+}
+
+function showConclusion(q){
+const A=q.labels.A,B=q.labels.B,C=q.labels.C,rv=q.rightV;
+const G=q.hypSq,D=q.droite,eq=q.isRect?'=':'≠';
+const txt=q.isRect
+?('Donc : Gauche = '+G+' '+eq+' Droite = '+D+'<br><br>D\'après la <strong>réciproque du théorème de Pythagore</strong>,<br>le triangle <strong>'+A+B+C+'</strong> est <strong>rectangle en '+rv+'</strong>.')
+:('Donc : Gauche = '+G+' '+eq+' Droite = '+D+'<br><br>D\'après la <strong>contraposée du théorème de Pythagore</strong>,<br>le triangle <strong>'+A+B+C+'</strong> n\'est <strong>pas rectangle</strong>.');
+const nxtLabel=(qi+1<qs.length)?'Question suivante &rarr;':'Voir les r&eacute;sultats &rarr;';
+const cz=document.getElementById('conclZ');
+cz.innerHTML='<div class="conclzone good"><div class="concltext">'+txt+'</div><div style="margin-top:18px;text-align:center"><button type="button" class="btn btn-g" id="btnNxtFinal">'+nxtLabel+'</button></div></div>';
+cz.style.display='block';
+document.getElementById('d4').classList.add('done');
+document.getElementById('btnNxtFinal').onclick=function(){nxtQ();};
+setTimeout(function(){cz.scrollIntoView({behavior:'smooth',block:'nearest'})},200);
+}
+
+// ===== FLOW =====
+function startEx(){qs=genEx();qi=0;sc=0;$('hdrbadge').style.display='block';show('S_ex');loadQ();}
+function loadQ(){
+cq=qs[qi];
+$('exbadge').textContent=`Question ${qi+1} / ${qs.length}`;
+$('sclbl').textContent=`${sc} / ${qi}`;
+$('pfill').style.width=(qi/qs.length*100)+'%';
+$('fb').className='fb';$('zone').innerHTML='';
+renderQ(cq);
+}
+function finish(ok){if(ok)sc++;$('sclbl').textContent=`${sc} / ${qi+1}`;}
+function nxtQ(){qi++;if(qi>=qs.length)showRes();else loadQ();}
+function backHome(){$('hdrbadge').style.display='none';show('S_welcome');}
+function showRes(){
+const pct=Math.round(sc/qs.length*100),tier=pct>=80?'good':pct>=50?'mid':'bad';
+$('rcirc').className=`rc ${tier}`;$('rpct').textContent=`${pct}%`;
+$('rmsg').textContent=pct===100?'Parfait ! Pythagore est fier de vous !':pct>=80?'Très bien !':pct>=60?'Bonne progression !':'Reprends la méthode et réessaie.';
+$('hdrbadge').style.display='none';show('S_res');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

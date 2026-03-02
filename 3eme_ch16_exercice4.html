@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'étendue – Statistiques | 4ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#0369a1; --primary-dark:#0c4a6e; --primary-light:#e0f2fe;
+            --success:#059669; --bonus:#7c3aed; --bonus-light:#ede9fe;
+            --bg-card:#ffffff; --border:#bae6fd; --text-dark:#0c1a2e; --text-medium:#475569;
+            --shadow:rgba(3,105,161,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#ede9fe 50%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--bonus),#ec4899);}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .recap-body{font-size:1rem;line-height:1.9;color:var(--text-dark);}
+        .recap-formula{background:var(--primary-light);border:2px solid var(--border);border-radius:10px;padding:0.75rem 1.5rem;margin:0.75rem 0;font-size:1.2rem;font-family:'Times New Roman',serif;font-style:italic;text-align:center;color:var(--primary-dark);}
+        .recap-example{background:#f0fdf4;border-left:4px solid var(--success);border-radius:6px;padding:0.75rem 1.25rem;margin-top:0.75rem;font-size:0.97rem;}
+        .recap-example strong{color:var(--success);}
+        .recap-use{background:#fffbeb;border:2px solid #fcd34d;border-radius:10px;padding:0.75rem 1.25rem;margin-top:0.75rem;font-size:0.97rem;line-height:1.8;}
+        .recap-use strong{color:#92400e;}
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--bonus));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--bonus));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.blue{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.purple{background:var(--bonus-light);color:var(--bonus);}
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-dir{background:#dbeafe;color:#1d4ed8;}
+        .tag-ctx{background:#fef3c7;color:#92400e;}
+        .tag-pb{background:#dcfce7;color:#166534;}
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(3,105,161,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--bonus);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--bonus-light);color:var(--bonus);border:2px solid #c4b5fd;border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:nowrap;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--bonus);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;}
+        .hint-text.revealed{max-height:300px;padding:0.5rem 0.85rem;opacity:1;}
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-row{display:flex;align-items:flex-start;gap:0.4rem;margin-bottom:0.6rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:0.8rem;font-weight:700;width:1.4rem;height:1.4rem;border-radius:50%;text-align:center;line-height:1.4rem;flex-shrink:0;margin-top:0.2rem;}
+        .data-box{background:#f0f9ff;border:2px solid var(--border);border-radius:10px;padding:0.9rem 1.5rem;margin:0.75rem 0;font-size:1.1rem;font-family:'Times New Roman',serif;letter-spacing:0.05em;text-align:center;}
+        .context-box{background:#f0f9ff;border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0 1rem;font-size:0.97rem;line-height:1.8;}
+        .context-box strong{color:var(--primary-dark);}
+        .data-table{border-collapse:collapse;margin:0.75rem auto;font-size:1rem;width:100%;}
+        .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0.75rem 0;}
+        .data-table th{background:var(--primary-light);color:var(--primary-dark);border:2px solid var(--border);padding:0.5rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;text-align:center;}
+        .data-table td{border:2px solid var(--border);padding:0.5rem 1rem;text-align:center;font-family:'Times New Roman',serif;font-size:1.05rem;}
+        .calcul-step{background:white;padding:1.25rem 1.5rem;border-radius:10px;margin:0.75rem 0;border-left:4px solid var(--primary);}
+        .calcul-line{font-size:1.2rem;text-align:center;margin:0.5rem 0;font-family:'Times New Roman',serif;font-style:italic;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .rule-box{background:#faf5ff;border:2px solid #c4b5fd;border-radius:10px;padding:0.9rem 1.25rem;margin:0.75rem 0;font-size:0.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--bonus);}
+        .serie{display:flex;flex-wrap:wrap;gap:0.4rem;justify-content:center;margin:0.75rem 0;font-family:'Times New Roman',serif;font-size:1.15rem;}
+        .serie span{padding:0.3rem 0.65rem;border-radius:6px;border:2px solid var(--border);background:#f0f9ff;}
+        .serie span.min-val{background:#fee2e2;border-color:#f87171;font-weight:700;color:#991b1b;}
+        .serie span.max-val{background:#dcfce7;border-color:#4ade80;font-weight:700;color:#14532d;}
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.calcul-step{padding:0.75rem;}.solution-text{font-size:1rem;padding:0.65rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.hint-btn{white-space:normal;text-align:left;line-height:1.4;}.data-box{font-size:0.95rem;padding:0.75rem;word-break:break-word;overflow-wrap:break-word;}.calcul-line{font-size:1rem;word-break:break-word;}.hint-item{flex-direction:column;align-items:stretch;}.hint-item .hint-btn{width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}.recap-formula{font-size:1rem;padding:0.6rem 0.75rem;word-break:break-word;}}
+        @media(max-width:380px){h1{font-size:1.25rem;}.exercise-title{font-size:1.1rem;}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📏 Feuille d'exercices</h1>
+        <p class="subtitle">L'étendue – Statistiques – Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">3ème</span>
+            <span class="header-chip">4 exercices</span>
+            <span class="header-chip">Dispersion d'une série</span>
+        </div>
+    </header>
+
+    <div class="recap">
+        <div class="recap-title">📖 C'est quoi l'étendue ?</div>
+        <div class="recap-body">
+            <p>L'étendue d'une série de données, c'est simplement <strong>l'écart entre la plus grande valeur et la plus petite valeur</strong> de la série. Elle mesure à quel point les valeurs sont <em>dispersées</em> — c'est-à-dire si elles sont toutes proches les unes des autres, ou au contraire très éparpillées.</p>
+            <div class="recap-formula">Étendue = valeur maximale − valeur minimale</div>
+            <div class="recap-example">
+                <strong>Exemple :</strong> Série : 5 – 8 – 12 – 3 – 17 – 9<br>
+                Minimum = 3 &nbsp;|&nbsp; Maximum = 17 &nbsp;→&nbsp; Étendue = 17 − 3 = <strong>14</strong>
+            </div>
+            <div class="recap-use">
+                <strong>À quoi ça sert ?</strong> L'étendue permet de savoir si les valeurs d'une série sont homogènes ou non. Par exemple, si deux classes ont la même moyenne mais des étendues très différentes, cela signifie que dans l'une les élèves ont des niveaux proches, et dans l'autre les résultats sont très inégaux.
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 4</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- Exercice 1 -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 4</h2>
+                <span class="exercise-tag tag-dir">Calcul direct</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Voici les températures (en °C) relevées dans une ville sur 7 jours consécutifs :</p>
+            <div class="data-box">4 &nbsp;|&nbsp; −1 &nbsp;|&nbsp; 7 &nbsp;|&nbsp; 12 &nbsp;|&nbsp; −3 &nbsp;|&nbsp; 9 &nbsp;|&nbsp; 5</div>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">1</span><p>Ranger ces températures dans l'ordre croissant.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Calculer l'étendue de cette série.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Que signifie concrètement cette étendue dans ce contexte ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice 1 – Question 1</button>
+                    <div class="hint-text" id="h1-1">Attention aux températures négatives — pense à leur position relative sur une droite graduée pour les ranger dans l'ordre.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Indice 2 – Question 2</button>
+                    <div class="hint-text" id="h1-2">Une fois la série triée, comment identifier le minimum et le maximum ? Et comment calculer l'étendue à partir de ces deux valeurs ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Tri croissant</h3>
+            <div class="calcul-step">
+                <div class="serie">
+                    <span class="min-val">−3</span><span>−1</span><span>4</span><span>5</span><span>7</span><span>9</span><span class="max-val">12</span>
+                </div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Étendue</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">Minimum = <strong>−3</strong> &nbsp;|&nbsp; Maximum = <strong>12</strong></p>
+                <div class="calcul-line">Étendue = 12 − (−3) = 12 + 3 = 15</div>
+                <div class="solution-text">Étendue = 15°C</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Interprétation</h3>
+            <div class="calcul-step">
+                <div class="rule-box">L'étendue est de 15°C : il y a <strong>15 degrés d'écart</strong> entre le jour le plus froid (−3°C) et le jour le plus chaud (12°C) de la semaine. Les températures sont assez variées sur cette période.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 2 -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 4</h2>
+                <span class="exercise-tag tag-ctx">Étendue et moyenne</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Deux équipes de 6 joueurs s'affrontent à un jeu de fléchettes. Voici leurs scores :</p>
+            <div class="table-wrapper"><table class="data-table" style="margin-bottom:0.75rem;">
+                <thead><tr><th>Joueur</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Équipe A</strong></td><td>45</td><td>52</td><td>48</td><td>50</td><td>47</td><td>52</td></tr>
+                    <tr><td><strong>Équipe B</strong></td><td>30</td><td>61</td><td>44</td><td>55</td><td>70</td><td>34</td></tr>
+                </tbody>
+            </table></div>
+            <div class="q-row"><span class="qnum">1</span><p>Calculer la moyenne de chaque équipe.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Calculer l'étendue de chaque équipe.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Les deux équipes ont-elles le même niveau ? Laquelle est la plus régulière ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Indice 1 – Question 1</button>
+                    <div class="hint-text" id="h2-1">Calcule la moyenne de chaque équipe séparément, puis compare.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2">💡 Indice 2 – Questions 2 et 3</button>
+                    <div class="hint-text" id="h2-2">Réfléchis à ce qu'une grande ou une petite étendue révèle sur la régularité des scores au sein d'une équipe.</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Moyennes</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">Équipe A : (45+52+48+50+47+52) ÷ 6 = 294 ÷ 6 = <strong>49</strong></p>
+                <p style="font-size:1rem;margin-top:0.4rem;">Équipe B : (30+61+44+55+70+34) ÷ 6 = 294 ÷ 6 = <strong>49</strong></p>
+                <div class="solution-text">Les deux équipes ont la même moyenne : 49 points</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Étendues</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">Équipe A : min = 45, max = 52 &nbsp;→&nbsp; Étendue = 52 − 45 = <strong>7</strong></p>
+                <p style="font-size:1rem;margin-top:0.4rem;">Équipe B : min = 30, max = 70 &nbsp;→&nbsp; Étendue = 70 − 30 = <strong>40</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Comparaison</h3>
+            <div class="calcul-step">
+                <div class="rule-box">Les deux équipes ont <strong>la même moyenne (49)</strong> mais des étendues très différentes (7 contre 40). La moyenne seule ne suffit pas à comparer deux séries ! <strong>L'équipe A est bien plus régulière</strong> : tous ses joueurs ont des scores proches. L'équipe B a des joueurs très inégaux (de 30 à 70 points).</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 3 -->
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 4</h2>
+                <span class="exercise-tag tag-dir">Valeur manquante</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Une série de 6 valeurs est donnée dans l'ordre croissant :</p>
+            <div class="data-box">3 &nbsp;|&nbsp; 7 &nbsp;|&nbsp; 11 &nbsp;|&nbsp; 15 &nbsp;|&nbsp; 18 &nbsp;|&nbsp; <em>x</em></div>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">1</span><p>On sait que l'étendue de cette série est 20. Trouver la valeur de <em>x</em>.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>La valeur <em>x</em> = 8 est-elle possible ? Justifier.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-1">💡 Indice 1 – Question 1</button>
+                    <div class="hint-text" id="h3-1">La série est triée. Identifie le minimum et le maximum en fonction de x, puis utilise la définition de l'étendue pour former une équation.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-2">💡 Indice 2 – Question 2</button>
+                    <div class="hint-text" id="h3-2">Pour la question 2 : si x = 8, quelle serait la nouvelle position de cette valeur dans la série ? Cela modifie-t-il le minimum ou le maximum ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Valeur de x</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">La série est triée : minimum = 3, maximum = <em>x</em>.</p>
+                <div class="calcul-line">Étendue = x − 3 = 20</div>
+                <div class="calcul-line">x = 20 + 3 = 23</div>
+                <div class="solution-text">x = 23</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – x = 8 est-il possible ?</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">Si x = 8, la série triée devient : 3 – 7 – 8 – 11 – 15 – 18</p>
+                <p style="font-size:1rem;margin-bottom:0.4rem;">Étendue = 18 − 3 = 15 ≠ 20</p>
+                <div class="rule-box"><strong>Non</strong>, x = 8 n'est pas possible car l'étendue serait 15 et non 20. Pour que l'étendue soit 20, il faut que <em>x</em> soit le maximum de la série, donc x doit être supérieur à 18.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 4 -->
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 4</h2>
+                <span class="exercise-tag tag-pb">Problème de synthèse</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                <strong>Contexte :</strong> Un professeur compare les résultats de deux classes au même contrôle. Les notes de chaque classe sont résumées ci-dessous :
+            </div>
+            <div class="table-wrapper"><table class="data-table">
+                <thead><tr><th></th><th>Note la plus basse</th><th>Note la plus haute</th><th>Moyenne</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Classe A</strong></td><td>6</td><td>18</td><td>12</td></tr>
+                    <tr><td><strong>Classe B</strong></td><td>9</td><td>15</td><td>12</td></tr>
+                </tbody>
+            </table></div>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">1</span><p>Calculer l'étendue de chaque classe.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Les deux classes ont la même moyenne. Peut-on dire qu'elles ont les mêmes résultats ? Laquelle est la plus homogène ?</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Un élève dit : « Dans la classe A, personne n'a eu moins de 6. » L'étendue permet-elle de confirmer cette affirmation ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-1">💡 Indice 1 – Question 1</button>
+                    <div class="hint-text" id="h4-1">Les informations nécessaires pour calculer l'étendue de chaque classe sont dans le tableau. Lesquelles ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-2">💡 Indice 2 – Question 3</button>
+                    <div class="hint-text" id="h4-2">Pour la question 3 : relis ce que l'étendue indique précisément. Que peut-on en déduire sur les notes de la classe A ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Étendues</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">Classe A : 18 − 6 = <strong>12</strong></p>
+                <p style="font-size:1rem;margin-top:0.4rem;">Classe B : 15 − 9 = <strong>6</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Comparaison</h3>
+            <div class="calcul-step">
+                <div class="rule-box">Même si les deux classes ont la même moyenne (12/20), elles n'ont <strong>pas les mêmes résultats</strong>. La classe B est bien plus homogène : son étendue est de 6 (les notes vont de 9 à 15). La classe A a une étendue de 12 : certains élèves ont 6 et d'autres 18, les niveaux sont très inégaux.</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Ce que dit l'étendue</h3>
+            <div class="calcul-step">
+                <div class="rule-box"><strong>Oui</strong>, l'étendue confirme bien cette affirmation : la note la plus basse est 6, ce qui signifie que personne n'a eu moins de 6. C'est précisément ce que nous indique le minimum d'une série.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🎓 L'étendue complète la moyenne : ensemble, ils donnent une image bien plus fidèle d'une série de données !</footer>
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    const TOTAL = 4, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 4, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as revu tous les exercices. Excellent travail !' },
+        { min: 3, emoji: '🎉', stars: '⭐⭐⭐', title: 'Très bien !', msg: 'Presque tout vérifié. Jette un œil au dernier !' },
+        { min: 2, emoji: '👍', stars: '⭐⭐', title: 'Bien !', msg: 'La moitié vérifiée. Continue !' },
+        { min: 1, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir les autres corrections !" },
+    ];
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge blue">📚 Feuille complète</span>` +
+            `<span class="score-badge purple">📊 Statistiques 4ème</span>`;
+        card.classList.add('visible');
+    }
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction); btn.classList.remove('active');
+            btn.textContent = 'Voir la correction'; openSet.delete(exId);
+        } else {
+            openCorrection(correction); btn.classList.add('active');
+            btn.textContent = 'Masquer la correction'; openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId); dot.classList.add('done');
+                card.classList.add('seen'); updateProgress();
+            }
+        }
+    }
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled = true;
+            this.textContent = '✓ ' + this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

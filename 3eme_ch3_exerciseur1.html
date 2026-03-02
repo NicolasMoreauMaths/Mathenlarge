@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diviseurs communs — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --ink: #1b3a5c;
+    --ink-light: #3a6b9f;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --red-pale: #fdedec;
+    --green: #1e8449;
+    --green-light: #27ae60;
+    --green-pale: #d5f5e3;
+    --amber: #b45309;
+    --amber-pale: #fef3c7;
+    --paper: #fdf8f0;
+    --line-blue: #c8daea;
+    --margin-pink: #f0c0c0;
+    --pencil: #6b6b6b;
+    --shadow: rgba(27,58,92,0.12);
+}
+
+body {
+    font-family: 'Patrick Hand', cursive;
+    min-height: 100vh;
+    background: #e8e0d0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px 10px 80px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ── NOTEBOOK ── */
+.notebook {
+    background: var(--paper);
+    border-radius: 4px 16px 16px 4px;
+    padding: 32px 28px 36px 52px;
+    max-width: 860px;
+    width: 100%;
+    position: relative;
+    box-shadow:
+        -4px 0 0 #c0392b,
+        -6px 0 0 #a93226,
+        4px 4px 20px rgba(0,0,0,0.15),
+        0 0 0 1px rgba(0,0,0,0.05);
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 31px, var(--line-blue) 31px, var(--line-blue) 32px),
+        repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(200,218,234,0.3) 7px, rgba(200,218,234,0.3) 8px);
+    background-size: 100% 32px, 100% 8px;
+    min-height: 90vh;
+}
+.notebook::before {
+    content: '';
+    position: absolute;
+    left: 40px; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--margin-pink);
+    z-index: 1;
+}
+.notebook::after {
+    content: '';
+    position: absolute;
+    left: -2px; top: 20px; bottom: 20px;
+    width: 14px;
+    background-image: radial-gradient(circle 5px, #d0c8b8 90%, transparent 90%);
+    background-size: 14px 40px;
+    background-repeat: repeat-y;
+}
+
+h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.7em;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+.subtitle {
+    text-align: center;
+    font-size: 1.05em;
+    color: var(--pencil);
+    margin-bottom: 22px;
+}
+.section-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.1em;
+    color: var(--red);
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(192,57,43,0.25);
+}
+
+/* ── SCREENS ── */
+.screen { display: none; animation: fadeIn 0.35s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'Patrick Hand', cursive;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 1.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 46px;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-ink { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: 0 3px 10px var(--shadow); }
+.btn-ink:hover:not(:disabled) { background: var(--ink-light); transform: translateY(-2px); }
+.btn-red { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-red:hover:not(:disabled) { background: var(--red-light); transform: translateY(-2px); }
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { background: var(--green-light); transform: translateY(-2px); }
+.btn-outline { background: transparent; color: var(--ink); border-color: var(--line-blue); }
+.btn-outline:hover { background: rgba(200,218,234,0.25); }
+.controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+}
+.menu-card {
+    background: white;
+    border: 2px solid var(--line-blue);
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    touch-action: manipulation;
+}
+.menu-card:hover { border-color: var(--ink-light); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.card-icon { font-size: 2em; margin-bottom: 6px; }
+.card-title { font-family: 'Libre Baskerville', serif; font-size: 1.05em; color: var(--ink); font-weight: 700; margin-bottom: 3px; }
+.card-desc { font-size: 0.85em; color: var(--pencil); line-height: 1.4; }
+
+/* ── HEADER EXERCICE ── */
+.ex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--ink); color: white; padding: 5px 16px; border-radius: 20px; font-size: 0.9em; }
+.ex-score { font-size: 0.95em; color: var(--ink); background: rgba(200,218,234,0.25); padding: 5px 14px; border-radius: 20px; }
+
+.progress-bar { width: 100%; height: 5px; background: var(--line-blue); border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+.progress-fill { height: 100%; background: var(--ink); border-radius: 4px; transition: width 0.5s ease; }
+
+/* ── PHASE INDICATOR ── */
+.phase-indicator {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 0.82em;
+    color: var(--pencil);
+    flex-wrap: wrap;
+}
+.phase-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--line-blue);
+    transition: all 0.3s;
+    display: inline-block;
+}
+.phase-dot.done { background: var(--green); }
+.phase-dot.active { background: var(--ink); transform: scale(1.3); }
+
+/* ── DOUBLE DÉCOMPOSITION ── */
+.dual-decomp {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+}
+.decomp-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.decomp-panel-label {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.9em;
+    color: var(--pencil);
+    margin-bottom: 6px;
+    text-align: center;
+}
+.decomp-number {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 8px;
+    text-align: center;
+}
+.decomp-table {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.decomp-row {
+    display: flex;
+    align-items: center;
+    animation: rowAppear 0.3s ease;
+}
+@keyframes rowAppear { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+.decomp-left {
+    min-width: 95px;
+    padding: 5px 12px 5px 6px;
+    text-align: right;
+    border-right: 3px solid var(--ink);
+    font-size: 1.6em;
+    color: var(--ink);
+    min-height: 46px;
+    display: flex; align-items: center; justify-content: flex-end;
+}
+.decomp-right {
+    min-width: 80px;
+    padding: 5px 8px 5px 12px;
+    font-size: 1.6em;
+    color: var(--red);
+    min-height: 46px;
+    display: flex; align-items: center;
+}
+.dv-given { color: var(--green); font-weight: 700; }
+.dv-quotient { color: var(--ink); }
+.dv-prime { color: var(--red); }
+.dv-final { color: var(--pencil); font-weight: 700; }
+
+.decomp-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 0.88em;
+    width: 70px;
+    text-align: center;
+    border: 2px dashed var(--line-blue);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.8);
+    padding: 4px 4px;
+    outline: none;
+    color: var(--ink);
+    transition: border-color 0.2s, background 0.2s;
+    min-height: 36px;
+    touch-action: manipulation;
+}
+.decomp-input.red-inp { color: var(--red); }
+.decomp-input:focus { border-color: var(--ink-light); background: white; }
+.decomp-input.error { border-color: var(--red); background: var(--red-pale); animation: shake 0.4s; }
+.decomp-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+
+.step-zone { display: flex; gap: 8px; justify-content: center; margin: 8px 0; flex-wrap: wrap; }
+.step-feedback { text-align: center; font-size: 0.88em; min-height: 22px; margin-top: 2px; }
+
+/* Equality section */
+.equality-section { display: none; animation: fadeIn 0.4s ease; text-align: center; margin-top: 10px; padding: 14px; background: rgba(200,218,234,0.12); border: 2px dashed var(--line-blue); border-radius: 12px; width: 100%; }
+.equality-section.active { display: block; }
+.equality-label { font-size: 0.88em; color: var(--pencil); margin-bottom: 8px; }
+.equality-row { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; font-size: 1.45em; color: var(--ink); }
+.eq-number { color: var(--green); font-weight: 700; font-family: 'Libre Baskerville', serif; }
+.eq-sign { color: var(--pencil); font-weight: 700; }
+.eq-factor-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 0.85em; width: 46px; text-align: center;
+    border: 2px dashed var(--line-blue); border-radius: 8px;
+    background: rgba(255,255,255,0.8); padding: 4px; outline: none; color: var(--red);
+    transition: all 0.2s;
+}
+.eq-factor-input:focus { border-color: var(--red-light); background: white; }
+.eq-factor-input.locked { border-style: solid; border-color: var(--green-light); background: var(--green-pale); color: var(--green); }
+.eq-factor-input.error { border-color: var(--red); background: var(--red-pale); }
+
+/* ── FEEDBACK ── */
+.feedback-box {
+    margin-top: 12px; padding: 12px 16px; border-radius: 12px;
+    font-size: 0.97em; text-align: center;
+    display: none; animation: fadeIn 0.3s ease; line-height: 1.5;
+}
+.feedback-box.correct { display: block; background: var(--green-pale); color: var(--green); border: 2px solid var(--green-light); }
+.feedback-box.incorrect { display: block; background: var(--red-pale); color: var(--red); border: 2px solid var(--red-light); }
+.feedback-box.info { display: block; background: var(--amber-pale); color: var(--amber); border: 2px solid rgba(180,83,9,0.3); }
+
+/* ── QUESTION BOX ── */
+.question-box {
+    background: rgba(200,218,234,0.12);
+    border: 2px dashed var(--line-blue);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+}
+.q-label {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1em; color: var(--ink); margin-bottom: 14px; line-height: 1.5;
+}
+.q-label strong { color: var(--red); }
+
+/* ── FRACTION / DIVISION LINE ── */
+.frac-block {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    vertical-align: middle;
+}
+.frac-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 72px;
+    text-align: center;
+    border: 2.5px dashed var(--line-blue);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.9);
+    padding: 5px 4px;
+    outline: none;
+    color: var(--ink);
+    transition: all 0.2s;
+    min-height: 38px;
+    touch-action: manipulation;
+}
+.frac-input:focus {
+    border-color: var(--ink-light);
+    box-shadow: 0 0 0 3px rgba(58,107,159,0.12);
+    background: white;
+}
+.frac-input.ok {
+    border-color: var(--green) !important;
+    background: var(--green-pale) !important;
+    color: var(--green) !important;
+    border-style: solid !important;
+}
+.frac-input.err {
+    border-color: var(--red) !important;
+    background: var(--red-pale) !important;
+    animation: shake 0.4s;
+}
+.frac-bar {
+    width: 100%;
+    min-width: 72px;
+    height: 3px;
+    background: var(--ink);
+    border-radius: 2px;
+}
+
+.division-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 14px 0;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 2em;
+    color: var(--ink);
+    font-weight: 700;
+}
+.division-line .op { color: var(--pencil); font-size: 0.85em; }
+.blank-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.3em;
+    width: 76px; text-align: center;
+    border: 2.5px dashed var(--line-blue);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 6px 4px; outline: none;
+    color: var(--ink); font-weight: 700;
+    transition: all 0.2s;
+    min-height: 44px;
+    touch-action: manipulation;
+}
+.blank-input:focus { border-color: var(--ink-light); box-shadow: 0 0 0 3px rgba(58,107,159,0.15); background: white; }
+.blank-input.ok { border-color: var(--green) !important; background: var(--green-pale) !important; color: var(--green) !important; border-style: solid !important; }
+.blank-input.err { border-color: var(--red) !important; background: var(--red-pale) !important; animation: shake 0.4s; }
+.verdict-line { text-align: center; font-size: 1.15em; min-height: 32px; margin-top: 8px; font-weight: 600; }
+
+/* ── FACTEURS (chips cliquables) ── */
+.factors-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.1em;
+    color: var(--ink);
+}
+.factor-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.35em;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 2.5px solid var(--line-blue);
+    background: white;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px;
+    min-width: 44px;
+}
+.factor-chip:hover { border-color: var(--ink-light); transform: scale(1.05); }
+.factor-chip.highlighted-red {
+    border-color: var(--red) !important;
+    background: var(--red-pale) !important;
+    color: var(--red) !important;
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.2);
+    transform: scale(1.08);
+}
+.factor-chip.highlighted-green {
+    border-color: var(--green) !important;
+    background: var(--green-pale) !important;
+    color: var(--green) !important;
+    box-shadow: 0 0 0 3px rgba(30,132,73,0.2);
+    transform: scale(1.08);
+}
+.factor-chip.locked { cursor: default !important; transform: none !important; }
+.factor-chip.locked:hover { transform: none !important; }
+.factor-sep { color: var(--pencil); font-size: 1em; font-weight: 700; }
+.factor-num { color: var(--green); font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 1.1em; }
+
+/* plus grand diviseur commun zone */
+.pgcd-zone {
+    display: flex; align-items: center; gap: 12px;
+    justify-content: center; flex-wrap: wrap;
+    margin: 16px 0;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.3em; color: var(--ink);
+}
+.pgcd-label { font-weight: 700; }
+.pgcd-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 0.85em; width: 86px; text-align: center;
+    border: 2.5px dashed var(--red);
+    border-radius: 10px; background: white; padding: 7px 4px; outline: none;
+    color: var(--red); font-weight: 700; transition: all 0.2s; min-height: 44px; touch-action: manipulation;
+}
+.pgcd-input:focus { border-color: var(--red-light); box-shadow: 0 0 0 3px rgba(192,57,43,0.15); }
+.pgcd-input.ok { border-color: var(--green) !important; background: var(--green-pale) !important; color: var(--green) !important; border-style: solid !important; }
+.pgcd-input.err { animation: shake 0.4s; border-color: var(--red) !important; background: var(--red-pale) !important; }
+
+/* Reste zone */
+.reste-zone {
+    background: rgba(30,132,73,0.06);
+    border: 2px dashed var(--green-light);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-top: 14px;
+}
+.reste-title { font-family: 'Libre Baskerville', serif; font-size: 0.95em; color: var(--green); margin-bottom: 12px; text-align: center; }
+.reste-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    justify-content: center; margin: 10px 0;
+    font-family: 'Libre Baskerville', serif; font-size: 1.15em; color: var(--ink);
+}
+.reste-label { font-weight: 700; color: var(--green); }
+.reste-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 0.88em; width: 80px; text-align: center;
+    border: 2.5px dashed var(--green-light);
+    border-radius: 10px; background: white; padding: 6px 4px; outline: none;
+    color: var(--green); font-weight: 700; transition: all 0.2s; min-height: 40px; touch-action: manipulation;
+}
+.reste-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(30,132,73,0.15); }
+.reste-input.ok { border-color: var(--green) !important; background: var(--green-pale) !important; border-style: solid !important; }
+.reste-input.err { animation: shake 0.4s; border-color: var(--red) !important; background: var(--red-pale) !important; }
+.reste-check { font-size: 0.85em; color: var(--green); margin-left: 4px; }
+
+/* ── RESULTS ── */
+.results-screen { text-align: center; padding: 16px 0; }
+.result-emoji { font-size: 3.5em; margin-bottom: 10px; }
+.result-score { font-family: 'Libre Baskerville', serif; font-size: 2.6em; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.result-label { font-size: 1em; color: var(--pencil); margin-bottom: 16px; }
+.result-bar { width: 100%; max-width: 260px; height: 8px; background: var(--line-blue); border-radius: 6px; margin: 0 auto 16px; overflow: hidden; }
+.result-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; width: 0%; }
+.result-bar-fill.good { background: var(--green); }
+.result-bar-fill.bad { background: var(--red); }
+.result-msg { font-size: 1.15em; color: var(--ink); margin-bottom: 20px; }
+
+/* ── CALCULATRICE FLOTTANTE ── */
+.calc-toggle {
+    position: fixed; bottom: 20px; right: 20px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--ink); color: white; border: none;
+    font-size: 1.5em; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 100; transition: all 0.25s;
+    -webkit-tap-highlight-color: transparent;
+}
+.calc-toggle:hover { transform: scale(1.1); background: var(--ink-light); }
+.calc-toggle.open { background: var(--red); transform: rotate(45deg); }
+.calc-panel {
+    position: fixed; bottom: 82px; right: 16px; width: 260px;
+    background: var(--paper); border: 2px solid var(--ink);
+    border-radius: 16px; padding: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    z-index: 99; display: none; animation: calcIn 0.25s ease;
+}
+.calc-panel.visible { display: block; }
+@keyframes calcIn { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: none; } }
+.calc-title { font-family: 'Libre Baskerville', serif; font-size: 0.9em; color: var(--ink); text-align: center; margin-bottom: 12px; }
+.calc-row { display: flex; align-items: center; gap: 6px; justify-content: center; margin-bottom: 8px; }
+.calc-input { font-family: 'Patrick Hand', cursive; font-size: 1.3em; width: 72px; text-align: center; border: 2px solid var(--line-blue); border-radius: 8px; padding: 6px 4px; outline: none; background: white; color: var(--ink); transition: border-color 0.2s; }
+.calc-input:focus { border-color: var(--ink-light); }
+.calc-op { font-size: 1.4em; color: var(--pencil); font-weight: 700; }
+.calc-go { font-family: 'Patrick Hand', cursive; font-size: 1.05em; padding: 8px 18px; border-radius: 10px; background: var(--ink); color: white; border: none; cursor: pointer; transition: background 0.2s; width: 100%; }
+.calc-go:hover { background: var(--ink-light); }
+.calc-result { text-align: center; font-size: 1.1em; color: var(--ink); min-height: 30px; padding: 8px; background: rgba(200,218,234,0.15); border-radius: 8px; margin-top: 6px; line-height: 1.5; }
+.calc-result .cq { color: var(--green); font-weight: 700; }
+.calc-result .cr { color: var(--red); font-weight: 700; }
+
+/* ── HINT ── */
+.hint-box {
+    background: var(--amber-pale); border: 1px solid rgba(180,83,9,0.25);
+    border-radius: 10px; padding: 10px 14px; font-size: 0.88em;
+    color: var(--amber); line-height: 1.5; margin: 10px 0;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@keyframes popIn { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    body { padding: 14px 8px 80px; }
+    .notebook { padding: 28px 18px 32px 44px; }
+    .notebook::before { left: 34px; }
+    h1 { font-size: 1.5em; }
+    .dual-decomp { gap: 14px; }
+    .decomp-left { min-width: 80px; font-size: 1.4em; }
+    .decomp-right { min-width: 68px; font-size: 1.4em; }
+    .division-line { font-size: 1.65em; gap: 8px; }
+    .factor-chip { font-size: 1.2em; padding: 5px 12px; min-height: 40px; }
+    .pgcd-zone { font-size: 1.15em; }
+}
+@media (max-width: 600px) {
+    body { padding: 12px 6px 76px; }
+    .notebook { padding: 24px 14px 28px 36px; }
+    .notebook::before { left: 28px; }
+    .notebook::after { left: -2px; width: 12px; background-size: 12px 36px; }
+    h1 { font-size: 1.35em; }
+    .dual-decomp { grid-template-columns: 1fr; gap: 16px; }
+    .btn { padding: 10px 22px; font-size: 1em; min-height: 42px; }
+    .controls { gap: 8px; }
+    .division-line { font-size: 1.45em; }
+    .blank-input { width: 64px; }
+    .factor-chip { font-size: 1.15em; padding: 5px 11px; }
+    .pgcd-input { width: 74px; }
+    .reste-input { width: 70px; }
+    .calc-panel { right: 10px; left: 10px; width: auto; }
+}
+@media (max-width: 480px) {
+    .notebook { padding: 22px 12px 24px 30px; }
+    .notebook::before { left: 22px; }
+    h1 { font-size: 1.25em; }
+    .decomp-left { min-width: 72px; font-size: 1.3em; }
+    .decomp-right { min-width: 60px; font-size: 1.3em; }
+    .decomp-input { width: 60px; font-size: 0.82em; }
+    .factor-chip { font-size: 1.05em; padding: 4px 9px; min-height: 38px; }
+    .pgcd-zone { font-size: 1.05em; }
+    .reste-row { font-size: 1.05em; }
+}
+</style>
+</head>
+<body>
+<div class="notebook">
+
+<!-- ══ INTRO ══ -->
+<div class="screen active" id="S_intro">
+    <div style="text-align:center; padding: 10px 0;">
+        <div style="font-family:'Libre Baskerville',serif; font-size:2em; color:var(--ink); margin-bottom:14px; line-height:1.6;">
+            <span style="color:var(--green)">12</span> = <span style="color:var(--red)">2 × 2 × 3</span><br>
+            <span style="color:var(--green)">18</span> = <span style="color:var(--red)">2 × 3 × 3</span>
+        </div>
+        <h1>Diviseurs communs</h1>
+        <p class="subtitle">Décompose, compare, déduis !</p>
+        <p style="color:var(--pencil); font-size:1.02em; max-width:480px; margin:0 auto 24px; line-height:1.65; text-align:center;">
+            Dans cet exerciseur, tu vas décomposer deux nombres en facteurs premiers,
+            vérifier des diviseurs communs, puis trouver le <strong>Plus Grand Diviseur Commun</strong>.
+        </p>
+        <button class="btn btn-ink" onclick="show('S_menu')">Ouvrir le cahier ✏️</button>
+    </div>
+</div>
+
+<!-- ══ MENU ══ -->
+<div class="screen" id="S_menu">
+    <h1>Choisir un niveau</h1>
+    <p class="subtitle">Sélectionne la difficulté 📝</p>
+    <div class="menu-grid">
+        <div class="menu-card" onclick="startEx(1)">
+            <div class="card-icon">🌱</div>
+            <div class="card-title">Niveau 1</div>
+            <div class="card-desc">Facteurs 2 et 3<br>Petits nombres ≤ 100</div>
+        </div>
+        <div class="menu-card" onclick="startEx(2)">
+            <div class="card-icon">🌿</div>
+            <div class="card-title">Niveau 2</div>
+            <div class="card-desc">Facteurs jusqu'à 7<br>Nombres moyens ≤ 300</div>
+        </div>
+        <div class="menu-card" onclick="startEx(3)">
+            <div class="card-icon">🌳</div>
+            <div class="card-title">Niveau 3</div>
+            <div class="card-desc">Tous les premiers ≤ 13<br>Grands nombres</div>
+        </div>
+    </div>
+    <div class="controls">
+        <button class="btn btn-outline" onclick="show('S_intro')">← Retour</button>
+    </div>
+</div>
+
+<!-- ══ EXERCICE ══ -->
+<div class="screen" id="S_ex">
+    <div class="ex-header">
+        <div class="ex-badge" id="exBadge">Niveau 1</div>
+        <div class="ex-score">Exercice <span id="exIdx">1</span> / <span id="exTotal">5</span></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    <div class="phase-indicator" id="phaseInd"></div>
+    <div id="exContent"></div>
+    <div class="feedback-box" id="exFeedback"></div>
+    <div class="controls" id="exControls">
+        <button class="btn btn-ink" id="btnNext" style="display:none" onclick="nextPhase()">Continuer →</button>
+        <button class="btn btn-outline" onclick="show('S_menu'); hideCalc();">← Menu</button>
+    </div>
+</div>
+
+<!-- ══ RÉSULTATS ══ -->
+<div class="screen" id="S_res">
+    <div class="results-screen">
+        <div class="result-emoji" id="resEmoji">🏆</div>
+        <div class="result-score" id="resScore">5 / 5</div>
+        <div class="result-label">exercices réussis</div>
+        <div class="result-bar"><div class="result-bar-fill" id="resBarFill"></div></div>
+        <div class="result-msg" id="resMsg">Parfait !</div>
+        <div class="controls">
+            <button class="btn btn-ink" onclick="show('S_menu'); hideCalc();">Retour au menu</button>
+        </div>
+    </div>
+</div>
+
+</div><!-- /notebook -->
+
+<!-- Calculatrice -->
+<button class="calc-toggle" id="calcToggle" onclick="toggleCalc()">🧮</button>
+<div class="calc-panel" id="calcPanel">
+    <div class="calc-title">Calculatrice ÷</div>
+    <div class="calc-row">
+        <input type="number" class="calc-input" id="calcA" placeholder="…" inputmode="numeric">
+        <span class="calc-op">÷</span>
+        <input type="number" class="calc-input" id="calcB" placeholder="…" inputmode="numeric">
+    </div>
+    <button class="calc-go" onclick="doCalc()">Calculer</button>
+    <div class="calc-result" id="calcResult"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// UTILITAIRES
+// ═══════════════════════════════════════════════
+function g(id) { return document.getElementById(id); }
+
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    g(id).classList.add('active');
+}
+
+function foc(id, delay) {
+    setTimeout(() => { const e = g(id); if (e) { e.focus(); try { e.select(); } catch(_){} } }, delay || 80);
+}
+
+function isPrime(n) {
+    if (n < 2) return false;
+    for (let i = 2; i * i <= n; i++) if (n % i === 0) return false;
+    return true;
+}
+
+function primeFactors(n) {
+    const f = []; let d = 2;
+    while (d * d <= n) { while (n % d === 0) { f.push(d); n /= d; } d++; }
+    if (n > 1) f.push(n);
+    return f;
+}
+
+function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function rv(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function multisetIntersection(a, b) {
+    const poolB = [...b];
+    const result = [];
+    for (const x of a) {
+        const i = poolB.indexOf(x);
+        if (i !== -1) { result.push(x); poolB.splice(i, 1); }
+    }
+    return result;
+}
+
+function multisetSubtract(a, sub) {
+    const pool = [...sub];
+    return a.filter(x => {
+        const i = pool.indexOf(x);
+        if (i !== -1) { pool.splice(i, 1); return false; }
+        return true;
+    });
+}
+
+// ═══════════════════════════════════════════════
+// CALCULATRICE
+// ═══════════════════════════════════════════════
+function toggleCalc() {
+    const p = g('calcPanel'), b = g('calcToggle');
+    const open = p.classList.toggle('visible');
+    b.classList.toggle('open', open);
+    b.textContent = open ? '+' : '🧮';
+    if (open) { g('calcA').value = ''; g('calcB').value = ''; g('calcResult').innerHTML = ''; g('calcA').focus(); }
+}
+function hideCalc() {
+    g('calcPanel').classList.remove('visible');
+    g('calcToggle').classList.remove('open');
+    g('calcToggle').textContent = '🧮';
+}
+function doCalc() {
+    const a = parseInt(g('calcA').value), b = parseInt(g('calcB').value);
+    const res = g('calcResult');
+    if (isNaN(a) || isNaN(b) || b === 0) { res.innerHTML = '<span style="color:var(--red)">Entrée invalide</span>'; return; }
+    const q = Math.floor(a / b), r = a % b;
+    res.innerHTML = r === 0
+        ? `${a} ÷ ${b} = <span class="cq">${q}</span> (exact !)`
+        : `${a} ÷ ${b} = <span class="cq">${q}</span> reste <span class="cr">${r}</span>`;
+}
+g('calcA').addEventListener('keydown', e => { if (e.key === 'Enter') g('calcB').focus(); });
+g('calcB').addEventListener('keydown', e => { if (e.key === 'Enter') doCalc(); });
+
+// ═══════════════════════════════════════════════
+// GÉNÉRATION DES PAIRES
+// ═══════════════════════════════════════════════
+// Paires prégénérées pour chaque niveau (beaucoup plus d'exemples)
+const LEVEL_PAIRS = {
+    1: [
+        [12,18],[8,12],[6,9],[12,16],[4,6],[18,12],[24,36],[6,4],[16,24],[9,6],
+        [12,8],[8,6],[18,6],[24,16],[36,24],[12,30],[20,30],[15,18],[21,28],[14,21],
+        [10,15],[22,33],[24,18],[27,18],[16,12],[10,25],[14,35],[15,25],[18,24],[20,32]
+    ],
+    2: [
+        [30,42],[28,42],[60,48],[36,60],[70,98],[45,75],[84,60],[42,28],[56,84],[90,60],
+        [72,48],[96,60],[105,70],[36,84],[48,72],[50,75],[80,120],[63,105],[54,90],[66,88],
+        [55,77],[60,90],[75,100],[84,126],[91,119],[49,63],[65,104],[77,121],[85,102],[95,133],
+        [78,117],[88,132],[96,144],[104,156],[112,168],[120,180],[135,225],[140,210],[150,225],[165,275]
+    ],
+    3: [
+        [126,210],[180,252],[120,168],[330,462],[156,260],[180,300],[252,180],[210,126],
+        [168,120],[260,156],[630,420],[462,330],[300,180],[168,252],[420,630],[132,198],
+        [264,396],[308,462],[396,660],[504,756],[540,900],[588,1176],[616,924],[660,1100],
+        [198,286],[220,308],[242,363],[286,429],[364,572],[396,594],[429,858],[462,693],
+        [495,825],[594,891],[693,1155],[728,1092],[780,1170],[858,1287],[910,1365],[1001,1430]
+    ]
+};
+
+function genPair(level) {
+    const pairs = LEVEL_PAIRS[level];
+    const [a, b] = rv(pairs);
+    const fa = primeFactors(a);
+    const fb = primeFactors(b);
+    const g2 = gcd(a, b);
+    const common = multisetIntersection(fa, fb);
+    return { a, b, fa, fb, g: g2, common };
+}
+
+// ═══════════════════════════════════════════════
+// ÉTAT GLOBAL
+// ═══════════════════════════════════════════════
+let exLevel = 1, exScore = 0, exIdx = 0, TOTAL = 5;
+let cur = null;
+let phase = 1; // 1 = décompositions, 2 = diviseur commun, 3 = plus grand diviseur commun + restes
+const LEVEL_NAMES = { 1: 'Niveau 1 — Petits', 2: 'Niveau 2 — Moyens', 3: 'Niveau 3 — Grands' };
+
+// Décomposition state per panel (0 = number A, 1 = number B)
+let DS = [null, null];
+
+// Phase 3 state
+let P3 = {};
+
+// ═══════════════════════════════════════════════
+// DÉMARRAGE
+// ═══════════════════════════════════════════════
+function startEx(level) {
+    exLevel = level; exScore = 0; exIdx = 0;
+    g('exBadge').textContent = LEVEL_NAMES[level];
+    g('exTotal').textContent = TOTAL;
+    show('S_ex');
+    loadRound();
+}
+
+function loadRound() {
+    cur = genPair(exLevel);
+    phase = 1;
+    exIdx++;
+    g('exIdx').textContent = exIdx;
+    g('progFill').style.width = ((exIdx - 1) / TOTAL * 100) + '%';
+    setPhaseIndicator(1);
+    clearFeedback();
+    hideNext();
+    startPhase1();
+}
+
+function setPhaseIndicator(active) {
+    const names = ['Décompositions', 'Diviseur commun', 'Plus grand diviseur'];
+    g('phaseInd').innerHTML = names.map((n, i) => {
+        const cls = i + 1 < active ? 'done' : i + 1 === active ? 'active' : '';
+        return `<span class="phase-dot ${cls}"></span><span style="color:${i+1===active?'var(--ink)':i+1<active?'var(--green)':'var(--pencil)'}; font-size:0.85em; margin-right:${i<2?'8px':'0'}">${n}</span>`;
+    }).join('');
+}
+
+function clearFeedback() { const f = g('exFeedback'); f.className = 'feedback-box'; f.innerHTML = ''; }
+function showFeedback(type, msg) { const f = g('exFeedback'); f.className = 'feedback-box ' + type; f.innerHTML = msg; }
+function showNext(label) { const b = g('btnNext'); b.style.display = ''; b.textContent = label || 'Continuer →'; }
+function hideNext() { g('btnNext').style.display = 'none'; }
+
+// ═══════════════════════════════════════════════
+// PHASE 1 — DOUBLE DÉCOMPOSITION
+// ═══════════════════════════════════════════════
+function startPhase1() {
+    DS = [
+        { target: cur.a, factors: primeFactors(cur.a), steps: [], current: cur.a, phase: 'dividing', done: false },
+        { target: cur.b, factors: primeFactors(cur.b), steps: [], current: cur.b, phase: 'dividing', done: false }
+    ];
+
+    g('exContent').innerHTML = `
+        <div class="section-title">① Décomposition en facteurs premiers</div>
+        <p style="font-size:0.9em; color:var(--pencil); margin-bottom:14px; line-height:1.5;">
+            Décompose chaque nombre en divisant par un nombre premier à chaque étape.
+            Valide chaque ligne, puis écris l'égalité finale.
+        </p>
+        <div class="dual-decomp">
+            <div class="decomp-panel" id="panel0">
+                <div class="decomp-panel-label">Décompose</div>
+                <div class="decomp-number">${cur.a}</div>
+                <div class="decomp-table" id="dtab0"></div>
+                <div class="step-zone" id="szone0">
+                    <button class="btn btn-green" style="padding:8px 18px; font-size:0.9em; min-height:38px;" onclick="validateStep(0)">✓ Valider</button>
+                </div>
+                <div class="step-feedback" id="sfb0"></div>
+                <div class="equality-section" id="eqsec0">
+                    <div class="equality-label">Écris l'égalité finale :</div>
+                    <div class="equality-row" id="eqrow0"></div>
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-green" style="padding:8px 18px; font-size:0.9em; min-height:38px;" id="btnEq0" onclick="validateEquality(0)">✓ Valider l'égalité</button>
+                    </div>
+                </div>
+                <div class="feedback-box" id="pfb0"></div>
+            </div>
+            <div class="decomp-panel" id="panel1">
+                <div class="decomp-panel-label">Décompose</div>
+                <div class="decomp-number">${cur.b}</div>
+                <div class="decomp-table" id="dtab1"></div>
+                <div class="step-zone" id="szone1">
+                    <button class="btn btn-green" style="padding:8px 18px; font-size:0.9em; min-height:38px;" onclick="validateStep(1)">✓ Valider</button>
+                </div>
+                <div class="step-feedback" id="sfb1"></div>
+                <div class="equality-section" id="eqsec1">
+                    <div class="equality-label">Écris l'égalité finale :</div>
+                    <div class="equality-row" id="eqrow1"></div>
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-green" style="padding:8px 18px; font-size:0.9em; min-height:38px;" id="btnEq1" onclick="validateEquality(1)">✓ Valider l'égalité</button>
+                    </div>
+                </div>
+                <div class="feedback-box" id="pfb1"></div>
+            </div>
+        </div>
+    `;
+    buildTable(0);
+    buildTable(1);
+}
+
+function buildTable(idx) {
+    const ds = DS[idx];
+    const table = g('dtab' + idx);
+    table.innerHTML = '';
+
+    // Rows déjà validées
+    ds.steps.forEach((step, i) => {
+        const row = document.createElement('div');
+        row.className = 'decomp-row';
+        row.innerHTML = `
+            <div class="decomp-left"><span class="dv-${i===0?'given':'quotient'}">${step.number}</span></div>
+            <div class="decomp-right"><span class="dv-prime">${step.prime}</span></div>
+        `;
+        table.appendChild(row);
+    });
+
+    if (ds.phase === 'dividing') {
+        // Rangée active : nombre courant + saisie du premier
+        const primeRow = document.createElement('div');
+        primeRow.className = 'decomp-row';
+        const primeLeft = document.createElement('div');
+        primeLeft.className = 'decomp-left';
+        primeLeft.innerHTML = `<span class="dv-${ds.steps.length===0?'given':'quotient'}">${ds.current}</span>`;
+        const primeRight = document.createElement('div');
+        primeRight.className = 'decomp-right';
+        const primeInp = document.createElement('input');
+        primeInp.type = 'number'; primeInp.className = 'decomp-input red-inp';
+        primeInp.id = 'inp_p' + idx; primeInp.placeholder = '?'; primeInp.min = '2';
+        primeInp.inputMode = 'numeric';
+        primeRight.appendChild(primeInp);
+        primeRow.appendChild(primeLeft); primeRow.appendChild(primeRight);
+        table.appendChild(primeRow);
+
+        // Rangée quotient
+        const quotRow = document.createElement('div');
+        quotRow.className = 'decomp-row';
+        const quotLeft = document.createElement('div');
+        quotLeft.className = 'decomp-left';
+        const quotInp = document.createElement('input');
+        quotInp.type = 'number'; quotInp.className = 'decomp-input';
+        quotInp.id = 'inp_q' + idx; quotInp.placeholder = '?'; quotInp.min = '1';
+        quotInp.inputMode = 'numeric';
+        quotLeft.appendChild(quotInp);
+        const quotRight = document.createElement('div');
+        quotRight.className = 'decomp-right';
+        quotRow.appendChild(quotLeft); quotRow.appendChild(quotRight);
+        table.appendChild(quotRow);
+
+        primeInp.addEventListener('keydown', e => { if (e.key === 'Enter') g('inp_q'+idx)?.focus(); });
+        quotInp.addEventListener('keydown', e => { if (e.key === 'Enter') validateStep(idx); });
+        foc('inp_p' + idx, 60);
+    } else {
+        // Ligne finale "1"
+        const endRow = document.createElement('div');
+        endRow.className = 'decomp-row';
+        endRow.innerHTML = `<div class="decomp-left"><span class="dv-final">1</span></div><div class="decomp-right"></div>`;
+        table.appendChild(endRow);
+        g('szone' + idx).style.display = 'none';
+        buildEqualityRow(idx);
+        g('eqsec' + idx).classList.add('active');
+    }
+}
+
+function validateStep(idx) {
+    const ds = DS[idx];
+    const pEl = g('inp_p' + idx), qEl = g('inp_q' + idx);
+    if (!pEl || !qEl) return;
+    const p = parseInt(pEl.value), q = parseInt(qEl.value);
+    const sfb = g('sfb' + idx);
+    pEl.classList.remove('error', 'ok'); qEl.classList.remove('error', 'ok');
+
+    if (isNaN(p) || p < 2) {
+        sfb.innerHTML = `<span style="color:var(--red)">Entrez un nombre premier (≥ 2).</span>`;
+        pEl.classList.add('error'); foc('inp_p' + idx); return;
+    }
+    if (!isPrime(p)) {
+        sfb.innerHTML = `<span style="color:var(--red)">❌ ${p} n'est pas un nombre premier !</span>`;
+        pEl.classList.add('error'); foc('inp_p' + idx); return;
+    }
+    if (ds.current % p !== 0) {
+        sfb.innerHTML = `<span style="color:var(--red)">❌ ${ds.current} n'est pas divisible par ${p}.</span>`;
+        pEl.classList.add('error'); foc('inp_p' + idx); return;
+    }
+    const expected = ds.current / p;
+    if (isNaN(q)) {
+        sfb.innerHTML = `<span style="color:var(--red)">Entrez le résultat de ${ds.current} ÷ ${p}.</span>`;
+        qEl.classList.add('error'); foc('inp_q' + idx); return;
+    }
+    if (q !== expected) {
+        sfb.innerHTML = `<span style="color:var(--red)">❌ ${ds.current} ÷ ${p} ≠ ${q}…</span>`;
+        qEl.classList.add('error'); foc('inp_q' + idx); return;
+    }
+
+    sfb.innerHTML = `<span style="color:var(--green)">✓ ${ds.current} ÷ ${p} = ${q}</span>`;
+    ds.steps.push({ number: ds.current, prime: p, quotient: q });
+    ds.current = q;
+
+    if (q === 1) {
+        ds.phase = 'equality';
+        setTimeout(() => { sfb.innerHTML = ''; buildTable(idx); }, 500);
+    } else {
+        setTimeout(() => { sfb.innerHTML = ''; buildTable(idx); }, 450);
+    }
+}
+
+function buildEqualityRow(idx) {
+    const ds = DS[idx];
+    const row = g('eqrow' + idx);
+    row.innerHTML = '';
+    // N =
+    const numSpan = document.createElement('span');
+    numSpan.className = 'eq-number'; numSpan.textContent = ds.target;
+    row.appendChild(numSpan);
+    const eqSpan = document.createElement('span');
+    eqSpan.className = 'eq-sign'; eqSpan.textContent = ' = ';
+    row.appendChild(eqSpan);
+    // factor inputs
+    ds.steps.forEach((step, i) => {
+        if (i > 0) {
+            const x = document.createElement('span');
+            x.className = 'eq-sign'; x.textContent = ' × ';
+            row.appendChild(x);
+        }
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.className = 'eq-factor-input'; inp.min = '2';
+        inp.id = 'eqf_' + idx + '_' + i; inp.inputMode = 'numeric';
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const nxt = g('eqf_' + idx + '_' + (i + 1));
+                if (nxt) nxt.focus(); else validateEquality(idx);
+            }
+        });
+        row.appendChild(inp);
+    });
+    foc('eqf_' + idx + '_0', 120);
+}
+
+function validateEquality(idx) {
+    const ds = DS[idx];
+    const userVals = [];
+    let hasErr = false;
+    ds.steps.forEach((_, i) => {
+        const el = g('eqf_' + idx + '_' + i);
+        el.classList.remove('error', 'locked');
+        const v = parseInt(el.value);
+        if (isNaN(v) || v < 2) { el.classList.add('error'); hasErr = true; }
+        else userVals.push(v);
+    });
+    if (hasErr) { showPanelFb(idx, false, 'Remplis tous les facteurs.'); return; }
+
+    const correct = ds.steps.map(s => s.prime).sort((a, b) => a - b);
+    const user = [...userVals].sort((a, b) => a - b);
+    if (user.length !== correct.length || !user.every((v, i) => v === correct[i])) {
+        ds.steps.forEach((_, i) => g('eqf_' + idx + '_' + i)?.classList.add('error'));
+        showPanelFb(idx, false, `Les facteurs ne correspondent pas. Rappel : ${ds.target} = ${correct.join(' × ')}`);
+        return;
+    }
+    // Correct
+    ds.steps.forEach((_, i) => g('eqf_' + idx + '_' + i)?.classList.add('locked'));
+    g('btnEq' + idx).style.display = 'none';
+    ds.done = true;
+    showPanelFb(idx, true, `${ds.target} = ${correct.join(' × ')} ✓`);
+    checkBothDone();
+}
+
+function showPanelFb(idx, ok, msg) {
+    const fb = g('pfb' + idx);
+    fb.className = 'feedback-box ' + (ok ? 'correct' : 'incorrect');
+    fb.innerHTML = (ok ? '✅ ' : '❌ ') + msg;
+}
+
+function checkBothDone() {
+    if (DS[0].done && DS[1].done) {
+        setTimeout(() => {
+            showFeedback('correct', '✅ Parfait ! Les deux décompositions sont terminées.');
+            showNext('Question suivante →');
+        }, 400);
+    }
+}
+
+// ═══════════════════════════════════════════════
+// PHASE 2 — VÉRIFIER UN DIVISEUR COMMUN
+// ═══════════════════════════════════════════════
+function startPhase2() {
+    phase = 2;
+    setPhaseIndicator(2);
+    clearFeedback(); hideNext();
+
+    // Choisir un diviseur commun aléatoire parmi les diviseurs du plus grand diviseur commun
+    const divs = getDivisorsOf(cur.g);
+    const candidates = divs.filter(d => d > 1 && d <= cur.g);
+    const testDiv = rv(candidates);
+    cur.testDiv = testDiv;
+    cur.qaTest = cur.a / testDiv;
+    cur.qbTest = cur.b / testDiv;
+    cur.isExact = (cur.a % testDiv === 0) && (cur.b % testDiv === 0);
+
+    g('exContent').innerHTML = `
+        <div class="section-title">② Un diviseur en commun ?</div>
+        <div class="question-box">
+            <div class="q-label">
+                Le nombre <strong>${testDiv}</strong> est-il un diviseur commun de
+                <strong>${cur.a}</strong> et <strong>${cur.b}</strong> ?<br>
+                <span style="font-size:0.88em; color:var(--pencil);">
+                    Calcule les deux divisions sous forme de fractions, puis décide.
+                </span>
+            </div>
+
+            <div style="margin: 16px 0 6px;">
+                <div style="font-family:'Libre Baskerville',serif; font-size:0.93em; color:var(--pencil); margin-bottom:8px;">
+                    Division de ${cur.a} par ${testDiv} :
+                </div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; margin:10px 0;">
+                    <div class="frac-block">
+                        <input class="frac-input" id="inp_na" type="number" placeholder="?" inputmode="numeric">
+                        <div class="frac-bar"></div>
+                        <input class="frac-input" id="inp_da" type="number" placeholder="?" inputmode="numeric">
+                    </div>
+                    <span style="font-family:'Libre Baskerville',serif; font-size:1.8em; color:var(--pencil); font-weight:700;">=</span>
+                    <input class="blank-input" style="width:80px;" id="inp_qa" type="number" placeholder="?" inputmode="numeric">
+                </div>
+                <div class="verdict-line" id="verd_a"></div>
+            </div>
+
+            <div style="margin: 16px 0 6px;">
+                <div style="font-family:'Libre Baskerville',serif; font-size:0.93em; color:var(--pencil); margin-bottom:8px;">
+                    Division de ${cur.b} par ${testDiv} :
+                </div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; margin:10px 0;">
+                    <div class="frac-block">
+                        <input class="frac-input" id="inp_nb" type="number" placeholder="?" inputmode="numeric">
+                        <div class="frac-bar"></div>
+                        <input class="frac-input" id="inp_db" type="number" placeholder="?" inputmode="numeric">
+                    </div>
+                    <span style="font-family:'Libre Baskerville',serif; font-size:1.8em; color:var(--pencil); font-weight:700;">=</span>
+                    <input class="blank-input" style="width:80px;" id="inp_qb" type="number" placeholder="?" inputmode="numeric">
+                </div>
+                <div class="verdict-line" id="verd_b"></div>
+            </div>
+        </div>
+
+        <div class="question-box" id="box_decision" style="display:none; margin-top:14px;">
+            <div class="q-label" style="margin-bottom:14px;">
+                D'après tes calculs, ${testDiv} est-il un diviseur commun de ${cur.a} et ${cur.b} ?
+            </div>
+            <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn btn-green" style="min-width:140px;" onclick="answerPhase2(true)">✓ Oui</button>
+                <button class="btn btn-red" style="min-width:140px;" onclick="answerPhase2(false)">✗ Non</button>
+            </div>
+        </div>
+
+        <div class="hint-box">💡 Une division est exacte si le résultat est un nombre entier (pas de virgule, pas de reste).</div>
+        <div class="controls" style="margin-top:14px;">
+            <button class="btn btn-ink" id="btnCalcCheck" onclick="checkPhase2Calc()">✓ Vérifier les calculs</button>
+        </div>
+    `;
+
+    foc('inp_na');
+    ['inp_na','inp_da','inp_qa','inp_nb','inp_db','inp_qb'].forEach((id, i) => {
+        g(id).addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const nextIds = ['inp_da','inp_qa','inp_nb','inp_db','inp_qb','btnCalcCheck'];
+                if (i < nextIds.length - 1) foc(nextIds[i]);
+                else g('btnCalcCheck')?.click();
+            }
+        });
+    });
+}
+
+function getDivisorsOf(n) {
+    const d = [];
+    for (let i = 1; i <= n; i++) if (n % i === 0) d.push(i);
+    return d;
+}
+
+function checkPhase2Calc() {
+    const na = parseInt(g('inp_na').value);
+    const da = parseInt(g('inp_da').value);
+    const qa = parseInt(g('inp_qa').value);
+    const nb = parseInt(g('inp_nb').value);
+    const db = parseInt(g('inp_db').value);
+    const qb = parseInt(g('inp_qb').value);
+
+    let allOk = true;
+    [g('inp_na'),g('inp_da'),g('inp_qa'),g('inp_nb'),g('inp_db'),g('inp_qb')].forEach(el => el.classList.remove('ok','err'));
+
+    // Vérifier fraction A
+    if (isNaN(na) || na !== cur.a) { g('inp_na').classList.add('err'); allOk = false; }
+    else g('inp_na').classList.add('ok');
+    if (isNaN(da) || da !== cur.testDiv) { g('inp_da').classList.add('err'); allOk = false; }
+    else g('inp_da').classList.add('ok');
+
+    const expectedQa = cur.a / cur.testDiv;
+    const isIntQa = Number.isInteger(expectedQa);
+    if (isNaN(qa)) { g('inp_qa').classList.add('err'); allOk = false; }
+    else if (qa !== expectedQa && isIntQa) { g('inp_qa').classList.add('err'); allOk = false; }
+    else if (!isIntQa && qa !== Math.floor(expectedQa)) {
+        // Si pas entier, accepter la partie entière ou le résultat décimal arrondi
+        const diff = Math.abs(qa - expectedQa);
+        if (diff > 0.01) { g('inp_qa').classList.add('err'); allOk = false; }
+        else g('inp_qa').classList.add('ok');
+    } else g('inp_qa').classList.add('ok');
+
+    // Vérifier fraction B
+    if (isNaN(nb) || nb !== cur.b) { g('inp_nb').classList.add('err'); allOk = false; }
+    else g('inp_nb').classList.add('ok');
+    if (isNaN(db) || db !== cur.testDiv) { g('inp_db').classList.add('err'); allOk = false; }
+    else g('inp_db').classList.add('ok');
+
+    const expectedQb = cur.b / cur.testDiv;
+    const isIntQb = Number.isInteger(expectedQb);
+    if (isNaN(qb)) { g('inp_qb').classList.add('err'); allOk = false; }
+    else if (qb !== expectedQb && isIntQb) { g('inp_qb').classList.add('err'); allOk = false; }
+    else if (!isIntQb && qb !== Math.floor(expectedQb)) {
+        const diff = Math.abs(qb - expectedQb);
+        if (diff > 0.01) { g('inp_qb').classList.add('err'); allOk = false; }
+        else g('inp_qb').classList.add('ok');
+    } else g('inp_qb').classList.add('ok');
+
+    if (!allOk) {
+        setTimeout(() => {
+            [g('inp_na'),g('inp_da'),g('inp_qa'),g('inp_nb'),g('inp_db'),g('inp_qb')].forEach(el => {
+                if (el.classList.contains('err')) { el.classList.remove('err'); el.value = ''; }
+            });
+            g('inp_na').focus();
+        }, 600);
+        return;
+    }
+
+    // Tout est bon, afficher les verdicts
+    const resultA = isIntQa ? `${cur.a} ÷ ${cur.testDiv} = ${qa} (exact)` : `${cur.a} ÷ ${cur.testDiv} ≈ ${qa.toFixed(2)} (pas exact)`;
+    const resultB = isIntQb ? `${cur.b} ÷ ${cur.testDiv} = ${qb} (exact)` : `${cur.b} ÷ ${cur.testDiv} ≈ ${qb.toFixed(2)} (pas exact)`;
+    
+    g('verd_a').innerHTML = `<div style="font-family:'Patrick Hand',cursive; font-size:2em; font-weight:700; color:${isIntQa?'var(--green)':'var(--red)'}; text-align:center; padding:12px; line-height:1.5; background:rgba(255,255,0,0.2);">${isIntQa?'✓':'✗'} ${resultA}</div>`;
+    g('verd_b').innerHTML = `<div style="font-family:'Patrick Hand',cursive; font-size:2em; font-weight:700; color:${isIntQb?'var(--green)':'var(--red)'}; text-align:center; padding:12px; line-height:1.5; background:rgba(255,255,0,0.2);">${isIntQb?'✓':'✗'} ${resultB}</div>`;
+
+    [g('inp_na'),g('inp_da'),g('inp_qa'),g('inp_nb'),g('inp_db'),g('inp_qb')].forEach(el => el.disabled = true);
+    g('btnCalcCheck').style.display = 'none';
+    g('box_decision').style.display = 'block';
+}
+
+function answerPhase2(userSaysYes) {
+    const isActuallyCommon = Number.isInteger(cur.a / cur.testDiv) && Number.isInteger(cur.b / cur.testDiv);
+    const correct = userSaysYes === isActuallyCommon;
+
+    if (correct) {
+        const msg = isActuallyCommon
+            ? `✅ Exact ! ${cur.testDiv} est bien un diviseur commun car les deux divisions sont exactes.`
+            : `✅ Correct ! ${cur.testDiv} n'est pas un diviseur commun car au moins une division n'est pas exacte.`;
+        showFeedback('correct', msg);
+        exScore++;
+    } else {
+        const correctAnswer = isActuallyCommon ? 'Oui' : 'Non';
+        const hint = isActuallyCommon
+            ? `❌ Pas tout à fait. Les deux divisions tombent juste, donc ${cur.testDiv} divise à la fois ${cur.a} et ${cur.b}. La bonne réponse était <strong>${correctAnswer}</strong>.`
+            : `❌ Pas tout à fait. Au moins une division n'est pas exacte, donc ${cur.testDiv} ne divise pas les deux nombres. La bonne réponse était <strong>${correctAnswer}</strong>.`;
+        showFeedback('incorrect', hint);
+    }
+    
+    // Permettre de continuer dans tous les cas
+    showNext('Trouver le plus grand diviseur commun →');
+}
+
+// ═══════════════════════════════════════════════
+// PHASE 3 — plus grand diviseur commun + FACTEURS RESTANTS
+// ═══════════════════════════════════════════════
+function startPhase3() {
+    phase = 3;
+    setPhaseIndicator(3);
+    clearFeedback(); hideNext();
+
+    // Calcul des facteurs communs et uniques
+    const fa = [...cur.fa].sort((a, b) => a - b);
+    const fb = [...cur.fb].sort((a, b) => a - b);
+    const common = multisetIntersection(fa, fb).sort((a, b) => a - b);
+    const remA = multisetSubtract(fa, common).sort((a, b) => a - b);
+    const remB = multisetSubtract(fb, common).sort((a, b) => a - b);
+
+    P3 = {
+        fa, fb, common, remA, remB,
+        remAval: remA.reduce((acc, v) => acc * v, 1),
+        remBval: remB.reduce((acc, v) => acc * v, 1),
+        redDone: false, pgcdDone: false, greenDone: false
+    };
+
+    // Helper : génère les chips HTML pour une ligne de facteurs (côté A ou B)
+    function chipsHtml(factors, side) {
+        return factors.map((f, i) =>
+            `<span class="factor-chip" id="chip_${side}_${i}" data-val="${f}" onclick="toggleChip('${side}',${i},'red')">${f}</span>`
+        ).join(`<span class="factor-sep"> × </span>`);
+    }
+
+    g('exContent').innerHTML = `
+        <div class="section-title">③ Plus Grand Diviseur Commun</div>
+
+        <!-- Surligner en rouge -->
+        <div class="question-box" id="box_red">
+            <div class="q-label">
+                Voici les décompositions des deux nombres.
+                <strong style="color:var(--red);">Clique</strong> sur les facteurs premiers
+                <strong style="color:var(--red);">communs aux deux nombres</strong>
+                pour les surligner en rouge.
+            </div>
+            <div style="margin: 12px 0 8px;">
+                <span class="factor-num">${cur.a}</span>
+                <span style="font-family:'Libre Baskerville',serif; color:var(--pencil); font-size:1.1em;"> = </span>
+                <span class="factors-row" style="display:inline-flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                    ${chipsHtml(fa, 'A')}
+                </span>
+            </div>
+            <div style="margin: 8px 0 14px;">
+                <span class="factor-num">${cur.b}</span>
+                <span style="font-family:'Libre Baskerville',serif; color:var(--pencil); font-size:1.1em;"> = </span>
+                <span class="factors-row" style="display:inline-flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                    ${chipsHtml(fb, 'B')}
+                </span>
+            </div>
+            <div class="controls" style="margin-top:10px;">
+                <button class="btn btn-red" onclick="validateRedCircles()">✓ Valider les surlignage rouge</button>
+            </div>
+            <div class="feedback-box" id="fb_red"></div>
+        </div>
+
+        <!-- plus grand diviseur commun -->
+        <div class="question-box" id="box_pgcd" style="display:none;">
+            <div class="q-label">
+                Déduis le <strong>Plus Grand Diviseur Commun</strong>
+                en multipliant tous les facteurs surlignés en rouge.
+            </div>
+            <div class="pgcd-zone">
+                <span class="pgcd-label">Plus grand diviseur commun :</span>
+                <input class="pgcd-input" id="inp_pgcd" type="number" placeholder="?" inputmode="numeric">
+            </div>
+            <div class="controls" style="margin-top:10px;">
+                <button class="btn btn-ink" onclick="validatePGCD()">✓ Valider le plus grand diviseur commun</button>
+            </div>
+            <div class="feedback-box" id="fb_pgcd"></div>
+        </div>
+
+        <!-- Surligner en vert + produits restants -->
+        <div class="reste-zone" id="box_green" style="display:none;">
+            <div class="reste-title">
+                Maintenant, <strong style="color:var(--green);">clique</strong> sur les facteurs
+                <strong style="color:var(--green);">non communs</strong>
+                (ceux qui ne sont pas surlignés en rouge) pour les surligner en vert.
+            </div>
+            <div style="margin: 10px 0 6px;">
+                <span class="factor-num">${cur.a}</span>
+                <span style="font-family:'Libre Baskerville',serif; color:var(--pencil); font-size:1.05em;"> = </span>
+                <span id="green_chips_A" style="display:inline-flex; flex-wrap:wrap; gap:6px; align-items:center;"></span>
+            </div>
+            <div style="margin: 6px 0 16px;">
+                <span class="factor-num">${cur.b}</span>
+                <span style="font-family:'Libre Baskerville',serif; color:var(--pencil); font-size:1.05em;"> = </span>
+                <span id="green_chips_B" style="display:inline-flex; flex-wrap:wrap; gap:6px; align-items:center;"></span>
+            </div>
+
+            <div style="border-top:1.5px dashed rgba(30,132,73,0.3); padding-top:14px; margin-top:4px;">
+                <div style="font-family:'Libre Baskerville',serif; font-size:0.92em; color:var(--pencil); margin-bottom:12px; text-align:center;">
+                    Calcule le produit des facteurs surlignés en vert pour chaque nombre :
+                </div>
+                <div class="reste-row">
+                    <span class="reste-label">Produit des facteurs verts de ${cur.a} :</span>
+                    <input class="reste-input" id="inp_remA" type="number" placeholder="?" inputmode="numeric">
+                    <span class="reste-check" id="chk_remA"></span>
+                </div>
+                <div class="reste-row">
+                    <span class="reste-label">Produit des facteurs verts de ${cur.b} :</span>
+                    <input class="reste-input" id="inp_remB" type="number" placeholder="?" inputmode="numeric">
+                    <span class="reste-check" id="chk_remB"></span>
+                </div>
+            </div>
+            <div class="controls" style="margin-top:14px;">
+                <button class="btn btn-green" onclick="validateGreen()">✓ Valider</button>
+            </div>
+            <div class="feedback-box" id="fb_green"></div>
+        </div>
+    `;
+
+    g('inp_pgcd')?.addEventListener('keydown', e => { if (e.key === 'Enter') validatePGCD(); });
+    g('inp_remA')?.addEventListener('keydown', e => { if (e.key === 'Enter') foc('inp_remB'); });
+    g('inp_remB')?.addEventListener('keydown', e => { if (e.key === 'Enter') validateGreen(); });
+}
+
+// --- Surlignage rouge ---
+function toggleChip(side, idx, color) {
+    const chip = g(`chip_${side}_${idx}`);
+    if (!chip || chip.classList.contains('locked')) return;
+    const cls = color === 'red' ? 'highlighted-red' : 'highlighted-green';
+    chip.classList.toggle(cls);
+}
+
+function validateRedCircles() {
+    const { fa, fb, common } = P3;
+
+    // Récupérer ce que l'élève a entouré
+    const selA = fa.filter((_, i) => g(`chip_A_${i}`)?.classList.contains('highlighted-red'));
+    const selB = fb.filter((_, i) => g(`chip_B_${i}`)?.classList.contains('highlighted-red'));
+
+    const sortedSelA = [...selA].sort((a, b) => a - b);
+    const sortedSelB = [...selB].sort((a, b) => a - b);
+    const sortedCommon = [...common].sort((a, b) => a - b);
+
+    const okA = JSON.stringify(sortedSelA) === JSON.stringify(sortedCommon);
+    const okB = JSON.stringify(sortedSelB) === JSON.stringify(sortedCommon);
+
+    const fb_ = g('fb_red');
+    if (!okA || !okB) {
+        fb_.className = 'feedback-box incorrect';
+        fb_.innerHTML = `❌ Vérifie bien : quels facteurs premiers apparaissent <em>dans les deux</em> décompositions ?`;
+        return;
+    }
+
+    // Verrouiller les chips
+    fa.forEach((_, i) => g(`chip_A_${i}`)?.classList.add('locked'));
+    fb.forEach((_, i) => g(`chip_B_${i}`)?.classList.add('locked'));
+    P3.redDone = true;
+
+    fb_.className = 'feedback-box correct';
+    fb_.innerHTML = `✅ Parfait ! Les facteurs communs sont : ${common.join(' × ')}.`;
+    g('box_pgcd').style.display = 'block';
+    foc('inp_pgcd', 200);
+}
+
+// --- plus grand diviseur commun ---
+function validatePGCD() {
+    const inp = g('inp_pgcd');
+    inp.classList.remove('ok', 'err');
+    const v = parseInt(inp.value);
+    const fb_ = g('fb_pgcd');
+
+    if (isNaN(v) || v !== cur.g) {
+        inp.classList.add('err');
+        fb_.className = 'feedback-box incorrect';
+        fb_.innerHTML = `❌ Pas tout à fait… Multiplie tous les facteurs surlignés en rouge : ${P3.common.join(' × ')} = ?`;
+        setTimeout(() => { inp.classList.remove('err'); inp.value = ''; inp.focus(); }, 500);
+        return;
+    }
+
+    inp.classList.add('ok'); inp.disabled = true;
+    P3.pgcdDone = true;
+    const commonStr = P3.common.length > 0 ? P3.common.join(' × ') + ' = ' : '';
+    fb_.className = 'feedback-box correct';
+    fb_.innerHTML = `✅ Bravo ! Plus grand diviseur commun de ${cur.a} et ${cur.b} ${commonStr}= <strong>${cur.g}</strong>`;
+    setTimeout(() => buildGreenSection(), 600);
+}
+
+// --- Facteurs restants ---
+function buildGreenSection() {
+    g('box_green').style.display = 'block';
+    const { fa, fb, common } = P3;
+
+    // Reconstituer les chips avec les rouges déjà verrouillés et les verts disponibles
+    function buildGreenChips(factors, commonArr, side) {
+        const usedCommon = [...commonArr];
+        return factors.map((f, i) => {
+            const ci = usedCommon.indexOf(f);
+            if (ci !== -1) {
+                usedCommon.splice(ci, 1);
+                // Ce chip est rouge, non cliquable
+                return `<span class="factor-chip highlighted-red locked" style="cursor:default;">${f}</span>`;
+            } else {
+                // Ce chip est vert potentiel
+                return `<span class="factor-chip" id="gchip_${side}_${i}" data-val="${f}" onclick="toggleChip('g${side}',${i},'green')">${f}</span>`;
+            }
+        }).join(`<span class="factor-sep"> × </span>`);
+    }
+
+    g('green_chips_A').innerHTML = buildGreenChips(fa, common, 'A');
+    g('green_chips_B').innerHTML = buildGreenChips(fb, common, 'B');
+
+    // Réassigner les IDs pour toggleChip (préfixe g)
+    const { remA, remB } = P3;
+    // On attribue les ids gchip_gA_i et gchip_gB_i dans buildGreenChips → il faut corriger l'onclick
+    // On passe les vrais indices en relisant le DOM
+    foc('inp_remA', 300);
+}
+
+function toggleGreenChip(side, idx) {
+    const chip = g(`gchip_${side}_${idx}`);
+    if (!chip || chip.classList.contains('locked')) return;
+    chip.classList.toggle('highlighted-green');
+}
+
+// Remplacer toggleChip pour les chips vertes (prefixe 'g')
+const origToggleChip = toggleChip;
+function toggleChip(side, idx, color) {
+    if (side.startsWith('g')) {
+        // Green section chip
+        const realSide = side.slice(1); // 'gA' → 'A', 'gB' → 'B'
+        const chip = g(`gchip_${realSide}_${idx}`);
+        if (!chip || chip.classList.contains('locked')) return;
+        chip.classList.toggle('highlighted-green');
+    } else {
+        // Red section chip
+        const chip = g(`chip_${side}_${idx}`);
+        if (!chip || chip.classList.contains('locked')) return;
+        chip.classList.toggle('highlighted-red');
+    }
+}
+
+function validateGreen() {
+    const { fa, fb, common, remA, remB, remAval, remBval } = P3;
+
+    // Trouver quels chips verts ont été sélectionnés
+    function getGreenSelected(factors, commonArr, side) {
+        const usedC = [...commonArr];
+        return factors.filter((f, i) => {
+            const ci = usedC.indexOf(f);
+            if (ci !== -1) { usedC.splice(ci, 1); return false; }
+            return g(`gchip_${side}_${i}`)?.classList.contains('highlighted-green');
+        });
+    }
+
+    const selGA = getGreenSelected(fa, common, 'A').sort((a, b) => a - b);
+    const selGB = getGreenSelected(fb, common, 'B').sort((a, b) => a - b);
+    const sortRemA = [...remA].sort((a, b) => a - b);
+    const sortRemB = [...remB].sort((a, b) => a - b);
+
+    const okGA = JSON.stringify(selGA) === JSON.stringify(sortRemA);
+    const okGB = JSON.stringify(selGB) === JSON.stringify(sortRemB);
+
+    const fb_ = g('fb_green');
+
+    if (!okGA || !okGB) {
+        fb_.className = 'feedback-box incorrect';
+        fb_.innerHTML = `❌ Surligne en vert exactement les facteurs qui <em>ne sont pas</em> surlignés en rouge.`;
+        return;
+    }
+
+    // Valider les inputs produits
+    const inpA = g('inp_remA'), inpB = g('inp_remB');
+    inpA.classList.remove('ok', 'err'); inpB.classList.remove('ok', 'err');
+    const va = parseInt(inpA.value), vb = parseInt(inpB.value);
+    let allOk = true;
+
+    if (isNaN(va) || va !== remAval) {
+        inpA.classList.add('err'); allOk = false;
+        setTimeout(() => { inpA.classList.remove('err'); inpA.value = ''; inpA.focus(); }, 500);
+    } else {
+        inpA.classList.add('ok');
+        g('chk_remA').innerHTML = '✓';
+    }
+    if (isNaN(vb) || vb !== remBval) {
+        inpB.classList.add('err'); allOk = false;
+        setTimeout(() => { inpB.classList.remove('err'); inpB.value = ''; if (va === remAval) inpB.focus(); }, 500);
+    } else {
+        inpB.classList.add('ok');
+        g('chk_remB').innerHTML = '✓';
+    }
+
+    if (!allOk) return;
+
+    inpA.disabled = true; inpB.disabled = true;
+    fa.forEach((f, i) => g(`gchip_A_${i}`)?.classList.add('locked'));
+    fb.forEach((f, i) => g(`gchip_B_${i}`)?.classList.add('locked'));
+
+    const remAstr = remA.length > 0 ? remA.join(' × ') : '1';
+    const remBstr = remB.length > 0 ? remB.join(' × ') : '1';
+    fb_.className = 'feedback-box correct';
+    fb_.innerHTML = `✅ Excellent !<br>
+        ${cur.a} = <span style="color:var(--red);">${P3.common.join(' × ')}</span> × <span style="color:var(--green);">${remAstr}</span> = ${cur.g} × ${remAval}<br>
+        ${cur.b} = <span style="color:var(--red);">${P3.common.join(' × ')}</span> × <span style="color:var(--green);">${remBstr}</span> = ${cur.g} × ${remBval}`;
+
+    P3.greenDone = true;
+    exScore++;
+    setTimeout(() => {
+        showFeedback('correct',
+            `🏆 Exercice terminé ! Plus grand diviseur commun de ${cur.a} et ${cur.b} : <strong>${cur.g}</strong>`
+        );
+        if (exIdx >= TOTAL) showNext('Voir les résultats 🏆');
+        else showNext('Exercice suivant →');
+    }, 500);
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION ENTRE PHASES
+// ═══════════════════════════════════════════════
+function nextPhase() {
+    hideNext(); clearFeedback();
+    if (phase === 1) { startPhase2(); }
+    else if (phase === 2) { startPhase3(); }
+    else {
+        if (exIdx >= TOTAL) showResults();
+        else loadRound();
+    }
+}
+
+// ═══════════════════════════════════════════════
+// RÉSULTATS
+// ═══════════════════════════════════════════════
+function showResults() {
+    const max = TOTAL * 2; // 1 point phase2 + 1 point phase3 par exercice
+    const pct = Math.round(exScore / max * 100);
+    const emoji = pct === 100 ? '🏆' : pct >= 80 ? '⭐' : pct >= 60 ? '📝' : '💪';
+    const msg = pct === 100 ? 'Maîtrise parfaite !'
+              : pct >= 80 ? 'Très bien, encore un effort !'
+              : pct >= 60 ? 'Bon travail, continue !'
+              : 'Révise et réessaie !';
+    g('resEmoji').textContent = emoji;
+    g('resScore').textContent = exScore + ' / ' + max;
+    g('resMsg').textContent = msg;
+    const fill = g('resBarFill');
+    fill.className = 'result-bar-fill ' + (pct >= 60 ? 'good' : 'bad');
+    fill.style.width = '0%';
+    show('S_res');
+    setTimeout(() => fill.style.width = pct + '%', 120);
+    hideCalc();
+}
+</script>
+
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

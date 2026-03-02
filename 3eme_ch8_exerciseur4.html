@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Exerciseur — Translations</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary:    #38b2ac;
+  --primary-dk: #2c7a7b;
+  --secondary:  #319795;
+  --accent:     #0bc5ea;
+  --success:    #48bb78;
+  --error:      #f56565;
+  --warning:    #ed8936;
+  --bg-grad:    linear-gradient(135deg, #38b2ac 0%, #2b6cb0 100%);
+  --card-shadow:0 10px 30px rgba(0,0,0,0.12);
+}
+body {
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background: var(--bg-grad);
+  min-height:100vh; padding:16px; color:#2d3748;
+}
+.container { max-width:880px; margin:0 auto; }
+header {
+  text-align:center; color:white;
+  margin-bottom:20px; padding:14px 10px;
+}
+header h1 { font-size:clamp(1.5em,4vw,2.3em); margin-bottom:6px; text-shadow:2px 2px 4px rgba(0,0,0,.2); }
+header p  { font-size:.95em; opacity:.9; }
+.main-card {
+  background:white; border-radius:20px;
+  padding:clamp(16px,4vw,36px); box-shadow:var(--card-shadow);
+}
+.hidden { display:none !important; }
+
+/* ── MENU ───────────────────────────────────── */
+.menu-intro { color:#718096; margin-bottom:22px; font-size:.95em; line-height:1.65; }
+.menu-intro strong { color:var(--primary-dk); }
+.menu-buttons {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(195px,1fr));
+  gap:16px;
+}
+.menu-btn {
+  background:var(--bg-grad); color:white; border:none;
+  padding:22px 18px; border-radius:14px; font-size:.95em; font-weight:600;
+  cursor:pointer; transition:all .25s;
+  box-shadow:0 5px 15px rgba(56,178,172,.3); text-align:left; width:100%;
+}
+.menu-btn:hover { transform:translateY(-4px); box-shadow:0 8px 25px rgba(56,178,172,.45); }
+.menu-btn.free-btn {
+  background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
+  box-shadow:0 5px 15px rgba(245,87,108,.3);
+}
+.menu-btn.free-btn:hover { box-shadow:0 8px 25px rgba(245,87,108,.45); }
+.menu-btn .num {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; background:rgba(255,255,255,.3);
+  border-radius:50%; margin-right:8px; font-weight:bold; font-size:.9em;
+}
+.menu-btn .sub { display:block; font-size:.8em; opacity:.88; margin-top:7px; font-weight:400; }
+
+/* ── EXERCISE HEADER ────────────────────────── */
+.ex-header {
+  display:flex; align-items:center;
+  justify-content:space-between; flex-wrap:wrap;
+  gap:8px; margin-bottom:14px;
+}
+.ex-title { font-size:1.15em; font-weight:700; color:var(--primary-dk); }
+.top-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.score-badge {
+  background:var(--bg-grad); color:white;
+  padding:5px 14px; border-radius:20px; font-weight:700; font-size:.85em;
+}
+.btn-back {
+  background:#edf2f7; border:none; padding:7px 16px;
+  border-radius:8px; cursor:pointer; font-size:.87em;
+  color:#4a5568; font-weight:600; transition:background .2s; white-space:nowrap;
+}
+.btn-back:hover { background:#e2e8f0; }
+.progress-bar { background:#e2e8f0; border-radius:10px; height:7px; margin-bottom:6px; overflow:hidden; }
+.progress-fill { height:100%; background:var(--bg-grad); border-radius:10px; transition:width .4s; }
+.progress-label { font-size:.8em; color:#718096; margin-bottom:14px; }
+
+/* ── RECALL ─────────────────────────────────── */
+.recall-toggle {
+  width:100%; background:#e6fffa; border:none; border-radius:10px;
+  padding:10px 16px; text-align:left; cursor:pointer; font-size:.88em;
+  color:var(--primary-dk); font-weight:600; margin-bottom:6px;
+  display:flex; justify-content:space-between; align-items:center;
+  transition:background .2s; border:1px solid #b2f5ea;
+}
+.recall-toggle:hover { background:#b2f5ea; }
+.recall-toggle .arrow { transition:transform .3s; }
+.recall-toggle.open .arrow { transform:rotate(180deg); }
+.recall-box {
+  background:linear-gradient(135deg,#f0fff4,#e6fffa);
+  border-left:5px solid var(--primary); border-radius:10px;
+  padding:14px 18px; margin-bottom:14px; font-size:.88em;
+  color:#2d4a48; line-height:1.65;
+  overflow:hidden; transition:max-height .35s ease, padding .3s;
+}
+.recall-box.collapsed { max-height:0; padding-top:0; padding-bottom:0; margin-bottom:6px; }
+.recall-box strong { color:var(--primary-dk); }
+
+/* ── INSTRUCTION ────────────────────────────── */
+.canvas-instructions {
+  font-size:.88em; color:#4a5568; margin-bottom:10px;
+  background:#fff3cd; border-left:4px solid var(--warning);
+  padding:9px 14px; border-radius:8px; line-height:1.5;
+}
+
+/* ── TOOLBAR ────────────────────────────────── */
+.canvas-toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+.btn {
+  padding:9px 16px; border:none; border-radius:8px;
+  font-size:.85em; font-weight:600; cursor:pointer;
+  transition:all .2s ease; white-space:nowrap;
+}
+.btn-tool { background:#edf2f7; color:#4a5568; border:2px solid transparent; }
+.btn-tool:hover { background:#e2e8f0; }
+.btn-tool.active-point   { border-color:var(--primary); background:#e6fffa; color:var(--primary-dk); }
+.btn-tool.active-line    { border-color:#805ad5; background:#faf5ff; color:#553c9a; }
+.btn-primary {
+  background:var(--bg-grad); color:white;
+  box-shadow:0 3px 10px rgba(56,178,172,.28);
+}
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 5px 15px rgba(56,178,172,.4); }
+.btn-primary:disabled { opacity:.5; cursor:default; transform:none; }
+.btn-danger { background:#fff5f5; color:var(--error); border:1px solid #fed7d7; }
+.btn-danger:hover { background:#fed7d7; }
+.btn-free-next { background:linear-gradient(135deg,#f093fb,#f5576c); color:white; }
+.btn-free-next:hover { transform:translateY(-1px); }
+.line-hint {
+  display:inline-flex; align-items:center; gap:5px;
+  background:#faf5ff; color:#553c9a;
+  padding:4px 12px; border-radius:20px; font-size:.78em; font-weight:600;
+}
+.free-label {
+  display:inline-block; font-size:.72em; font-weight:700;
+  background:linear-gradient(135deg,#f093fb,#f5576c); color:white;
+  padding:2px 10px; border-radius:20px; margin-left:8px; vertical-align:middle;
+}
+
+/* ── CANVAS ─────────────────────────────────── */
+.canvas-wrap {
+  position:relative; width:100%; border-radius:10px;
+  overflow:hidden; border:2px solid #b2f5ea;
+  background:white; touch-action:none; cursor:crosshair;
+}
+.canvas-wrap canvas { display:block; width:100%; height:auto; }
+
+/* ── LEGEND ─────────────────────────────────── */
+.legend {
+  display:flex; gap:12px; flex-wrap:wrap;
+  font-size:.78em; color:#718096; margin-top:8px; align-items:center;
+}
+.leg { display:flex; align-items:center; gap:4px; }
+.leg-dot  { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
+.leg-line { width:20px; height:3px; border-radius:2px; flex-shrink:0; }
+.leg-arrow { font-size:1.1em; line-height:1; }
+
+/* ── FEEDBACK ───────────────────────────────── */
+.feedback {
+  padding:13px 18px; border-radius:10px;
+  margin-top:12px; font-size:.92em; line-height:1.5; display:none;
+}
+.feedback.success { background:#f0fff4; border-left:4px solid var(--success); color:#276749; display:block; }
+.feedback.error   { background:#fff5f5; border-left:4px solid var(--error);   color:#742a2a; display:block; }
+.feedback.partial { background:#fffbeb; border-left:4px solid var(--warning); color:#7b341e; display:block; }
+.fb-btns { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ── RESULTS ────────────────────────────────── */
+.results-center { text-align:center; padding:24px 10px; }
+.results-emoji  { font-size:3.5em; margin-bottom:12px; }
+.results-score  { font-size:2.8em; font-weight:800; color:var(--primary-dk); margin:16px 0 4px; }
+.results-pct    { font-size:1.3em; color:var(--primary); margin-bottom:12px; }
+.results-msg    { font-size:1.05em; color:#4a5568; margin-bottom:26px; }
+.results-btns   { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+@media(max-width:480px){
+  body { padding:8px; }
+  .main-card { padding:13px; }
+  .btn { padding:8px 11px; font-size:.8em; }
+  header { padding:8px; margin-bottom:10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>➡️ Translations</h1>
+    <p>Construis les images par translation sur le quadrillage</p>
+  </header>
+  <div class="main-card">
+
+    <!-- ══ MENU ══════════════════════════════════════════ -->
+    <div id="mainMenu">
+      <p class="menu-intro">
+        Une <strong>translation</strong> déplace chaque point d'une figure selon un même <strong>glissement</strong> (une direction, un sens et une longueur). Sur le quadrillage, la flèche du glissement indique de combien de carreaux on se déplace horizontalement et verticalement. L'image d'un point est obtenue en appliquant ce déplacement.
+      </p>
+      <div class="menu-buttons">
+        <button class="menu-btn" onclick="startLevel(1)">
+          <span class="num">1</span>Glissement horizontal / vertical
+          <span class="sub">5 exercices guidés — déplacement simple</span>
+        </button>
+        <button class="menu-btn" onclick="startLevel(2)">
+          <span class="num">2</span>Glissement oblique
+          <span class="sub">5 exercices guidés — déplacement diagonal</span>
+        </button>
+        <button class="menu-btn free-btn" onclick="startFree()">
+          <span class="num">∞</span>Mode libre
+          <span class="sub">Figures et glissements générés aléatoirement</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ EXERCISE AREA ══════════════════════════════════ -->
+    <div id="exerciseArea" class="hidden">
+      <div class="ex-header">
+        <div class="ex-title" id="exTitle">Chargement…</div>
+        <div class="top-right">
+          <span class="score-badge" id="scoreBadge">Score : <span id="scoreVal">0</span> / <span id="scoreTotal">0</span></span>
+          <button class="btn-back" onclick="goBack()">← Menu</button>
+        </div>
+      </div>
+      <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel"></div>
+      <div id="exerciseContent"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════
+const COLS     = 14;
+const ROWS     = 11;
+const BASE_CELL = 46;          // logical canvas px per cell
+const CW       = COLS * BASE_CELL;
+const CH       = ROWS * BASE_CELL;
+const PT_R     = 7;             // point radius
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let currentLevel = 0;
+let currentEx    = 0;
+let score        = 0;
+let userPoints   = [];    // [{x,y,label}]
+let userSegs     = [];    // [[iA,iB]]
+let verified     = false;
+let tool         = 'point'; // 'point'|'line'
+let lineFirst    = null;
+let recallOpen   = true;
+let canvas, ctx, exData;
+
+// ═══════════════════════════════════════════════════════
+//  EXERCISE DATA
+//  glis:{dx,dy}  figure:[{x,y,label}]
+//  The vector is DRAWN from a dedicated anchor point.
+// ═══════════════════════════════════════════════════════
+
+// Niveau 1 — glissement horizontal / vertical
+const level1 = [
+  {
+    label:"Exercice 1 — Un point, glissement horizontal",
+    recall:"Pour translater un point selon un glissement horizontal, on se déplace uniquement <strong>à droite ou à gauche</strong> du nombre de carreaux indiqué par la flèche. La hauteur (ordonnée) ne change pas.",
+    instructions:"Translate le point A selon le glissement indiqué par la flèche rouge.",
+    figure:[{x:2,y:5,label:"A"}],
+    glis:{dx:4,dy:0}
+  },
+  {
+    label:"Exercice 2 — Un point, glissement vertical",
+    recall:"Pour un glissement vertical, on se déplace uniquement <strong>vers le haut ou vers le bas</strong>. La position horizontale (abscisse) ne change pas.",
+    instructions:"Translate le point A selon le glissement vertical indiqué.",
+    figure:[{x:6,y:2,label:"A"}],
+    glis:{dx:0,dy:4}
+  },
+  {
+    label:"Exercice 3 — Deux points",
+    recall:"Chaque point de la figure subit <strong>exactement le même déplacement</strong>. Applique le glissement à chaque point séparément.",
+    instructions:"Translate les points A et B selon le glissement. Relie ensuite les images.",
+    figure:[{x:2,y:3,label:"A"},{x:2,y:7,label:"B"}],
+    glis:{dx:5,dy:0}
+  },
+  {
+    label:"Exercice 4 — Un triangle",
+    recall:"La figure image est <strong>identique et de même orientation</strong> que la figure de départ. Seule sa position change.",
+    instructions:"Translate les 3 sommets du triangle, puis relie-les.",
+    figure:[{x:1,y:2,label:"A"},{x:4,y:2,label:"B"},{x:2,y:6,label:"C"}],
+    glis:{dx:5,dy:0}
+  },
+  {
+    label:"Exercice 5 — Un quadrilatère, glissement vers le bas",
+    recall:"Un glissement vers le bas a une composante verticale <strong>positive</strong> (on descend sur le quadrillage).",
+    instructions:"Translate les 4 sommets du quadrilatère, puis relie-les.",
+    figure:[{x:2,y:1,label:"A"},{x:5,y:1,label:"B"},{x:6,y:4,label:"C"},{x:1,y:4,label:"D"}],
+    glis:{dx:0,dy:5}
+  }
+];
+
+// Niveau 2 — glissement oblique
+const level2 = [
+  {
+    label:"Exercice 1 — Un point, glissement oblique",
+    recall:"Pour un glissement oblique, on combine un déplacement <strong>horizontal ET vertical</strong>. On peut décomposer : d'abord les carreaux horizontaux, puis les carreaux verticaux.",
+    instructions:"Translate le point A selon le glissement oblique (flèche rouge).",
+    figure:[{x:2,y:6,label:"A"}],
+    glis:{dx:4,dy:-3}
+  },
+  {
+    label:"Exercice 2 — Deux points",
+    recall:"Applique les deux composantes du glissement à chaque point : <strong>dx carreaux à droite</strong> (ou à gauche si négatif) et <strong>dy carreaux vers le bas</strong> (ou vers le haut si négatif).",
+    instructions:"Translate A et B selon le glissement oblique. Relie ensuite les images.",
+    figure:[{x:1,y:7,label:"A"},{x:4,y:9,label:"B"}],
+    glis:{dx:5,dy:-4}
+  },
+  {
+    label:"Exercice 3 — Un triangle",
+    recall:"Même méthode pour chaque sommet : ajoute dx à l'abscisse et dy à l'ordonnée.",
+    instructions:"Translate les 3 sommets puis relie-les pour former le triangle image.",
+    figure:[{x:1,y:4,label:"A"},{x:4,y:4,label:"B"},{x:2,y:8,label:"C"}],
+    glis:{dx:5,dy:-2}
+  },
+  {
+    label:"Exercice 4 — Un triangle, glissement bas-gauche",
+    recall:"Un glissement avec dx négatif pointe <strong>vers la gauche</strong>. Soustrais ce nombre de carreaux à l'abscisse.",
+    instructions:"Translate les 3 sommets selon le glissement oblique, puis relie-les.",
+    figure:[{x:8,y:1,label:"A"},{x:12,y:1,label:"B"},{x:10,y:4,label:"C"}],
+    glis:{dx:-4,dy:4}
+  },
+  {
+    label:"Exercice 5 — Figure à 5 sommets",
+    recall:"Pour une figure complexe, traduis chaque sommet un par un. Vérifie en comptant les carreaux sur la flèche.",
+    instructions:"Translate les 5 sommets puis relie-les dans l'ordre.",
+    figure:[{x:1,y:2,label:"A"},{x:4,y:1,label:"B"},{x:6,y:3,label:"C"},{x:5,y:6,label:"D"},{x:2,y:5,label:"E"}],
+    glis:{dx:4,dy:3}
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+//  FREE MODE GENERATOR
+// ═══════════════════════════════════════════════════════
+function rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+function generateFree(){
+  const nPts  = rnd(2,5);
+  const labels= 'ABCDE'.split('');
+
+  // Choisit un glissement aléatoire (non nul)
+  let dx, dy;
+  const kind = Math.random();
+  if(kind < 0.33){
+    // horizontal
+    dx = rnd(1,4) * (Math.random()<.5 ? 1 : -1);
+    dy = 0;
+  } else if(kind < 0.66){
+    // vertical
+    dx = 0;
+    dy = rnd(1,4) * (Math.random()<.5 ? 1 : -1);
+  } else {
+    // oblique
+    dx = rnd(2,4) * (Math.random()<.5 ? 1 : -1);
+    dy = rnd(2,4) * (Math.random()<.5 ? 1 : -1);
+  }
+
+  // Place points so that both original and image stay within grid
+  const margin = 1;
+  const xMin = margin   + Math.max(0,-dx);
+  const xMax = COLS-margin - Math.max(0, dx);
+  const yMin = margin   + Math.max(0,-dy);
+  const yMax = ROWS-margin - Math.max(0, dy);
+
+  const figure = [];
+  const used = new Set();
+  let tries = 0;
+  while(figure.length < nPts && tries < 200){
+    tries++;
+    const x = rnd(xMin, xMax);
+    const y = rnd(yMin, yMax);
+    const key = `${x},${y}`;
+    if(!used.has(key)){
+      used.add(key);
+      figure.push({x,y,label:labels[figure.length]});
+    }
+  }
+
+  const axisName = dx===0 ? 'vertical' : dy===0 ? 'horizontal' : 'oblique';
+  return {
+    label:'Mode Libre', recall:null,
+    instructions:`Translate les ${figure.length} point(s) selon le glissement (flèche rouge), puis relie-les si tu veux.`,
+    figure, glis:{dx,dy}
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function startLevel(lv){
+  currentLevel=lv; currentEx=0; score=0;
+  document.getElementById('mainMenu').classList.add('hidden');
+  document.getElementById('exerciseArea').classList.remove('hidden');
+  document.getElementById('exTitle').textContent = lv===1 ? '➡️ Glissement horizontal / vertical' : '↗️ Glissement oblique';
+  document.getElementById('scoreBadge').style.display='';
+  document.getElementById('progressBar').style.display='';
+  document.getElementById('scoreTotal').textContent = exList().length;
+  recallOpen=true;
+  loadEx();
+}
+
+function startFree(){
+  currentLevel=99; currentEx=0; score=0;
+  document.getElementById('mainMenu').classList.add('hidden');
+  document.getElementById('exerciseArea').classList.remove('hidden');
+  document.getElementById('exTitle').innerHTML='🎲 Mode libre <span class="free-label">∞</span>';
+  document.getElementById('scoreBadge').style.display='none';
+  document.getElementById('progressBar').style.display='none';
+  document.getElementById('progressLabel').textContent='';
+  recallOpen=false;
+  loadEx();
+}
+
+function exList(){ return currentLevel===1?level1:currentLevel===2?level2:[]; }
+
+function goBack(){
+  document.getElementById('mainMenu').classList.remove('hidden');
+  document.getElementById('exerciseArea').classList.add('hidden');
+  currentLevel=0; currentEx=0; score=0;
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOAD / RENDER EXERCISE
+// ═══════════════════════════════════════════════════════
+function loadEx(){
+  userPoints=[]; userSegs=[]; verified=false; tool='point'; lineFirst=null;
+
+  if(currentLevel===99){
+    exData = generateFree();
+    renderEx();
+    return;
+  }
+
+  const list=exList(), total=list.length;
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('progressFill').style.width = ((currentEx/total)*100)+'%';
+  document.getElementById('progressLabel').textContent = `Exercice ${Math.min(currentEx+1,total)} / ${total}`;
+  if(currentEx>=total){ showResults(); return; }
+  exData = list[currentEx];
+  renderEx();
+}
+
+function renderEx(){
+  const isFree = currentLevel===99;
+  const {glis} = exData;
+  const glisStr = formatGlis(glis);
+
+  const recallHTML = exData.recall ? `
+    <button class="recall-toggle ${recallOpen?'open':''}" id="recallToggle" onclick="toggleRecall()">
+      📚 Rappel de cours <span class="arrow">▼</span>
+    </button>
+    <div class="recall-box ${recallOpen?'':'collapsed'}" id="recallBox">${exData.recall}</div>` : '';
+
+  const nextBtn = isFree
+    ? `<button class="btn btn-free-next" onclick="loadEx()">🎲 Nouvelle figure</button>`
+    : `<button class="btn btn-primary" onclick="nextEx()">Exercice suivant →</button>`;
+
+  document.getElementById('exerciseContent').innerHTML = `
+    ${recallHTML}
+    <div class="canvas-instructions">
+      🖱️ ${exData.instructions} &nbsp;<strong>Glissement : ${glisStr}</strong>
+    </div>
+    <div class="canvas-toolbar">
+      <button class="btn btn-tool active-point" id="btnPoint" onclick="setTool('point')">● Placer un point</button>
+      <button class="btn btn-tool"              id="btnLine"  onclick="setTool('line')">— Relier des points</button>
+      <span class="line-hint hidden" id="lineHint">1er point choisi…</span>
+      <button class="btn btn-danger" style="margin-left:auto" onclick="clearAll()">🗑️ Effacer</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="cvs" width="${CW}" height="${CH}"></canvas>
+    </div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#48bb78"></div>Figure de départ</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--primary)"></div>Tes points</div>
+      <div class="leg"><div class="leg-dot" style="background:#f56565;outline:2px dashed #f56565;outline-offset:2px;border-radius:50%"></div>Réponse (après vérif.)</div>
+      <div class="leg"><span class="leg-arrow" style="color:#e53e3e">→</span>Glissement de translation</div>
+    </div>
+    <div class="canvas-toolbar" style="margin-top:10px">
+      <button class="btn btn-danger" onclick="undoLast()">↩ Annuler</button>
+      <button class="btn btn-primary" id="btnVerify" onclick="verify()" style="margin-left:auto">✓ Vérifier</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  `;
+
+  canvas = document.getElementById('cvs');
+  // Haute résolution : adapte le canvas au devicePixelRatio pour éviter le flou
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = CW * dpr;
+  canvas.height = CH * dpr;
+  ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  canvas.addEventListener('click',    onCanvasClick);
+  canvas.addEventListener('touchend', onTouch, {passive:false});
+  redraw();
+}
+
+function formatGlis(v){
+  const hPart = v.dx===0 ? '' : v.dx>0 ? `${v.dx} droite` : `${-v.dx} gauche`;
+  const vPart = v.dy===0 ? '' : v.dy>0 ? `${v.dy} bas`    : `${-v.dy} haut`;
+  if(hPart && vPart) return `→(${v.dx > 0?'+':''}${v.dx} ; ${v.dy > 0?'+':''}${v.dy})`;
+  if(hPart) return `→(${v.dx > 0?'+':''}${v.dx} ; 0)`;
+  return `→(0 ; ${v.dy > 0?'+':''}${v.dy})`;
+}
+
+function toggleRecall(){
+  recallOpen=!recallOpen;
+  document.getElementById('recallToggle').classList.toggle('open',recallOpen);
+  document.getElementById('recallBox').classList.toggle('collapsed',!recallOpen);
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOOL
+// ═══════════════════════════════════════════════════════
+function setTool(t){
+  tool=t; lineFirst=null;
+  document.getElementById('btnPoint').className='btn btn-tool'+(t==='point'?' active-point':'');
+  document.getElementById('btnLine').className ='btn btn-tool'+(t==='line' ?' active-line':'');
+  document.getElementById('lineHint').classList.add('hidden');
+  redraw();
+}
+
+// ═══════════════════════════════════════════════════════
+//  CANVAS INTERACTIONS
+// ═══════════════════════════════════════════════════════
+function gridPos(clientX, clientY){
+  const rect=canvas.getBoundingClientRect();
+  const sx=CW/rect.width, sy=CH/rect.height;
+  const x=(clientX-rect.left)*sx, y=(clientY-rect.top)*sy;
+  return {
+    gx: Math.max(0,Math.min(COLS,Math.round(x/BASE_CELL))),
+    gy: Math.max(0,Math.min(ROWS,Math.round(y/BASE_CELL)))
+  };
+}
+
+function onCanvasClick(e){ if(verified)return; const{gx,gy}=gridPos(e.clientX,e.clientY); interact(gx,gy); }
+function onTouch(e){ e.preventDefault(); if(verified)return; const t=e.changedTouches[0]; const{gx,gy}=gridPos(t.clientX,t.clientY); interact(gx,gy); }
+
+function interact(gx,gy){
+  if(tool==='point'){
+    // Don't place on original figure
+    if(exData.figure.some(p=>p.x===gx&&p.y===gy)) return;
+    const idx=userPoints.findIndex(p=>p.x===gx&&p.y===gy);
+    if(idx!==-1){
+      userPoints.splice(idx,1);
+      userSegs=userSegs.filter(s=>s[0]!==idx&&s[1]!==idx)
+        .map(s=>[s[0]>idx?s[0]-1:s[0],s[1]>idx?s[1]-1:s[1]]);
+    } else {
+      // Cherche le point source dont (gx,gy) serait l'image par translation
+      const source = exData.figure.find(p=>{
+        const t=translate(p);
+        return t.x===gx && t.y===gy;
+      });
+      const lbl = source ? source.label+"'" : String.fromCharCode(65+userPoints.length)+"'";
+      userPoints.push({x:gx,y:gy,label:lbl});
+    }
+    redraw();
+  } else {
+    // Line mode: snap to nearest user point
+    const snap=BASE_CELL*0.65;
+    let best=-1, bestD=Infinity;
+    userPoints.forEach((p,i)=>{
+      const d=Math.hypot(p.x*BASE_CELL-gx*BASE_CELL, p.y*BASE_CELL-gy*BASE_CELL);
+      if(d<bestD&&d<=snap){ bestD=d; best=i; }
+    });
+    if(best===-1) return;
+    if(lineFirst===null){
+      lineFirst=best;
+      document.getElementById('lineHint').classList.remove('hidden');
+    } else {
+      if(lineFirst!==best){
+        const dup=userSegs.some(s=>(s[0]===lineFirst&&s[1]===best)||(s[0]===best&&s[1]===lineFirst));
+        if(!dup) userSegs.push([lineFirst,best]);
+      }
+      lineFirst=null;
+      document.getElementById('lineHint').classList.add('hidden');
+    }
+    redraw();
+  }
+}
+
+function undoLast(){
+  if(verified) return;
+  if(userSegs.length>0){ userSegs.pop(); }
+  else if(userPoints.length>0){
+    const idx=userPoints.length-1;
+    userPoints.pop();
+    userSegs=userSegs.filter(s=>s[0]!==idx&&s[1]!==idx)
+      .map(s=>[s[0]>idx?s[0]-1:s[0],s[1]>idx?s[1]-1:s[1]]);
+  }
+  lineFirst=null;
+  const lh=document.getElementById('lineHint'); if(lh) lh.classList.add('hidden');
+  redraw();
+}
+
+function clearAll(){
+  if(verified) return;
+  userPoints=[]; userSegs=[]; lineFirst=null;
+  const lh=document.getElementById('lineHint'); if(lh) lh.classList.add('hidden');
+  const fb=document.getElementById('feedback'); if(fb) fb.className='feedback';
+  redraw();
+}
+
+// ═══════════════════════════════════════════════════════
+//  VERIFY
+// ═══════════════════════════════════════════════════════
+function translate(p){ return {x:p.x+exData.glis.dx, y:p.y+exData.glis.dy}; }
+
+function verify(){
+  const expected = exData.figure.map(translate);
+  const fb = document.getElementById('feedback');
+  const isFree = currentLevel===99;
+
+  if(userPoints.length===0){
+    fb.className='feedback error';
+    fb.innerHTML='⚠️ Tu n\'as placé aucun point ! Clique sur le quadrillage pour placer les images.';
+    return;
+  }
+  if(exData.figure.length>1 && userSegs.length===0){
+    fb.className='feedback error';
+    fb.innerHTML='⚠️ Tu as placé les points mais tu ne les as pas reliés ! Utilise l\'outil <strong>— Relier des points</strong>.';
+    return;
+  }
+
+  let correct=0;
+  const used=new Array(expected.length).fill(false);
+  userPoints.forEach(up=>{
+    const idx=expected.findIndex((ep,i)=>!used[i]&&ep.x===up.x&&ep.y===up.y);
+    if(idx!==-1){ correct++; used[idx]=true; }
+  });
+
+  verified=true; redraw();
+
+  const nextBtn = isFree
+    ? `<button class="btn btn-free-next" onclick="loadEx()">🎲 Nouvelle figure</button>`
+    : `<button class="btn btn-primary" onclick="nextEx()">Exercice suivant →</button>`;
+
+  if(correct===exData.figure.length){
+    if(!isFree){ score++; document.getElementById('scoreVal').textContent=score; }
+    fb.className='feedback success';
+    fb.innerHTML=`✓ Bravo ! ${correct===1?'Le point image est':'Tous les points images sont'} bien placé${correct>1?'s':''}  !
+      <div class="fb-btns">${nextBtn}</div>`;
+  } else {
+    fb.className='feedback error';
+    fb.innerHTML=`✗ ${correct} point(s) correct(s) sur ${exData.figure.length}. Les positions exactes apparaissent en rouge.
+      <div class="fb-btns">${nextBtn}</div>`;
+  }
+  const bv=document.getElementById('btnVerify'); if(bv) bv.disabled=true;
+}
+
+function nextEx(){ currentEx++; loadEx(); }
+
+// ═══════════════════════════════════════════════════════
+//  DRAW
+// ═══════════════════════════════════════════════════════
+function redraw(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,CW,CH);
+  drawGrid();
+  drawGlissement();
+  drawFigureSegs();
+  drawUserSegs();
+  drawFigurePts();
+  drawUserPts();
+  if(verified) drawExpected();
+  // highlight lineFirst
+  if(tool==='line'&&lineFirst!==null&&userPoints[lineFirst]){
+    const p=userPoints[lineFirst];
+    ctx.beginPath(); ctx.arc(p.x*BASE_CELL,p.y*BASE_CELL,PT_R+5,0,Math.PI*2);
+    ctx.strokeStyle='#805ad5'; ctx.lineWidth=2.5;
+    ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+
+function drawGrid(){
+  ctx.strokeStyle='#cde8e7'; ctx.lineWidth=1;
+  for(let c=0;c<=COLS;c++){
+    ctx.beginPath(); ctx.moveTo(c*BASE_CELL,0); ctx.lineTo(c*BASE_CELL,CH); ctx.stroke();
+  }
+  for(let r=0;r<=ROWS;r++){
+    ctx.beginPath(); ctx.moveTo(0,r*BASE_CELL); ctx.lineTo(CW,r*BASE_CELL); ctx.stroke();
+  }
+  ctx.fillStyle='#a0c4c3';
+  for(let c=0;c<=COLS;c++)
+    for(let r=0;r<=ROWS;r++){
+      ctx.beginPath(); ctx.arc(c*BASE_CELL,r*BASE_CELL,2,0,Math.PI*2); ctx.fill();
+    }
+}
+
+function drawGlissement(){
+  // Dessine le glissement (flèche rouge)
+  // Anchor: top-left area that doesn't overlap figure
+  const {dx,dy} = exData.glis;
+
+  // Ancrage selon la direction
+  let ax, ay;
+  if(dx>=0 && dy>=0){ ax=1; ay=1; }           // top-left
+  else if(dx<0 && dy>=0){ ax=COLS-1+dx; ay=1; } // top-right area
+  else if(dx>=0 && dy<0){ ax=1; ay=ROWS-1; }    // bottom-left
+  else { ax=COLS-1+dx; ay=ROWS-1; }             // bottom-right area
+
+  // Make sure anchor and tip are in bounds
+  ax = Math.max(1, Math.min(COLS-1, ax));
+  ay = Math.max(1, Math.min(ROWS-1, ay));
+  const tx = ax+dx, ty = ay+dy;
+  if(tx<0||tx>COLS||ty<0||ty>ROWS){ ax=Math.max(1,Math.min(COLS-1-Math.max(0,dx),ax)); }
+
+  const x1=ax*BASE_CELL, y1=ay*BASE_CELL;
+  const x2=(ax+dx)*BASE_CELL, y2=(ay+dy)*BASE_CELL;
+
+  // Shadow / glow
+  ctx.save();
+  ctx.shadowColor='rgba(229,62,62,0.3)'; ctx.shadowBlur=6;
+  // Shaft
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle='#e53e3e'; ctx.lineWidth=3; ctx.setLineDash([]);
+  ctx.stroke();
+  // Arrowhead
+  const angle=Math.atan2(y2-y1,x2-x1);
+  const hs=12;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-hs*Math.cos(angle-Math.PI/6), y2-hs*Math.sin(angle-Math.PI/6));
+  ctx.lineTo(x2-hs*Math.cos(angle+Math.PI/6), y2-hs*Math.sin(angle+Math.PI/6));
+  ctx.closePath();
+  ctx.fillStyle='#e53e3e'; ctx.fill();
+  ctx.restore();
+
+  // Origin dot
+  ctx.beginPath(); ctx.arc(x1,y1,4,0,Math.PI*2);
+  ctx.fillStyle='#e53e3e'; ctx.fill();
+
+  // Label near arrowhead
+  const mx=(x1+x2)/2, my=(y1+y2)/2;
+  const off=14;
+  const nx=-(y2-y1), ny=(x2-x1);
+  const nl=Math.hypot(nx,ny)||1;
+  const lx=mx+off*nx/nl, ly=my+off*ny/nl;
+  ctx.fillStyle='#c53030'; ctx.font='bold 12px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('gl.', lx, ly);
+  ctx.textBaseline='alphabetic';
+}
+
+function drawFigureSegs(){
+  if(exData.figure.length<2) return;
+  ctx.strokeStyle='rgba(72,187,120,.65)'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+  ctx.beginPath();
+  exData.figure.forEach((p,i)=>{
+    if(i===0) ctx.moveTo(p.x*BASE_CELL,p.y*BASE_CELL);
+    else ctx.lineTo(p.x*BASE_CELL,p.y*BASE_CELL);
+  });
+  if(exData.figure.length>2) ctx.closePath();
+  ctx.stroke();
+}
+
+function drawUserSegs(){
+  if(!userSegs.length) return;
+  ctx.strokeStyle='rgba(56,178,172,.75)'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+  userSegs.forEach(([a,b])=>{
+    if(!userPoints[a]||!userPoints[b]) return;
+    ctx.beginPath();
+    ctx.moveTo(userPoints[a].x*BASE_CELL,userPoints[a].y*BASE_CELL);
+    ctx.lineTo(userPoints[b].x*BASE_CELL,userPoints[b].y*BASE_CELL);
+    ctx.stroke();
+  });
+}
+
+function drawFigurePts(){
+  exData.figure.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p.x*BASE_CELL,p.y*BASE_CELL,PT_R,0,Math.PI*2);
+    ctx.fillStyle='#48bb78'; ctx.strokeStyle='#276749'; ctx.lineWidth=2;
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#276749'; ctx.font='bold 13px Segoe UI';
+    ctx.textAlign='left';
+    ctx.fillText(p.label, p.x*BASE_CELL+PT_R+4, p.y*BASE_CELL-PT_R);
+  });
+}
+
+function drawUserPts(){
+  userPoints.forEach((p,i)=>{
+    const sel=tool==='line'&&lineFirst===i;
+    ctx.beginPath(); ctx.arc(p.x*BASE_CELL,p.y*BASE_CELL,PT_R,0,Math.PI*2);
+    ctx.fillStyle  =sel?'#805ad5':'#38b2ac';
+    ctx.strokeStyle=sel?'#4a2080':'#276749';
+    ctx.lineWidth=2; ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#276749'; ctx.font='bold 12px Segoe UI';
+    ctx.textAlign='left';
+    ctx.fillText(p.label, p.x*BASE_CELL+PT_R+3, p.y*BASE_CELL-PT_R);
+  });
+}
+
+function drawExpected(){
+  const expected=exData.figure.map(translate);
+  if(expected.length>1){
+    ctx.strokeStyle='rgba(245,101,101,.55)'; ctx.lineWidth=2.5; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    expected.forEach((p,i)=>{
+      if(i===0) ctx.moveTo(p.x*BASE_CELL,p.y*BASE_CELL);
+      else ctx.lineTo(p.x*BASE_CELL,p.y*BASE_CELL);
+    });
+    if(expected.length>2) ctx.closePath();
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  expected.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p.x*BASE_CELL,p.y*BASE_CELL,PT_R+3,0,Math.PI*2);
+    ctx.strokeStyle='#f56565'; ctx.lineWidth=2.5; ctx.setLineDash([4,3]);
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#c53030'; ctx.font='bold 11px Segoe UI';
+    ctx.textAlign='left';
+    ctx.fillText(exData.figure[i].label+"'", p.x*BASE_CELL+PT_R+5, p.y*BASE_CELL-PT_R-2);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════════════════════
+function showResults(){
+  const total=exList().length;
+  const pct=Math.round((score/total)*100);
+  let emoji,msg;
+  if(pct===100)    {emoji='🏆';msg='Parfait ! Tu maîtrises les translations !';}
+  else if(pct>=80) {emoji='🌟';msg='Très bien ! Encore un petit effort !';}
+  else if(pct>=60) {emoji='👍';msg='Pas mal ! Continue de t\'entraîner !';}
+  else             {emoji='💪';msg='Continue tes efforts, tu vas y arriver !';}
+  document.getElementById('progressFill').style.width='100%';
+  document.getElementById('exerciseContent').innerHTML=`
+    <div class="results-center">
+      <div class="results-emoji">${emoji}</div>
+      <h2 style="color:var(--primary-dk);font-size:1.4em">Résultats</h2>
+      <div class="results-score">${score} / ${total}</div>
+      <div class="results-pct">${pct}%</div>
+      <p class="results-msg">${msg}</p>
+      <div class="results-btns">
+        <button class="btn btn-primary" onclick="startLevel(${currentLevel})">🔄 Recommencer</button>
+        <button class="btn btn-back"    onclick="goBack()">← Retour au menu</button>
+      </div>
+    </div>`;
+}
+</script>
+
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

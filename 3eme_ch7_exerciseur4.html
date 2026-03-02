@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exerciseur — Ratios & Schémas en Barres</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --primary:#667eea;--primary-dk:#5568d3;--secondary:#764ba2;
+  --success:#48bb78;--error:#f56565;--warning:#ed8936;
+  --bg-grad:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  --shadow:0 10px 30px rgba(0,0,0,.12);
+  --c1:#667eea;--c2:#f6ad55;--c3:#68d391;--c4:#fc8181;--c5:#76e4f7;--c6:#d6bcfa;
+}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg-grad);min-height:100vh;padding:20px;color:#2d3748;}
+.container{max-width:860px;margin:0 auto;}
+header{text-align:center;color:white;margin-bottom:24px;padding:16px 10px;}
+header h1{font-size:clamp(1.6em,4vw,2.4em);margin-bottom:8px;text-shadow:2px 2px 4px rgba(0,0,0,.2);}
+header p{font-size:.95em;opacity:.92;}
+.main-card{background:white;border-radius:20px;padding:clamp(18px,4vw,40px);box-shadow:var(--shadow);}
+.hidden{display:none!important;}
+
+/* ── MENU ── */
+.menu-intro{color:#718096;margin-bottom:22px;font-size:.95em;line-height:1.65;}
+.menu-intro strong{color:var(--secondary);}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;}
+.menu-btn{background:var(--bg-grad);color:white;border:none;padding:22px 18px;border-radius:14px;
+  font-size:.95em;font-weight:600;cursor:pointer;transition:all .25s;
+  box-shadow:0 5px 15px rgba(102,126,234,.3);text-align:left;width:100%;}
+.menu-btn:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(102,126,234,.4);}
+.menu-btn .num{display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:rgba(255,255,255,.3);border-radius:50%;
+  margin-right:8px;font-weight:bold;font-size:.9em;}
+.menu-btn .sub{display:block;font-size:.78em;opacity:.88;margin-top:6px;font-weight:400;}
+
+/* ── EX HEADER ── */
+.ex-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.ex-title{font-size:1.1em;font-weight:700;color:var(--primary);}
+.top-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.score-badge{background:var(--bg-grad);color:white;padding:5px 14px;border-radius:20px;font-weight:700;font-size:.85em;}
+.btn-back{background:#edf2f7;border:none;padding:7px 16px;border-radius:8px;cursor:pointer;
+  font-size:.87em;color:#4a5568;font-weight:600;transition:background .2s;white-space:nowrap;}
+.btn-back:hover{background:#e2e8f0;}
+.progress-bar{background:#e2e8f0;border-radius:10px;height:7px;margin-bottom:6px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--bg-grad);border-radius:10px;transition:width .4s;}
+.progress-label{font-size:.8em;color:#718096;margin-bottom:14px;}
+
+/* ── RECALL ── */
+.recall-toggle{width:100%;background:#edf2f7;border:none;border-radius:10px;padding:10px 16px;
+  text-align:left;cursor:pointer;font-size:.88em;color:var(--primary);font-weight:600;
+  margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;transition:background .2s;}
+.recall-toggle:hover{background:#e2e8f0;}
+.recall-toggle .arr{transition:transform .3s;}
+.recall-toggle.open .arr{transform:rotate(180deg);}
+.recall-box{background:linear-gradient(135deg,#f7fafc,#edf2f7);border-left:5px solid var(--primary);
+  border-radius:10px;padding:14px 18px;margin-bottom:14px;font-size:.88em;color:#4a5568;line-height:1.65;
+  overflow:hidden;transition:max-height .35s ease,padding .3s;}
+.recall-box.collapsed{max-height:0;padding-top:0;padding-bottom:0;margin-bottom:6px;}
+.recall-box strong{color:var(--secondary);}
+
+/* ── PROBLEM CARD ── */
+.problem-card{background:linear-gradient(135deg,#f7fafc,#edf2f7);border-radius:14px;
+  padding:18px 20px;margin-bottom:18px;border-left:5px solid var(--primary);}
+.problem-emoji{font-size:1.8em;margin-bottom:8px;display:block;}
+.problem-text{font-size:1em;color:#2d3748;line-height:1.7;}
+.problem-text strong{color:var(--primary-dk);}
+.problem-question{margin-top:10px;font-size:.95em;font-weight:600;color:var(--secondary);}
+
+/* ── BAR DIAGRAM ── */
+.bar-diagram{margin:18px 0;padding:16px;background:#fff;border-radius:12px;
+  border:2px solid #e2e8f0;overflow-x:auto;}
+.bar-diagram-title{font-size:.8em;font-weight:700;color:#718096;text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:12px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;min-width:0;}
+.bar-row-label{font-size:.85em;font-weight:600;color:#4a5568;min-width:80px;flex-shrink:0;text-align:right;}
+.bar-track{flex:1;display:flex;align-items:stretch;gap:2px;min-width:120px;height:38px;}
+.bar-block{display:flex;align-items:center;justify-content:center;border-radius:5px;
+  font-size:.75em;font-weight:700;color:white;text-shadow:0 1px 2px rgba(0,0,0,.2);
+  transition:all .4s ease;cursor:default;min-width:22px;position:relative;overflow:hidden;}
+.bar-block.blank{background:#e2e8f0;color:#a0aec0;cursor:text;border:2px dashed #cbd5e0;}
+.bar-block.correct{animation:correctPop .35s ease;}
+.bar-block.wrong{animation:wrongShake .3s ease;}
+@keyframes correctPop{0%{transform:scale(.9)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.bar-block input{
+  width:100%;height:100%;background:transparent;border:none;outline:none;
+  text-align:center;font-size:.85em;font-weight:700;color:#4a5568;
+  font-family:inherit;cursor:text;}
+.bar-total-line{display:flex;align-items:center;gap:10px;margin-top:6px;padding-top:8px;
+  border-top:2px dashed #e2e8f0;}
+.bar-total-label{font-size:.82em;color:#718096;min-width:80px;text-align:right;flex-shrink:0;}
+.bar-total-brace{flex:1;border-top:2.5px solid #718096;position:relative;height:10px;margin-top:8px;}
+.bar-total-brace::before,.bar-total-brace::after{content:'';position:absolute;top:0;
+  width:2.5px;height:8px;background:#718096;}
+.bar-total-brace::before{left:0;}
+.bar-total-brace::after{right:0;}
+.bar-total-value{font-size:.88em;font-weight:700;color:#2d3748;white-space:nowrap;}
+
+/* ── INPUT AREA ── */
+.input-area{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.input-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.input-label{font-size:.9em;color:#4a5568;min-width:180px;flex-shrink:0;}
+.answer-input{
+  padding:9px 14px;border:2px solid #e2e8f0;border-radius:8px;
+  font-size:1em;font-weight:600;color:#2d3748;font-family:inherit;
+  width:120px;transition:border-color .2s;text-align:center;}
+.answer-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,126,234,.12);}
+.answer-input.correct{border-color:var(--success);background:#f0fff4;}
+.answer-input.wrong{border-color:var(--error);background:#fff5f5;animation:wrongShake .3s ease;}
+.answer-input.correct-anim{animation:correctPop .35s ease;}
+.input-unit{font-size:.88em;color:#718096;}
+.input-hint{font-size:.78em;color:#a0aec0;margin-top:-6px;margin-left:190px;}
+
+/* ── BUTTONS ── */
+.btn{padding:10px 20px;border:none;border-radius:8px;font-size:.88em;font-weight:600;
+  cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit;}
+.btn-primary{background:var(--bg-grad);color:white;box-shadow:0 3px 10px rgba(102,126,234,.28);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 15px rgba(102,126,234,.4);}
+.btn-primary:disabled{opacity:.5;cursor:default;transform:none;}
+.btn-secondary{background:#edf2f7;color:#4a5568;}
+.btn-secondary:hover{background:#e2e8f0;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+
+/* ── FEEDBACK ── */
+.feedback{padding:13px 18px;border-radius:10px;margin-top:14px;font-size:.92em;line-height:1.55;display:none;}
+.feedback.success{background:#f0fff4;border-left:4px solid var(--success);color:#276749;display:block;}
+.feedback.error{background:#fff5f5;border-left:4px solid var(--error);color:#742a2a;display:block;}
+.feedback.partial{background:#fffbeb;border-left:4px solid var(--warning);color:#7b341e;display:block;}
+.fb-btns{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ── STEP DISPLAY (animated bar) ── */
+.step-hint{font-size:.82em;color:#718096;margin-top:6px;font-style:italic;}
+.unit-value-box{display:inline-flex;align-items:center;gap:6px;
+  background:#faf5ff;border:1.5px solid #d6bcfa;border-radius:8px;
+  padding:5px 12px;font-size:.88em;font-weight:700;color:#553c9a;margin:4px 2px;}
+.revealed-answer{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#ebf8ff;border:1.5px solid #90cdf4;border-radius:8px;
+  padding:5px 12px;font-size:.88em;font-weight:700;color:#2b6cb0;margin:2px;}
+
+/* ── MCQ ── */
+.mcq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0;}
+.mcq-btn{padding:14px 10px;border:2px solid #e2e8f0;border-radius:10px;background:white;
+  font-size:.95em;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;
+  color:#2d3748;font-family:inherit;}
+.mcq-btn:hover{border-color:var(--primary);background:#ebf0ff;color:var(--primary);}
+.mcq-btn.selected{border-color:var(--primary);background:#ebf0ff;color:var(--primary);}
+.mcq-btn.correct-choice{border-color:var(--success);background:#f0fff4;color:#276749;}
+.mcq-btn.wrong-choice{border-color:var(--error);background:#fff5f5;color:#742a2a;}
+
+/* ── RESULTS ── */
+.results-center{text-align:center;padding:28px 10px;}
+.results-emoji{font-size:3.5em;margin-bottom:12px;}
+.results-score{font-size:2.8em;font-weight:800;color:var(--primary);margin:14px 0 4px;}
+.results-pct{font-size:1.3em;color:var(--secondary);margin-bottom:12px;}
+.results-msg{font-size:1.05em;color:#4a5568;margin-bottom:26px;}
+.results-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+@media(max-width:480px){
+  body{padding:10px;}
+  .main-card{padding:15px;}
+  .input-label{min-width:100%;}
+  .input-hint{margin-left:0;}
+  .bar-row-label{min-width:60px;font-size:.78em;}
+  .btn{padding:9px 14px;font-size:.82em;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📊 Ratios & Schémas en Barres</h1>
+    <p>Comprends les ratios en les visualisant</p>
+  </header>
+  <div class="main-card">
+
+    <!-- ══ MENU ══ -->
+    <div id="mainMenu">
+      <p class="menu-intro">
+        Un <strong>ratio</strong> compare deux (ou plusieurs) quantités entre elles. Le <strong>schéma en barres</strong> permet de le visualiser : chaque part du ratio correspond à un bloc de même taille. C'est un outil puissant pour résoudre des problèmes de partage, de mélange ou de proportions !
+      </p>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="startLevel(1)">
+          <span class="num">1</span>Lire un ratio
+          <span class="sub">Identifier et interpréter un ratio à partir d'un schéma</span>
+        </button>
+        <button class="menu-btn" onclick="startLevel(2)">
+          <span class="num">2</span>Partager selon un ratio
+          <span class="sub">Répartir une quantité totale en parts selon un ratio donné</span>
+        </button>
+        <button class="menu-btn" onclick="startLevel(3)">
+          <span class="num">3</span>Trouver la valeur d'une part
+          <span class="sub">Calculer la valeur d'une part quand une autre est connue</span>
+        </button>
+        <button class="menu-btn" onclick="startLevel(4)">
+          <span class="num">4</span>Ratios équivalents
+          <span class="sub">Simplifier et reconnaître des ratios équivalents</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ EXERCISE AREA ══ -->
+    <div id="exerciseArea" class="hidden">
+      <div class="ex-header">
+        <div class="ex-title" id="exTitle"></div>
+        <div class="top-right">
+          <span class="score-badge">Score : <span id="scoreVal">0</span> / <span id="scoreTotal">0</span></span>
+          <button class="btn-back" onclick="goBack()">← Menu</button>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel"></div>
+      <div id="exerciseContent"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let currentLevel=0, currentEx=0, score=0, recallOpen=true, verified=false;
+
+// ═══════════════════════════════════════
+//  COLOUR SETS FOR BAR BLOCKS
+// ═══════════════════════════════════════
+const COLORS=['#667eea','#f6ad55','#68d391','#fc8181','#76e4f7','#d6bcfa','#f687b3','#4fd1c5'];
+
+// ═══════════════════════════════════════
+//  EXERCISES DATA
+// ═══════════════════════════════════════
+
+// ── LEVEL 1 : Lire un ratio ────────────────────────────
+// Given: coloured bar diagram → MCQ or fill ratio
+const level1 = [
+  { type:'read_ratio',
+    emoji:'🍋', context:'Une limonade est préparée avec 2 verres de citron et 5 verres d\'eau.',
+    question:'Quel est le ratio citron : eau ?',
+    bars:[{label:'Citron',parts:2,color:'#f6e05e'},{label:'Eau',parts:5,color:'#76e4f7'}],
+    recall:'Un <strong>ratio</strong> s\'écrit avec « : ». Le ratio citron : eau = 2 : 5 signifie qu\'il y a 2 parts de citron pour 5 parts d\'eau.',
+    choices:['2 : 5','5 : 2','2 : 7','3 : 5'], answer:'2 : 5',
+    explanation:'Le schéma montre 2 blocs jaunes (citron) et 5 blocs bleus (eau), donc le ratio est <strong>2 : 5</strong>.' },
+
+  { type:'read_ratio',
+    emoji:'🎨', context:'Un peintre mélange 3 pots de bleu pour 1 pot de blanc pour obtenir un bleu clair.',
+    question:'Quel est le ratio bleu : blanc ?',
+    bars:[{label:'Bleu',parts:3,color:'#4299e1'},{label:'Blanc',parts:1,color:'#e2e8f0'}],
+    recall:'Dans un ratio <strong>a : b</strong>, l\'ordre compte ! Bleu : Blanc = 3 : 1 est différent de 1 : 3.',
+    choices:['1 : 3','3 : 1','3 : 4','1 : 4'], answer:'3 : 1',
+    explanation:'3 blocs bleus pour 1 bloc blanc → ratio bleu : blanc = <strong>3 : 1</strong>.' },
+
+  { type:'read_ratio',
+    emoji:'⚽', context:'Dans une équipe, il y a 4 défenseurs et 3 attaquants.',
+    question:'Quel est le ratio défenseurs : attaquants ?',
+    bars:[{label:'Défenseurs',parts:4,color:'#667eea'},{label:'Attaquants',parts:3,color:'#f6ad55'}],
+    recall:'Le ratio compare les deux groupes entre eux. Il n\'est pas nécessaire de connaître le total pour écrire un ratio.',
+    choices:['3 : 4','4 : 3','4 : 7','3 : 7'], answer:'4 : 3',
+    explanation:'4 défenseurs pour 3 attaquants → ratio = <strong>4 : 3</strong>.' },
+
+  { type:'read_ratio',
+    emoji:'🍫', context:'Une recette de gâteau utilise 5 parts de farine pour 2 parts de sucre et 1 part de beurre.',
+    question:'Quel est le ratio farine : sucre : beurre ?',
+    bars:[{label:'Farine',parts:5,color:'#c6a96a'},{label:'Sucre',parts:2,color:'#fff'},{label:'Beurre',parts:1,color:'#f6e05e'}],
+    recall:'Un ratio peut comparer <strong>plus de deux quantités</strong>. On écrit alors a : b : c.',
+    choices:['5 : 2 : 1','2 : 5 : 1','5 : 1 : 2','1 : 2 : 5'], answer:'5 : 2 : 1',
+    explanation:'5 parts farine, 2 parts sucre, 1 part beurre → ratio = <strong>5 : 2 : 1</strong>.' },
+
+  { type:'read_ratio',
+    emoji:'🐠', context:'Dans un aquarium, il y a 6 poissons rouges et 2 poissons bleus.',
+    question:'Quel est le ratio poissons rouges : poissons bleus ?',
+    bars:[{label:'Rouges',parts:6,color:'#fc8181'},{label:'Bleus',parts:2,color:'#4299e1'}],
+    recall:'Quand les deux nombres ont un diviseur commun, on peut <strong>simplifier</strong> le ratio. 6 : 2 = 3 : 1.',
+    choices:['6 : 2','3 : 1','2 : 6','1 : 3'], answer:'3 : 1',
+    explanation:'6 et 2 se divisent tous les deux par 2 → 6 : 2 = <strong>3 : 1</strong>. On préfère la forme simplifiée !' },
+];
+
+// ── LEVEL 2 : Partager selon un ratio ─────────────────
+// Given: ratio + total → find each share
+const level2 = [
+  { type:'share',
+    emoji:'💰', context:'Lucas et Emma partagent 40 € selon un ratio 3 : 2 (Lucas reçoit la plus grande part).',
+    question:'Combien chacun reçoit-il ?',
+    ratio:[3,2], labels:['Lucas','Emma'], total:40, unit:'€',
+    colors:['#667eea','#f6ad55'],
+    recall:'<strong>Méthode :</strong> 1) Compte le total de parts (3+2=5). 2) Calcule la valeur d\'une part : 40÷5=8 €. 3) Multiplie par le nombre de parts de chacun.',
+    answers:[24,16],
+    explanation:'Total de parts = 3+2 = <strong>5</strong>. Valeur d\'une part = 40÷5 = <strong>8 €</strong>. Lucas : 3×8 = <strong>24 €</strong> — Emma : 2×8 = <strong>16 €</strong>.' },
+
+  { type:'share',
+    emoji:'🍕', context:'Une pizza de 24 parts est partagée entre 3 amis selon le ratio 1 : 2 : 3.',
+    question:'Combien de parts chacun reçoit-il ?',
+    ratio:[1,2,3], labels:['Axel','Bilal','Camille'], total:24, unit:'parts',
+    colors:['#68d391','#667eea','#fc8181'],
+    recall:'Pour un ratio à 3 termes, on additionne les 3 nombres pour trouver le total de parts.',
+    answers:[4,8,12],
+    explanation:'Total de parts = 1+2+3 = <strong>6</strong>. Valeur d\'une part = 24÷6 = <strong>4 parts</strong>. Axel : 4 — Bilal : 8 — Camille : 12.' },
+
+  { type:'share',
+    emoji:'🎒', context:'Des billes sont partagées entre deux frères dans un ratio 5 : 3. Il y a 48 billes en tout.',
+    question:'Combien de billes chaque frère reçoit-il ?',
+    ratio:[5,3], labels:['Théo','Hugo'], total:48, unit:'billes',
+    colors:['#d6bcfa','#76e4f7'],
+    recall:'Vérifie toujours que la somme de tes réponses est bien égale au total !',
+    answers:[30,18],
+    explanation:'Total de parts = 5+3 = <strong>8</strong>. Valeur d\'une part = 48÷8 = <strong>6 billes</strong>. Théo : 5×6 = <strong>30</strong> — Hugo : 3×6 = <strong>18</strong>.' },
+
+  { type:'share',
+    emoji:'🌿', context:'Un jardinier mélange de la terre, du compost et du sable dans un ratio 4 : 2 : 1 pour 35 litres de mélange.',
+    question:'Combien de litres de chaque composant faut-il ?',
+    ratio:[4,2,1], labels:['Terre','Compost','Sable'], total:35, unit:'L',
+    colors:['#c6a96a','#68d391','#e2e8f0'],
+    recall:'Même méthode à 3 termes : total de parts = 4+2+1 = 7. Valeur d\'une part = 35÷7 = 5 L.',
+    answers:[20,10,5],
+    explanation:'Total de parts = 7. 1 part = 35÷7 = <strong>5 L</strong>. Terre : 20 L — Compost : 10 L — Sable : 5 L.' },
+
+  { type:'share',
+    emoji:'🏫', context:'Dans une école, le ratio garçons : filles est 3 : 4. Il y a 210 élèves.',
+    question:'Combien y a-t-il de garçons et de filles ?',
+    ratio:[3,4], labels:['Garçons','Filles'], total:210, unit:'élèves',
+    colors:['#4299e1','#f687b3'],
+    recall:'Pense à vérifier : 90 + 120 = 210 ✓',
+    answers:[90,120],
+    explanation:'Total de parts = 3+4 = <strong>7</strong>. 1 part = 210÷7 = <strong>30</strong>. Garçons : 3×30 = <strong>90</strong> — Filles : 4×30 = <strong>120</strong>.' },
+];
+
+// ── LEVEL 3 : Trouver la valeur d'une part ─────────────
+// Given: one share's value → find total or other share
+const level3 = [
+  { type:'find_from_part',
+    emoji:'🍊', context:'Pour faire du jus d\'orange, Léa utilise un ratio jus : eau de 2 : 3. Elle utilise 6 verres de jus.',
+    question:'Combien de verres d\'eau faut-il ? Quel est le total ?',
+    ratio:[2,3], labels:['Jus','Eau'], colors:['#f6ad55','#76e4f7'],
+    knownIndex:0, knownValue:6, unit:'verres',
+    recall:'Si on sait que 2 parts = 6 verres, alors <strong>1 part = 3 verres</strong>. On peut ensuite trouver toutes les autres quantités.',
+    askIndices:[1], askTotal:true,
+    answers:[9], totalAnswer:15,
+    explanation:'2 parts = 6 verres → <strong>1 part = 3 verres</strong>. Eau = 3 parts × 3 = <strong>9 verres</strong>. Total = 6+9 = <strong>15 verres</strong>.' },
+
+  { type:'find_from_part',
+    emoji:'🐕', context:'Dans un chenil, le ratio chiens de grande taille : petite taille est 2 : 5. Il y a 10 grands chiens.',
+    question:'Combien y a-t-il de petits chiens ? Quel est le total ?',
+    ratio:[2,5], labels:['Grands','Petits'], colors:['#667eea','#f6ad55'],
+    knownIndex:0, knownValue:10, unit:'chiens',
+    recall:'1 part = 10÷2 = 5 chiens. Ensuite, petits chiens = 5 parts × 5 = 25.',
+    askIndices:[1], askTotal:true,
+    answers:[25], totalAnswer:35,
+    explanation:'2 parts = 10 → <strong>1 part = 5</strong>. Petits : 5×5 = <strong>25 chiens</strong>. Total = 10+25 = <strong>35</strong>.' },
+
+  { type:'find_from_part',
+    emoji:'🎵', context:'Une playlist contient des chansons françaises et anglaises dans un ratio 3 : 4. Il y a 12 chansons françaises.',
+    question:'Combien y a-t-il de chansons anglaises ? Quel est le total ?',
+    ratio:[3,4], labels:['Françaises','Anglaises'], colors:['#68d391','#fc8181'],
+    knownIndex:0, knownValue:12, unit:'chansons',
+    recall:'3 parts = 12 → 1 part = 4. Anglaises = 4 parts × 4 = 16.',
+    askIndices:[1], askTotal:true,
+    answers:[16], totalAnswer:28,
+    explanation:'3 parts = 12 → <strong>1 part = 4</strong>. Anglaises : 4×4 = <strong>16</strong>. Total = 12+16 = <strong>28</strong>.' },
+
+  { type:'find_from_part',
+    emoji:'🏗️', context:'Sur un chantier, le ratio ouvriers : chefs de chantier est 8 : 1. Il y a 3 chefs de chantier.',
+    question:'Combien y a-t-il d\'ouvriers ? Quel est l\'effectif total ?',
+    ratio:[8,1], labels:['Ouvriers','Chefs'], colors:['#e2a828','#4299e1'],
+    knownIndex:1, knownValue:3, unit:'personnes',
+    recall:'1 part = 3 (on sait directement qu\'1 part = 3). Ouvriers = 8 parts × 3 = 24.',
+    askIndices:[0], askTotal:true,
+    answers:[24], totalAnswer:27,
+    explanation:'1 part = 3. Ouvriers : 8×3 = <strong>24</strong>. Total = 24+3 = <strong>27</strong>.' },
+
+  { type:'find_from_part',
+    emoji:'🥗', context:'Une salade composée contient tomates, concombre et feta dans un ratio 4 : 2 : 1. Il y a 8 tomates.',
+    question:'Quelle quantité de concombre et de feta faut-il ?',
+    ratio:[4,2,1], labels:['Tomates','Concombre','Feta'], colors:['#fc8181','#68d391','#f6e05e'],
+    knownIndex:0, knownValue:8, unit:'pièces',
+    recall:'4 parts = 8 → 1 part = 2. Concombre = 2×2 = 4. Feta = 1×2 = 2.',
+    askIndices:[1,2], askTotal:false,
+    answers:[4,2], totalAnswer:null,
+    explanation:'4 parts = 8 → <strong>1 part = 2</strong>. Concombre : 2×2 = <strong>4</strong>. Feta : 1×2 = <strong>2</strong>.' },
+];
+
+// ── LEVEL 4 : Ratios équivalents ───────────────────────
+const level4 = [
+  { type:'equivalent',
+    emoji:'🧃', context:'Un jus de fruits se prépare toujours avec un ratio 1 : 4 (sirop : eau).',
+    question:'Lesquels de ces ratios sont équivalents à 1 : 4 ?',
+    recall:'Deux ratios sont <strong>équivalents</strong> si l\'un s\'obtient en multipliant (ou divisant) les deux termes de l\'autre par le même nombre.',
+    baseRatio:[1,4],
+    choices:['2 : 8','3 : 12','2 : 6','5 : 20','1 : 5'],
+    correctChoices:['2 : 8','3 : 12','5 : 20'],
+    explanation:'1×2:4×2 = <strong>2:8</strong> ✓ — 1×3:4×3 = <strong>3:12</strong> ✓ — 1×5:4×5 = <strong>5:20</strong> ✓ — 2:6 = 1:3 ✗ — 1:5 ✗' },
+
+  { type:'equivalent',
+    emoji:'🎨', context:'Un peintre utilise toujours le ratio rouge : jaune = 2 : 3.',
+    question:'Lesquels de ces ratios donnent le même mélange ?',
+    recall:'On peut multiplier ou diviser les deux termes par le même nombre : 2:3 = 4:6 = 6:9 = 10:15.',
+    baseRatio:[2,3],
+    choices:['4 : 6','6 : 9','4 : 9','10 : 15','8 : 10'],
+    correctChoices:['4 : 6','6 : 9','10 : 15'],
+    explanation:'2×2:3×2 = <strong>4:6</strong> ✓ — 2×3:3×3 = <strong>6:9</strong> ✓ — 2×5:3×5 = <strong>10:15</strong> ✓ — 4:9 ✗ — 8:10 = 4:5 ✗' },
+
+  { type:'simplify',
+    emoji:'🍋', context:'Un barman prépare une limonade avec 6 verres de citron pour 9 verres d\'eau.',
+    question:'Simplifie le ratio 6 : 9 en sa forme la plus simple.',
+    recall:'Pour simplifier, divise les deux termes par leur <strong>PGCD</strong> (Plus Grand Commun Diviseur). PGCD(6,9) = 3.',
+    inputs:[{label:'Citron',placeholder:'?'},{label:'Eau',placeholder:'?'}],
+    answers:[2,3],
+    unit:'', explanation:'6÷3 = <strong>2</strong> et 9÷3 = <strong>3</strong>. Ratio simplifié : <strong>2 : 3</strong>.' },
+
+  { type:'simplify',
+    emoji:'🏆', context:'Sur 100 tentatives, un basketteur réussit 40 lancers.',
+    question:'Simplifie le ratio réussis : tentatives = 40 : 100.',
+    recall:'PGCD(40,100) = 20. On peut diviser les deux par 20.',
+    inputs:[{label:'Réussis',placeholder:'?'},{label:'Tentatives',placeholder:'?'}],
+    answers:[2,5],
+    unit:'', explanation:'40÷20 = <strong>2</strong> et 100÷20 = <strong>5</strong>. Ratio simplifié : <strong>2 : 5</strong>.' },
+
+  { type:'find_missing',
+    emoji:'🧁', context:'Une recette de muffins utilise toujours le ratio farine : sucre = 3 : 1.',
+    question:'Si on utilise 12 unités de farine, combien de sucre faut-il ?',
+    recall:'3 : 1 = 12 : ? → ? = 12 ÷ 3 × 1 = 4.',
+    known:{ label:'Farine', value:12 }, unknown:{ label:'Sucre', placeholder:'?' },
+    ratio:[3,1], knownIndex:0, unknownIndex:1, unit:'unités',
+    answer:4,
+    explanation:'Ratio 3:1 — si farine = 12 = 3×4, alors sucre = 1×4 = <strong>4</strong>.' },
+];
+
+// ═══════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════
+function getList(){ return [level1,level2,level3,level4][currentLevel-1]||[]; }
+const TITLES=['📖 Lire un ratio','✂️ Partager selon un ratio','🔍 Trouver la valeur d\'une part','🔄 Ratios équivalents'];
+
+function startLevel(lv){
+  currentLevel=lv; currentEx=0; score=0; verified=false; recallOpen=true;
+  document.getElementById('mainMenu').classList.add('hidden');
+  document.getElementById('exerciseArea').classList.remove('hidden');
+  document.getElementById('exTitle').textContent=TITLES[lv-1];
+  document.getElementById('scoreTotal').textContent=getList().length;
+  loadExercise();
+}
+function goBack(){
+  document.getElementById('mainMenu').classList.remove('hidden');
+  document.getElementById('exerciseArea').classList.add('hidden');
+  currentLevel=0;
+}
+function nextExercise(){ currentEx++; loadExercise(); }
+
+function loadExercise(){
+  verified=false;
+  const list=getList(), total=list.length;
+  document.getElementById('scoreVal').textContent=score;
+  document.getElementById('progressFill').style.width=((currentEx/total)*100)+'%';
+  document.getElementById('progressLabel').textContent=`Exercice ${Math.min(currentEx+1,total)} / ${total}`;
+  if(currentEx>=total){ showResults(); return; }
+  render(list[currentEx]);
+}
+
+function toggleRecall(){
+  recallOpen=!recallOpen;
+  document.getElementById('recallToggle').classList.toggle('open',recallOpen);
+  document.getElementById('recallBox').classList.toggle('collapsed',!recallOpen);
+}
+
+// ═══════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════
+function render(ex){
+  const content=document.getElementById('exerciseContent');
+  const recallHTML=`
+    <button class="recall-toggle ${recallOpen?'open':''}" id="recallToggle" onclick="toggleRecall()">
+      📚 Rappel de cours <span class="arr">▼</span>
+    </button>
+    <div class="recall-box ${recallOpen?'':'collapsed'}" id="recallBox">${ex.recall}</div>`;
+
+  let body='';
+  if(ex.type==='read_ratio')       body=renderReadRatio(ex);
+  else if(ex.type==='share')       body=renderShare(ex);
+  else if(ex.type==='find_from_part') body=renderFindFromPart(ex);
+  else if(ex.type==='equivalent')  body=renderEquivalent(ex);
+  else if(ex.type==='simplify')    body=renderSimplify(ex);
+  else if(ex.type==='find_missing') body=renderFindMissing(ex);
+
+  content.innerHTML=recallHTML+body;
+  attachEnterListeners();
+}
+
+// ── RENDER HELPERS ──────────────────────────────────────
+
+function problemCardHTML(ex){
+  return `<div class="problem-card">
+    <span class="problem-emoji">${ex.emoji}</span>
+    <div class="problem-text">${ex.context}</div>
+    <div class="problem-question">❓ ${ex.question}</div>
+  </div>`;
+}
+
+function barDiagramHTML(bars, totalLabel, totalValue, blanks){
+  // blanks: array of indices that show input instead of value
+  const maxParts=Math.max(...bars.map(b=>b.parts));
+  let html=`<div class="bar-diagram"><div class="bar-diagram-title">📊 Schéma en barres</div>`;
+  bars.forEach((bar,bi)=>{
+    html+=`<div class="bar-row"><div class="bar-row-label">${bar.label}</div><div class="bar-track">`;
+    for(let i=0;i<bar.parts;i++){
+      const isBlank=blanks&&blanks.some(b=>b.barIdx===bi&&(b.allBlocks||(b.blockIdx===i)));
+      const bg=isBlank?'':'background:'+bar.color+';';
+      if(isBlank){
+        html+=`<div class="bar-block blank" style="flex:1;" title="À compléter">
+          <input class="bar-input" data-bar="${bi}" data-block="${i}" type="text" inputmode="numeric" placeholder="?" autocomplete="off">
+        </div>`;
+      } else {
+        html+=`<div class="bar-block" style="flex:1;${bg}">&nbsp;</div>`;
+      }
+    }
+    html+=`</div></div>`;
+  });
+  if(totalLabel!==undefined){
+    html+=`<div class="bar-total-line">
+      <div class="bar-total-label">${totalLabel}</div>
+      <div class="bar-total-brace" style="flex:1;"></div>
+      <div class="bar-total-value">${totalValue}</div>
+    </div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function barDiagramAnimated(bars, values, colors){
+  // Build bar diagram with filled coloured blocks showing values
+  let html=`<div class="bar-diagram"><div class="bar-diagram-title">📊 Schéma en barres</div>`;
+  bars.forEach((bar,bi)=>{
+    const parts=bar.parts;
+    const perBlock=values[bi]/parts;
+    html+=`<div class="bar-row"><div class="bar-row-label">${bar.label}</div><div class="bar-track">`;
+    for(let i=0;i<parts;i++){
+      html+=`<div class="bar-block" style="flex:1;background:${colors[bi]};font-size:.72em;">${perBlock%1===0?perBlock:perBlock.toFixed(1)}</div>`;
+    }
+    html+=`</div></div>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+
+// ─────────────────────────────────────────────────
+//  TYPE: read_ratio  (MCQ)
+// ─────────────────────────────────────────────────
+function renderReadRatio(ex){
+  const bars=ex.bars||[];
+  const barHTML=barDiagramHTML(bars);
+  const choicesHTML=ex.choices.map(c=>
+    `<button class="mcq-btn" onclick="checkMCQ(this,'${c}')">${c}</button>`
+  ).join('');
+  return problemCardHTML(ex)+barHTML+
+    `<div class="mcq-grid">${choicesHTML}</div>
+     <div class="feedback" id="feedback"></div>`;
+}
+
+function checkMCQ(btn, choice){
+  if(verified) return;
+  const ex=getList()[currentEx];
+  document.querySelectorAll('.mcq-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  verified=true;
+  const fb=document.getElementById('feedback');
+  if(choice===ex.answer){
+    score++; document.getElementById('scoreVal').textContent=score;
+    btn.classList.add('correct-choice');
+    fb.className='feedback success';
+    fb.innerHTML=`✓ Bravo ! ${ex.explanation}
+      <div class="fb-btns"><button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button></div>`;
+  } else {
+    btn.classList.add('wrong-choice');
+    document.querySelectorAll('.mcq-btn').forEach(b=>{ if(b.textContent.trim()===ex.answer) b.classList.add('correct-choice'); });
+    fb.className='feedback error';
+    fb.innerHTML=`✗ Pas tout à fait. ${ex.explanation}
+      <div class="fb-btns"><button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button></div>`;
+  }
+}
+
+// ─────────────────────────────────────────────────
+//  TYPE: share  (fill each part value)
+// ─────────────────────────────────────────────────
+function renderShare(ex){
+  const bars=ex.ratio.map((p,i)=>({label:ex.labels[i],parts:p,color:ex.colors[i]}));
+  // Show bar with total indicated, inputs for each row label value
+  const barHTML=barDiagramHTML(bars,`Total (${ex.total} ${ex.unit})`,`${ex.total} ${ex.unit}`);
+
+  // Step hint
+  const totalParts=ex.ratio.reduce((a,b)=>a+b,0);
+  const stepHTML=`<div class="step-hint">💡 Méthode : total de parts = ${ex.ratio.join(' + ')} = <strong>${totalParts}</strong> → valeur d'une part = ${ex.total} ÷ ${totalParts} = <strong>${ex.total/totalParts} ${ex.unit}</strong></div>`;
+
+  let inputsHTML=`<div class="input-area">`;
+  ex.labels.forEach((lbl,i)=>{
+    inputsHTML+=`<div class="input-row">
+      <div class="input-label">${lbl} (${ex.ratio[i]} part${ex.ratio[i]>1?'s':''}) =</div>
+      <input class="answer-input" id="inp_${i}" type="text" inputmode="numeric" placeholder="?" autocomplete="off">
+      <span class="input-unit">${ex.unit}</span>
+    </div>`;
+  });
+  inputsHTML+=`</div>`;
+
+  return problemCardHTML(ex)+barHTML+stepHTML+inputsHTML+
+    `<div class="btn-row">
+      <button class="btn btn-primary" onclick="checkShare()">✓ Vérifier</button>
+      <button class="btn btn-secondary" onclick="resetInputs()">↩ Effacer</button>
+    </div>
+    <div class="feedback" id="feedback"></div>`;
+}
+
+function checkShare(){
+  if(verified) return;
+  const ex=getList()[currentEx];
+  let allCorrect=true, anyFilled=false;
+  ex.answers.forEach((ans,i)=>{
+    const inp=document.getElementById(`inp_${i}`);
+    if(!inp) return;
+    const val=parseInt(inp.value.trim());
+    if(!isNaN(val)) anyFilled=true;
+    if(val===ans){
+      inp.classList.remove('wrong'); inp.classList.add('correct','correct-anim');
+    } else {
+      allCorrect=false;
+      inp.classList.remove('correct'); inp.classList.add('wrong');
+      setTimeout(()=>inp.classList.remove('wrong'),500);
+    }
+  });
+  if(!anyFilled){ showFeedback('error','⚠️ Entre au moins une réponse !'); return; }
+  verified=true;
+  if(allCorrect){
+    score++; document.getElementById('scoreVal').textContent=score;
+    showFeedback('success',`✓ Parfait ! ${ex.explanation}`);
+    // Animate bar
+    const barZone=document.querySelector('.bar-diagram');
+    if(barZone){
+      const bars=ex.ratio.map((p,i)=>({label:ex.labels[i],parts:p,color:ex.colors[i]}));
+      barZone.outerHTML=barDiagramAnimated(bars,ex.answers,ex.colors);
+    }
+  } else {
+    showFeedback('error',`✗ Certaines réponses sont incorrectes. ${ex.explanation}`);
+  }
+}
+
+// ─────────────────────────────────────────────────
+//  TYPE: find_from_part
+// ─────────────────────────────────────────────────
+function renderFindFromPart(ex){
+  const bars=ex.ratio.map((p,i)=>({label:ex.labels[i],parts:p,color:ex.colors[i]}));
+  // Show bar, with known bar having a value label
+  const barHTML=barDiagramHTML(bars);
+
+  // Known info display
+  const unitPerPart=ex.knownValue/ex.ratio[ex.knownIndex];
+  const knownLabel=ex.labels[ex.knownIndex];
+  const knownParts=ex.ratio[ex.knownIndex];
+  const knownHTML=`<div class="step-hint">💡 On sait que <strong>${knownLabel} = ${ex.knownValue} ${ex.unit}</strong> (${knownParts} part${knownParts>1?'s':''}) → 1 part = ${ex.knownValue} ÷ ${knownParts} = <span class="unit-value-box">${unitPerPart} ${ex.unit}</span></div>`;
+
+  let inputsHTML=`<div class="input-area">`;
+  ex.askIndices.forEach((idx,ii)=>{
+    inputsHTML+=`<div class="input-row">
+      <div class="input-label">${ex.labels[idx]} (${ex.ratio[idx]} part${ex.ratio[idx]>1?'s':''}) =</div>
+      <input class="answer-input" id="inp_ask_${ii}" type="text" inputmode="numeric" placeholder="?" autocomplete="off">
+      <span class="input-unit">${ex.unit}</span>
+    </div>`;
+  });
+  if(ex.askTotal){
+    inputsHTML+=`<div class="input-row">
+      <div class="input-label">Total =</div>
+      <input class="answer-input" id="inp_total" type="text" inputmode="numeric" placeholder="?" autocomplete="off">
+      <span class="input-unit">${ex.unit}</span>
+    </div>`;
+  }
+  inputsHTML+=`</div>`;
+
+  return problemCardHTML(ex)+barHTML+knownHTML+inputsHTML+
+    `<div class="btn-row">
+      <button class="btn btn-primary" onclick="checkFindFromPart()">✓ Vérifier</button>
+      <button class="btn btn-secondary" onclick="resetInputs()">↩ Effacer</button>
+    </div>
+    <div class="feedback" id="feedback"></div>`;
+}
+
+function checkFindFromPart(){
+  if(verified) return;
+  const ex=getList()[currentEx];
+  let allCorrect=true, anyFilled=false;
+  ex.askIndices.forEach((idx,ii)=>{
+    const inp=document.getElementById(`inp_ask_${ii}`);
+    if(!inp) return;
+    const val=parseInt(inp.value.trim());
+    if(!isNaN(val)) anyFilled=true;
+    if(val===ex.answers[ii]){
+      inp.classList.remove('wrong'); inp.classList.add('correct','correct-anim');
+    } else { allCorrect=false; inp.classList.remove('correct'); inp.classList.add('wrong'); setTimeout(()=>inp.classList.remove('wrong'),500); }
+  });
+  if(ex.askTotal){
+    const inp=document.getElementById('inp_total');
+    const val=parseInt(inp.value.trim());
+    if(!isNaN(val)) anyFilled=true;
+    if(val===ex.totalAnswer){
+      inp.classList.remove('wrong'); inp.classList.add('correct','correct-anim');
+    } else { allCorrect=false; inp.classList.remove('correct'); inp.classList.add('wrong'); setTimeout(()=>inp.classList.remove('wrong'),500); }
+  }
+  if(!anyFilled){ showFeedback('error','⚠️ Entre au moins une réponse !'); return; }
+  verified=true;
+  if(allCorrect){ score++; document.getElementById('scoreVal').textContent=score; showFeedback('success',`✓ Excellent ! ${ex.explanation}`); }
+  else showFeedback('error',`✗ Relis la méthode et réessaie. ${ex.explanation}`);
+}
+
+// ─────────────────────────────────────────────────
+//  TYPE: equivalent  (multi-select MCQ)
+// ─────────────────────────────────────────────────
+function renderEquivalent(ex){
+  const baseBar=[
+    {label:`Part A (${ex.baseRatio[0]})`,parts:ex.baseRatio[0],color:COLORS[0]},
+    {label:`Part B (${ex.baseRatio[1]})`,parts:ex.baseRatio[1],color:COLORS[1]},
+  ];
+  const barHTML=barDiagramHTML(baseBar);
+  const choicesHTML=ex.choices.map(c=>
+    `<button class="mcq-btn" onclick="toggleEquivChoice(this,'${c}')">${c}</button>`
+  ).join('');
+  return problemCardHTML(ex)+barHTML+
+    `<div style="font-size:.85em;color:#718096;margin-bottom:8px;">Sélectionne toutes les bonnes réponses :</div>
+     <div class="mcq-grid">${choicesHTML}</div>
+     <div class="btn-row">
+       <button class="btn btn-primary" onclick="checkEquivalent()">✓ Vérifier</button>
+     </div>
+     <div class="feedback" id="feedback"></div>`;
+}
+
+let selectedEquiv=new Set();
+function toggleEquivChoice(btn, choice){
+  if(verified) return;
+  if(selectedEquiv.has(choice)){ selectedEquiv.delete(choice); btn.classList.remove('selected'); }
+  else { selectedEquiv.add(choice); btn.classList.add('selected'); }
+}
+
+function checkEquivalent(){
+  if(verified) return;
+  const ex=getList()[currentEx];
+  selectedEquiv=selectedEquiv||new Set();
+  const correct=new Set(ex.correctChoices);
+  let allOk=true;
+  document.querySelectorAll('.mcq-btn').forEach(btn=>{
+    const c=btn.textContent.trim();
+    const isCorrect=correct.has(c);
+    const isSelected=selectedEquiv.has(c);
+    if(isCorrect){ btn.classList.add('correct-choice'); if(!isSelected) allOk=false; }
+    else if(isSelected){ btn.classList.add('wrong-choice'); allOk=false; }
+  });
+  verified=true;
+  if(allOk){ score++; document.getElementById('scoreVal').textContent=score; showFeedback('success',`✓ Parfait ! ${ex.explanation}`); }
+  else showFeedback('partial',`Pas tout à fait. ${ex.explanation}`);
+  selectedEquiv=new Set();
+}
+
+// ─────────────────────────────────────────────────
+//  TYPE: simplify
+// ─────────────────────────────────────────────────
+function renderSimplify(ex){
+  // Show the original ratio as a bar, then ask simplified form
+  const a=ex.answers[0], b=ex.answers[1];
+  const origA=ex.inputs[0], origB=ex.inputs[1];
+  // We'll derive original from answers × PGCD
+  const pgcd=ex.inputs.length; // Not used directly; context gives original numbers
+  // Parse original from context string – simpler: use answers to build bar
+  const bars=[
+    {label:origA.label,parts:a,color:COLORS[0]},
+    {label:origB.label,parts:b,color:COLORS[1]},
+  ];
+  const inputsHTML=`<div class="input-area">
+    <div class="input-row">
+      <div class="input-label">Ratio simplifié : </div>
+      <input class="answer-input" id="inp_s0" type="text" inputmode="numeric" placeholder="?" style="width:80px" autocomplete="off">
+      <span style="font-size:1.2em;font-weight:bold;margin:0 6px;color:#4a5568;">:</span>
+      <input class="answer-input" id="inp_s1" type="text" inputmode="numeric" placeholder="?" style="width:80px" autocomplete="off">
+    </div>
+  </div>`;
+  return problemCardHTML(ex)+barDiagramHTML(bars)+inputsHTML+
+    `<div class="btn-row">
+      <button class="btn btn-primary" onclick="checkSimplify()">✓ Vérifier</button>
+    </div>
+    <div class="feedback" id="feedback"></div>`;
+}
+
+function checkSimplify(){
+  if(verified) return;
+  const ex=getList()[currentEx];
+  const v0=parseInt(document.getElementById('inp_s0').value.trim());
+  const v1=parseInt(document.getElementById('inp_s1').value.trim());
+  verified=true;
+  const [a,b]=ex.answers;
+  // Accept any equivalent simplified form where gcd(v0,v1)=1 AND v0/v1 = a/b
+  function gcd(x,y){return y===0?x:gcd(y,x%y);}
+  const correctRatio = !isNaN(v0)&&!isNaN(v1) && v0>0&&v1>0 && v0/v1===a/b && gcd(v0,v1)===1;
+  if(correctRatio){
+    score++; document.getElementById('scoreVal').textContent=score;
+    ['inp_s0','inp_s1'].forEach(id=>{ const el=document.getElementById(id); el.classList.add('correct','correct-anim'); });
+    showFeedback('success',`✓ Bravo ! ${ex.explanation}`);
+  } else {
+    ['inp_s0','inp_s1'].forEach(id=>{ const el=document.getElementById(id); el.classList.add('wrong'); setTimeout(()=>el.classList.remove('wrong'),500); });
+    showFeedback('error',`✗ ${ex.explanation}`);
+  }
+}
+
+// ─────────────────────────────────────────────────
+//  TYPE: find_missing
+// ─────────────────────────────────────────────────
+function renderFindMissing(ex){
+  const bars=[
+    {label:ex.known.label,parts:ex.ratio[ex.knownIndex],color:COLORS[0]},
+    {label:ex.unknown.label,parts:ex.ratio[ex.unknownIndex],color:COLORS[1]},
+  ];
+  const inputsHTML=`<div class="input-area">
+    <div class="input-row">
+      <div class="input-label">${ex.known.label} = ${ex.known.value} ${ex.unit}</div>
+    </div>
+    <div class="input-row">
+      <div class="input-label">${ex.unknown.label} = </div>
+      <input class="answer-input" id="inp_miss" type="text" inputmode="numeric" placeholder="${ex.unknown.placeholder}" autocomplete="off">
+      <span class="input-unit">${ex.unit}</span>
+    </div>
+  </div>`;
+  return problemCardHTML(ex)+barDiagramHTML(bars)+inputsHTML+
+    `<div class="btn-row">
+      <button class="btn btn-primary" onclick="checkFindMissing()">✓ Vérifier</button>
+    </div>
+    <div class="feedback" id="feedback"></div>`;
+}
+
+function checkFindMissing(){
+  if(verified) return;
+  const ex=getList()[currentEx];
+  const inp=document.getElementById('inp_miss');
+  const val=parseInt(inp.value.trim());
+  verified=true;
+  if(val===ex.answer){
+    score++; document.getElementById('scoreVal').textContent=score;
+    inp.classList.add('correct','correct-anim');
+    showFeedback('success',`✓ Exact ! ${ex.explanation}`);
+  } else {
+    inp.classList.add('wrong'); setTimeout(()=>inp.classList.remove('wrong'),500);
+    showFeedback('error',`✗ ${ex.explanation}`);
+  }
+}
+
+// ═══════════════════════════════════════
+//  SHARED UTILITIES
+// ═══════════════════════════════════════
+function showFeedback(type, html){
+  const fb=document.getElementById('feedback');
+  if(!fb) return;
+  fb.className='feedback '+type;
+  fb.innerHTML=html+(type!=='error'||verified?`<div class="fb-btns"><button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button></div>`:'');
+}
+
+function resetInputs(){
+  document.querySelectorAll('.answer-input').forEach(inp=>{
+    inp.value=''; inp.className='answer-input';
+  });
+  const fb=document.getElementById('feedback');
+  if(fb) fb.className='feedback';
+  verified=false;
+}
+
+// ── ENTER KEY SUPPORT ──────────────────────────────────
+function attachEnterListeners(){
+  document.querySelectorAll('.answer-input').forEach(inp=>{
+    inp.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        // Find verify button and click it
+        const btn=document.getElementById('btnVerify')||document.querySelector('.btn-primary[onclick*="check"]');
+        if(btn){ btn.click(); return; }
+        // Fallback: detect current exercise type
+        const ex=getList()[currentEx];
+        if(!ex) return;
+        if(ex.type==='share')           checkShare();
+        else if(ex.type==='find_from_part') checkFindFromPart();
+        else if(ex.type==='simplify')   checkSimplify();
+        else if(ex.type==='find_missing') checkFindMissing();
+        else if(ex.type==='equivalent') checkEquivalent();
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════
+function showResults(){
+  const total=getList().length, pct=Math.round(score/total*100);
+  let emoji,msg;
+  if(pct===100){emoji='🏆';msg='Parfait ! Tu maîtrises ce niveau de ratios !';}
+  else if(pct>=80){emoji='🌟';msg='Très bien ! Encore un petit effort !';}
+  else if(pct>=60){emoji='👍';msg='Pas mal ! Continue de t\'entraîner !';}
+  else{emoji='💪';msg='Continue, tu vas y arriver !';}
+  document.getElementById('progressFill').style.width='100%';
+  document.getElementById('exerciseContent').innerHTML=`
+    <div class="results-center">
+      <div class="results-emoji">${emoji}</div>
+      <h2 style="color:var(--primary);font-size:1.4em">Résultats</h2>
+      <div class="results-score">${score} / ${total}</div>
+      <div class="results-pct">${pct}%</div>
+      <p class="results-msg">${msg}</p>
+      <div class="results-btns">
+        <button class="btn btn-primary" onclick="startLevel(${currentLevel})">🔄 Recommencer</button>
+        <button class="btn btn-back" onclick="goBack()">← Retour au menu</button>
+      </div>
+    </div>`;
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
