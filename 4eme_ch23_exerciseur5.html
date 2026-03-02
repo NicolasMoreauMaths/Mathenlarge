@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paires — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+  --blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.09);--blue-border:rgba(59,130,246,.22);
+  --orange:#ea580c;--orange-pale:rgba(234,88,12,.1);--orange-border:rgba(234,88,12,.25);
+  --green:#16a34a;--green-pale:rgba(22,163,74,.1);--green-border:rgba(22,163,74,.25);
+  --red:#dc2626;--red-pale:rgba(220,38,38,.08);--red-border:rgba(220,38,38,.2);
+  --purple:#7c3aed;--purple-pale:rgba(124,58,237,.09);--purple-border:rgba(124,58,237,.22);
+  --text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.09);
+}
+*{-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+  -webkit-text-size-adjust:100%}
+.app{max-width:700px;width:100%}
+
+/* ── HEADER ── */
+.app-header{background:linear-gradient(135deg,#1d4ed8 0%,#6d28d9 100%);color:#fff;
+  padding:14px 22px;border-radius:14px 14px 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 16px rgba(29,78,216,.25);position:relative;overflow:hidden}
+.app-header::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 55%);pointer-events:none}
+.app-title{font-size:1.1em;font-weight:700;position:relative;display:flex;align-items:center;gap:8px}
+
+/* ── MAIN CARD ── */
+.main{background:var(--card);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 14px 14px;padding:28px 24px;
+  box-shadow:0 8px 28px var(--shadow);min-height:52vh}
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── TYPO ── */
+h1{font-size:1.45em;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:.92em;color:var(--text-light);margin-bottom:20px;line-height:1.5}
+
+/* ── BUTTONS ── */
+.btn{font-family:'DM Sans',sans-serif;padding:11px 24px;border-radius:10px;font-size:.92em;
+  font-weight:600;cursor:pointer;transition:all .2s;border:2px solid;
+  min-height:44px;touch-action:manipulation;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(29,78,216,.15)}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover:not(:disabled){background:#15803d;transform:translateY(-1px)}
+.btn-orange{background:var(--orange);color:#fff;border-color:var(--orange)}
+.btn-orange:hover:not(:disabled){background:#c2410c;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+/* ── INTRO DECO ── */
+.intro-logo{text-align:center;font-size:4em;margin:8px 0 4px;
+  animation:floatLogo 3s ease-in-out infinite}
+@keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* ── MODE / DIFF GRIDS ── */
+.section-title{font-size:.72em;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:var(--blue);margin-bottom:8px;text-align:center}
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:12px;
+  padding:16px 10px;text-align:center;cursor:pointer;transition:all .22s;
+  touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:5px}
+.mc:hover{transform:translateY(-3px);box-shadow:0 8px 20px var(--shadow)}
+.mc.sel-green{border-color:var(--green)!important;background:var(--green-pale)}
+.mc.sel-blue{border-color:var(--blue)!important;background:var(--blue-pale)}
+.mc.sel-orange{border-color:var(--orange)!important;background:var(--orange-pale)}
+.mc.sel-purple{border-color:var(--purple)!important;background:var(--purple-pale)}
+.mc.theme:hover{border-color:var(--purple);background:var(--purple-pale)}
+.mc.diff-e:hover{border-color:var(--green);background:var(--green-pale)}
+.mc.diff-n:hover{border-color:var(--blue);background:var(--blue-pale)}
+.mc.diff-h:hover{border-color:var(--orange);background:var(--orange-pale)}
+.mc-icon{font-size:1.6em}
+.mc-t{font-size:.88em;color:var(--text);font-weight:700}
+.mc-d{font-size:.74em;color:var(--text-light);line-height:1.35}
+.mc-tag{font-size:.67em;font-weight:700;padding:2px 10px;border-radius:10px}
+.tag-g{background:var(--green-pale);color:var(--green)}
+.tag-b{background:var(--blue-pale);color:var(--blue)}
+.tag-o{background:var(--orange-pale);color:var(--orange)}
+.tag-p{background:var(--purple-pale);color:var(--purple)}
+
+/* ── GAME HUD ── */
+.hud{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.hud-left{display:flex;align-items:center;gap:10px}
+.hud-badge{background:var(--blue-pale);color:var(--blue);
+  padding:5px 14px;border-radius:20px;font-size:.85em;font-weight:700}
+.hud-right{display:flex;align-items:center;gap:12px}
+.score-lbl{font-size:.85em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:16px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:4px;transition:width .4s}
+
+/* ── TIMER ── */
+.timer-wrap{display:flex;align-items:center;gap:6px;font-size:.85em;font-weight:700;color:var(--text-light)}
+.timer-wrap.urgent{color:var(--red);animation:timerPulse .5s ease-in-out infinite}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── CARD GRID ── */
+.card-grid{display:grid;gap:10px;margin:4px 0}
+.card-grid.g4 {grid-template-columns:repeat(4,1fr)}
+.card-grid.g5 {grid-template-columns:repeat(5,1fr)}
+.card-grid.g6 {grid-template-columns:repeat(6,1fr)}
+
+/* ── FLIP CARD ── */
+.card-wrap{
+  aspect-ratio:1/1;
+  perspective:800px;
+  cursor:pointer;
+  touch-action:manipulation;
+  min-height:0;
+  transition:transform .15s;
+}
+.card-wrap:hover:not(.matched){transform:translateY(-3px) scale(1.03)}
+.card-inner{
+  width:100%;height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .45s cubic-bezier(.4,0,.2,1);
+}
+.card-wrap.flipped .card-inner,
+.card-wrap.matched .card-inner{transform:rotateY(180deg)}
+
+/* shared face base */
+.card-back,
+.card-front{
+  position:absolute;inset:0;
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+}
+
+/* ── BACK (hidden face shown by default) ── */
+.card-back{
+  background:linear-gradient(145deg,#3b4fd8 0%,#7c3aed 100%);
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 4px 14px rgba(29,78,216,.35), inset 0 1px 0 rgba(255,255,255,.2);
+}
+/* dot pattern overlay */
+.card-back::before{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background-image:radial-gradient(rgba(255,255,255,.15) 1px, transparent 1px);
+  background-size:10px 10px;
+}
+.card-back::after{
+  content:'?';
+  font-family:'Kalam',cursive;
+  font-size:2em;
+  font-weight:700;
+  color:rgba(255,255,255,.85);
+  text-shadow:0 2px 8px rgba(0,0,0,.25);
+  position:relative;
+  z-index:1;
+}
+
+/* ── FRONT (emoji face, starts rotated away) ── */
+.card-front{
+  transform:rotateY(180deg);
+  background:var(--card);
+  border:2px solid var(--border);
+  box-shadow:0 4px 14px var(--shadow);
+  flex-direction:column;
+  gap:4px;
+}
+.card-front span{
+  font-size:52px;
+  line-height:1;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.15));
+  display:block;
+}
+/* subtle inner shine */
+.card-front::before{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:linear-gradient(145deg,rgba(255,255,255,.6) 0%,transparent 50%);
+  pointer-events:none;
+}
+
+/* ── STATES ── */
+.card-wrap.flipped .card-front{
+  border-color:var(--blue-border);
+  background:linear-gradient(160deg,#f0f5ff 0%,#e8f0fe 100%);
+  box-shadow:0 4px 18px rgba(59,130,246,.2);
+}
+.card-wrap.matched .card-front{
+  border-color:var(--green);
+  background:linear-gradient(160deg,#f0fdf4 0%,#dcfce7 100%);
+  box-shadow:0 4px 18px rgba(22,163,74,.25);
+  animation:matchPop .45s cubic-bezier(.34,1.56,.64,1);
+}
+.card-wrap.wrong .card-front{
+  border-color:var(--red);
+  background:linear-gradient(160deg,#fff5f5 0%,#fee2e2 100%);
+  animation:wrongShake .4s ease;
+}
+.card-wrap.matched .card-back{
+  background:linear-gradient(145deg,#16a34a 0%,#15803d 100%);
+}
+.card-wrap.matched:hover{transform:none;cursor:default}
+
+@keyframes matchPop{
+  0%  {transform:rotateY(180deg) scale(.85)}
+  55% {transform:rotateY(180deg) scale(1.1)}
+  100%{transform:rotateY(180deg) scale(1)}
+}
+@keyframes wrongShake{
+  0%,100%{transform:rotateY(180deg) translateX(0)}
+  20%{transform:rotateY(180deg) translateX(-6px)}
+  40%{transform:rotateY(180deg) translateX(6px)}
+  60%{transform:rotateY(180deg) translateX(-4px)}
+  80%{transform:rotateY(180deg) translateX(4px)}
+}
+
+/* ── FEEDBACK BAR ── */
+.fb{margin-top:12px;padding:11px 16px;border-radius:10px;font-size:.92em;
+  text-align:center;display:none;animation:fadeIn .25s;font-weight:600;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid var(--red-border)}
+.fb.info{display:block;background:var(--blue-pale);color:var(--blue);border:1px solid var(--blue-border)}
+
+/* ── RESULTS ── */
+.res-circle{width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:14px auto;border:5px solid}
+.res-circle.win{border-color:var(--green);background:var(--green-pale)}
+.res-circle.lose{border-color:var(--orange);background:var(--orange-pale)}
+.res-icon{font-size:2.6em;line-height:1}
+.res-sub{font-size:.72em;color:var(--text-light);margin-top:3px;font-weight:600}
+.rm{font-size:1.05em;text-align:center;margin:12px 0;line-height:1.5}
+.stats-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.stat{background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:10px 16px;text-align:center;min-width:88px}
+.stat-val{font-size:1.5em;font-weight:700;color:var(--blue);font-family:'Kalam',cursive}
+.stat-lbl{font-size:.72em;color:var(--text-light);font-weight:600}
+.best-badge{text-align:center;margin:6px 0}
+.best-badge span{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;
+  font-size:.82em;font-weight:700;padding:4px 14px;border-radius:20px}
+
+/* ── CONFETTI ── */
+#conf-canvas{position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:999;display:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .main{padding:20px 14px}
+  .card-grid{gap:7px}
+  .card-front{font-size:1.8em}
+  .card-back::after{font-size:1.6em}
+  .theme-grid,.diff-grid{gap:7px}
+  .mc-icon{font-size:1.3em}.mc-t{font-size:.8em}.mc-d{display:none}
+  h1{font-size:1.3em}
+}
+@media(max-width:420px){
+  .card-grid{gap:5px}
+  .card-front{font-size:1.4em}
+  .card-back::after{font-size:1.3em}
+  .card-front,.card-back{border-radius:10px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <span class="app-title">🃏 Paires</span>
+  </div>
+
+  <div class="main">
+
+    <!-- ══════════ INTRO ══════════ -->
+    <div class="screen active" id="S_intro">
+      <div class="intro-logo">🃏</div>
+      <h1>Jeu des Paires</h1>
+      <p class="sub">Retourne les cartes et trouve toutes les paires identiques !<br>Entraîne ta mémoire visuelle et ta concentration.</p>
+      <div style="background:var(--purple-pale);border:2px solid var(--purple-border);border-radius:12px;padding:14px 18px;margin:14px 0;text-align:center">
+        <div style="font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:6px">Comment jouer</div>
+        <div style="font-size:.9em;color:var(--text-light);line-height:1.7">
+          Clique sur une carte pour la retourner.<br>
+          Trouve la carte identique parmi les autres.<br>
+          Trouve toutes les paires le plus vite possible !
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-blue" onclick="showScreen('S_config')">🎮 C'est parti !</button>
+      </div>
+    </div>
+
+    <!-- ══════════ CONFIG ══════════ -->
+    <div class="screen" id="S_config">
+      <h1>Paramètres</h1>
+      <p class="sub">Choisis un thème et une difficulté.</p>
+
+      <div class="section-title">Thème des cartes</div>
+      <div class="theme-grid">
+        <div class="mc theme" id="mc-animals" onclick="selectTheme('animals')">
+          <div class="mc-icon">🐾</div>
+          <div class="mc-t">Animaux</div>
+          <div class="mc-d">Faune du monde</div>
+        </div>
+        <div class="mc theme" id="mc-food" onclick="selectTheme('food')">
+          <div class="mc-icon">🍕</div>
+          <div class="mc-t">Nourriture</div>
+          <div class="mc-d">Plats & fruits</div>
+        </div>
+        <div class="mc theme" id="mc-nature" onclick="selectTheme('nature')">
+          <div class="mc-icon">🌿</div>
+          <div class="mc-t">Nature</div>
+          <div class="mc-d">Plantes & météo</div>
+        </div>
+        <div class="mc theme" id="mc-sports" onclick="selectTheme('sports')">
+          <div class="mc-icon">⚽</div>
+          <div class="mc-t">Sports</div>
+          <div class="mc-d">Jeux & activités</div>
+        </div>
+        <div class="mc theme" id="mc-science" onclick="selectTheme('science')">
+          <div class="mc-icon">🔬</div>
+          <div class="mc-t">Sciences</div>
+          <div class="mc-d">Labo & cosmos</div>
+        </div>
+        <div class="mc theme" id="mc-travel" onclick="selectTheme('travel')">
+          <div class="mc-icon">✈️</div>
+          <div class="mc-t">Voyage</div>
+          <div class="mc-d">Lieux & transport</div>
+        </div>
+      </div>
+
+      <div class="section-title">Difficulté</div>
+      <div class="diff-grid">
+        <div class="mc diff-e" id="mc-easy" onclick="selectDiff('easy')">
+          <div class="mc-icon">🌱</div>
+          <div class="mc-t">Facile</div>
+          <div class="mc-d">8 paires · 3 min</div>
+          <div class="mc-tag tag-g">4×4</div>
+        </div>
+        <div class="mc diff-n" id="mc-normal" onclick="selectDiff('normal')">
+          <div class="mc-icon">⚡</div>
+          <div class="mc-t">Normal</div>
+          <div class="mc-d">10 paires · 2 min</div>
+          <div class="mc-tag tag-b">5×4</div>
+        </div>
+        <div class="mc diff-h" id="mc-hard" onclick="selectDiff('hard')">
+          <div class="mc-icon">🔥</div>
+          <div class="mc-t">Expert</div>
+          <div class="mc-d">18 paires · 2 min</div>
+          <div class="mc-tag tag-o">6×6</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-blue" id="startBtn" onclick="startGame()" disabled>🚀 Démarrer</button>
+        <button class="btn btn-ghost" onclick="showScreen('S_intro')">← Retour</button>
+      </div>
+    </div>
+
+    <!-- ══════════ GAME ══════════ -->
+    <div class="screen" id="S_game">
+      <div class="hud">
+        <div class="hud-left">
+          <button class="btn btn-ghost" style="padding:5px 12px;font-size:.78em;min-height:32px" onclick="goMenu()">← Menu</button>
+          <div class="hud-badge" id="g-badge">—</div>
+        </div>
+        <div class="hud-right">
+          <div class="timer-wrap" id="g-timer">⏱ —</div>
+          <div class="score-lbl">Essais : <span id="g-tries" style="font-weight:700;color:var(--blue)">0</span></div>
+        </div>
+      </div>
+      <div class="pbar"><div class="pfill" id="g-pfill" style="width:0%"></div></div>
+      <div id="g-grid"></div>
+      <div class="fb" id="g-fb"></div>
+    </div>
+
+    <!-- ══════════ RESULTS ══════════ -->
+    <div class="screen" id="S_res">
+      <h1>Partie terminée !</h1>
+      <div class="res-circle" id="r-circle">
+        <div class="res-icon" id="r-icon">🏆</div>
+        <div class="res-sub" id="r-sub">Bravo !</div>
+      </div>
+      <p class="rm" id="r-msg"></p>
+      <div class="best-badge" id="r-best"></div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-val" id="r-time">0</div><div class="stat-lbl">Temps (s)</div></div>
+        <div class="stat"><div class="stat-val" id="r-tries">0</div><div class="stat-lbl">Essais</div></div>
+        <div class="stat"><div class="stat-val" id="r-score">0</div><div class="stat-lbl">Score</div></div>
+      </div>
+      <div style="background:var(--blue-pale);border:2px solid var(--blue-border);border-radius:12px;padding:14px 18px;margin:12px 0;text-align:center">
+        <div style="font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:4px">Calcul du score</div>
+        <div style="font-size:.88em;color:var(--text-light)" id="r-formula">—</div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-blue" onclick="startGame()">🔄 Rejouer</button>
+        <button class="btn btn-ghost" onclick="goMenu()">☰ Menu</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<canvas id="conf-canvas"></canvas>
+
+<script>
+/* ═══════════════════════════════════════
+   THEMES
+═══════════════════════════════════════ */
+const THEMES = {
+  animals: {
+    label: 'Animaux',
+    items: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐙','🦋','🦄','🐺']
+  },
+  food: {
+    label: 'Nourriture',
+    items: ['🍕','🍔','🍟','🌮','🍜','🍣','🍩','🎂','🍓','🍇','🥑','🍋','🍉','🌽','🥦','🍄','🧁','🥐']
+  },
+  nature: {
+    label: 'Nature',
+    items: ['🌸','🌺','🌻','🌹','🌿','🍀','🍁','🍂','⛅','🌈','❄️','⚡','🌊','🔥','🌙','⭐','🌴','🌵']
+  },
+  sports: {
+    label: 'Sports',
+    items: ['⚽','🏀','🎾','🏈','⚾','🎱','🏐','🏉','🎯','🥊','🏆','🥇','🎿','🏄','🚴','🤸','⛷️','🏋️']
+  },
+  science: {
+    label: 'Sciences',
+    items: ['🔬','🔭','⚗️','🧬','💡','⚡','🧲','🔋','💻','📡','🛸','🌍','☄️','🧪','🔩','⚙️','🧫','🪐']
+  },
+  travel: {
+    label: 'Voyage',
+    items: ['✈️','🚂','🚢','🚁','🏖️','🏔️','🗼','🗽','🏯','⛩️','🌁','🎡','🎠','🗺️','🧭','🎒','🏕️','🚀']
+  }
+};
+
+const DIFFS = {
+  easy:   { label: 'Facile',  pairs: 8,  cols: 4, timeLimit: 180 },
+  normal: { label: 'Normal',  pairs: 10, cols: 5, timeLimit: 120 },
+  hard:   { label: 'Expert',  pairs: 18, cols: 6, timeLimit: 120 },
+};
+
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+let selTheme = null, selDiff = null;
+let diff, theme;
+let cards = [];          // array of {id, emoji, pairId, el}
+let flipped = [];        // currently face-up (max 2)
+let matched = 0;
+let tries = 0;
+let locked = false;
+let startTime = null;
+let timerInterval = null;
+let sessionBest = null;
+
+/* ═══════════════════════════════════════
+   TIMERS (safe cancellation)
+═══════════════════════════════════════ */
+const activeTimers = new Set();
+function safeTimeout(fn, ms) {
+  let id = setTimeout(() => { activeTimers.delete(id); fn(); }, ms);
+  activeTimers.add(id);
+  return id;
+}
+function clearAllTimers() {
+  activeTimers.forEach(id => clearTimeout(id));
+  activeTimers.clear();
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goMenu() {
+  clearAllTimers();
+  locked = true;
+  showScreen('S_config');
+}
+
+/* ═══════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════ */
+function selectTheme(t) {
+  selTheme = t;
+  document.querySelectorAll('.mc.theme').forEach(el => el.classList.remove('sel-purple'));
+  document.getElementById('mc-' + t).classList.add('sel-purple');
+  checkReady();
+}
+function selectDiff(d) {
+  selDiff = d;
+  ['easy','normal','hard'].forEach(k => {
+    const el = document.getElementById('mc-' + k);
+    el.classList.remove('sel-green','sel-blue','sel-orange');
+  });
+  const map = {easy:'sel-green', normal:'sel-blue', hard:'sel-orange'};
+  document.getElementById('mc-' + d).classList.add(map[d]);
+  checkReady();
+}
+function checkReady() {
+  document.getElementById('startBtn').disabled = !(selTheme && selDiff);
+}
+
+/* ═══════════════════════════════════════
+   START GAME
+═══════════════════════════════════════ */
+function startGame() {
+  clearAllTimers();
+  diff = DIFFS[selDiff];
+  theme = THEMES[selTheme];
+  matched = 0;
+  tries = 0;
+  flipped = [];
+  locked = false;
+  startTime = null;
+
+  // Build card data: pick diff.pairs emojis, duplicate each
+  const pool = shuffle([...theme.items]).slice(0, diff.pairs);
+  const pairs = shuffle([...pool, ...pool].map((emoji, i) => ({
+    id: i,
+    emoji,
+    pairId: pool.indexOf(emoji) < 0 ? pool.lastIndexOf(emoji) : pool.indexOf(emoji),
+    flipped: false,
+    matched: false
+  })));
+  cards = pairs;
+
+  // HUD
+  document.getElementById('g-badge').textContent = `${theme.label} · ${diff.label}`;
+  document.getElementById('g-tries').textContent = '0';
+  document.getElementById('g-pfill').style.width = '0%';
+  hideFb();
+
+  // Build grid
+  const grid = document.getElementById('g-grid');
+  const colClass = diff.cols === 4 ? 'g4' : diff.cols === 5 ? 'g5' : 'g6';
+  grid.innerHTML = '';
+  const gridEl = document.createElement('div');
+  gridEl.className = `card-grid ${colClass}`;
+
+  cards.forEach((card, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'card-wrap';
+    wrap.dataset.idx = idx;
+    wrap.innerHTML = `
+      <div class="card-inner">
+        <div class="card-back"></div>
+        <div class="card-front">
+          <span>${card.emoji}</span>
+        </div>
+      </div>`;
+    wrap.addEventListener('click', () => flipCard(idx));
+    card.el = wrap;
+    gridEl.appendChild(wrap);
+  });
+
+  grid.appendChild(gridEl);
+  showScreen('S_game');
+
+  // Start timer display (countdown)
+  updateTimerDisplay(diff.timeLimit);
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ═══════════════════════════════════════
+   FLIP LOGIC
+═══════════════════════════════════════ */
+function flipCard(idx) {
+  const card = cards[idx];
+  if (locked) return;
+  if (card.flipped || card.matched) return;
+  if (flipped.length >= 2) return;
+
+  // Start timer on first flip
+  if (startTime === null) {
+    startTime = Date.now();
+    startTimer();
+  }
+
+  card.flipped = true;
+  card.el.classList.add('flipped');
+  flipped.push(idx);
+
+  if (flipped.length === 2) {
+    tries++;
+    document.getElementById('g-tries').textContent = tries;
+    locked = true;
+    safeTimeout(checkMatch, 700);
+  }
+}
+
+function checkMatch() {
+  const [a, b] = flipped.map(i => cards[i]);
+  if (a.emoji === b.emoji) {
+    // Match!
+    a.matched = true; b.matched = true;
+    a.el.classList.remove('flipped'); a.el.classList.add('matched');
+    b.el.classList.remove('flipped'); b.el.classList.add('matched');
+    matched++;
+    const pct = (matched / diff.pairs) * 100;
+    document.getElementById('g-pfill').style.width = pct + '%';
+    showFb('ok', `✅ Paire trouvée ! ${matched}/${diff.pairs} paires`);
+    flipped = [];
+    locked = false;
+    if (matched === diff.pairs) {
+      safeTimeout(showResults, 600);
+    }
+  } else {
+    // No match
+    a.el.classList.add('wrong'); b.el.classList.add('wrong');
+    showFb('bad', `❌ Pas une paire… réessaie !`);
+    safeTimeout(() => {
+      a.el.classList.remove('wrong','flipped'); a.flipped = false;
+      b.el.classList.remove('wrong','flipped'); b.flipped = false;
+      flipped = [];
+      locked = false;
+      hideFb();
+    }, 800);
+  }
+}
+
+/* ═══════════════════════════════════════
+   TIMER
+═══════════════════════════════════════ */
+function startTimer() {
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const remaining = diff.timeLimit - elapsed;
+    updateTimerDisplay(remaining);
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timeUp();
+    }
+  }, 500);
+}
+
+function updateTimerDisplay(remaining) {
+  const el = document.getElementById('g-timer');
+  if (!el) return;
+  const m = Math.floor(Math.max(0, remaining) / 60);
+  const s = Math.max(0, remaining) % 60;
+  el.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  el.className = 'timer-wrap' + (remaining <= 20 ? ' urgent' : '');
+}
+
+function timeUp() {
+  if (matched === diff.pairs) return; // already won
+  locked = true;
+  showFb('bad', `⏰ Temps écoulé ! Tu avais trouvé ${matched}/${diff.pairs} paires.`);
+  safeTimeout(showResults, 1500);
+}
+
+/* ═══════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════ */
+function showResults() {
+  clearAllTimers();
+  const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : diff.timeLimit;
+  const won = matched === diff.pairs;
+
+  // Score formula: pairs found × 100 × difficulty mult, minus time penalty
+  const diffMult = {easy:1, normal:2, hard:3}[selDiff];
+  const timePenalty = Math.floor(elapsed / 10) * 5;
+  const rawScore = matched * 100 * diffMult;
+  const finalScore = Math.max(0, rawScore - timePenalty * diffMult);
+
+  const isNew = sessionBest === null || finalScore > sessionBest;
+  if (isNew && won) sessionBest = finalScore;
+
+  const circle = document.getElementById('r-circle');
+  circle.className = 'res-circle ' + (won ? 'win' : 'lose');
+  document.getElementById('r-icon').textContent = won ? '🏆' : '😔';
+  document.getElementById('r-sub').textContent = won ? 'Bravo !' : 'Courage !';
+
+  const msgs = won ? [
+    [1500, '🧠 Mémoire parfaite ! Aucune erreur ou presque !'],
+    [800,  '⚡ Excellent ! Tu as une très bonne mémoire.'],
+    [400,  '👍 Bien joué ! Continue à t\'entraîner.'],
+    [0,    '💪 Partie terminée, tu peux encore progresser !'],
+  ] : [
+    [0, `😅 Pas de panique, ${matched} paire${matched>1?'s':''} trouvée${matched>1?'s':''} sur ${diff.pairs} !`]
+  ];
+  document.getElementById('r-msg').textContent = msgs.find(([min]) => finalScore >= min)[1];
+
+  document.getElementById('r-time').textContent = elapsed;
+  document.getElementById('r-tries').textContent = tries;
+  document.getElementById('r-score').textContent = finalScore;
+  document.getElementById('r-best').innerHTML = (isNew && won)
+    ? '<span>🌟 Nouveau meilleur score de session !</span>' : '';
+
+  document.getElementById('r-formula').textContent =
+    `${matched} paires × 100 × ×${diffMult} (difficulté) − ${timePenalty * diffMult} (temps) = ${finalScore} pts`;
+
+  if (won) confetti();
+  showScreen('S_res');
+}
+
+/* ═══════════════════════════════════════
+   FEEDBACK
+═══════════════════════════════════════ */
+function showFb(type, msg) {
+  const el = document.getElementById('g-fb');
+  el.className = 'fb ' + type;
+  el.textContent = msg;
+}
+function hideFb() {
+  const el = document.getElementById('g-fb');
+  if (el) el.className = 'fb';
+}
+
+/* ═══════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════ */
+function confetti() {
+  const canvas = document.getElementById('conf-canvas');
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const cols = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6'];
+  const parts = Array.from({length:90}, () => ({
+    x: Math.random()*canvas.width, y:-10,
+    r: 4+Math.random()*6, vx:(Math.random()-.5)*5,
+    vy: 2+Math.random()*4,
+    color: cols[Math.floor(Math.random()*cols.length)],
+    rot: Math.random()*Math.PI*2, vr:(Math.random()-.5)*.2,
+    rect: Math.random()>.5,
+  }));
+  let fr=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    parts.forEach(p=>{
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;
+      if(p.rect) ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+      else{ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.rot+=p.vr;
+    });
+    fr++;
+    if(fr<140&&parts.some(p=>p.y<canvas.height)) requestAnimationFrame(draw);
+    else{ctx.clearRect(0,0,canvas.width,canvas.height);canvas.style.display='none';}
+  }
+  draw();
+}
+
+/* ═══════════════════════════════════════
+   KEYBOARD
+═══════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') goMenu();
+});
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

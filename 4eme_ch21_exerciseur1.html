@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>◈ Géométrie des Solides 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<!-- Tailwind 2.2.19 compilé — zéro warning CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — classes custom (remplace Tailwind 3 incompatible)
+══════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;margin:0;padding:0;}
+body{font-family:'Fira Code','Courier New',monospace;background:#080d1a;color:#dde6f0;-webkit-font-smoothing:antialiased;}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:#080d1a;}
+::-webkit-scrollbar-thumb{background:#1a2a40;border-radius:4px;}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+
+/* ─── Typographie ───────────────────────────────────────────────────── */
+.font-display{font-family:'Syne','sans-serif';}
+.text-9px{font-size:9px;}
+.text-10px{font-size:10px;}
+.grad-text{background:linear-gradient(90deg,#3b82f6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ─── Touch ──────────────────────────────────────────────────────────── */
+.touch-none{touch-action:none;}
+
+/* ─── Cards ──────────────────────────────────────────────────────────── */
+.card{background:#0d1526;border:1px solid #1a2a40;border-radius:.75rem;padding:1rem;}
+.card-inset{background:#080d1a;border:1px solid #1a2a40;border-radius:.5rem;padding:.75rem;}
+
+/* ─── Boutons solide ─────────────────────────────────────────────────── */
+.btn-solid-active{background:rgba(59,130,246,.18);border-color:#3b82f6;color:#60a5fa;}
+.btn-solid-off{background:#0d1526;border-color:#1a2a40;color:#3d5a7a;}
+.btn-solid-off:hover{border-color:#2d4a6a;color:#94a3b8;}
+
+/* ─── Onglets ────────────────────────────────────────────────────────── */
+.tabs-bar{display:flex;gap:4px;margin-bottom:1rem;background:#0d1526;border-radius:.75rem;padding:4px;border:1px solid #1a2a40;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tabs-bar::-webkit-scrollbar{display:none;}
+.tab-on{background:rgba(59,130,246,.18);border-bottom-color:#3b82f6;color:#60a5fa;}
+.tab-off{background:transparent;border-bottom-color:transparent;color:#3d5a7a;}
+.tab-off:hover{color:#94a3b8;}
+
+/* ─── SelBtn (coupes) ────────────────────────────────────────────────── */
+.selbtn{display:block;width:100%;text-align:left;padding:.5rem .75rem;border-radius:.5rem;margin-bottom:.5rem;border:1px solid #1a2a40;font-size:.75rem;font-weight:700;background:#080d1a;color:#3d5a7a;cursor:pointer;transition:all .12s;}
+.selbtn:hover{border-color:#2d4a6a;color:#94a3b8;}
+.selbtn.sel-on{background:rgba(59,130,246,.18);border-color:#3b82f6;color:#60a5fa;}
+.selbtn-sub{font-size:10px;font-weight:400;opacity:.55;margin-top:2px;}
+
+/* ─── Info boxes ─────────────────────────────────────────────────────── */
+.info-box{border-radius:.5rem;padding:.75rem;font-size:10px;line-height:1.65;margin-top:.5rem;border:1px solid;}
+.ib-blue {background:rgba(59,130,246,.10);border-color:rgba(59,130,246,.25);}
+.ib-cyan {background:rgba(6,182,212,.10); border-color:rgba(6,182,212,.25);}
+.ib-amber{background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.25);}
+.ib-violet{background:rgba(168,85,247,.10);border-color:rgba(168,85,247,.25);}
+
+/* ─── Volume hero ────────────────────────────────────────────────────── */
+.vol-hero{border-radius:.75rem;padding:1rem;margin-bottom:1rem;text-align:center;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(6,182,212,.06));border:1px solid rgba(59,130,246,.28);}
+
+/* ─── Boutons pliage / supp. ─────────────────────────────────────────── */
+.btn-fold{flex:1;padding:.375rem 0;font-size:.75rem;background:#080d1a;border:1px solid #1a2a40;border-radius:.5rem;color:#3d5a7a;cursor:pointer;transition:color .12s;}
+.btn-fold:hover{color:#e2e8f0;}
+.btn-del{color:#fca5a5;border:1px solid #7f1d1d;background:rgba(127,29,29,.25);border-radius:.5rem;padding:.5rem;font-size:.75rem;width:100%;cursor:pointer;transition:background .15s;}
+.btn-del:hover{background:rgba(127,29,29,.5);}
+
+/* ─── Sliders ────────────────────────────────────────────────────────── */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:#1a2a40;outline:none;cursor:pointer;touch-action:none;display:block;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid #080d1a;box-shadow:0 0 0 4px rgba(59,130,246,.2);transition:box-shadow .15s,transform .1s;}
+input[type=range]::-webkit-slider-thumb:active{box-shadow:0 0 0 8px rgba(59,130,246,.28);transform:scale(1.12);}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid #080d1a;}
+input[type=range].green-thumb::-webkit-slider-thumb{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.2);}
+input[type=range].green-thumb::-webkit-slider-thumb:active{box-shadow:0 0 0 8px rgba(34,197,94,.28);}
+input[type=range].green-thumb::-moz-range-thumb{background:#22c55e;}
+input[type=range].yellow-thumb::-webkit-slider-thumb{background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.2);}
+input[type=range].yellow-thumb::-webkit-slider-thumb:active{box-shadow:0 0 0 8px rgba(245,158,11,.28);}
+input[type=range].yellow-thumb::-moz-range-thumb{background:#f59e0b;}
+
+/* ─── Number input ───────────────────────────────────────────────────── */
+.num-input{width:56px;background:#080d1a;border:1px solid #1a2a40;border-radius:5px;color:#dde6f0;padding:3px 6px;font-family:'Fira Code',monospace;font-size:11px;text-align:right;}
+.num-input:focus{outline:none;border-color:#3b82f6;}
+
+/* ─── Slider wrapper ─────────────────────────────────────────────────── */
+.sl-wrap{margin-bottom:1.25rem;user-select:none;}
+.sl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.sl-label{color:#94a3b8;font-size:11px;font-weight:500;}
+.sl-vg{display:flex;align-items:center;gap:6px;}
+.sl-unit{color:#3d5a7a;font-size:10px;}
+
+/* ─── Canvas ─────────────────────────────────────────────────────────── */
+.canvas-wrap{position:relative;width:100%;height:100%;}
+.canvas-mount{width:100%;height:100%;}
+.canvas-hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:9px;color:#3d5a7a;background:rgba(8,13,26,.9);padding:3px 14px;border-radius:20px;pointer-events:none;white-space:nowrap;}
+
+/* ─── Légende ────────────────────────────────────────────────────────── */
+.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.leg-dot{width:12px;height:12px;flex-shrink:0;}
+
+/* ─── Section label ──────────────────────────────────────────────────── */
+.slabel{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3d5a7a;display:block;margin-bottom:.75rem;}
+
+/* ─── Layout 2 colonnes ──────────────────────────────────────────────── */
+.two-col{display:flex;flex-direction:column;gap:12px;}
+/* Canvas : 40 % de l'écran sur mobile, flex sur desktop */
+.canvas-zone{width:100%;border-radius:.75rem;overflow:hidden;border:1px solid #1a2a40;height:clamp(260px,40vh,480px);}
+/* Sidebar : max 50vh mobile pour que le canvas reste visible */
+.sidebar-zone{width:100%;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:50vh;padding-bottom:8px;}
+@media(min-width:1024px){
+  .two-col{flex-direction:row;}
+  .canvas-zone{flex:1;height:auto;min-height:440px;}
+  .sidebar-zone{width:264px;max-height:85vh;flex-shrink:0;}
+}
+/* Grilles responsive 2 colonnes */
+.grid2{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:768px){.grid2{grid-template-columns:1fr 1fr;}}
+
+button{cursor:pointer;transition:filter .1s,border-color .1s,background .1s;}
+button:hover{filter:brightness(1.12);}
+button:active{filter:brightness(.9);}
+</style>
+</head>
+<body style="background:#080d1a;color:#dde6f0;font-family:'Fira Code','Courier New',monospace;min-height:100vh;">
+<div id="root"></div>
+
+<script type="text/babel">
+/* ══════════════════════════════════════════════════════════════════════════
+   GÉOMÉTRIE DES SOLIDES 3D — v6 : Cube · Pavé · Cylindre · Cône ·
+                                   Pyramide · Prisme triangulaire
+   Architecture :
+   • Canvas3D expose une API impérative {rebuild, setFold, setSec}
+   • Sliders : onInput/onChange → Three.js direct (zéro re-render React)
+               onPointerUp/MouseUp/TouchEnd → setState (fin du geste)
+   • resetKey forcé à chaque switchSolid → remount des FluidSliders
+   • Tailwind 2.2.19 compilé, zéro warning CDN
+══════════════════════════════════════════════════════════════════════════ */
+const {useState,useEffect,useRef}=React;
+
+/* ── Couleurs faces ────────────────────────────────────────────────────── */
+// 0:rouge 1:bleu 2:vert 3:ambre 4:violet 5:cyan
+const CF=["#ef4444","#3b82f6","#22c55e","#f59e0b","#a855f7","#06b6d4"];
+
+/* ── useThree ───────────────────────────────────────────────────────────── */
+function useThree(){
+  const[T,set]=useState(null);
+  useEffect(()=>{
+    if(window.THREE){set(window.THREE);return;}
+    const id=setInterval(()=>{if(window.THREE){set(window.THREE);clearInterval(id);}},50);
+    return()=>clearInterval(id);
+  },[]);
+  return T;
+}
+
+/* ── Orbit maison ───────────────────────────────────────────────────────── */
+function attachOrbit(cam,dom,T){
+  let drag=false,pan=false,lx=0,ly=0;
+  const sph={th:.6,phi:1.,r:9},tgt=new T.Vector3();
+  const sync=()=>{cam.position.set(tgt.x+sph.r*Math.sin(sph.phi)*Math.sin(sph.th),tgt.y+sph.r*Math.cos(sph.phi),tgt.z+sph.r*Math.sin(sph.phi)*Math.cos(sph.th));cam.lookAt(tgt);};
+  sync();
+  const dn=e=>{if(e.button===0)drag=true;if(e.button===2)pan=true;lx=e.clientX;ly=e.clientY;};
+  const up=()=>{drag=false;pan=false;};
+  const mv=e=>{const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;if(drag){sph.th-=dx*.008;sph.phi=Math.max(.05,Math.min(Math.PI-.05,sph.phi+dy*.008));sync();}if(pan){const f=new T.Vector3();cam.getWorldDirection(f);const r=new T.Vector3().crossVectors(f,cam.up).normalize(),u=new T.Vector3().crossVectors(r,f).normalize();tgt.addScaledVector(r,-dx*.013);tgt.addScaledVector(u,dy*.013);sync();}};
+  const wh=e=>{sph.r=Math.max(2,Math.min(20,sph.r+e.deltaY*.01));sync();};
+  dom.addEventListener("mousedown",dn);window.addEventListener("mouseup",up);window.addEventListener("mousemove",mv);dom.addEventListener("wheel",wh,{passive:true});dom.addEventListener("contextmenu",e=>e.preventDefault());
+  return()=>{dom.removeEventListener("mousedown",dn);window.removeEventListener("mouseup",up);window.removeEventListener("mousemove",mv);dom.removeEventListener("wheel",wh);};
+}
+
+/* ── Helpers matériaux ─────────────────────────────────────────────────── */
+const MC=new Map();
+function mat(T,hex,op=.86){const k=`${hex}|${op}`;if(MC.has(k))return MC.get(k);const m=new T.MeshStandardMaterial({color:hex,side:T.DoubleSide,transparent:true,opacity:op,roughness:.4,metalness:.05,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});MC.set(k,m);return m;}
+function edges(T,mesh){mesh.add(new T.LineSegments(new T.EdgesGeometry(mesh.geometry),new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.6})));}
+function dsp(o){if(!o)return;o.traverse(c=>{if(c.geometry)c.geometry.dispose();if(c.material)Array.isArray(c.material)?c.material.forEach(m=>m.dispose()):c.material.dispose();});}
+function disc(T,R,color){const m=new T.Mesh(new T.CircleGeometry(R,64),mat(T,color));m.add(new T.Mesh(new T.RingGeometry(R*.93,R,64),new T.MeshBasicMaterial({color:0xffffff,side:T.DoubleSide,depthWrite:false})));return m;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PATRONS (nets) — chacun retourne { root:Group, fold(t:0→1) }
+════════════════════════════════════════════════════════════════════════ */
+
+/* ── Box (cube / pavé) ─────────────────────────────────────────────────── */
+function buildBoxNet(T,L,W,H){
+  const M=T.Matrix4,root=new T.Group();
+  const pxz=(fw,fd,...tr)=>{let g=new T.PlaneGeometry(fw,fd);g.applyMatrix4(new M().makeRotationX(-Math.PI/2));tr.forEach(m=>g.applyMatrix4(m));return g;};
+  const face=(g,ci)=>{const m=new T.Mesh(g,mat(T,CF[ci]));edges(T,m);return m;};
+  root.add(face(pxz(L,W),0));
+  const pA=new T.Group();pA.position.set(0,0,-W/2);pA.add(face(pxz(L,H,new M().makeTranslation(0,0,-H/2)),2));
+  const pT=new T.Group();pT.position.set(0,0,-H);pT.add(face(pxz(L,W,new M().makeTranslation(0,0,-W/2)),5));pA.add(pT);pA._tp=pT;root.add(pA);
+  const pR=new T.Group();pR.position.set(0,0,W/2);pR.add(face(pxz(L,H,new M().makeTranslation(0,0,H/2)),3));root.add(pR);
+  const pG=new T.Group();pG.position.set(-L/2,0,0);const gG=new T.PlaneGeometry(H,W);gG.applyMatrix4(new M().makeRotationX(-Math.PI/2));gG.applyMatrix4(new M().makeTranslation(-H/2,0,0));pG.add(face(gG,4));root.add(pG);
+  const pD=new T.Group();pD.position.set(L/2,0,0);const gD=new T.PlaneGeometry(H,W);gD.applyMatrix4(new M().makeRotationX(-Math.PI/2));gD.applyMatrix4(new M().makeTranslation(H/2,0,0));pD.add(face(gD,1));root.add(pD);
+  const fold=t=>{const a=t*Math.PI/2;pA.rotation.x=a;pR.rotation.x=-a;pG.rotation.z=-a;pD.rotation.z=a;pA._tp.rotation.x=a;};
+  return{root,fold};
+}
+
+/* ── Cylindre ──────────────────────────────────────────────────────────── */
+const SEG=64;
+function latGeo(T,R,H,t){
+  const c=2*Math.PI*R,cols=SEG+1,pos=new Float32Array(cols*2*3),nor=new Float32Array(cols*2*3),uvs=new Float32Array(cols*2*2),idx=[];
+  for(let i=0;i<cols;i++){const u=i/SEG,a=(u-.5)*2*Math.PI,fx=(u-.5)*c,cx=R*Math.sin(a),cz=R*Math.cos(a),px=fx*(1-t)+cx*t,pz=cz*t,nx=Math.sin(a)*t,nz=Math.cos(a)*t-(1-t);for(let r=0;r<2;r++){const y=r?H/2:-H/2,j=(r*cols+i)*3;pos[j]=px;pos[j+1]=y;pos[j+2]=pz;nor[j]=nx;nor[j+1]=0;nor[j+2]=nz;uvs[(r*cols+i)*2]=u;uvs[(r*cols+i)*2+1]=r;}}
+  for(let i=0;i<SEG;i++)idx.push(i,i+1,cols+i,i+1,cols+i+1,cols+i);
+  const g=new T.BufferGeometry();g.setAttribute("position",new T.BufferAttribute(pos,3));g.setAttribute("normal",new T.BufferAttribute(nor,3));g.setAttribute("uv",new T.BufferAttribute(uvs,2));g.setIndex(idx);return g;
+}
+function buildCylNet(T,R,H){
+  const root=new T.Group(),c=2*Math.PI*R;
+  const lm=new T.Mesh(latGeo(T,R,H,0),new T.MeshStandardMaterial({color:CF[1],side:T.DoubleSide,transparent:true,opacity:.82,roughness:.35,depthWrite:false}));root.add(lm);
+  const wm=new T.Mesh(latGeo(T,R,H,0),new T.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.05,depthWrite:false}));root.add(wm);
+  const bm=new T.LineBasicMaterial({color:0x3b82f6,transparent:true,opacity:.8});
+  root.add(new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(-c/2,-H/2,0),new T.Vector3(c/2,-H/2,0),new T.Vector3(c/2,H/2,0),new T.Vector3(-c/2,H/2,0),new T.Vector3(-c/2,-H/2,0)]),bm));
+  const pH=new T.Group();pH.position.set(0,H/2+R/2,-R/2);const dH=disc(T,R,CF[5]);dH.position.set(0,R/2,R/2);pH.add(dH);root.add(pH);
+  const pB=new T.Group();pB.position.set(0,-H/2-R/2,-R/2);const dB=disc(T,R,CF[0]);dB.position.set(0,-R/2,R/2);pB.add(dB);root.add(pB);
+  const fold=t=>{const tD=Math.min(1,t/.5),tR=Math.max(0,(t-.5)/.5);const g=latGeo(T,R,H,tR);lm.geometry.dispose();lm.geometry=g;wm.geometry.dispose();wm.geometry=g.clone();bm.opacity=.8*(1-tR);pH.rotation.x=tD*Math.PI/2;pB.rotation.x=-tD*Math.PI/2;};
+  return{root,fold};
+}
+
+/* ── Cône ──────────────────────────────────────────────────────────────── */
+function coneNetGeo(T,R,H,t){
+  const l=Math.sqrt(R*R+H*H),th=2*Math.PI*R/l,S=80,n=S+2,pos=new Float32Array(n*3),nor=new Float32Array(n*3),uvs=new Float32Array(n*2),idx=[];
+  pos[0]=0;pos[1]=l*(1-t)+H*t;pos[2]=0;nor[1]=1;uvs[0]=.5;uvs[1]=1;
+  for(let i=0;i<=S;i++){const u=i/S,a=(u-.5)*th,fx=l*Math.sin(a),fy=l-l*Math.cos(a),phi=(u-.5)*2*Math.PI,cx=R*Math.sin(phi),cz=R*Math.cos(phi),v=(i+1)*3;pos[v]=fx*(1-t)+cx*t;pos[v+1]=fy*(1-t);pos[v+2]=cz*t;nor[v]=Math.sin(phi)*t;nor[v+1]=(R/l)*t;nor[v+2]=Math.cos(phi)*t-(1-t);uvs[(i+1)*2]=u;uvs[(i+1)*2+1]=0;if(i<S)idx.push(0,i+2,i+1);}
+  const g=new T.BufferGeometry();g.setAttribute("position",new T.BufferAttribute(pos,3));g.setAttribute("normal",new T.BufferAttribute(nor,3));g.setAttribute("uv",new T.BufferAttribute(uvs,2));g.setIndex(idx);return g;
+}
+function buildConeNet(T,R,H){
+  const root=new T.Group(),l=Math.sqrt(R*R+H*H),th=2*Math.PI*R/l;
+  const sm=new T.Mesh(coneNetGeo(T,R,H,0),new T.MeshStandardMaterial({color:CF[2],side:T.DoubleSide,transparent:true,opacity:.82,roughness:.35,depthWrite:false}));root.add(sm);
+  const wm=new T.Mesh(coneNetGeo(T,R,H,0),new T.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.05,depthWrite:false}));root.add(wm);
+  const bm=new T.LineBasicMaterial({color:0x3b82f6,transparent:true,opacity:.8});
+  const half=th/2,ap=[];for(let i=0;i<=60;i++){const a=-half+i*th/60;ap.push(new T.Vector3(l*Math.sin(a),l-l*Math.cos(a),0));}
+  root.add(new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(0,l,0),new T.Vector3(l*Math.sin(-half),l-l*Math.cos(-half),0),...ap,new T.Vector3(l*Math.sin(half),l-l*Math.cos(half),0),new T.Vector3(0,l,0)]),bm));
+  const pb=new T.Group();pb.position.set(0,R/2,-R/2);const db=disc(T,R,CF[0]);db.position.set(0,R/2,R/2);pb.add(db);root.add(pb);
+  const fold=t=>{const tD=Math.min(1,t/.5),tR=Math.max(0,(t-.5)/.5);const g=coneNetGeo(T,R,H,tR);sm.geometry.dispose();sm.geometry=g;wm.geometry.dispose();wm.geometry=g.clone();bm.opacity=.8*(1-tR);pb.rotation.x=tD*Math.PI/2;};
+  return{root,fold};
+}
+
+/* ── Pyramide ──────────────────────────────────────────────────────────── */
+function buildPyrNet(T,A,H){
+  const M=T.Matrix4,P2=Math.PI/2,root=new T.Group();
+  const m=Math.sqrt((A/2)**2+H*H),al=Math.acos(H/m);
+  const fm=ci=>new T.MeshStandardMaterial({color:CF[ci],side:T.DoubleSide,transparent:true,opacity:.88,roughness:.38,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const we=mesh=>{mesh.add(new T.LineSegments(new T.EdgesGeometry(mesh.geometry),new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.6})));return mesh;};
+  const bg=new T.PlaneGeometry(A,A);bg.applyMatrix4(new M().makeRotationX(-P2));root.add(we(new T.Mesh(bg,fm(0))));
+  const mkt=()=>{const g=new T.BufferGeometry();g.setAttribute("position",new T.BufferAttribute(new Float32Array([-A/2,0,0,A/2,0,0,0,m,0]),3));g.setAttribute("normal",new T.BufferAttribute(new Float32Array([0,0,1,0,0,1,0,0,1]),3));g.setIndex([0,2,1]);return g;};
+  const cfg=[{p:[0,0,-A/2],ax:"x",r0:-P2,r1:+al,pY:null,ci:2},{p:[0,0,+A/2],ax:"x",r0:+P2,r1:-al,pY:null,ci:3},{p:[+A/2,0,0],ax:"z",r0:-P2,r1:+al,pY:+P2,ci:1},{p:[-A/2,0,0],ax:"z",r0:+P2,r1:-al,pY:-P2,ci:4}];
+  const pivs=cfg.map(({p,ax,r0,r1,pY,ci})=>{const grp=new T.Group();grp.position.set(...p);let geo=mkt();if(pY!==null){geo=geo.clone();geo.applyMatrix4(new M().makeRotationY(pY));}grp.add(we(new T.Mesh(geo,fm(ci))));root.add(grp);return{grp,ax,r0,r1};});
+  const fold=t=>{pivs.forEach(({grp,ax,r0,r1})=>{const r=r0+(r1-r0)*t;if(ax==="x")grp.rotation.x=r;else grp.rotation.z=r;});};
+  fold(0);return{root,fold};
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PRISME TRIANGULAIRE — net (patron) et solide
+   Géométrie : triangle équilatéral de côté a = R*√3
+                inscrit dans un cercle de rayon R.
+   Patron plat : bande de 3 rectangles (a × H) côte-à-côte,
+                 2 triangles équilatéraux en pivot sur le rect. central.
+   Animation : t 0→0.5 : triangles pivotent vers la verticale
+               t 0.5→1 : rectangles latéraux se replient autour des
+                          arêtes verticales du rect. central
+══════════════════════════════════════════════════════════════════════════ */
+function buildPrismeNet(T,R,H){
+  /* ════════════════════════════════════════════════════════════════════
+     PATRON DU PRISME TRIANGULAIRE ÉQUILATÉRAL — logique pivot propre
+     ────────────────────────────────────────────────────────────────────
+     Géométrie de base :
+       a  = côté du triangle = R*√3
+       hT = hauteur du triangle = a*√3/2 = 3R/2
+
+     Disposition à plat (t=0) — vue de dessus (plan XZ, y=0) :
+     ┌──────────────────────────────────────────────────────┐
+     │        △ triHaut  (apex vers +Z, pivot sur z=+H/2)  │
+     │   ┌─────────────────────────────────────────────┐    │
+     │   │        FACE 1 centrale (vert) CF[2]         │    │
+     │   │   x: [-a/2 .. +a/2]   z: [-H/2 .. +H/2]   │    │
+     │   └─────────────────────────────────────────────┘    │
+     │        ▽ triBas   (apex vers -Z, pivot sur z=-H/2)  │
+     │
+     │  ◁ Face 2 gauche (bleu)       Face 3 droite (ambre) ▷
+     │    pivot sur x=-a/2             pivot sur x=+a/2
+     └──────────────────────────────────────────────────────┘
+
+     Règle clé : chaque pièce est définie en COORDONNÉES LOCALES
+     de son PivotGroup. L'arête de jonction avec Face 1 est à
+     la position locale (0, 0, *) ou (*, 0, 0) selon l'axe.
+     Résultat : à t=0, rotation=0 → tout est parfaitement à plat.
+
+     Animation (1 seule phase, t 0→1) :
+       - triHaut  : rotation.x de 0 → -PI/2  (se lève vers +Y)
+       - triBas   : rotation.x de 0 → +PI/2  (se lève vers +Y)
+       - Face 2   : rotation.z de 0 → -2PI/3 (se replie vers +Y côté gauche, dièdre 60°)
+       - Face 3   : rotation.z de 0 → +2PI/3 (se replie vers +Y côté droit, dièdre 60°)
+     Angle dièdre cible du prisme équilatéral = 60°
+     Rotation depuis le plat = 180° − 60° = 120° = 2π/3
+  ════════════════════════════════════════════════════════════════════ */
+  const root=new T.Group();
+  const a=R*Math.sqrt(3);   // côté du triangle équilatéral
+  const hT=R*1.5;           // hauteur du triangle = a√3/2 = 3R/2
+
+  // ── matériaux ────────────────────────────────────────────────────────
+  const fm=ci=>new T.MeshStandardMaterial({
+    color:CF[ci],side:T.DoubleSide,transparent:true,opacity:.88,
+    roughness:.38,metalness:.05,depthWrite:false,
+    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2
+  });
+  const edgeMat=new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.7});
+  const addEdges=mesh=>{
+    mesh.add(new T.LineSegments(new T.EdgesGeometry(mesh.geometry),edgeMat.clone()));
+    return mesh;
+  };
+
+  // ── helper : rectangle dans le plan XZ, centré à l'origine locale ────
+  // width = dimension selon X, depth = dimension selon Z
+  function mkRectXZ(width,depth,ci){
+    // PlaneGeometry est dans le plan XY (normal +Z) → on tourne -90° autour de X
+    // pour l'amener dans le plan XZ (normal +Y), centré à l'origine
+    const geo=new T.PlaneGeometry(width,depth);
+    geo.applyMatrix4(new T.Matrix4().makeRotationX(-Math.PI/2));
+    // résultat : x ∈ [-w/2, +w/2], y=0, z ∈ [-d/2, +d/2]
+    return addEdges(new T.Mesh(geo,fm(ci)));
+  }
+
+  // ── helper : triangle équilatéral dans le plan XZ ────────────────────
+  // Base (longueur a) centrée sur X, apex vers +Z en LOCAL
+  // à plat : base sur z=0, apex à z=+hT
+  function mkTriXZ(ci){
+    const verts=new Float32Array([
+      -a/2, 0, 0,   // sommet bas-gauche
+       a/2, 0, 0,   // sommet bas-droit
+         0, 0, hT,  // apex (vers +Z en local)
+    ]);
+    const geo=new T.BufferGeometry();
+    geo.setAttribute("position",new T.BufferAttribute(verts,3));
+    geo.setAttribute("normal",new T.BufferAttribute(
+      new Float32Array([0,1,0, 0,1,0, 0,1,0]),3));
+    geo.setIndex([0,1,2]);
+    return addEdges(new T.Mesh(geo,fm(ci)));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // FACE 1 — rectangle central (vert), FIXE, centré à l'origine
+  // Largeur a (selon X), profondeur H (selon Z), centré en (0,0,0)
+  // Span : x∈[-a/2,+a/2], z∈[-H/2,+H/2]
+  // ══════════════════════════════════════════════════════════════════════
+  const face1=mkRectXZ(a,H,2);
+  root.add(face1);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // FACE 2 — rectangle gauche (bleu)
+  // Pivot : arête verticale gauche de Face 1 → x=-a/2, z∈[-H/2,+H/2]
+  //         en 3D : position monde (-a/2, 0, 0)
+  // La face 2 est définie avec sa propre arête de jonction à x_local=+a/2
+  // (côté droit de la face 2 = arête partagée avec face 1)
+  // Donc le mesh est décalé de -a/2 en local (centre du rect à x_local=-a/2... non)
+  //
+  // Plus simple : on crée le rect centré à l'origine locale, puis on le
+  // décale de -a/2 en X pour que son bord DROIT soit à x_local=0
+  // (= l'arête de pivot)
+  // ══════════════════════════════════════════════════════════════════════
+  const grpFace2=new T.Group();
+  grpFace2.position.set(-a/2, 0, 0);   // pivot = arête gauche de Face 1
+  const mesh2=mkRectXZ(a,H,1);
+  mesh2.position.set(-a/2, 0, 0);      // décale en local : bord droit à x=0
+  grpFace2.add(mesh2);
+  root.add(grpFace2);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // FACE 3 — rectangle droit (ambre)
+  // Pivot : arête verticale droite de Face 1 → x=+a/2
+  // Le mesh est décalé de +a/2 en local pour que son bord GAUCHE = x_local=0
+  // ══════════════════════════════════════════════════════════════════════
+  const grpFace3=new T.Group();
+  grpFace3.position.set(+a/2, 0, 0);   // pivot = arête droite de Face 1
+  const mesh3=mkRectXZ(a,H,3);
+  mesh3.position.set(+a/2, 0, 0);      // décale en local : bord gauche à x=0
+  grpFace3.add(mesh3);
+  root.add(grpFace3);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // TRIANGLE HAUT (cyan) — base triangulaire supérieure
+  // Pivot : arête haute de Face 1 → z=+H/2  (ligne x∈[-a/2,+a/2], z=+H/2)
+  // À plat, le triangle pointe vers +Z depuis cette arête.
+  // En local du grpTriH : la BASE du triangle est sur z_local=0
+  //   (ce qui correspond à z_monde=+H/2)
+  // ══════════════════════════════════════════════════════════════════════
+  const grpTriH=new T.Group();
+  grpTriH.position.set(0, 0, +H/2);    // pivot = arête haute de Face 1
+  const meshTriH=mkTriXZ(5);           // triangle avec apex vers +Z local
+  // La base est déjà à z_local=0 → arête de jonction sur z_monde=+H/2 ✓
+  grpTriH.add(meshTriH);
+  root.add(grpTriH);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // TRIANGLE BAS (rouge) — base triangulaire inférieure
+  // Pivot : arête basse de Face 1 → z=-H/2
+  // À plat, le triangle pointe vers -Z depuis cette arête.
+  // On crée le triangle avec apex vers -Z : base à z_local=0, apex à z=-hT
+  // ══════════════════════════════════════════════════════════════════════
+  const grpTriB=new T.Group();
+  grpTriB.position.set(0, 0, -H/2);    // pivot = arête basse de Face 1
+  // Triangle avec apex vers -Z (on flip le mkTriXZ)
+  const vertsBas=new Float32Array([
+    -a/2, 0,  0,  // sommet haut-gauche (sur l'arête pivot)
+     a/2, 0,  0,  // sommet haut-droit
+       0, 0, -hT, // apex vers -Z (vers le bas du patron)
+  ]);
+  const geoBas=new T.BufferGeometry();
+  geoBas.setAttribute("position",new T.BufferAttribute(vertsBas,3));
+  geoBas.setAttribute("normal",new T.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,0]),3));
+  geoBas.setIndex([0,2,1]); // face visible de dessus
+  const meshTriB=addEdges(new T.Mesh(geoBas,fm(0)));
+  grpTriB.add(meshTriB);
+  root.add(grpTriB);
+
+  // ── Centrage global du patron ──────────────────────────────────────────
+  // Patron à plat : x ∈ [-3a/2, +3a/2], z ∈ [-H/2-hT, +H/2+hT]
+  // Déjà centré en X (symétrique). En Z le centre est à 0. ✓
+  // On descend légèrement pour ne pas être dans le sol
+  root.position.set(0, 0.01, 0);
+
+  // ── ANIMATION ──────────────────────────────────────────────────────────
+  // t=0 : tout à plat, angles=0, aucune superposition
+  // t=1 : prisme fermé
+  //
+  // Triangles : rotation autour de X (axe horizontal Z=cst)
+  //   grpTriH : rotation.x de 0 → -PI/2 (apex monte vers +Y)
+  //   grpTriB : rotation.x de 0 → +PI/2 (apex monte vers +Y côté bas)
+  //
+  // Faces latérales : rotation autour de Z (axe vertical X=cst)
+  //   Pour angle dièdre = 60° du prisme équilatéral :
+  //   depuis le plat (180°) → 60° = rotation de 120° = 2π/3
+  //   grpFace2 (gauche) : rotation.z de 0 → +2π/3 (se replie vers +Y)
+  //   grpFace3 (droite) : rotation.z de 0 → -2π/3 (se replie vers +Y)
+
+  const fold=t=>{
+    const P2=Math.PI/2,P3=2*Math.PI/3;
+    // Triangles
+    grpTriH.rotation.x = -t*P2;
+    grpTriB.rotation.x = +t*P2;
+    // Faces latérales (sens vérifié : amène y>0, dièdre 60°)
+    grpFace2.rotation.z = -t*P3;
+    grpFace3.rotation.z = +t*P3;
+  };
+
+  fold(0);
+  return{root,fold};
+}
+
+/* ── Prisme solide ──────────────────────────────────────────────────────── */
+function buildPrismeSolid(T,R,H,cp=[]){
+  // CylinderGeometry(radiusTop, radiusBottom, height, 3 segments)
+  // Orienté base en bas (y=-H/2), sommet en haut (y=H/2)
+  // On le laisse tel quel (axes Y)
+  const g=new T.Group();
+  const cmk=ci=>new T.MeshStandardMaterial({color:CF[ci],side:T.DoubleSide,transparent:true,opacity:.86,roughness:.38,metalness:.05,depthWrite:false,clippingPlanes:cp,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const lmk=()=>new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.55,clippingPlanes:cp});
+
+  // 3 faces latérales via CylinderGeometry ouverte
+  const latGeoP=new T.CylinderGeometry(R,R,H,3,1,true);
+  // Chaque face latérale a sa propre couleur → on décompose manuellement
+  // La lateral a 3 groupes de faces (i=0,1,2)
+  // Pour avoir 3 couleurs, on crée 3 quads séparés via des BufferGeometry
+  // On utilise les 3 arêtes du prisme (angles 90°, 210°, 330° + décalage)
+  // Rotation initiale : Three.js place le premier sommet à z=R (angle 0 = droite)
+  // On rotate de PI/6 pour avoir un sommet vers l'avant
+
+  // Calcul direct des 6 sommets du prisme
+  // Triangle du bas (y=-H/2) et du haut (y=H/2)
+  // Angles : 90°, 210°, 330° (triangle pointe vers le haut en 2D)
+  const angles=[90,210,330].map(d=>d*Math.PI/180);
+  const verts=angles.map(a=>({x:R*Math.cos(a),z:R*Math.sin(a)}));
+
+  // 3 faces rectangulaires
+  const faceColors=[2,1,3]; // vert, bleu, ambre
+  for(let i=0;i<3;i++){
+    const j=(i+1)%3;
+    const v0=verts[i],v1=verts[j];
+    // 4 coins de la face rect.
+    const BL=[v0.x,-H/2,v0.z],BR=[v1.x,-H/2,v1.z];
+    const TL=[v0.x, H/2,v0.z],TR=[v1.x, H/2,v1.z];
+    const pos=new Float32Array([...BL,...BR,...TR,...TL]);
+    // normale = produit vectoriel (BR-BL)×(TL-BL)
+    const ax=BR[0]-BL[0],ay=0,az=BR[2]-BL[2];
+    const bx=TL[0]-BL[0],by=H,bz=TL[2]-BL[2];
+    const nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx;
+    const nl=Math.hypot(nx,ny,nz);
+    const nor=new Float32Array([nx/nl,ny/nl,nz/nl,nx/nl,ny/nl,nz/nl,nx/nl,ny/nl,nz/nl,nx/nl,ny/nl,nz/nl]);
+    const geo=new T.BufferGeometry();
+    geo.setAttribute("position",new T.BufferAttribute(pos,3));
+    geo.setAttribute("normal",new T.BufferAttribute(nor,3));
+    geo.setIndex([0,1,2,0,2,3]);
+    const mesh=new T.Mesh(geo,cmk(faceColors[i]));
+    mesh.add(new T.LineSegments(new T.EdgesGeometry(geo),lmk()));
+    g.add(mesh);
+  }
+
+  // Base inférieure (triangle rouge, y=-H/2)
+  const mkBase=(y,ci,rev)=>{
+    const P=new Float32Array(verts.flatMap(v=>[v.x,y,v.z]));
+    const geo=new T.BufferGeometry();
+    geo.setAttribute("position",new T.BufferAttribute(P,3));
+    const ny2=rev?1:-1;
+    geo.setAttribute("normal",new T.BufferAttribute(new Float32Array([0,ny2,0,0,ny2,0,0,ny2,0]),3));
+    geo.setIndex(rev?[0,2,1]:[0,1,2]);
+    const mesh=new T.Mesh(geo,cmk(ci));
+    mesh.add(new T.LineSegments(new T.EdgesGeometry(geo),lmk()));
+    return mesh;
+  };
+  g.add(mkBase(-H/2,0,false)); // base rouge
+  g.add(mkBase( H/2,4,true));  // dessus violet
+
+  // Arêtes verticales
+  verts.forEach(v=>{
+    const pts=[new T.Vector3(v.x,-H/2,v.z),new T.Vector3(v.x,H/2,v.z)];
+    g.add(new T.Line(new T.BufferGeometry().setFromPoints(pts),lmk()));
+  });
+  return g;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   SOLIDES PLEINS (perspective / section)
+════════════════════════════════════════════════════════════════════════ */
+function buildBoxSolid(T,L,W,H,cp=[]){
+  const g=new T.Group();
+  [[L,W,[0,-H/2,0],[-Math.PI/2,0,0],0],[L,W,[0,H/2,0],[Math.PI/2,0,0],4],[L,H,[0,0,W/2],[0,0,0],2],[L,H,[0,0,-W/2],[0,Math.PI,0],3],[W,H,[-L/2,0,0],[0,Math.PI/2,0],1],[W,H,[L/2,0,0],[0,-Math.PI/2,0],5]].forEach(([fw,fh,p,r,ci])=>{const m=new T.Mesh(new T.PlaneGeometry(fw,fh),new T.MeshStandardMaterial({color:CF[ci],side:T.DoubleSide,transparent:true,opacity:.82,roughness:.4,depthWrite:false,clippingPlanes:cp,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.position.set(...p);m.rotation.set(...r);edges(T,m);g.add(m);});
+  const eg=new T.BoxGeometry(L,H,W);g.add(new T.LineSegments(new T.EdgesGeometry(eg),new T.LineBasicMaterial({color:0x1a3a5a})));eg.dispose();
+  return g;
+}
+function buildCylSolid(T,R,H,cp=[]){
+  const S=SEG,g=new T.Group();
+  const cm=ci=>new T.MeshStandardMaterial({color:CF[ci],side:T.DoubleSide,transparent:true,opacity:.82,roughness:.35,depthWrite:false,clippingPlanes:cp,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  g.add(new T.Mesh(new T.CylinderGeometry(R,R,H,S,1,true),cm(1)));
+  const cT=new T.CircleGeometry(R,S);cT.applyMatrix4(new T.Matrix4().makeRotationX(-Math.PI/2));cT.applyMatrix4(new T.Matrix4().makeTranslation(0,H/2,0));g.add(new T.Mesh(cT,cm(4)));
+  const cB=new T.CircleGeometry(R,S);cB.applyMatrix4(new T.Matrix4().makeRotationX(Math.PI/2));cB.applyMatrix4(new T.Matrix4().makeTranslation(0,-H/2,0));g.add(new T.Mesh(cB,cm(0)));
+  [H/2,-H/2].forEach(y=>{const pts=[];for(let i=0;i<=S;i++){const a=i/S*2*Math.PI;pts.push(new T.Vector3(R*Math.cos(a),y,R*Math.sin(a)));}g.add(new T.Line(new T.BufferGeometry().setFromPoints(pts),new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4})));});
+  return g;
+}
+function buildConeSolid(T,R,H,cp=[]){
+  const S=SEG,g=new T.Group();
+  const cm=ci=>new T.MeshStandardMaterial({color:CF[ci],side:T.DoubleSide,transparent:true,opacity:.85,roughness:.4,depthWrite:false,clippingPlanes:cp,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const cg=new T.ConeGeometry(R,H,S,1,true);cg.applyMatrix4(new T.Matrix4().makeTranslation(0,H/2,0));g.add(new T.Mesh(cg,cm(2)));
+  const bg=new T.CircleGeometry(R,S);bg.applyMatrix4(new T.Matrix4().makeRotationX(-Math.PI/2));g.add(new T.Mesh(bg,cm(0)));
+  const pts=[];for(let i=0;i<=S;i++){const a=i/S*2*Math.PI;pts.push(new T.Vector3(R*Math.cos(a),0,R*Math.sin(a)));}
+  g.add(new T.Line(new T.BufferGeometry().setFromPoints(pts),new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4})));
+  return g;
+}
+function buildPyrSolid(T,A,H,cp=[]){
+  const g=new T.Group(),a=A/2;
+  const cm=ci=>new T.MeshStandardMaterial({color:CF[ci],side:T.DoubleSide,transparent:true,opacity:.85,roughness:.4,depthWrite:false,clippingPlanes:cp,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const lm=()=>new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.5,clippingPlanes:cp});
+  const mf=(p0,p1,p2,ci)=>{const ax=p1[0]-p0[0],ay=p1[1]-p0[1],az=p1[2]-p0[2],bx=p2[0]-p0[0],by=p2[1]-p0[1],bz=p2[2]-p0[2];const nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx,nl=Math.hypot(nx,ny,nz);const geo=new T.BufferGeometry();geo.setAttribute("position",new T.BufferAttribute(new Float32Array([...p0,...p1,...p2]),3));geo.setAttribute("normal",new T.BufferAttribute(new Float32Array([nx/nl,ny/nl,nz/nl,nx/nl,ny/nl,nz/nl,nx/nl,ny/nl,nz/nl]),3));geo.setIndex([0,1,2]);const mesh=new T.Mesh(geo,cm(ci));mesh.add(new T.LineSegments(new T.EdgesGeometry(geo),lm()));return mesh;};
+  const S=[0,H,0],BG=[-a,0,-a],BD=[+a,0,-a],AD=[+a,0,+a],AG=[-a,0,+a];
+  g.add(mf(AG,AD,S,2));g.add(mf(BD,BG,S,3));g.add(mf(AD,BD,S,1));g.add(mf(BG,AG,S,4));
+  const bGeo=new T.PlaneGeometry(A,A);bGeo.applyMatrix4(new T.Matrix4().makeRotationX(-Math.PI/2));g.add(new T.Mesh(bGeo,cm(0)));
+  g.add(new T.Line(new T.BufferGeometry().setFromPoints([BG,BD,AD,AG,BG].map(p=>new T.Vector3(...p))),lm()));
+  return g;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   SECTIONS (plan de coupe visible)
+════════════════════════════════════════════════════════════════════════ */
+function buildSecMesh(T,solid,dims,axis,pos){
+  const{L,W,H,R}=dims,M=T.Matrix4;let geo;
+  // Prisme : section horizontale = trapèze (simplifié rectangle dans la bande)
+  if(solid==="prisme"){
+    if(axis==="horizontal"){
+      geo=new T.BufferGeometry();
+      const angles=[90,210,330].map(d=>d*Math.PI/180);
+      const P=new Float32Array(angles.flatMap(a=>[R*Math.cos(a),pos*H/2,R*Math.sin(a)]));
+      geo.setAttribute("position",new T.BufferAttribute(P,3));geo.setAttribute("normal",new T.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,0]),3));geo.setIndex([0,2,1]);
+    }else{
+      geo=new T.PlaneGeometry(R*Math.sqrt(3)+.08,H+.08);geo.applyMatrix4(new M().makeTranslation(0,0,pos*R*.5));
+    }
+  }else if(solid==="pyramide"){const A=L;if(axis==="horizontal"){const y=Math.max(.01,Math.min(H*.99,(pos+1)/2*H)),c=Math.max(.02,A*(H-y)/H);geo=new T.PlaneGeometry(c+.06,c+.06);geo.applyMatrix4(new M().makeRotationX(-Math.PI/2));geo.applyMatrix4(new M().makeTranslation(0,y,0));}else{geo=new T.PlaneGeometry(A+.08,H+.08);geo.applyMatrix4(new M().makeTranslation(0,H/2,0));}}
+  else if(solid==="cone"){if(axis==="horizontal"){const y=Math.max(.01,Math.min(H*.99,(pos+1)/2*H)),rC=R*(H-y)/H;geo=new T.CircleGeometry(Math.max(.01,rC)+.04,64);geo.applyMatrix4(new M().makeRotationX(-Math.PI/2));geo.applyMatrix4(new M().makeTranslation(0,y,0));}else{geo=new T.PlaneGeometry(2*R+.08,H+.08);geo.applyMatrix4(new M().makeTranslation(0,H/2,0));}}
+  else if(solid==="cylindre"){if(axis==="horizontal"){geo=new T.CircleGeometry(R+.05,64);geo.applyMatrix4(new M().makeRotationX(-Math.PI/2));geo.applyMatrix4(new M().makeTranslation(0,pos*H/2,0));}else{geo=new T.PlaneGeometry(2*R+.08,H+.08);geo.applyMatrix4(new M().makeTranslation(0,0,pos*R));}}
+  else if(axis==="horizontal"){geo=new T.PlaneGeometry(L+.08,W+.08);geo.applyMatrix4(new M().makeRotationX(-Math.PI/2));geo.applyMatrix4(new M().makeTranslation(0,pos*H/2,0));}
+  else if(axis==="vertical-x"){geo=new T.PlaneGeometry(W+.08,H+.08);geo.applyMatrix4(new M().makeRotationY(Math.PI/2));geo.applyMatrix4(new M().makeTranslation(pos*L/2,0,0));}
+  else{geo=new T.PlaneGeometry(L+.08,H+.08);geo.applyMatrix4(new M().makeTranslation(0,0,pos*W/2));}
+  return new T.Mesh(geo,new T.MeshBasicMaterial({color:0xf59e0b,transparent:true,opacity:.38,side:T.DoubleSide,depthWrite:false}));
+}
+function clipParams(T,solid,axis,dims){
+  const{L,W,H,R}=dims;
+  if(solid==="prisme"){if(axis==="horizontal")return{n:new T.Vector3(0,-1,0),maxD:H/2,off:0};return{n:new T.Vector3(0,0,-1),maxD:R,off:0};}
+  if(solid==="pyramide"){if(axis==="horizontal")return{n:new T.Vector3(0,-1,0),maxD:H/2,off:H/2};return{n:new T.Vector3(0,0,-1),maxD:0,off:0};}
+  if(solid==="cone"){if(axis==="horizontal")return{n:new T.Vector3(0,-1,0),maxD:H/2,off:H/2};return{n:new T.Vector3(0,0,-1),maxD:0,off:0};}
+  if(solid==="cylindre"){if(axis==="horizontal")return{n:new T.Vector3(0,-1,0),maxD:H/2,off:0};return{n:new T.Vector3(0,0,-1),maxD:R,off:0};}
+  if(axis==="horizontal")return{n:new T.Vector3(0,-1,0),maxD:H/2,off:0};
+  if(axis==="vertical-x")return{n:new T.Vector3(-1,0,0),maxD:L/2,off:0};
+  return{n:new T.Vector3(0,0,-1),maxD:W/2,off:0};
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   CANVAS 3D — API impérative, jamais déclenché par le drag React
+════════════════════════════════════════════════════════════════════════ */
+function Canvas3D({initSolid,initMode,initDims,initFoldT=0,initSecAxis="horizontal",initSecActive=false,initSecPos=0,sceneApiRef}){
+  const T=useThree(),mountRef=useRef(null),r=useRef({});
+  useEffect(()=>{
+    if(!T||!mountRef.current)return;
+    const el=mountRef.current;
+    const W0=el.clientWidth,H0=el.clientHeight;
+    const scene=new T.Scene();scene.background=new T.Color(0x080d1a);
+    const cam=new T.PerspectiveCamera(45,W0/H0,.1,200);
+    const ren=new T.WebGLRenderer({antialias:true});
+    ren.setPixelRatio(Math.min(devicePixelRatio,2));ren.setSize(W0,H0);ren.localClippingEnabled=true;
+    el.appendChild(ren.domElement);
+    scene.add(new T.AmbientLight(0xffffff,.5));
+    const d1=new T.DirectionalLight(0xffffff,1.);d1.position.set(5,10,7);scene.add(d1);
+    const d2=new T.DirectionalLight(0x6688cc,.4);d2.position.set(-5,-3,-5);scene.add(d2);
+    const grid=new T.GridHelper(16,32,0x0f1f33,0x0f1f33);scene.add(grid);
+    Object.assign(r.current,{scene,cam,ren,grid,net:null,cp:[],sm:null,raf:null});
+    const killOrbit=attachOrbit(cam,ren.domElement,T);
+    const loop=()=>{r.current.raf=requestAnimationFrame(loop);ren.render(scene,cam);};loop();
+    const onRsz=()=>{const w=el.clientWidth,h=el.clientHeight;ren.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix();};
+    window.addEventListener("resize",onRsz);
+
+    // ── API ────────────────────────────────────────────────────────────────
+    const rebuild=(solid,mode,dims,secAxis,secActive,secPos)=>{
+      const{scene,grid}=r.current;if(!scene)return;
+      const{L=2,W=2,H=2,R=1}=dims;
+      const rm=[];scene.traverse(o=>{if(o.parent===scene&&!o.isLight&&o!==grid)rm.push(o);});
+      rm.forEach(o=>{dsp(o);scene.remove(o);});
+      r.current.net=null;r.current.cp=[];r.current.sm=null;
+      // grille : cône/pyramide/prisme(patron) au sol y=0, prisme(solide) et autres centrés
+      grid.position.y=(solid==="cone"||solid==="pyramide")? -.05 :
+                       solid==="prisme"&&mode==="patron"  ? -.05 :
+                       solid==="prisme"                   ? -H/2-.05 : -H/2-.05;
+      if(mode==="patron"){
+        const net=solid==="cylindre"?buildCylNet(T,R,H):
+                  solid==="cone"    ?buildConeNet(T,R,H):
+                  solid==="pyramide"?buildPyrNet(T,L,H):
+                  solid==="prisme"  ?buildPrismeNet(T,R,H):
+                                     buildBoxNet(T,L,W,H);
+        net.fold(r.current.foldT??0);scene.add(net.root);r.current.net=net;
+      }else{
+        let cp=[];
+        if(secActive){const{n,maxD,off=0}=clipParams(T,solid,secAxis,dims);const pl=new T.Plane(n,off+maxD*(r.current.secPos??0));cp=[pl];r.current.cp=cp;}
+        const mesh=solid==="cylindre"?buildCylSolid(T,R,H,cp):
+                   solid==="cone"    ?buildConeSolid(T,R,H,cp):
+                   solid==="pyramide"?buildPyrSolid(T,L,H,cp):
+                   solid==="prisme"  ?buildPrismeSolid(T,R,H,cp):
+                                      buildBoxSolid(T,L,W,H,cp);
+        scene.add(mesh);
+        if(secActive){const sm=buildSecMesh(T,solid,dims,secAxis,r.current.secPos??0);scene.add(sm);r.current.sm=sm;}
+      }
+    };
+    const setFold=t=>{r.current.foldT=t;if(r.current.net)r.current.net.fold(t);};
+    const setSec=(solid,dims,axis,active,pos)=>{
+      r.current.secPos=pos;const{scene,cp,sm}=r.current;if(!scene||!active)return;
+      if(cp?.length){const{maxD,off=0}=clipParams(T,solid,axis,dims);cp[0].constant=off+maxD*pos;}
+      if(sm){scene.remove(sm);dsp(sm);}
+      const nsm=buildSecMesh(T,solid,dims,axis,pos);scene.add(nsm);r.current.sm=nsm;
+    };
+    if(sceneApiRef)sceneApiRef.current={rebuild,setFold,setSec};
+    r.current.foldT=initFoldT;r.current.secPos=initSecPos;
+    rebuild(initSolid,initMode,initDims,initSecAxis,initSecActive,initSecPos);
+
+    return()=>{
+      cancelAnimationFrame(r.current.raf);killOrbit();window.removeEventListener("resize",onRsz);
+      scene.traverse(c=>{if(c.geometry)c.geometry.dispose();if(c.material)Array.isArray(c.material)?c.material.forEach(m=>m.dispose()):c.material.dispose();});
+      ren.dispose();if(el.contains(ren.domElement))el.removeChild(ren.domElement);
+      if(sceneApiRef)sceneApiRef.current=null;
+    };
+  },[T]); // eslint-disable-line
+  return(
+    <div className="canvas-wrap">
+      <div ref={mountRef} className="canvas-mount touch-none" style={{cursor:"grab"}}/>
+      {!T&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#3d5a7a",fontSize:12}}>Chargement 3D…</div>}
+      <div className="canvas-hint">🖱 Drag : orbite · Scroll : zoom · Clic droit : pan</div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   DONNÉES STATIQUES
+════════════════════════════════════════════════════════════════════════ */
+const SOLIDS={
+  cube:    {label:"Cube",        icon:"⬜",d:{L:2,W:2,H:2,R:1}},
+  pave:    {label:"Pavé droit",  icon:"📦",d:{L:3,W:2,H:1.5,R:1}},
+  cylindre:{label:"Cylindre",    icon:"🔵",d:{L:2,W:2,H:2.5,R:1}},
+  cone:    {label:"Cône",        icon:"🔺",d:{L:2,W:2,H:3,R:1}},
+  pyramide:{label:"Pyramide",    icon:"🔷",d:{L:2,W:2,H:2.5,R:1}},
+  prisme:  {label:"Prisme △",    icon:"🔻",d:{L:2,W:2,H:2.5,R:1.2}},
+};
+const SEC_AXES={
+  cube:    [["horizontal","⬛ Horizontale","Plan ∥ à la base"],["vertical-x","▊ Verticale X","⊥ longueur"],["vertical-z","▊ Verticale Z","⊥ profondeur"]],
+  pave:    [["horizontal","⬛ Horizontale","Plan ∥ à la base"],["vertical-x","▊ Verticale X","⊥ longueur"],["vertical-z","▊ Verticale Z","⊥ profondeur"]],
+  cylindre:[["horizontal","⬛ Horizontale","Révèle un cercle"],["vertical","▊ Verticale","Révèle un rectangle"]],
+  cone:    [["horizontal","⬛ Horizontale","Révèle un cercle"],["vertical-axe","▲ Axiale","Triangle isocèle"]],
+  pyramide:[["horizontal","⬛ Horizontale","Révèle un carré"],["vertical-axe","▲ Axiale","Triangle isocèle"]],
+  prisme:  [["horizontal","⬛ Horizontale","Révèle un triangle"],["vertical","▊ Verticale","Révèle un rectangle"]],
+};
+// a = R√3, hT = 3R/2
+const FICHE={
+  cube:    {c:[["Sommets",8],["Arêtes",12],["Faces",6]],e:"8−12+6=2 ✓",f:[["Volume","V = a³"],["Aire tot.","A = 6a²"],["Diagonale","d = a√3"],["Faces","6 carrés égaux"]]},
+  pave:    {c:[["Sommets",8],["Arêtes",12],["Faces",6]],e:"8−12+6=2 ✓",f:[["Volume","V = L×l×h"],["Aire tot.","A = 2(Ll+Lh+lh)"],["Diagonale","d = √(L²+l²+h²)"],["Faces","3 paires de rect."]]},
+  cylindre:{c:[["Sommets","∞"],["Arêtes","2"],["Faces","3"]],e:"— (surface courbe)",f:[["Volume","V = π·r²·h"],["Aire lat.","A = 2πrh"],["Aire tot.","A = 2πr(r+h)"],["Patron","Rect. + 2 disques"]]},
+  cone:    {c:[["Sommets","1"],["Arêtes","1"],["Faces","2"]],e:"— (surface courbe)",f:[["Volume","V = ⅓π·r²·h"],["Aire lat.","A = πrl"],["Aire tot.","A = πr(r+l)"],["Génératrice","l = √(r²+h²)"]]},
+  pyramide:{c:[["Sommets",5],["Arêtes",8],["Faces",5]],e:"5−8+5=2 ✓",f:[["Volume","V = ⅓·c²·h"],["Aire lat.","A = 2·c·m"],["Aire tot.","A = c²+2cm"],["Apothème","m = √((c/2)²+h²)"]]},
+  // Prisme équilatéral : a=côté=R√3, hT=hauteur triangle=3R/2
+  prisme:  {c:[["Sommets",6],["Arêtes",9],["Faces",5]],e:"6−9+5=2 ✓",f:[["Volume","V = Abase × h"],["Aire base","Abase = (a × hT) / 2"],["Aire lat.","Alat = 3 × a × h"],["Aire tot.","Atot = Alat + 2×Abase"]]},
+};
+const LEGEND={
+  cube:    [["Fond",0],["Dessus",4],["Avant",2],["Arrière",3],["Gauche",1],["Droite",5]],
+  pave:    [["Fond",0],["Dessus",4],["Avant",2],["Arrière",3],["Gauche",1],["Droite",5]],
+  cylindre:[["Base inf.",0],["Base sup.",4],["Latérale",1]],
+  cone:    [["Base",0],["Surface lat.",2]],
+  pyramide:[["Base",0],["Avant",2],["Arrière",3],["Gauche",1],["Droite",4]],
+  prisme:  [["Base inf.",0],["Base sup.",4],["Face avt",2],["Face gauche",1],["Face droite",3]],
+};
+const TABS=[{id:"fiche",icon:"📋",label:"Fiche"},{id:"patron",icon:"📐",label:"Patron 3D"},{id:"persp",icon:"🎯",label:"Perspective"},{id:"volume",icon:"🔢",label:"Volume"},{id:"section",icon:"✂️",label:"Section"}];
+
+/* ════════════════════════════════════════════════════════════════════════
+   FLUID SLIDER
+════════════════════════════════════════════════════════════════════════ */
+function FluidSlider({label,initVal,min,max,step,onLive,onCommit,color="blue",unit="cm"}){
+  const[disp,setDisp]=useState(initVal);
+  useEffect(()=>{setDisp(initVal);},[initVal]);
+  const sp=e=>e.stopPropagation();
+  const tc=color==="green"?"green-thumb":color==="yellow"?"yellow-thumb":"";
+  const onIn=e=>{const v=parseFloat(e.target.value);setDisp(v);onLive&&onLive(v);};
+  const onEnd=e=>{const v=parseFloat(e.target.value);setDisp(v);onCommit&&onCommit(v);};
+  const onNum=e=>{const v=Math.max(min,Math.min(max,parseFloat(e.target.value)||min));setDisp(v);onCommit&&onCommit(v);};
+  return(
+    <div className="sl-wrap" onMouseDown={sp} onPointerDown={sp} onTouchStart={sp}>
+      <div className="sl-head">
+        <label className="sl-label">{label}</label>
+        <div className="sl-vg">
+          <input type="number" value={disp} min={min} max={max} step={step} onMouseDown={sp} onPointerDown={sp} onKeyDown={sp} onChange={onNum} className="num-input"/>
+          <span className="sl-unit">{unit}</span>
+        </div>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={disp} className={tc}
+        onMouseDown={sp} onPointerDown={sp} onMouseMove={sp} onTouchStart={sp} onKeyDown={sp}
+        onInput={onIn} onChange={onIn}
+        onPointerUp={onEnd} onMouseUp={onEnd} onTouchEnd={onEnd} onKeyUp={onEnd}/>
+    </div>
+  );
+}
+
+/* ── Composants UI ──────────────────────────────────────────────────────── */
+const Card=({children,cls=""})=><div className={`card ${cls}`}>{children}</div>;
+const SLabel=({children})=><span className="slabel">{children}</span>;
+const LegendCard=({solid})=>(
+  <Card>
+    <SLabel>Légende</SLabel>
+    {LEGEND[solid].map(([n,i])=>(
+      <div key={n} className="leg-row">
+        <div className="leg-dot" style={{borderRadius:(solid==="cylindre"||solid==="cone")?"50%":"3px",background:CF[i]}}/>
+        <span style={{color:"#3d5a7a",fontSize:"12px"}}>{n}</span>
+      </div>
+    ))}
+  </Card>
+);
+const TwoCol=({canvas,sidebar})=>(
+  <div className="two-col">
+    <div className="canvas-zone">{canvas}</div>
+    <div className="sidebar-zone">{sidebar}</div>
+  </div>
+);
+
+/* ════════════════════════════════════════════════════════════════════════
+   APP
+════════════════════════════════════════════════════════════════════════ */
+function App(){
+  const[solid,setSolid]    =useState("cube");
+  const[tab,setTab]        =useState("fiche");
+  const[dims,setDims]      =useState({L:2,W:2,H:2,R:1});
+  const[foldT,setFoldT]    =useState(0);
+  const[secAxis,setSecAxis]=useState("horizontal");
+  const[secOn,setSecOn]    =useState(false);
+  const[secPos,setSecPos]  =useState(0);
+  const[resetKey,setResetKey]=useState(0);
+
+  const patronApi=useRef(null),perspApi=useRef(null),secApi=useRef(null);
+  const dimsRef=useRef(dims),solidRef=useRef(solid);
+  const secAxisRef=useRef(secAxis),secOnRef=useRef(secOn),secPosRef=useRef(secPos);
+
+  useEffect(()=>{dimsRef.current=dims;},[dims]);
+  useEffect(()=>{solidRef.current=solid;},[solid]);
+  useEffect(()=>{secAxisRef.current=secAxis;},[secAxis]);
+  useEffect(()=>{secOnRef.current=secOn;},[secOn]);
+  useEffect(()=>{secPosRef.current=secPos;},[secPos]);
+
+  const{L,W,H,R}=dims,pi=Math.PI;
+  // Prisme : côté a=R√3, hauteur triangle hT=3R/2
+  const pa=R*Math.sqrt(3),phT=R*1.5;
+  const lc=Math.sqrt(R*R+H*H),tc=2*pi*R/lc,mp=Math.sqrt((L/2)**2+H*H);
+  // Volume prisme = Abase * h = (a*hT/2)*H
+  const vol=solid==="cone"?pi*R*R*H/3:
+            solid==="cylindre"?pi*R*R*H:
+            solid==="pyramide"?L*L*H/3:
+            solid==="prisme"?(pa*phT/2)*H:
+            solid==="cube"?L**3:L*W*H;
+  const pAbase=pa*phT/2;        // aire base prisme
+  const pAlat =3*pa*H;          // aire lat. prisme
+  const pAtot =pAlat+2*pAbase;  // aire totale prisme
+  const air=solid==="cone"?pi*R*(R+lc):
+            solid==="cylindre"?2*pi*R*(R+H):
+            solid==="pyramide"?L*L+2*L*mp:
+            solid==="prisme"?pAtot:
+            solid==="cube"?6*L*L:2*(L*W+L*H+W*H);
+
+  const cDims=(k,v)=>{
+    const val=Math.max(.2,Math.min(5,parseFloat(v)||.2)),d=dimsRef.current;
+    if(solid==="cube")return{L:val,W:val,H:val,R:val/2};
+    if(solid==="pyramide")return k==="H"?{...d,H:val}:{L:val,W:val,H:d.H,R:1};
+    if(solid==="prisme")return{...d,[k]:val};  // R et H indépendants
+    return{...d,[k]:val};
+  };
+  const liveRebuild=(k,v)=>{
+    const nd=cDims(k,v);dimsRef.current=nd;
+    perspApi.current?.rebuild(solidRef.current,"box",nd,secAxisRef.current,secOnRef.current,secPosRef.current);
+    patronApi.current?.rebuild(solidRef.current,"patron",nd,"horizontal",false,0);
+    secApi.current?.rebuild(solidRef.current,"box",nd,secAxisRef.current,secOnRef.current,secPosRef.current);
+  };
+  const commitDim=(k,v)=>{setDims(cDims(k,v));};
+
+  const switchSolid=id=>{
+    const nd=SOLIDS[id].d;
+    setSolid(id);setDims(nd);dimsRef.current=nd;solidRef.current=id;
+    setFoldT(0);setTab("fiche");
+    setSecAxis("horizontal");setSecOn(false);setSecPos(0);
+    secAxisRef.current="horizontal";secOnRef.current=false;secPosRef.current=0;
+    setResetKey(k=>k+1);
+  };
+
+  const secDesc=()=>{
+    const p=secPos;
+    if(solid==="prisme"){if(secAxis==="horizontal")return`Triangle équilatéral a=${pa.toFixed(2)} cm`;return`Rect. ${pa.toFixed(2)}×${H.toFixed(1)} cm`;}
+    if(solid==="pyramide"){if(secAxis==="horizontal"){const y=Math.max(.01,Math.min(H*.99,(p+1)/2*H));return`Carré ≈${Math.max(0,L*(H-y)/H).toFixed(2)} cm`;}return`Triangle isocèle base ${L.toFixed(1)} cm`;}
+    if(solid==="cone"){if(secAxis==="horizontal"){const y=Math.max(.01,Math.min(H*.99,(p+1)/2*H));return`Cercle r≈${Math.max(0,R*(H-y)/H).toFixed(2)} cm`;}return`Triangle isocèle base ${(2*R).toFixed(1)} cm`;}
+    if(solid==="cylindre")return secAxis==="horizontal"?`Cercle r=${R.toFixed(1)} cm`:`Rect. ${(2*R).toFixed(1)}×${H.toFixed(1)} cm`;
+    if(secAxis==="horizontal")return`${L.toFixed(1)}×${W.toFixed(1)} cm`;
+    if(secAxis==="vertical-x")return`${W.toFixed(1)}×${H.toFixed(1)} cm`;
+    return`${L.toFixed(1)}×${H.toFixed(1)} cm`;
+  };
+
+  // ── Sliders dimensions (pour Perspective, Section, Patron) ──────────────
+  const DimSliders=()=>{
+    const mk=(lbl,k,mn,mx)=>(
+      <FluidSlider key={`${resetKey}-${solid}-${k}`}
+        label={lbl} initVal={dimsRef.current[k]??dims[k]}
+        min={mn} max={mx} step={0.1}
+        onLive={v=>liveRebuild(k,v)} onCommit={v=>commitDim(k,v)}/>
+    );
+    if(solid==="prisme") return(<>
+      {mk("Rayon inscrit (R)","R",.3,3)}
+      {mk("Hauteur (h)","H",.3,5)}
+      <div className="info-box ib-violet" style={{color:"#3d5a7a"}}>
+        Côté a = R√3 = <span style={{color:"#a855f7"}}>{pa.toFixed(3)} cm</span><br/>
+        Haut. △ hT = 3R/2 = <span style={{color:"#06b6d4"}}>{phT.toFixed(3)} cm</span><br/>
+        Aire base = <span style={{color:"#22c55e"}}>{pAbase.toFixed(3)} cm²</span>
+      </div>
+    </>);
+    if(solid==="cylindre"||solid==="cone") return(<>
+      {mk("Rayon (r)","R",.2,3)}
+      {mk("Hauteur (h)","H",.2,5)}
+      {solid==="cone"&&<div className="info-box ib-blue" style={{color:"#3d5a7a"}}>Génératrice l = <span style={{color:"#06b6d4"}}>{lc.toFixed(3)} cm</span><br/>Angle θ = <span style={{color:"#f59e0b"}}>{(tc*180/pi).toFixed(1)}°</span></div>}
+    </>);
+    if(solid==="pyramide") return(<>
+      {mk("Côté base (c)","L",.5,5)}
+      {mk("Hauteur (h)","H",.5,5)}
+      <div className="info-box ib-blue" style={{color:"#3d5a7a"}}>Apothème m = <span style={{color:"#06b6d4"}}>{mp.toFixed(3)} cm</span><br/>Euler : <span style={{color:"#22c55e"}}>5−8+5 = 2 ✓</span></div>
+    </>);
+    return(<>
+      {mk(solid==="cube"?"Arête (a)":"Longueur (L)","L",.5,5)}
+      {solid!=="cube"&&mk("Largeur (l)","W",.5,5)}
+      {solid!=="cube"&&mk("Hauteur (h)","H",.5,5)}
+    </>);
+  };
+
+  // ── Sliders volume (pas de 3D, commit direct) ───────────────────────────
+  const VolSliders=()=>{
+    const mk=(lbl,k,mn,mx)=>(
+      <FluidSlider key={`${resetKey}-vol-${solid}-${k}`}
+        label={lbl} initVal={dims[k]} min={mn} max={mx} step={0.1}
+        onCommit={v=>commitDim(k,v)}/>
+    );
+    if(solid==="prisme") return(<>
+      {mk("Rayon inscrit (R)","R",.3,3)}{mk("Hauteur (h)","H",.3,5)}
+      <div className="info-box ib-violet" style={{color:"#3d5a7a"}}>
+        a = <span style={{color:"#a855f7"}}>{pa.toFixed(3)} cm</span>  hT = <span style={{color:"#06b6d4"}}>{phT.toFixed(3)} cm</span>
+      </div>
+    </>);
+    if(solid==="cylindre"||solid==="cone") return(<>
+      {mk("Rayon (r)","R",.2,3)}{mk("Hauteur (h)","H",.2,5)}
+      {solid==="cone"&&<div className="info-box ib-blue" style={{color:"#3d5a7a"}}>l = <span style={{color:"#06b6d4"}}>{lc.toFixed(3)} cm</span>  θ = <span style={{color:"#f59e0b"}}>{(tc*180/pi).toFixed(1)}°</span></div>}
+      {solid==="cylindre"&&<div className="info-box ib-cyan" style={{color:"#3d5a7a"}}>Circ. = <span style={{color:"#06b6d4"}}>{(2*pi*R).toFixed(3)} cm</span></div>}
+    </>);
+    if(solid==="pyramide") return(<>
+      {mk("Côté (c)","L",.5,5)}{mk("Hauteur (h)","H",.5,5)}
+      <div className="info-box ib-blue" style={{color:"#3d5a7a"}}>m = <span style={{color:"#06b6d4"}}>{mp.toFixed(3)} cm</span></div>
+    </>);
+    return(<>
+      {mk(solid==="cube"?"Arête (a)":"Longueur (L)","L",.5,5)}
+      {solid!=="cube"&&mk("Largeur (l)","W",.5,5)}
+      {solid!=="cube"&&mk("Hauteur (h)","H",.5,5)}
+    </>);
+  };
+
+  // ── Formule volume affichée ─────────────────────────────────────────────
+  const volFormula=()=>{
+    if(solid==="prisme")  return`V = (a×hT/2)×h = (${pa.toFixed(2)}×${phT.toFixed(2)}/2)×${H.toFixed(2)}`;
+    if(solid==="cone")    return`V = ⅓π×${R.toFixed(2)}²×${H.toFixed(2)}`;
+    if(solid==="cylindre")return`V = π×${R.toFixed(2)}²×${H.toFixed(2)}`;
+    if(solid==="pyramide")return`V = ⅓×${L.toFixed(2)}²×${H.toFixed(2)}`;
+    if(solid==="cube")    return`V = ${L}³`;
+    return`V = ${L}×${W}×${H}`;
+  };
+  const airFormula=()=>{
+    if(solid==="prisme")  return`Alat = 3×${pa.toFixed(2)}×${H.toFixed(2)}`;
+    if(solid==="cone")    return`A = πr(r+l)`;
+    if(solid==="cylindre")return`A = 2πr(r+h)`;
+    if(solid==="pyramide")return`A = c²+2cm`;
+    if(solid==="cube")    return`A = 6a²`;
+    return`A = 2(Ll+Lh+lh)`;
+  };
+
+  // ── Info mécanique patron ────────────────────────────────────────────────
+  const MecaInfo=()=>{
+    if(solid==="prisme") return(
+      <div style={{fontSize:"12px",color:"#3d5a7a",lineHeight:1.7}}>
+        a = <span style={{color:"#a855f7"}}>{pa.toFixed(3)} cm</span>  ·  hT = <span style={{color:"#06b6d4"}}>{phT.toFixed(3)} cm</span><br/>
+        <span style={{color:"#22c55e"}}>Faces lat.</span> : pivotent autour de l'axe Z<br/>
+        <span style={{color:"#f59e0b"}}>Triangles</span> : pivotent autour de l'axe X<br/>
+        Rotation faces = 120° (dièdre 60°)<br/>
+        <span style={{fontSize:"10px"}}>t=0 : plat sans superposition ✓</span>
+      </div>
+    );
+    if(solid==="cube"||solid==="pave") return <div style={{fontSize:"12px",color:"#3d5a7a",lineHeight:1.7}}>5 pivots chaînés<br/>Fond → Avant → Dessus<br/>Angles à 90° exactement</div>;
+    if(solid==="cylindre") return <div style={{fontSize:"12px",color:"#3d5a7a",lineHeight:1.7}}><span style={{color:"#3b82f6"}}>Phase 1</span> : disques pivotent<br/><span style={{color:"#06b6d4"}}>Phase 2</span> : rectangle s'enroule</div>;
+    if(solid==="cone") return <div style={{fontSize:"12px",color:"#3d5a7a",lineHeight:1.7}}>l = <span style={{color:"#06b6d4"}}>{lc.toFixed(3)} cm</span><br/>θ = <span style={{color:"#f59e0b"}}>{(tc*180/pi).toFixed(1)}°</span><br/><span style={{color:"#3b82f6"}}>Phase 1</span> : disque<br/><span style={{color:"#06b6d4"}}>Phase 2</span> : secteur</div>;
+    if(solid==="pyramide") return <div style={{fontSize:"12px",color:"#3d5a7a",lineHeight:1.7}}>m = <span style={{color:"#06b6d4"}}>{mp.toFixed(3)} cm</span><br/>α = <span style={{color:"#f59e0b"}}>{(Math.acos(H/mp)*180/pi).toFixed(1)}°</span></div>;
+    return null;
+  };
+
+  /* ── RENDER ───────────────────────────────────────────────────────────── */
+  const S={minHeight:"100vh",background:"#080d1a",color:"#dde6f0",fontFamily:"'Fira Code','Courier New',monospace"};
+  return(
+    <div style={S}>
+
+      {/* ══ HEADER ══ */}
+      <header style={{borderBottom:"1px solid #1a2a40",background:"linear-gradient(to bottom,#0c1528,#080d1a)",padding:"12px 16px"}}>
+        <div style={{maxWidth:"980px",margin:"0 auto",display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px"}}>
+          <div>
+            <h1 className="font-display grad-text" style={{fontSize:"1.2rem",fontWeight:900,margin:0}}>◈ Géométrie des Solides</h1>
+            <p className="text-10px" style={{color:"#3d5a7a",margin:"2px 0 0"}}>Cube · Pavé · Cylindre · Cône · Pyramide · Prisme △</p>
+          </div>
+          {/* Boutons solide — scrollables sur mobile */}
+          <div style={{display:"flex",flexWrap:"wrap",gap:"5px"}}>
+            {Object.entries(SOLIDS).map(([id,{label,icon}])=>(
+              <button key={id} onClick={()=>switchSolid(id)}
+                className={solid===id?"btn-solid-active":"btn-solid-off"}
+                style={{padding:"5px 10px",borderRadius:"8px",fontSize:"11px",fontWeight:700,border:"1px solid",fontFamily:"inherit"}}>
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      {/* ══ MAIN ══ */}
+      <main style={{maxWidth:"980px",margin:"0 auto",padding:"14px"}}>
+
+        {/* Tabs */}
+        <div className="tabs-bar">
+          {TABS.map(t=>(
+            <button key={t.id} onClick={()=>setTab(t.id)}
+              className={tab===t.id?"tab-on":"tab-off"}
+              style={{flexShrink:0,padding:"7px 13px",borderRadius:"7px",fontSize:"12px",fontWeight:700,borderBottom:"2px solid",whiteSpace:"nowrap",background:"transparent",fontFamily:"inherit"}}>
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ════ FICHE ════ */}
+        {tab==="fiche"&&(
+          <div className="grid2">
+            <Card>
+              <SLabel>Caractéristiques</SLabel>
+              <h2 className="font-display" style={{color:"#60a5fa",fontSize:"1rem",fontWeight:700,marginBottom:"14px"}}>{SOLIDS[solid].icon} {SOLIDS[solid].label}</h2>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"14px"}}>
+                {FICHE[solid].c.map(([lbl,v],i)=>{
+                  const cols=["#3b82f6","#a855f7","#10b981"];
+                  return(
+                    <div key={lbl} style={{borderRadius:"8px",padding:"10px",textAlign:"center",border:`1px solid ${cols[i]}33`,background:`${cols[i]}18`}}>
+                      <div className="font-display" style={{fontSize:"1.2rem",fontWeight:900,color:cols[i]}}>{v}</div>
+                      <div className="text-10px" style={{color:"#3d5a7a",marginTop:"3px"}}>{lbl}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{background:"#080d1a",borderRadius:"8px",padding:"10px",borderLeft:"4px solid #3b82f6"}}>
+                <span className="text-10px" style={{display:"block",color:"#3d5a7a",marginBottom:"3px",textTransform:"uppercase",letterSpacing:".08em"}}>Formule d'Euler</span>
+                <span style={{color:"#60a5fa",fontWeight:700}}>{FICHE[solid].e}</span>
+              </div>
+              {/* Fiche spéciale prisme */}
+              {solid==="prisme"&&(
+                <div className="info-box ib-violet" style={{color:"#3d5a7a",marginTop:"10px"}}>
+                  <div style={{color:"#a855f7",fontWeight:700,marginBottom:"4px"}}>TRIANGLE ÉQUILATÉRAL</div>
+                  Côté a = R√3 = <span style={{color:"#a855f7"}}>{pa.toFixed(3)} cm</span><br/>
+                  Haut. hT = (a√3)/2 = <span style={{color:"#06b6d4"}}>{phT.toFixed(3)} cm</span><br/>
+                  <strong style={{color:"#e2e8f0"}}>Aire base = (a × hT) / 2</strong><br/>
+                  = ({pa.toFixed(2)} × {phT.toFixed(2)}) / 2 = <span style={{color:"#22c55e",fontWeight:700}}>{pAbase.toFixed(3)} cm²</span>
+                </div>
+              )}
+            </Card>
+            <Card>
+              <SLabel>Formules clés</SLabel>
+              <div style={{overflowY:"auto",maxHeight:"55vh"}}>
+                {FICHE[solid].f.map(([lbl,f])=>(
+                  <div key={lbl} className="card-inset" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px",fontSize:"12px"}}>
+                    <span style={{color:"#3d5a7a"}}>{lbl}</span>
+                    <span style={{color:"#06b6d4",fontWeight:700}}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Méthode pas-à-pas volume prisme */}
+              {solid==="prisme"&&(
+                <div className="info-box ib-cyan" style={{color:"#3d5a7a",marginTop:"8px"}}>
+                  <div style={{color:"#06b6d4",fontWeight:700,marginBottom:"4px"}}>MÉTHODE VOLUME</div>
+                  1) Calculer l'aire de la base △<br/>
+                  <span style={{marginLeft:"8px"}}>Abase = (a × hT) / 2</span><br/>
+                  2) Multiplier par la hauteur<br/>
+                  <span style={{marginLeft:"8px"}}>V = Abase × h</span><br/>
+                  <div style={{marginTop:"6px",padding:"6px",background:"rgba(6,182,212,.08)",borderRadius:"4px"}}>
+                    = {pAbase.toFixed(3)} × {H.toFixed(2)} = <span style={{color:"#22c55e",fontWeight:700}}>{vol.toFixed(3)} cm³</span>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* ════ PATRON ════ */}
+        {tab==="patron"&&(
+          <TwoCol
+            canvas={<Canvas3D key={`patron-${solid}`} initSolid={solid} initMode="patron" initDims={dims} initFoldT={foldT} sceneApiRef={patronApi}/>}
+            sidebar={<>
+              <Card>
+                <SLabel>Pliage / Dépliage</SLabel>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"8px",fontSize:"12px"}}>
+                  <span style={{color:"#3d5a7a"}}>Patron</span>
+                  <span style={{color:"#22c55e",fontWeight:700,fontSize:"1rem"}}>{Math.round(foldT*100)}%</span>
+                  <span style={{color:"#3d5a7a"}}>Fermé</span>
+                </div>
+                <input type="range" min={0} max={1} step={0.005} value={foldT}
+                  className="green-thumb" style={{marginBottom:"12px"}}
+                  onMouseDown={e=>e.stopPropagation()} onPointerDown={e=>e.stopPropagation()}
+                  onMouseMove={e=>e.stopPropagation()} onTouchStart={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()}
+                  onInput={e=>{const v=Number(e.target.value);setFoldT(v);patronApi.current?.setFold(v);}}
+                  onChange={e=>{const v=Number(e.target.value);setFoldT(v);patronApi.current?.setFold(v);}}
+                />
+                <div style={{display:"flex",gap:"8px"}}>
+                  <button className="btn-fold" onClick={()=>{setFoldT(0);patronApi.current?.setFold(0);}}>📄 Plat</button>
+                  <button className="btn-fold" onClick={()=>{setFoldT(1);patronApi.current?.setFold(1);}}>📦 Fermé</button>
+                </div>
+              </Card>
+              <Card><SLabel>Mécanique</SLabel><MecaInfo/></Card>
+              <LegendCard solid={solid}/>
+            </>}
+          />
+        )}
+
+        {/* ════ PERSPECTIVE ════ */}
+        {tab==="persp"&&(
+          <TwoCol
+            canvas={<Canvas3D key={`persp-${solid}`} initSolid={solid} initMode="box" initDims={dims} initFoldT={1} sceneApiRef={perspApi}/>}
+            sidebar={<>
+              <Card><SLabel>Dimensions</SLabel><DimSliders/></Card>
+              <LegendCard solid={solid}/>
+            </>}
+          />
+        )}
+
+        {/* ════ VOLUME ════ */}
+        {tab==="volume"&&(
+          <div className="grid2">
+            <Card><SLabel>Dimensions</SLabel><VolSliders/></Card>
+            <Card>
+              <SLabel>Résultats</SLabel>
+              <div className="vol-hero">
+                <div className="text-10px" style={{color:"#3d5a7a",marginBottom:"4px",letterSpacing:".12em"}}>VOLUME</div>
+                <div className="font-display grad-text" style={{fontSize:"2.5rem",fontWeight:900}}>{vol.toFixed(3)}</div>
+                <div style={{color:"#3d5a7a",fontSize:"12px",marginTop:"4px"}}>cm³</div>
+              </div>
+              {[
+                ["CALCUL","#3b82f6",volFormula(),`= ${vol.toFixed(3)} cm³`],
+                ["AIRE TOTALE","#a855f7",airFormula(),`= ${air.toFixed(3)} cm²`],
+              ].map(([lbl,col,formula,result])=>(
+                <div key={lbl} className="card-inset" style={{marginBottom:"10px"}}>
+                  <div className="text-9px" style={{color:col,letterSpacing:".1em",marginBottom:"5px"}}>{lbl}</div>
+                  <div style={{fontSize:"12px",color:col}}>{formula}</div>
+                  <div style={{fontSize:"14px",fontWeight:700,color:col,marginTop:"3px"}}>{result}</div>
+                </div>
+              ))}
+              {/* Détail calcul prisme */}
+              {solid==="prisme"&&(
+                <div className="info-box ib-violet" style={{color:"#3d5a7a"}}>
+                  <div style={{color:"#a855f7",fontWeight:700,marginBottom:"4px"}}>DÉTAIL PRISME</div>
+                  Abase = a×hT/2 = <span style={{color:"#22c55e"}}>{pAbase.toFixed(3)} cm²</span><br/>
+                  Alat = 3×a×h = <span style={{color:"#06b6d4"}}>{pAlat.toFixed(3)} cm²</span><br/>
+                  Atot = Alat + 2×Abase = <span style={{color:"#f59e0b"}}>{pAtot.toFixed(3)} cm²</span>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* ════ SECTION ════ */}
+        {tab==="section"&&(
+          <TwoCol
+            canvas={<Canvas3D key={`section-${solid}`} initSolid={solid} initMode="box" initDims={dims} initFoldT={1} initSecAxis={secAxis} initSecActive={secOn} initSecPos={secPos} sceneApiRef={secApi}/>}
+            sidebar={<>
+              <Card>
+                <SLabel>Type de coupe</SLabel>
+                {SEC_AXES[solid].map(([ax,lbl,desc])=>(
+                  <button key={ax} className={`selbtn${secOn&&secAxis===ax?" sel-on":""}`}
+                    onClick={()=>{
+                      setSecAxis(ax);setSecOn(true);setSecPos(0);
+                      secAxisRef.current=ax;secOnRef.current=true;secPosRef.current=0;
+                      secApi.current?.rebuild(solid,"box",dimsRef.current,ax,true,0);
+                    }}>
+                    {lbl}<div className="selbtn-sub">{desc}</div>
+                  </button>
+                ))}
+                {secOn&&(
+                  <button className="btn-del" onClick={()=>{setSecOn(false);secOnRef.current=false;secApi.current?.rebuild(solid,"box",dimsRef.current,secAxis,false,0);}}>
+                    ✕ Supprimer la coupe
+                  </button>
+                )}
+              </Card>
+
+              {secOn&&(
+                <Card>
+                  <SLabel>Position</SLabel>
+                  {(solid==="cone"||solid==="pyramide")&&secAxis==="vertical-axe"?(
+                    <div className="info-box ib-blue" style={{color:"#3d5a7a"}}>
+                      <div style={{color:"#60a5fa",fontSize:"10px",fontWeight:700,marginBottom:"4px"}}>PLAN AXIAL FORCÉ</div>
+                      Plan z=0 · <strong style={{color:"#e2e8f0"}}>Triangle isocèle</strong>
+                    </div>
+                  ):(<>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"8px"}}>
+                      <span style={{color:"#94a3b8",fontSize:"12px"}}>{secAxis==="horizontal"?"Hauteur":"Décalage"}</span>
+                      <span style={{color:"#f59e0b",fontSize:"1rem",fontWeight:700}}>{secPos>=0?"+":""}{(secPos*100).toFixed(0)}%</span>
+                    </div>
+                    <input type="range" min={-.92} max={.92} step={.01} value={secPos}
+                      className="yellow-thumb" style={{marginBottom:"8px"}}
+                      onMouseDown={e=>e.stopPropagation()} onPointerDown={e=>e.stopPropagation()}
+                      onMouseMove={e=>e.stopPropagation()} onTouchStart={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()}
+                      onInput={e=>{const v=Number(e.target.value);setSecPos(v);secPosRef.current=v;secApi.current?.setSec(solid,dimsRef.current,secAxis,true,v);}}
+                      onChange={e=>{const v=Number(e.target.value);setSecPos(v);secPosRef.current=v;secApi.current?.setSec(solid,dimsRef.current,secAxis,true,v);}}
+                    />
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:"9px",color:"#3d5a7a",marginBottom:"10px"}}>
+                      <span>Bas / Arr.</span><span>Centre</span><span>Haut / Av.</span>
+                    </div>
+                  </>)}
+                  <div className="info-box ib-amber" style={{color:"#3d5a7a",marginTop:"6px"}}>
+                    <div style={{color:"#f59e0b",fontSize:"10px",fontWeight:700,marginBottom:"3px"}}>SECTION</div>
+                    <div style={{color:"#94a3b8",fontWeight:700,fontSize:"12px"}}>{secDesc()}</div>
+                  </div>
+                </Card>
+              )}
+              <Card><SLabel>Dimensions</SLabel><DimSliders/></Card>
+            </>}
+          />
+        )}
+
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
