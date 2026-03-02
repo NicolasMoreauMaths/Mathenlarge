@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mastermind — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+--blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.09);--blue-border:rgba(59,130,246,.22);
+--orange:#ea580c;--orange-pale:rgba(234,88,12,.1);
+--green:#16a34a;--green-pale:rgba(22,163,74,.1);
+--red:#dc2626;--red-pale:rgba(220,38,38,.08);
+--purple:#7c3aed;--purple-pale:rgba(124,58,237,.09);--purple-border:rgba(124,58,237,.22);
+--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.09);
+}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);
+background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.app{max-width:680px;width:100%}
+
+/* ── HEADER ─────────────────────────────── */
+.app-header{background:linear-gradient(135deg,#1d4ed8 0%,#6d28d9 100%);color:#fff;
+padding:14px 22px;border-radius:14px 14px 0 0;
+display:flex;align-items:center;justify-content:space-between;
+box-shadow:0 4px 16px rgba(29,78,216,.25);position:relative;overflow:hidden}
+.app-header::after{content:'';position:absolute;inset:0;
+background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 55%);pointer-events:none}
+.app-title{font-size:1.1em;font-weight:700;position:relative;display:flex;align-items:center;gap:8px}
+.hdr-menu{background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;
+border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82em;font-weight:600;
+cursor:pointer;transition:all .2s;position:relative;display:none}
+.hdr-menu:hover{background:rgba(255,255,255,.35)}
+
+/* ── MAIN CARD ──────────────────────────── */
+.main{background:var(--card);border:1px solid var(--border);border-top:none;
+border-radius:0 0 14px 14px;padding:28px 24px;
+box-shadow:0 8px 28px var(--shadow);min-height:50vh}
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── TYPOGRAPHY ─────────────────────────── */
+h1{font-size:1.45em;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:.92em;color:var(--text-light);margin-bottom:20px;line-height:1.5}
+
+/* ── BUTTONS ────────────────────────────── */
+.btn{font-family:'DM Sans',sans-serif;padding:11px 24px;border-radius:10px;font-size:.92em;
+font-weight:600;cursor:pointer;transition:all .2s;border:2px solid;
+min-height:44px;touch-action:manipulation;
+display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(29,78,216,.15)}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover:not(:disabled){background:#15803d;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+/* ── INTRO SCREEN ───────────────────────── */
+.intro-logo{text-align:center;font-size:4em;margin:10px 0 6px;
+animation:floatLogo 3s ease-in-out infinite}
+@keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.katex-box{background:var(--purple-pale);border:2px solid var(--purple-border);
+border-radius:12px;padding:14px 18px;margin:14px 0;text-align:center}
+.katex-box .katex{font-size:1.2em!important}
+.katex-label{font-size:.72em;font-weight:700;text-transform:uppercase;
+letter-spacing:1px;color:var(--purple);margin-bottom:6px}
+
+/* ── DIFFICULTY MENU ────────────────────── */
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.dc{background:var(--card);border:2px solid var(--border);border-radius:14px;
+padding:20px 12px;text-align:center;cursor:pointer;transition:all .25s;
+touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:6px}
+.dc:hover{transform:translateY(-4px);box-shadow:0 10px 24px var(--shadow)}
+.dc.easy:hover{border-color:var(--green);background:var(--green-pale)}
+.dc.normal:hover{border-color:var(--blue);background:var(--blue-pale)}
+.dc.hard:hover{border-color:var(--orange);background:var(--orange-pale)}
+.dc-icon{font-size:1.8em}
+.dc-name{font-size:.95em;font-weight:700;color:var(--text)}
+.dc-info{font-size:.75em;color:var(--text-light);line-height:1.4}
+.dc-tag{font-size:.68em;font-weight:700;padding:2px 10px;border-radius:10px;margin-top:2px}
+.dc.easy .dc-tag{background:var(--green-pale);color:var(--green)}
+.dc.normal .dc-tag{background:var(--blue-pale);color:var(--blue)}
+.dc.hard .dc-tag{background:var(--orange-pale);color:var(--orange)}
+
+/* ── LEGEND BOX ─────────────────────────── */
+.legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+margin-bottom:16px;padding:10px 14px;
+background:var(--bg);border-radius:10px;border:1px solid var(--border)}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:.78em;font-weight:600;color:var(--text-light)}
+.lh{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.lh.black{background:#1e293b;box-shadow:0 0 0 2px #1e293b40}
+.lh.white{background:#fff;box-shadow:0 0 0 2px #94a3b8}
+.lh.empty{background:var(--bg);border:2px dashed var(--border)}
+
+/* ── GAME INFO BAR ──────────────────────── */
+.game-info{display:flex;justify-content:space-between;align-items:center;
+margin-bottom:12px;flex-wrap:wrap;gap:6px}
+.gi-badge{background:var(--blue-pale);color:var(--blue);
+padding:5px 14px;border-radius:20px;font-size:.85em;font-weight:700}
+.gi-tries{font-size:.88em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:14px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));
+border-radius:4px;transition:width .4s}
+
+/* ── BOARD ──────────────────────────────── */
+.board{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.board-row{display:flex;align-items:center;gap:8px;
+padding:6px 10px;border-radius:10px;transition:all .3s;
+border:2px solid transparent;background:transparent}
+.board-row.active{background:var(--blue-pale);border-color:var(--blue-border);
+box-shadow:0 0 0 3px rgba(59,130,246,.08)}
+.board-row.past{opacity:.8}
+.row-num{font-family:'Kalam',cursive;font-size:.85em;color:var(--text-light);
+font-weight:700;min-width:18px;text-align:right}
+.pegs-wrap{display:flex;gap:6px;flex:1;justify-content:center}
+.peg{width:40px;height:40px;border-radius:50%;cursor:pointer;
+transition:all .2s;flex-shrink:0;position:relative;
+border:3px solid rgba(0,0,0,.12)}
+.peg.empty{background:#f1f5f9;border:3px dashed #cbd5e1;cursor:default}
+.active .peg.empty{cursor:pointer;background:#e8f0fe;border-color:var(--blue-border)}
+.active .peg.empty:hover{background:#d1e0fd;transform:scale(1.08)}
+.active .peg.filled{cursor:pointer}
+.active .peg.filled:hover{transform:scale(1.08);box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.peg.selected-slot{box-shadow:0 0 0 4px var(--blue),0 4px 14px rgba(29,78,216,.3)!important;transform:scale(1.12)!important}
+@keyframes pegPop{0%{transform:scale(0.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.peg.pop{animation:pegPop .25s ease-out}
+
+/* ── HINTS ──────────────────────────────── */
+.hints-wrap{display:grid;gap:3px;flex-shrink:0}
+.hints-wrap.p4{grid-template-columns:repeat(2,1fr);width:32px}
+.hints-wrap.p5{grid-template-columns:repeat(3,1fr);width:48px}
+.hp{width:12px;height:12px;border-radius:50%;border:1.5px solid #cbd5e1;background:#f1f5f9}
+.hp.black{background:#1e293b;border-color:#1e293b}
+.hp.white{background:#fff;border-color:#94a3b8;box-shadow:0 0 0 1px #cbd5e1}
+@keyframes hintIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.hp.anim{animation:hintIn .2s ease-out}
+
+/* ── PALETTE ────────────────────────────── */
+.palette-wrap{background:var(--bg);border:1px solid var(--border);
+border-radius:12px;padding:14px 12px;text-align:center;margin-bottom:14px}
+.palette-label{font-size:.72em;font-weight:700;text-transform:uppercase;
+letter-spacing:1px;color:var(--blue);margin-bottom:10px}
+.palette{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.pcol{width:48px;height:48px;border-radius:50%;cursor:pointer;
+transition:all .2s;border:4px solid rgba(255,255,255,.8);
+box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0;
+touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.pcol:hover{transform:scale(1.12);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.pcol.selected{border-color:#fff;box-shadow:0 0 0 3px var(--blue),0 4px 16px rgba(29,78,216,.3);transform:scale(1.14)}
+
+/* ── SECRET CODE REVEAL ─────────────────── */
+.secret-reveal{background:var(--red-pale);border:2px solid rgba(220,38,38,.2);
+border-radius:12px;padding:12px 16px;margin-bottom:12px;text-align:center}
+.secret-label{font-size:.72em;font-weight:700;text-transform:uppercase;
+letter-spacing:1px;color:var(--red);margin-bottom:8px}
+.secret-pegs{display:flex;gap:8px;justify-content:center;margin-top:4px}
+.secret-reveal.win{background:var(--green-pale);border-color:rgba(22,163,74,.25)}
+.secret-reveal.win .secret-label{color:var(--green)}
+
+/* ── FEEDBACK ───────────────────────────── */
+.fb{margin-top:10px;padding:11px 16px;border-radius:10px;font-size:.92em;
+text-align:center;display:none;animation:fadeIn .25s;font-weight:600;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,.2)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+.fb.warn{display:block;background:var(--orange-pale);color:var(--orange);border:1px solid rgba(234,88,12,.2)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .35s}
+
+/* ── RESULTS SCREEN ─────────────────────── */
+.rc{width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:16px auto;border:5px solid}
+.rc.win{border-color:var(--green);background:var(--green-pale)}
+.rc.lose{border-color:var(--red);background:var(--red-pale)}
+.rc-icon{font-size:2.4em;line-height:1}
+.rc-txt{font-size:.72em;color:var(--text-light);margin-top:3px;font-weight:600}
+.rm{font-size:1.05em;text-align:center;margin:14px 0;line-height:1.5}
+.stats-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.stat{background:var(--bg);border:1px solid var(--border);border-radius:10px;
+padding:10px 18px;text-align:center;min-width:90px}
+.stat-val{font-size:1.5em;font-weight:700;color:var(--blue);font-family:'Kalam',cursive}
+.stat-lbl{font-size:.72em;color:var(--text-light);font-weight:600}
+.res-secret{margin:10px auto;max-width:240px}
+
+/* ── CANVAS CONFETTI ────────────────────── */
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;
+pointer-events:none;z-index:999;display:none}
+
+/* ── RESPONSIVE ─────────────────────────── */
+@media(max-width:600px){
+.main{padding:20px 14px}
+.diff-grid{grid-template-columns:1fr;max-width:280px;margin:16px auto;gap:8px}
+.dc{flex-direction:row;gap:12px;padding:14px 16px;text-align:left}
+.dc-icon{font-size:1.5em}
+.peg{width:36px;height:36px}
+.pcol{width:42px;height:42px}
+.pegs-wrap{gap:5px}
+h1{font-size:1.3em}
+.katex-box .katex{font-size:1em!important}
+.board-row{padding:5px 8px;gap:6px}
+}
+@media(max-width:420px){
+.peg{width:32px;height:32px}
+.pcol{width:38px;height:38px}
+.hints-wrap.p4{width:28px}
+.hp{width:11px;height:11px}
+.palette{gap:6px}
+.board-row{gap:5px;padding:4px 6px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ═══════ HEADER ═══════ -->
+  <div class="app-header">
+    <span class="app-title">🔐 Mastermind</span>
+    <button class="hdr-menu" id="menuBtn" onclick="goMenu()">☰ Menu</button>
+  </div>
+
+  <!-- ═══════ MAIN AREA ═══════ -->
+  <div class="main">
+
+    <!-- INTRO -->
+    <div class="screen active" id="S_intro">
+      <div class="intro-logo">🔐</div>
+      <h1>Mastermind</h1>
+      <p class="sub">Découvre le code secret en analysant les indices !<br>Un jeu de logique et de déduction.</p>
+      <div class="katex-box">
+        <div class="katex-label">Combinaisons possibles</div>
+        <div id="k_intro"></div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-blue" onclick="showScreen('S_diff')">🎮 Jouer !</button>
+      </div>
+    </div>
+
+    <!-- DIFFICULTY -->
+    <div class="screen" id="S_diff">
+      <h1>Choisis ta difficulté</h1>
+      <p class="sub">Plus de couleurs ou moins d'essais&hellip; à toi de choisir !</p>
+      <div class="diff-grid">
+        <div class="dc easy" onclick="startGame('easy')">
+          <div class="dc-icon">🌱</div>
+          <div>
+            <div class="dc-name">Facile</div>
+            <div class="dc-info">4 emplacements<br>6 couleurs<br>12 essais</div>
+            <div class="dc-tag">Pour débuter</div>
+          </div>
+        </div>
+        <div class="dc normal" onclick="startGame('normal')">
+          <div class="dc-icon">⚡</div>
+          <div>
+            <div class="dc-name">Normal</div>
+            <div class="dc-info">4 emplacements<br>6 couleurs<br>10 essais</div>
+            <div class="dc-tag">Classique</div>
+          </div>
+        </div>
+        <div class="dc hard" onclick="startGame('hard')">
+          <div class="dc-icon">🔥</div>
+          <div>
+            <div class="dc-name">Expert</div>
+            <div class="dc-info">5 emplacements<br>8 couleurs<br>10 essais</div>
+            <div class="dc-tag">Casse-tête</div>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-ghost" onclick="showScreen('S_intro')">← Retour</button>
+      </div>
+    </div>
+
+    <!-- GAME -->
+    <div class="screen" id="S_game">
+      <div class="game-info">
+        <div class="gi-badge" id="g-badge">—</div>
+        <div class="gi-tries" id="g-tries">0 essais</div>
+      </div>
+      <div class="pbar"><div class="pfill" id="g-pfill" style="width:0%"></div></div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="lh black"></div><span id="legend-black"></span></div>
+        <div class="legend-item"><div class="lh white"></div><span id="legend-white"></span></div>
+        <div class="legend-item"><div class="lh empty"></div><span>Non utilisé</span></div>
+      </div>
+
+      <div class="board" id="board"></div>
+
+      <div id="secret-area" style="display:none"></div>
+
+      <div class="palette-wrap" id="palette-wrap">
+        <div class="palette-label">Choisis une couleur puis clique sur un emplacement</div>
+        <div class="palette" id="palette"></div>
+      </div>
+
+      <div class="fb" id="g-fb"></div>
+
+      <div class="controls" id="game-controls">
+        <button class="btn btn-green" id="btn-validate" onclick="validate()">✓ Valider la proposition</button>
+        <button class="btn btn-ghost" onclick="goMenu()">☰ Menu</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="screen" id="S_res">
+      <h1>Partie terminée !</h1>
+      <div class="rc" id="r-circle">
+        <div class="rc-icon" id="r-icon">🎉</div>
+        <div class="rc-txt" id="r-txt">Victoire !</div>
+      </div>
+      <p class="rm" id="r-msg"></p>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-val" id="r-tries">—</div><div class="stat-lbl">Essais</div></div>
+        <div class="stat"><div class="stat-val" id="r-diff">—</div><div class="stat-lbl">Difficulté</div></div>
+        <div class="stat"><div class="stat-val" id="r-combos">—</div><div class="stat-lbl">Combinaisons</div></div>
+      </div>
+      <div class="res-secret" id="r-secret-area"></div>
+      <div id="r-katex" style="margin:10px 0"></div>
+      <div class="controls">
+        <button class="btn btn-blue" onclick="startGame(currentDiff)">🔄 Rejouer</button>
+        <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   CONSTANTES
+═══════════════════════════════════════════════════ */
+const COLORS = [
+  {id:'r', name:'Rouge',     hex:'#ef4444'},
+  {id:'o', name:'Orange',    hex:'#f97316'},
+  {id:'y', name:'Jaune',     hex:'#eab308'},
+  {id:'g', name:'Vert',      hex:'#22c55e'},
+  {id:'b', name:'Bleu',      hex:'#3b82f6'},
+  {id:'p', name:'Violet',    hex:'#a855f7'},
+  {id:'k', name:'Rose',      hex:'#ec4899'},
+  {id:'t', name:'Turquoise', hex:'#14b8a6'},
+];
+
+const DIFFS = {
+  easy:   {name:'Facile', pegs:4, colors:6, maxTries:12},
+  normal: {name:'Normal', pegs:4, colors:6, maxTries:10},
+  hard:   {name:'Expert', pegs:5, colors:8, maxTries:10},
+};
+
+/* ═══════════════════════════════════════════════════
+   ÉTAT DU JEU
+═══════════════════════════════════════════════════ */
+let currentDiff = 'normal';
+let secret = [];
+let board = [];           // [{guess:[...], hints:{black,white}}]
+let currentGuess = [];
+let selectedColor = null;
+let selectedSlot = null;
+let gameOver = false;
+let diff;
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goMenu() {
+  document.getElementById('menuBtn').style.display = 'none';
+  showScreen('S_diff');
+}
+
+/* ═══════════════════════════════════════════════════
+   INITIALISATION DU JEU
+═══════════════════════════════════════════════════ */
+function startGame(diffKey) {
+  currentDiff = diffKey;
+  diff = DIFFS[diffKey];
+  const cols = COLORS.slice(0, diff.colors);
+
+  // Génération du code secret
+  secret = Array.from({length: diff.pegs}, () => cols[Math.floor(Math.random() * cols.length)].id);
+
+  board = [];
+  currentGuess = Array(diff.pegs).fill(null);
+  selectedColor = null;
+  selectedSlot = null;
+  gameOver = false;
+
+  // Légende KaTeX
+  document.getElementById('legend-black').textContent = 'Bonne couleur, bonne place';
+  document.getElementById('legend-white').textContent = 'Bonne couleur, mauvaise place';
+
+  // Badge
+  document.getElementById('g-badge').textContent = `${diff.name} — ${diff.pegs} × ${diff.colors}`;
+  document.getElementById('g-tries').textContent = `0 / ${diff.maxTries} essais`;
+  document.getElementById('g-pfill').style.width = '0%';
+  document.getElementById('g-fb').className = 'fb';
+  document.getElementById('secret-area').style.display = 'none';
+  document.getElementById('palette-wrap').style.display = '';
+  document.getElementById('game-controls').style.display = '';
+
+  renderBoard();
+  renderPalette();
+  document.getElementById('menuBtn').style.display = '';
+  showScreen('S_game');
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDU DU PLATEAU
+═══════════════════════════════════════════════════ */
+function renderBoard() {
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  const total = diff.maxTries;
+  const hintClass = diff.pegs === 4 ? 'p4' : 'p5';
+
+  for (let r = 0; r < total; r++) {
+    const row = document.createElement('div');
+    row.className = 'board-row' + (r === board.length ? ' active' : r < board.length ? ' past' : '');
+    row.id = 'row-' + r;
+
+    // Numéro
+    const num = document.createElement('div');
+    num.className = 'row-num';
+    num.textContent = r + 1;
+    row.appendChild(num);
+
+    // Pegs de couleur
+    const pegsWrap = document.createElement('div');
+    pegsWrap.className = 'pegs-wrap';
+
+    for (let p = 0; p < diff.pegs; p++) {
+      const peg = document.createElement('div');
+      peg.className = 'peg';
+      const data = r < board.length ? board[r].guess[p] :
+                   r === board.length ? currentGuess[p] : null;
+
+      if (data) {
+        const col = COLORS.find(c => c.id === data);
+        peg.style.background = col.hex;
+        peg.style.borderColor = shadeColor(col.hex, -15);
+        peg.classList.add('filled');
+        peg.title = col.name;
+      } else {
+        peg.classList.add('empty');
+      }
+
+      if (r === board.length && !gameOver) {
+        const row_ = r, peg_ = p;
+        peg.addEventListener('click', () => clickPeg(row_, peg_));
+      }
+      // Marquer le slot sélectionné
+      if (r === board.length && selectedSlot === p) {
+        peg.classList.add('selected-slot');
+      }
+      pegsWrap.appendChild(peg);
+    }
+    row.appendChild(pegsWrap);
+
+    // Hints
+    const hintsWrap = document.createElement('div');
+    hintsWrap.className = `hints-wrap ${hintClass}`;
+
+    if (r < board.length) {
+      const h = board[r].hints;
+      const hintArr = [...Array(h.black).fill('black'), ...Array(h.white).fill('white'),
+                       ...Array(diff.pegs - h.black - h.white).fill('none')];
+      hintArr.forEach((type, i) => {
+        const hp = document.createElement('div');
+        hp.className = 'hp anim' + (type !== 'none' ? ' ' + type : '');
+        hp.style.animationDelay = (i * 0.06) + 's';
+        hintsWrap.appendChild(hp);
+      });
+    } else {
+      for (let i = 0; i < diff.pegs; i++) {
+        const hp = document.createElement('div');
+        hp.className = 'hp';
+        hintsWrap.appendChild(hp);
+      }
+    }
+    row.appendChild(hintsWrap);
+    el.appendChild(row);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDU DE LA PALETTE
+═══════════════════════════════════════════════════ */
+function renderPalette() {
+  const el = document.getElementById('palette');
+  el.innerHTML = '';
+  const cols = COLORS.slice(0, diff.colors);
+  cols.forEach(col => {
+    const btn = document.createElement('div');
+    btn.className = 'pcol' + (selectedColor === col.id ? ' selected' : '');
+    btn.style.background = col.hex;
+    btn.title = col.name;
+    btn.addEventListener('click', () => selectColor(col.id));
+    el.appendChild(btn);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   INTERACTIONS
+═══════════════════════════════════════════════════ */
+function selectColor(colorId) {
+  selectedColor = colorId;
+  // Auto-fill next empty slot
+  const nextEmpty = currentGuess.indexOf(null);
+  if (nextEmpty !== -1) {
+    fillSlot(nextEmpty, colorId);
+    selectedSlot = null;
+  } else if (selectedSlot !== null) {
+    fillSlot(selectedSlot, colorId);
+    selectedSlot = null;
+  }
+  renderPalette();
+}
+
+function clickPeg(rowIdx, pegIdx) {
+  if (rowIdx !== board.length || gameOver) return;
+  if (selectedColor && currentGuess[pegIdx] === null) {
+    fillSlot(pegIdx, selectedColor);
+    selectedSlot = null;
+  } else if (currentGuess[pegIdx]) {
+    // Clear peg
+    currentGuess[pegIdx] = null;
+    selectedSlot = pegIdx;
+    renderBoard();
+  } else {
+    // Select slot to fill
+    selectedSlot = pegIdx;
+    renderBoard();
+  }
+}
+
+function fillSlot(idx, colorId) {
+  currentGuess[idx] = colorId;
+  const peg = document.querySelector(`#row-${board.length} .pegs-wrap .peg:nth-child(${idx+1})`);
+  if (peg) {
+    const col = COLORS.find(c => c.id === colorId);
+    peg.style.background = col.hex;
+    peg.style.borderColor = shadeColor(col.hex, -15);
+    peg.classList.remove('empty','selected-slot');
+    peg.classList.add('filled','pop');
+    setTimeout(() => peg.classList.remove('pop'), 300);
+  } else {
+    renderBoard();
+  }
+  hideFb();
+  // Déselectionner la couleur après placement
+  selectedColor = null;
+  renderPalette();
+  // Advance slot selection
+  const next = currentGuess.indexOf(null);
+  selectedSlot = next !== -1 ? next : null;
+}
+
+/* ═══════════════════════════════════════════════════
+   VALIDATION
+═══════════════════════════════════════════════════ */
+function validate() {
+  if (gameOver) return;
+  if (currentGuess.includes(null)) {
+    showFb('warn', '⚠️ Remplis tous les emplacements avant de valider !');
+    document.getElementById('board').classList.add('shake');
+    setTimeout(() => document.getElementById('board').classList.remove('shake'), 400);
+    return;
+  }
+
+  const hints = computeHints(currentGuess, secret);
+  board.push({guess: [...currentGuess], hints});
+  currentGuess = Array(diff.pegs).fill(null);
+  selectedColor = null;
+  selectedSlot = null;
+
+  // Update progress
+  const tries = board.length;
+  document.getElementById('g-tries').textContent = `${tries} / ${diff.maxTries} essais`;
+  document.getElementById('g-pfill').style.width = (tries / diff.maxTries * 100) + '%';
+
+  if (hints.black === diff.pegs) {
+    // WIN
+    gameOver = true;
+    renderBoard();
+    revealSecret(true);
+    document.getElementById('palette-wrap').style.display = 'none';
+    document.getElementById('game-controls').style.display = 'none';
+    showFb('ok', '🎉 Bravo ! Tu as trouvé le code secret !');
+    setTimeout(() => showResult(true), 1200);
+    return;
+  }
+
+  if (tries >= diff.maxTries) {
+    // LOSE
+    gameOver = true;
+    renderBoard();
+    revealSecret(false);
+    document.getElementById('palette-wrap').style.display = 'none';
+    document.getElementById('game-controls').style.display = 'none';
+    showFb('bad', '😔 Plus d\'essais ! Le code est révélé ci-dessus.');
+    setTimeout(() => showResult(false), 1600);
+    return;
+  }
+
+  renderBoard();
+}
+
+/* ═══════════════════════════════════════════════════
+   CALCUL DES INDICES
+═══════════════════════════════════════════════════ */
+function computeHints(guess, code) {
+  let black = 0, white = 0;
+  const g = [...guess], c = [...code];
+  // Pass 1 : bonne position
+  for (let i = 0; i < g.length; i++) {
+    if (g[i] === c[i]) { black++; g[i] = null; c[i] = null; }
+  }
+  // Pass 2 : bonne couleur mauvaise position
+  for (let i = 0; i < g.length; i++) {
+    if (g[i] !== null) {
+      const j = c.indexOf(g[i]);
+      if (j !== -1) { white++; c[j] = null; }
+    }
+  }
+  return {black, white};
+}
+
+/* ═══════════════════════════════════════════════════
+   RÉVÉLATION DU CODE SECRET
+═══════════════════════════════════════════════════ */
+function revealSecret(won) {
+  const area = document.getElementById('secret-area');
+  area.style.display = '';
+  const cls = won ? 'win' : '';
+  let html = `<div class="secret-reveal ${cls}">
+    <div class="secret-label">${won ? '✅ Code trouvé !' : '🔓 Code secret'}</div>
+    <div class="secret-pegs">`;
+  secret.forEach(id => {
+    const col = COLORS.find(c => c.id === id);
+    html += `<div class="peg filled" style="width:38px;height:38px;flex-shrink:0;
+      background:${col.hex};border:3px solid ${shadeColor(col.hex,-15)};
+      border-radius:50%;cursor:default" title="${col.name}"></div>`;
+  });
+  html += '</div></div>';
+  area.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════
+   ÉCRAN RÉSULTATS
+═══════════════════════════════════════════════════ */
+function showResult(won) {
+  const tries = board.length;
+  const combos = Math.pow(diff.colors, diff.pegs);
+
+  const circle = document.getElementById('r-circle');
+  circle.className = 'rc ' + (won ? 'win' : 'lose');
+  document.getElementById('r-icon').textContent = won ? '🏆' : '😔';
+  document.getElementById('r-txt').textContent = won ? 'Victoire !' : 'Défaite';
+
+  const msgs = won
+    ? tries === 1 ? 'Incroyable, en 1 seul essai ! 🤯'
+      : tries <= 3 ? 'Génie de la déduction ! 🧠'
+      : tries <= 6 ? 'Excellent travail !'
+      : 'Bien joué, tu as trouvé !'
+    : 'Le code t\'a résisté... Réessaie !';
+  document.getElementById('r-msg').textContent = msgs;
+
+  document.getElementById('r-tries').textContent = won ? tries : '—';
+  document.getElementById('r-diff').textContent = diff.name;
+  document.getElementById('r-combos').textContent = combos.toLocaleString('fr');
+
+  // Secret dans les résultats
+  const resSecret = document.getElementById('r-secret-area');
+  resSecret.innerHTML = '<div style="text-align:center;margin:6px 0"><div class="katex-label" style="color:var(--text-light);font-size:.7em;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Code secret</div><div style="display:flex;gap:7px;justify-content:center">' +
+    secret.map(id => {
+      const col = COLORS.find(c => c.id === id);
+      return `<div style="width:36px;height:36px;border-radius:50%;background:${col.hex};border:3px solid ${shadeColor(col.hex,-15)};flex-shrink:0" title="${col.name}"></div>`;
+    }).join('') + '</div></div>';
+
+  // KaTeX
+  const katexEl = document.getElementById('r-katex');
+  katexEl.innerHTML = '<div class="katex-box"><div class="katex-label">Combinaisons possibles</div><div id="r-k"></div></div>';
+  katex.render(`${diff.colors}^{${diff.pegs}} = ${combos.toLocaleString('fr')}`, document.getElementById('r-k'), {throwOnError:false});
+
+  document.getElementById('menuBtn').style.display = '';
+  showScreen('S_res');
+  if (won) confetti();
+}
+
+/* ═══════════════════════════════════════════════════
+   FEEDBACK
+═══════════════════════════════════════════════════ */
+function showFb(type, msg) {
+  const el = document.getElementById('g-fb');
+  el.className = 'fb ' + type;
+  el.textContent = msg;
+}
+function hideFb() {
+  document.getElementById('g-fb').className = 'fb';
+}
+
+/* ═══════════════════════════════════════════════════
+   CONFETTIS
+═══════════════════════════════════════════════════ */
+function confetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const particles = [];
+  const colors = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#a855f7','#ec4899'];
+  for (let i = 0; i < 120; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -10,
+      r: 4 + Math.random() * 6,
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2 + Math.random() * 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.2,
+      shape: Math.random() > 0.5 ? 'rect' : 'circle',
+    });
+  }
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'rect') ctx.fillRect(-p.r, -p.r/2, p.r*2, p.r);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI*2); ctx.fill(); }
+      ctx.restore();
+      p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.rot += p.vr;
+    });
+    frame++;
+    if (frame < 160 && particles.some(p => p.y < canvas.height)) requestAnimationFrame(draw);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+  }
+  draw();
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILITAIRES
+═══════════════════════════════════════════════════ */
+function shadeColor(hex, pct) {
+  let num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + pct));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + pct));
+  const b = Math.min(255, Math.max(0, (num & 0xff) + pct));
+  return `rgb(${r},${g},${b})`;
+}
+
+/* ═══════════════════════════════════════════════════
+   CLAVIER
+═══════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const active = document.querySelector('.screen.active');
+    if (active && active.id === 'S_game' && !gameOver) validate();
+  }
+  if (e.key === 'Escape') {
+    const active = document.querySelector('.screen.active');
+    if (active && (active.id === 'S_game' || active.id === 'S_res')) goMenu();
+  }
+  // Touches 1-8 pour sélectionner une couleur
+  if (e.key >= '1' && e.key <= '8') {
+    const idx = parseInt(e.key) - 1;
+    if (diff && idx < diff.colors) selectColor(COLORS[idx].id);
+  }
+  // Suppr / Backspace pour effacer le dernier peg
+  if ((e.key === 'Backspace' || e.key === 'Delete') && !gameOver) {
+    const lastFilled = [...currentGuess].reverse().findIndex(x => x !== null);
+    if (lastFilled !== -1) {
+      currentGuess[currentGuess.length - 1 - lastFilled] = null;
+      renderBoard();
+    }
+  }
+});
+
+/* ═══════════════════════════════════════════════════
+   KaTeX INTRO
+═══════════════════════════════════════════════════ */
+katex.render('6^4 = 1\\,296 \\text{ combinaisons en mode Normal}', document.getElementById('k_intro'), {throwOnError:false});
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableurs – Feuille d'exercices n°3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#b45309; --primary-dark:#78350f; --primary-light:#fef3c7;
+            --success:#059669; --accent:#b91c1c; --accent-light:#fee2e2;
+            --bg-card:#ffffff; --border:#fcd34d; --text-dark:#0f172a; --text-medium:#475569;
+            --shadow:rgba(180,83,9,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#fef3c7 0%,#fee2e2 55%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--accent),#d97706);}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+        /* Rappel */
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        .recap-card{border-radius:10px;padding:1rem 1.25rem;font-size:0.97rem;line-height:1.9;}
+        .recap-card.c1{background:var(--primary-light);border:2px solid #fcd34d;}
+        .recap-card.c1 strong{color:var(--primary-dark);}
+        .recap-card.c2{background:var(--accent-light);border:2px solid #fca5a5;}
+        .recap-card.c2 strong{color:var(--accent);}
+
+        /* Mini tableur rappel */
+        .xl-mini{border-collapse:collapse;margin:0.5rem 0;font-size:0.9rem;width:100%;}
+        .xl-mini th.corner{background:#e2e7ec;width:30px;}
+        .xl-mini th.col-h{background:#e2e7ec;color:#444c56;font-weight:700;font-size:0.78rem;text-align:center;border:1.5px solid #cdd3da;padding:0.25rem 0.5rem;}
+        .xl-mini td.row-h{background:#f0f2f5;color:#444c56;font-size:0.78rem;font-weight:700;text-align:center;border:1.5px solid #cdd3da;padding:0.25rem 0.4rem;width:30px;}
+        .xl-mini td{border:1.5px solid #cdd3da;padding:0.25rem 0.6rem;text-align:right;font-family:'Consolas','Courier New',monospace;font-size:0.85rem;}
+        .xl-mini td.lbl{text-align:left;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.83rem;}
+        .xl-mini td.fml{color:var(--primary);text-align:left;font-weight:700;font-family:'Consolas','Courier New',monospace;}
+        .xl-mini td.hl{background:var(--primary-light);color:var(--primary-dark);font-weight:700;border-color:#fcd34d;}
+        .cell-ref{display:inline-block;background:#f0f2f5;border:1px solid #cdd3da;border-radius:3px;font-family:'Consolas','Courier New',monospace;font-size:0.85em;padding:0 5px;font-weight:700;color:var(--primary-dark);}
+        .formula-tag{display:inline-block;background:var(--primary-light);border:1px solid #fcd34d;border-radius:4px;font-family:'Consolas','Courier New',monospace;font-size:0.88em;padding:0.1rem 0.5rem;font-weight:700;color:var(--primary-dark);}
+
+        /* Progress */
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+        /* Score */
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),var(--primary),var(--accent));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.amber{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.red{background:var(--accent-light);color:var(--accent);}
+
+        /* Séparateur section */
+        .section-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;}
+        .section-divider-line{flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent);}
+        .section-divider-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+
+        /* Exercices */
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-lecture{background:var(--primary-light);color:var(--primary-dark);}
+        .tag-formule{background:var(--accent-light);color:var(--accent);}
+        .tag-somme{background:#fce7f3;color:#9d174d;}
+        .tag-pb{background:#e0f2fe;color:#0369a1;}
+        .tag-defi{background:#fef9c3;color:#92400e;border:1.5px solid #f59e0b;}
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(180,83,9,0.25);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+
+        /* Indices */
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #fca5a5;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--accent);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--accent-light);color:var(--accent);border:2px solid #fca5a5;border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:nowrap;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#fecaca;border-color:var(--accent);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#fff5f5;border-left:3px solid var(--accent);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;}
+        .hint-text.revealed{max-height:400px;padding:0.5rem 0.85rem;opacity:1;}
+
+        /* Correction */
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+
+        /* Contenu */
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-row{display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.65rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:0.8rem;font-weight:700;width:1.4rem;height:1.4rem;border-radius:50%;text-align:center;line-height:1.4rem;flex-shrink:0;margin-top:0.25rem;}
+        .context-box{background:#fffbeb;border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0 1rem;font-size:0.97rem;line-height:1.8;}
+        .context-box strong{color:var(--primary-dark);}
+        .calcul-step{background:white;padding:1.25rem 1.5rem;border-radius:10px;margin:0.75rem 0;border-left:4px solid var(--primary);}
+        .calcul-step.red-step{border-left-color:var(--accent);}
+        .calcul-step.green-step{border-left-color:#059669;}
+        .calcul-line{font-size:1.08rem;text-align:center;margin:0.5rem 0;font-family:'Consolas','Courier New',monospace;}
+        .calcul-line.natural{font-family:'DM Sans',sans-serif;font-size:1rem;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .rule-box{background:#fff7ed;border:2px solid #fcd34d;border-radius:10px;padding:0.9rem 1.25rem;margin:0.75rem 0;font-size:0.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--primary);}
+        .rule-box.red{background:var(--accent-light);border-color:#fca5a5;}
+        .rule-box.red strong{color:var(--accent);}
+        .warn-box{background:#fefce8;border:2px solid #fde047;border-radius:10px;padding:0.8rem 1.25rem;margin:0.6rem 0;font-size:0.92rem;line-height:1.6;}
+        .mini-section{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:700;color:var(--primary);margin:1.25rem 0 0.5rem;}
+
+        /* Tableaux Excel */
+        .xl-wrap{margin:0.75rem 0;border:2px solid #cdd3da;border-radius:6px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+        .xl-fbar{background:#f3f4f6;border-bottom:1px solid #d1d5db;display:flex;align-items:center;padding:4px 10px;gap:8px;font-family:'Consolas','Courier New',monospace;font-size:0.82em;}
+        .xl-fa{background:white;border:1px solid #d1d5db;border-radius:3px;padding:2px 8px;min-width:45px;text-align:center;font-weight:700;font-size:0.88em;color:var(--primary);}
+        .xl-fx{color:var(--primary);font-weight:700;font-style:italic;}
+        .xl-fc{flex:1;color:var(--text-dark);font-size:0.88em;}
+        .xl-fc.fml{color:var(--primary);font-weight:600;}
+        .xl-scr{overflow-x:auto;}
+        .xl-t{border-collapse:collapse;width:100%;font-family:'DM Sans',sans-serif;font-size:0.88em;}
+        .xl-t th{background:#e2e7ec;color:#444c56;font-weight:700;font-size:0.82em;padding:5px 4px;text-align:center;border:1px solid #cdd3da;min-width:90px;}
+        .xl-t th.rn{min-width:32px;width:32px;background:#f0f2f5;}
+        .xl-t td{padding:0;border:1px solid #cdd3da;height:28px;min-width:90px;}
+        .xl-t td.rn{background:#f0f2f5;color:#444c56;font-size:0.8em;font-weight:700;text-align:center;padding:0 6px;width:32px;min-width:32px;}
+        .xl-t td.lbl{text-align:left;font-weight:600;font-size:0.85em;padding:0 8px;color:var(--text-dark);}
+        .xl-t td.num{text-align:right;padding:0 10px;font-family:'Consolas','Courier New',monospace;font-weight:500;}
+        .xl-t td.fml-cell{color:var(--primary);font-family:'Consolas','Courier New',monospace;font-size:0.82em;padding:0 6px;}
+        .xl-t td.result{background:#dcfce7;color:#14532d;font-weight:700;text-align:right;padding:0 10px;font-family:'Consolas','Courier New',monospace;}
+        .xl-t td.result-amber{background:var(--primary-light);color:var(--primary-dark);font-weight:700;text-align:right;padding:0 10px;font-family:'Consolas','Courier New',monospace;}
+        .xl-t td.question{background:#fef9c3;border:2px dashed #f59e0b;font-weight:700;text-align:center;color:#92400e;}
+        .xl-t td.empty{background:#fafafa;}
+        .xl-t td.total-row{background:#f0fdf4;font-weight:700;color:#14532d;}
+        .xl-t td.avg-row{background:#fff7ed;font-weight:700;color:var(--primary);}
+        .cval{width:100%;height:100%;display:flex;align-items:center;padding:0 8px;}
+        .cval.r{justify-content:flex-end;}
+        .cval.c{justify-content:center;}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}.recap-grid{grid-template-columns:1fr;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.calcul-step{padding:0.75rem;}.solution-text{font-size:1rem;padding:0.65rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.xl-t th,.xl-t td{min-width:70px;}.hint-btn{white-space:normal;text-align:left;line-height:1.4;}.hint-item{flex-direction:column;align-items:stretch;}.hint-item .hint-btn{width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>📊 Feuille d'exercices Tableur</h1>
+        <p class="subtitle">Tableurs – Lire, compléter, formuler – Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">3ème</span>
+            <span class="header-chip">6 exercices</span>
+            <span class="header-chip">Lecture · Formules · SOMME · MOYENNE · Synthèse</span>
+        </div>
+    </header>
+
+    <!-- Rappel de cours -->
+    <div class="recap">
+        <div class="recap-title">📖 Ce qu'il faut savoir</div>
+        <div class="recap-grid">
+            <div class="recap-card c1">
+                <strong>Lire une cellule</strong>
+                <p style="margin-bottom:0.5rem;font-size:0.92rem;">La référence combine la <strong>lettre de colonne</strong> et le <strong>numéro de ligne</strong>. Exemple : <span class="cell-ref">D3</span> = colonne D, ligne 3.</p>
+                <table class="xl-mini">
+                    <tr><th class="corner"></th><th class="col-h">A</th><th class="col-h">B</th><th class="col-h">C</th><th class="col-h">D</th></tr>
+                    <tr><td class="row-h">2</td><td class="lbl">Lundi</td><td>18</td><td>22</td><td>40</td></tr>
+                    <tr><td class="row-h">3</td><td class="lbl">Mardi</td><td>15</td><td>30</td><td class="hl">45</td></tr>
+                    <tr><td class="row-h">4</td><td class="lbl">Mercredi</td><td>20</td><td>25</td><td>45</td></tr>
+                </table>
+                <p style="font-size:0.87rem;margin-top:0.4rem;">➜ <span class="cell-ref">D3</span> contient <strong>45</strong></p>
+            </div>
+            <div class="recap-card c2">
+                <strong>Les formules à connaître</strong>
+                <p style="font-size:0.9rem;margin-bottom:0.4rem;">Toujours commencer par <strong>=</strong></p>
+                <table class="xl-mini">
+                    <tr><th class="corner"></th><th class="col-h">Formule</th><th class="col-h">Ce qu'elle fait</th></tr>
+                    <tr><td class="row-h">—</td><td class="fml">=B2*C2</td><td class="lbl">Multiplie B2 par C2</td></tr>
+                    <tr><td class="row-h">—</td><td class="fml">=B3-C3</td><td class="lbl">Soustrait C3 de B3</td></tr>
+                    <tr><td class="row-h">—</td><td class="fml">=SOMME(B2:B8)</td><td class="lbl">Somme de B2 à B8</td></tr>
+                    <tr><td class="row-h">—</td><td class="fml">=MOYENNE(C2:C6)</td><td class="lbl">Moyenne de C2 à C6</td></tr>
+                </table>
+                <p style="font-size:0.85rem;color:var(--accent);font-weight:600;margin-top:0.5rem;">🖱️ Pour recopier une formule vers le bas : glisser le carré en bas à droite de la cellule.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 6</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ===== SECTION 1 ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">🔍</div>
+        <div class="section-divider-title">Partie 1 – Lire un tableur</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Exercice 1 -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 6</h2>
+                <span class="exercise-tag tag-lecture">Lecture de tableau</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p style="margin-bottom:0.75rem;">La responsable d'un <strong>café-restaurant</strong> suit les consommations de midi sur une semaine. Le tableur ci-dessous indique le nombre de plats servis par type.</p>
+
+            <div class="xl-wrap">
+                <div class="xl-fbar">
+                    <span class="xl-fa">A1</span><span style="color:#cdd3da;font-size:1.2em">|</span>
+                    <span class="xl-fx">ƒx</span>
+                    <span class="xl-fc">Plat</span>
+                </div>
+                <div class="xl-scr">
+                    <table class="xl-t">
+                        <tr><th class="rn"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr>
+                        <tr>
+                            <td class="rn">1</td>
+                            <td><div class="cval">Plat</div></td>
+                            <td><div class="cval">Lundi</div></td>
+                            <td><div class="cval">Mardi</div></td>
+                            <td><div class="cval">Mercredi</div></td>
+                            <td><div class="cval">Jeudi</div></td>
+                        </tr>
+                        <tr><td class="rn">2</td><td class="lbl"><div class="cval">Quiche lorraine</div></td><td class="num"><div class="cval r">14</div></td><td class="num"><div class="cval r">9</div></td><td class="num"><div class="cval r">17</div></td><td class="num"><div class="cval r">11</div></td></tr>
+                        <tr><td class="rn">3</td><td class="lbl"><div class="cval">Steak frites</div></td><td class="num"><div class="cval r">22</div></td><td class="num"><div class="cval r">28</div></td><td class="num"><div class="cval r">19</div></td><td class="num"><div class="cval r">25</div></td></tr>
+                        <tr><td class="rn">4</td><td class="lbl"><div class="cval">Salade composée</div></td><td class="num"><div class="cval r">8</div></td><td class="num"><div class="cval r">12</div></td><td class="num"><div class="cval r">10</div></td><td class="num"><div class="cval r">7</div></td></tr>
+                        <tr><td class="rn">5</td><td class="lbl"><div class="cval">Plat du jour</div></td><td class="num"><div class="cval r">31</div></td><td class="num"><div class="cval r">24</div></td><td class="num"><div class="cval r">33</div></td><td class="num"><div class="cval r">29</div></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><p>Quelle est la valeur de la cellule <span class="cell-ref">C3</span> ? Qu'est-ce qu'elle représente concrètement ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Quelle cellule contient le nombre de salades composées servies le <strong>Mercredi</strong> ? Donne sa référence et sa valeur.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Quel plat a été le plus commandé le <strong>Mardi</strong> ? Dans quelle cellule se trouve cette information ?</p></div>
+            <div class="q-row"><span class="qnum">4</span><p>Si la responsable voulait ajouter une colonne F pour le Vendredi, quelle référence aurait la cellule du Plat du jour ce jour-là ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice 1 – Questions 1, 2 et 3</button>
+                    <div class="hint-text" id="h1-1">Pour lire une cellule, identifie d'abord sa colonne (lettre) puis sa ligne (numéro), et trouve la valeur à leur intersection.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Indice 2 – Question 4</button>
+                    <div class="hint-text" id="h1-2">La référence d'une cellule combine la lettre de sa colonne et le numéro de sa ligne. Quelle colonne vient après E ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+
+            <div class="calcul-step">
+                <p class="mini-section" style="margin-top:0;">Question 1 – Cellule C3</p>
+                <div class="calcul-line natural">C3 = colonne C (Mardi), ligne 3 (Steak frites) → <strong>28 steaks frites</strong></div>
+                <div class="calcul-line natural">C'est le nombre de steaks frites servis le Mardi.</div>
+            </div>
+
+            <div class="calcul-step">
+                <p class="mini-section">Question 2 – Salade composée le Mercredi</p>
+                <div class="calcul-line natural">Mercredi = colonne D · Salade composée = ligne 4</div>
+                <div class="solution-text">Cellule <span class="cell-ref">D4</span> → <strong>10 salades</strong></div>
+            </div>
+
+            <div class="calcul-step">
+                <p class="mini-section">Question 3 – Plat le plus commandé le Mardi</p>
+                <div class="calcul-line natural">Colonne C (Mardi) : 9 – 28 – 12 – 24 → le maximum est <strong>28</strong> = Steak frites</div>
+                <div class="solution-text">Le Steak frites, en cellule <span class="cell-ref">C3</span></div>
+            </div>
+
+            <div class="calcul-step">
+                <p class="mini-section">Question 4 – Vendredi, Plat du jour</p>
+                <div class="calcul-line natural">Colonne suivant E = <strong>F</strong> · Plat du jour = ligne <strong>5</strong></div>
+                <div class="solution-text">La cellule serait <span class="cell-ref">F5</span></div>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <!-- ===== SECTION 2 ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">✏️</div>
+        <div class="section-divider-title">Partie 2 – Écrire des formules</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Exercice 2 -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 6</h2>
+                <span class="exercise-tag tag-formule">Formules arithmétiques</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Un animateur de centre de loisirs note les présences lors d'une semaine d'activités. Pour chaque atelier, il connaît le <strong>nombre d'enfants inscrits</strong> et le <strong>prix de la séance par enfant</strong>. La colonne D doit calculer la <strong>recette brute</strong>, et la colonne E le <strong>montant reversé à l'association</strong> (20 % de la recette).</div>
+
+            <div class="xl-wrap">
+                <div class="xl-fbar">
+                    <span class="xl-fa">D2</span><span style="color:#cdd3da;font-size:1.2em">|</span>
+                    <span class="xl-fx">ƒx</span>
+                    <span class="xl-fc fml">= ?</span>
+                </div>
+                <div class="xl-scr">
+                    <table class="xl-t">
+                        <tr><th class="rn"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr>
+                        <tr>
+                            <td class="rn">1</td>
+                            <td><div class="cval">Atelier</div></td>
+                            <td><div class="cval">Enfants inscrits</div></td>
+                            <td><div class="cval">Prix séance (€)</div></td>
+                            <td><div class="cval">Recette (€)</div></td>
+                            <td><div class="cval">Part assoc. (€)</div></td>
+                        </tr>
+                        <tr><td class="rn">2</td><td class="lbl"><div class="cval">Poterie</div></td><td class="num"><div class="cval r">12</div></td><td class="num"><div class="cval r">8,00</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">3</td><td class="lbl"><div class="cval">Cirque</div></td><td class="num"><div class="cval r">18</div></td><td class="num"><div class="cval r">6,50</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">4</td><td class="lbl"><div class="cval">Jardinage</div></td><td class="num"><div class="cval r">9</div></td><td class="num"><div class="cval r">5,00</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">5</td><td class="lbl"><div class="cval">Cuisine</div></td><td class="num"><div class="cval r">15</div></td><td class="num"><div class="cval r">10,00</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><p>Quelle formule écrire en <span class="cell-ref">D2</span> pour calculer la recette de l'atelier Poterie ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Quelle formule écrire en <span class="cell-ref">E2</span> pour obtenir les 20 % reversés à l'association ? (Rappel : 20 % d'une valeur = cette valeur × 0,2.)</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Écris les formules pour les lignes 3, 4 et 5, puis calcule toutes les valeurs des colonnes D et E.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Indice 1 – Questions 1 et 2</button>
+                    <div class="hint-text" id="h2-1">Recette = nombre d'enfants × prix de la séance. Identifie les cellules contenant ces deux valeurs, puis écris la formule (toute formule commence par =, et * représente la multiplication).</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2">💡 Indice 2 – Question 3</button>
+                    <div class="hint-text" id="h2-2">La part reversée est un pourcentage de la recette. La recette vient d'être calculée dans une cellule voisine — comment y faire référence ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+
+            <div class="calcul-step red-step">
+                <p class="mini-section" style="margin-top:0;">Question 1 – Formule en D2</p>
+                <div class="calcul-line"><span class="formula-tag">=B2*C2</span></div>
+                <div class="calcul-line natural">Valeur : 12 × 8,00 = <strong>96,00 €</strong></div>
+            </div>
+
+            <div class="calcul-step red-step">
+                <p class="mini-section">Question 2 – Formule en E2</p>
+                <div class="calcul-line"><span class="formula-tag">=D2*0,2</span></div>
+                <div class="calcul-line natural">Valeur : 96,00 × 0,2 = <strong>19,20 €</strong></div>
+                <div class="rule-box">💡 On aurait aussi pu écrire <span class="formula-tag">=B2*C2*0,2</span> directement, sans passer par la cellule D2.</div>
+            </div>
+
+            <div class="calcul-step red-step">
+                <p class="mini-section">Question 3 – Toutes les formules et valeurs</p>
+                <div class="xl-wrap" style="margin-top:0.5rem;">
+                    <div class="xl-scr">
+                        <table class="xl-t">
+                            <tr><th class="rn"></th><th>A</th><th>D (formule)</th><th>D (valeur)</th><th>E (formule)</th><th>E (valeur)</th></tr>
+                            <tr><td class="rn">2</td><td class="lbl"><div class="cval">Poterie</div></td><td class="fml-cell"><div class="cval">=B2*C2</div></td><td class="result"><div class="cval r">96,00 €</div></td><td class="fml-cell"><div class="cval">=D2*0,2</div></td><td class="result-amber"><div class="cval r">19,20 €</div></td></tr>
+                            <tr><td class="rn">3</td><td class="lbl"><div class="cval">Cirque</div></td><td class="fml-cell"><div class="cval">=B3*C3</div></td><td class="result"><div class="cval r">117,00 €</div></td><td class="fml-cell"><div class="cval">=D3*0,2</div></td><td class="result-amber"><div class="cval r">23,40 €</div></td></tr>
+                            <tr><td class="rn">4</td><td class="lbl"><div class="cval">Jardinage</div></td><td class="fml-cell"><div class="cval">=B4*C4</div></td><td class="result"><div class="cval r">45,00 €</div></td><td class="fml-cell"><div class="cval">=D4*0,2</div></td><td class="result-amber"><div class="cval r">9,00 €</div></td></tr>
+                            <tr><td class="rn">5</td><td class="lbl"><div class="cval">Cuisine</div></td><td class="fml-cell"><div class="cval">=B5*C5</div></td><td class="result"><div class="cval r">150,00 €</div></td><td class="fml-cell"><div class="cval">=D5*0,2</div></td><td class="result-amber"><div class="cval r">30,00 €</div></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="rule-box"><strong>🖱️ Sur un vrai tableur :</strong> on écrit les formules en D2 et E2 une seule fois, puis on les glisse vers le bas jusqu'à la ligne 5. Le tableur adapte automatiquement les numéros de ligne.</div>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 3 -->
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 6</h2>
+                <span class="exercise-tag tag-formule">Formules + références</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Un professeur de géographie organise un <strong>concours de capital géographique</strong>. Chaque question correcte rapporte des points selon sa catégorie : <strong>1 pt</strong> pour les pays, <strong>2 pts</strong> pour les capitales, <strong>3 pts</strong> pour les fleuves. La colonne E doit afficher le score total de chaque élève.</div>
+
+            <div class="xl-wrap">
+                <div class="xl-fbar">
+                    <span class="xl-fa">E2</span><span style="color:#cdd3da;font-size:1.2em">|</span>
+                    <span class="xl-fx">ƒx</span>
+                    <span class="xl-fc fml">= ?</span>
+                </div>
+                <div class="xl-scr">
+                    <table class="xl-t">
+                        <tr><th class="rn"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr>
+                        <tr>
+                            <td class="rn">1</td>
+                            <td><div class="cval">Élève</div></td>
+                            <td><div class="cval">Pays (×1 pt)</div></td>
+                            <td><div class="cval">Capitales (×2 pts)</div></td>
+                            <td><div class="cval">Fleuves (×3 pts)</div></td>
+                            <td><div class="cval">Score total</div></td>
+                        </tr>
+                        <tr><td class="rn">2</td><td class="lbl"><div class="cval">Fatou</div></td><td class="num"><div class="cval r">8</div></td><td class="num"><div class="cval r">5</div></td><td class="num"><div class="cval r">4</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">3</td><td class="lbl"><div class="cval">Gabriel</div></td><td class="num"><div class="cval r">10</div></td><td class="num"><div class="cval r">3</div></td><td class="num"><div class="cval r">2</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">4</td><td class="lbl"><div class="cval">Inès</div></td><td class="num"><div class="cval r">6</div></td><td class="num"><div class="cval r">7</div></td><td class="num"><div class="cval r">5</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">5</td><td class="lbl"><div class="cval">Julien</div></td><td class="num"><div class="cval r">9</div></td><td class="num"><div class="cval r">4</div></td><td class="num"><div class="cval r">6</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">6</td><td class="lbl"><div class="cval">Kenza</div></td><td class="num"><div class="cval r">7</div></td><td class="num"><div class="cval r">6</div></td><td class="num"><div class="cval r">3</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><p>Écris la formule à saisir en <span class="cell-ref">E2</span> pour calculer le score total de Fatou.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Écris les formules pour E3 à E6, puis calcule les scores de chaque élève.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Quel élève a le meilleur score ? Quel élève a le moins bon ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-1">💡 Indice 1 – Question 1</button>
+                    <div class="hint-text" id="h3-1">Chaque catégorie de question a un coefficient différent. Comment combiner les trois résultats pour obtenir le score total ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-2">💡 Indice 2 – Questions 2 et 3</button>
+                    <div class="hint-text" id="h3-2">Réfléchis à comment simplifier l'écriture quand on multiplie par 1. Pour les lignes suivantes, qu'est-ce qui change dans la formule ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+
+            <div class="calcul-step red-step">
+                <p class="mini-section" style="margin-top:0;">Question 1 – Formule en E2</p>
+                <div class="calcul-line"><span class="formula-tag">=B2+C2*2+D2*3</span></div>
+                <div class="calcul-line natural">Fatou : 8×1 + 5×2 + 4×3 = 8 + 10 + 12 = <strong>30 points</strong></div>
+                <div class="rule-box">💡 On n'écrit pas B2*1 car multiplier par 1 ne change pas la valeur.</div>
+            </div>
+
+            <div class="calcul-step red-step">
+                <p class="mini-section">Questions 2 et 3 – Toutes les formules et scores</p>
+                <div class="xl-wrap" style="margin-top:0.5rem;">
+                    <div class="xl-scr">
+                        <table class="xl-t">
+                            <tr><th class="rn"></th><th>A</th><th>E (formule)</th><th style="min-width:110px;">E (score)</th></tr>
+                            <tr><td class="rn">2</td><td class="lbl"><div class="cval">Fatou</div></td><td class="fml-cell"><div class="cval">=B2+C2*2+D2*3</div></td><td class="result"><div class="cval r">30 pts</div></td></tr>
+                            <tr><td class="rn">3</td><td class="lbl"><div class="cval">Gabriel</div></td><td class="fml-cell"><div class="cval">=B3+C3*2+D3*3</div></td><td class="result"><div class="cval r">22 pts</div></td></tr>
+                            <tr><td class="rn">4</td><td class="lbl"><div class="cval">Inès</div></td><td class="fml-cell"><div class="cval">=B4+C4*2+D4*3</div></td><td class="result"><div class="cval r">35 pts</div></td></tr>
+                            <tr><td class="rn">5</td><td class="lbl"><div class="cval">Julien</div></td><td class="fml-cell"><div class="cval">=B5+C5*2+D5*3</div></td><td class="result"><div class="cval r">35 pts</div></td></tr>
+                            <tr><td class="rn">6</td><td class="lbl"><div class="cval">Kenza</div></td><td class="fml-cell"><div class="cval">=B6+C6*2+D6*3</div></td><td class="result"><div class="cval r">28 pts</div></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="solution-text">🏆 Meilleur(s) score(s) : <strong>Inès et Julien (35 pts)</strong> · Plus faible : <strong>Gabriel (22 pts)</strong></div>
+                <div class="rule-box"><strong>🖱️ Sur un vrai tableur :</strong> on écrit la formule une seule fois en E2, puis on la glisse vers le bas jusqu'à E6. Le tableur adapte automatiquement les numéros de ligne.</div>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <!-- ===== SECTION 3 ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">∑</div>
+        <div class="section-divider-title">Partie 3 – SOMME et MOYENNE</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Exercice 4 -->
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 6</h2>
+                <span class="exercise-tag tag-somme">Fonction SOMME · MOYENNE</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Un boulanger suit sa <strong>production journalière de pain</strong> (en nombre de pains) sur deux semaines. Il veut connaître le total produit et la moyenne journalière pour mieux planifier ses fournées.</div>
+
+            <div class="xl-wrap">
+                <div class="xl-fbar">
+                    <span class="xl-fa">B12</span><span style="color:#cdd3da;font-size:1.2em">|</span>
+                    <span class="xl-fx">ƒx</span>
+                    <span class="xl-fc fml">= ?</span>
+                </div>
+                <div class="xl-scr">
+                    <table class="xl-t">
+                        <tr><th class="rn"></th><th>A</th><th>B</th></tr>
+                        <tr><td class="rn">1</td><td><div class="cval">Jour</div></td><td><div class="cval">Pains produits</div></td></tr>
+                        <tr><td class="rn">2</td><td class="lbl"><div class="cval">Lundi S1</div></td><td class="num"><div class="cval r">84</div></td></tr>
+                        <tr><td class="rn">3</td><td class="lbl"><div class="cval">Mardi S1</div></td><td class="num"><div class="cval r">92</div></td></tr>
+                        <tr><td class="rn">4</td><td class="lbl"><div class="cval">Mercredi S1</div></td><td class="num"><div class="cval r">78</div></td></tr>
+                        <tr><td class="rn">5</td><td class="lbl"><div class="cval">Jeudi S1</div></td><td class="num"><div class="cval r">105</div></td></tr>
+                        <tr><td class="rn">6</td><td class="lbl"><div class="cval">Vendredi S1</div></td><td class="num"><div class="cval r">130</div></td></tr>
+                        <tr><td class="rn">7</td><td class="lbl"><div class="cval">Lundi S2</div></td><td class="num"><div class="cval r">88</div></td></tr>
+                        <tr><td class="rn">8</td><td class="lbl"><div class="cval">Mardi S2</div></td><td class="num"><div class="cval r">95</div></td></tr>
+                        <tr><td class="rn">9</td><td class="lbl"><div class="cval">Mercredi S2</div></td><td class="num"><div class="cval r">80</div></td></tr>
+                        <tr><td class="rn">10</td><td class="lbl"><div class="cval">Jeudi S2</div></td><td class="num"><div class="cval r">110</div></td></tr>
+                        <tr><td class="rn">11</td><td class="lbl"><div class="cval">Vendredi S2</div></td><td class="num"><div class="cval r">138</div></td></tr>
+                        <tr><td class="rn">12</td><td class="lbl total-row"><div class="cval">TOTAL</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">13</td><td class="lbl avg-row"><div class="cval">MOYENNE / jour</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><p>Quelle formule avec <span class="formula-tag">SOMME</span> écrire en <span class="cell-ref">B12</span> pour obtenir le nombre total de pains produits sur les deux semaines ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Quelle formule avec <span class="formula-tag">MOYENNE</span> écrire en <span class="cell-ref">B13</span> pour obtenir la production moyenne par jour ?</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Calcule ces deux valeurs. Le boulanger observe que le vendredi il produit toujours beaucoup plus : vérifie en calculant la moyenne des seuls vendredis (B6 et B11).</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-1">💡 Indice 1 – Questions 1 et 2</button>
+                    <div class="hint-text" id="h4-1">Les productions journalières occupent une plage de cellules consécutives. Comment désigner cette plage dans une formule SOMME ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-2">💡 Indice 2 – Question 3</button>
+                    <div class="hint-text" id="h4-2">Pour la moyenne des vendredis, les deux cellules ne sont pas adjacentes. Comment les combiner autrement qu'avec la fonction MOYENNE ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+
+            <div class="calcul-step green-step">
+                <p class="mini-section" style="margin-top:0;">Question 1 – Total en B12</p>
+                <div class="calcul-line"><span class="formula-tag">=SOMME(B2:B11)</span></div>
+                <div class="rule-box"><strong>B2:B11</strong> désigne les 10 cellules de B2 à B11. Sans SOMME, il faudrait écrire =B2+B3+B4+B5+B6+B7+B8+B9+B10+B11 — bien plus long et risqué d'oublier une cellule !</div>
+            </div>
+
+            <div class="calcul-step green-step">
+                <p class="mini-section">Question 2 – Moyenne en B13</p>
+                <div class="calcul-line"><span class="formula-tag">=MOYENNE(B2:B11)</span></div>
+            </div>
+
+            <div class="calcul-step">
+                <p class="mini-section">Question 3 – Calcul des valeurs</p>
+                <div class="calcul-line natural">Total = 84+92+78+105+130+88+95+80+110+138 = <strong>1 000 pains</strong></div>
+                <div class="calcul-line natural">Moyenne générale = 1 000 ÷ 10 = <strong>100 pains/jour</strong></div>
+                <div class="solution-text">Total : <strong>1 000 pains</strong> · Moyenne : <strong>100 pains/jour</strong></div>
+                <div class="calcul-line natural" style="margin-top:0.75rem;">Moyenne des vendredis = (130 + 138) ÷ 2 = 268 ÷ 2 = <strong>134 pains</strong></div>
+                <div class="warn-box">⚠️ La moyenne du vendredi (134) est bien supérieure à la moyenne générale (100). Le boulanger a raison : le vendredi est son jour de pointe, probablement pour les achats du week-end.</div>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <!-- ===== SECTION 4 ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">🧩</div>
+        <div class="section-divider-title">Partie 4 – Problèmes</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Exercice 5 -->
+    <div class="exercise" id="card-ex5">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 6</h2>
+                <span class="exercise-tag tag-pb">Problème de synthèse</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Une médiathèque suit les <strong>emprunts de la semaine</strong>. Pour chaque type de média, elle connaît le nombre d'emprunts et la durée maximale de prêt en jours. La colonne D est déjà remplie — elle indique le nombre de <strong>retours en retard</strong>. La colonne E doit calculer le <strong>nombre d'emprunts rendus à temps</strong>, et la colonne F la <strong>recette des amendes</strong> (1 € par retard).</div>
+
+            <div class="xl-wrap">
+                <div class="xl-fbar">
+                    <span class="xl-fa">E2</span><span style="color:#cdd3da;font-size:1.2em">|</span>
+                    <span class="xl-fx">ƒx</span>
+                    <span class="xl-fc fml">=B2-D2</span>
+                </div>
+                <div class="xl-scr">
+                    <table class="xl-t">
+                        <tr><th class="rn"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr>
+                        <tr>
+                            <td class="rn">1</td>
+                            <td><div class="cval">Média</div></td>
+                            <td><div class="cval">Emprunts</div></td>
+                            <td><div class="cval">Durée prêt (j)</div></td>
+                            <td><div class="cval">En retard</div></td>
+                            <td><div class="cval">À temps</div></td>
+                            <td><div class="cval">Amendes (€)</div></td>
+                        </tr>
+                        <tr><td class="rn">2</td><td class="lbl"><div class="cval">Livres</div></td><td class="num"><div class="cval r">145</div></td><td class="num"><div class="cval r">21</div></td><td class="num"><div class="cval r">18</div></td><td class="fml-cell"><div class="cval">=B2-D2</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">3</td><td class="lbl"><div class="cval">DVD</div></td><td class="num"><div class="cval r">62</div></td><td class="num"><div class="cval r">7</div></td><td class="num"><div class="cval r">9</div></td><td class="fml-cell"><div class="cval">=B3-D3</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">4</td><td class="lbl"><div class="cval">BD</div></td><td class="num"><div class="cval r">38</div></td><td class="num"><div class="cval r">14</div></td><td class="num"><div class="cval r">4</div></td><td class="fml-cell"><div class="cval">=B4-D4</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">5</td><td class="lbl"><div class="cval">Jeux vidéo</div></td><td class="num"><div class="cval r">27</div></td><td class="num"><div class="cval r">7</div></td><td class="num"><div class="cval r">6</div></td><td class="fml-cell"><div class="cval">=B5-D5</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">6</td><td class="lbl"><div class="cval">Magazines</div></td><td class="num"><div class="cval r">53</div></td><td class="num"><div class="cval r">7</div></td><td class="num"><div class="cval r">3</div></td><td class="fml-cell"><div class="cval">=B6-D6</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">7</td><td class="lbl total-row"><div class="cval">TOTAL</div></td><td class="question"><div class="cval c">?</div></td><td class="empty"></td><td class="question"><div class="cval c">?</div></td><td class="empty"></td><td class="question"><div class="cval c">?</div></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><p>La colonne E est déjà remplie. Que calcule la formule <span class="formula-tag">=B2-D2</span> en E2 ? Donne la valeur numérique pour les Livres.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>L'amende pour un retard est de <strong>1 € par retard</strong>. Quelle formule écrire en <span class="cell-ref">F2</span> pour calculer les amendes des Livres ? Écris les formules F3 à F6 et calcule toutes les valeurs.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Quelle formule avec <span class="formula-tag">SOMME</span> écrire en <span class="cell-ref">B7</span>, <span class="cell-ref">D7</span> et <span class="cell-ref">F7</span> ? Calcule ces totaux.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-1">💡 Indice 1 – Questions 1 et 2</button>
+                    <div class="hint-text" id="h5-1">Pour E2 : réfléchis à la relation entre emprunts totaux, retards et emprunts rendus à temps. Pour F2 : quelle est la règle d'amende par retard ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-2">💡 Indice 2 – Question 3</button>
+                    <div class="hint-text" id="h5-2">Pour chaque total, identifie la plage de cellules à additionner et utilise la fonction appropriée.</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+
+            <div class="calcul-step">
+                <p class="mini-section" style="margin-top:0;">Question 1 – Formule E2</p>
+                <div class="calcul-line natural">E2 = B2 – D2 = 145 – 18 = <strong>127 livres</strong> rendus à temps</div>
+            </div>
+
+            <div class="calcul-step red-step">
+                <p class="mini-section">Question 2 – Amendes (colonne F)</p>
+                <div class="calcul-line natural">1 € par retard → amendes = nombre de retards × 1 = colonne D</div>
+                <div class="xl-wrap" style="margin-top:0.5rem;">
+                    <div class="xl-scr">
+                        <table class="xl-t">
+                            <tr><th class="rn"></th><th>A</th><th>D (retards)</th><th>F (formule)</th><th style="min-width:100px;">F (valeur)</th></tr>
+                            <tr><td class="rn">2</td><td class="lbl"><div class="cval">Livres</div></td><td class="num"><div class="cval r">18</div></td><td class="fml-cell"><div class="cval">=D2</div></td><td class="result"><div class="cval r">18 €</div></td></tr>
+                            <tr><td class="rn">3</td><td class="lbl"><div class="cval">DVD</div></td><td class="num"><div class="cval r">9</div></td><td class="fml-cell"><div class="cval">=D3</div></td><td class="result"><div class="cval r">9 €</div></td></tr>
+                            <tr><td class="rn">4</td><td class="lbl"><div class="cval">BD</div></td><td class="num"><div class="cval r">4</div></td><td class="fml-cell"><div class="cval">=D4</div></td><td class="result"><div class="cval r">4 €</div></td></tr>
+                            <tr><td class="rn">5</td><td class="lbl"><div class="cval">Jeux vidéo</div></td><td class="num"><div class="cval r">6</div></td><td class="fml-cell"><div class="cval">=D5</div></td><td class="result"><div class="cval r">6 €</div></td></tr>
+                            <tr><td class="rn">6</td><td class="lbl"><div class="cval">Magazines</div></td><td class="num"><div class="cval r">3</div></td><td class="fml-cell"><div class="cval">=D6</div></td><td class="result"><div class="cval r">3 €</div></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="rule-box">💡 On aurait aussi pu écrire <span class="formula-tag">=D2*1</span>, mais multiplier par 1 ne change rien : écrire simplement <span class="formula-tag">=D2</span> suffit.</div>
+            </div>
+
+            <div class="calcul-step green-step">
+                <p class="mini-section">Question 3 – Totaux ligne 7</p>
+                <div class="xl-wrap" style="margin-top:0.5rem;">
+                    <div class="xl-scr">
+                        <table class="xl-t">
+                            <tr><th class="rn"></th><th>B7 (formule)</th><th>B7 (valeur)</th><th>D7 (formule)</th><th>D7 (valeur)</th><th>F7 (formule)</th><th>F7 (valeur)</th></tr>
+                            <tr>
+                                <td class="rn">7</td>
+                                <td class="fml-cell"><div class="cval">=SOMME(B2:B6)</div></td>
+                                <td class="result"><div class="cval r">325</div></td>
+                                <td class="fml-cell"><div class="cval">=SOMME(D2:D6)</div></td>
+                                <td class="result"><div class="cval r">40</div></td>
+                                <td class="fml-cell"><div class="cval">=SOMME(F2:F6)</div></td>
+                                <td class="result"><div class="cval r">40 €</div></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="solution-text">325 emprunts au total · 40 retards · <strong>40 € d'amendes</strong></div>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 6 — Défi -->
+    <div class="exercise" id="card-ex6">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 6 / 6</h2>
+                <span class="exercise-tag tag-defi">⭐ Défi final</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Un lycée organise un <strong>voyage scolaire</strong> avec 4 destinations au choix. Pour chaque destination, on connaît le nombre d'élèves inscrits et le coût par élève. Le bureau des voyages veut calculer le coût total de chaque destination, le total général, la destination la moins chère en moyenne, et la <strong>part de chaque destination dans le budget global</strong> (en %).
+            </div>
+
+            <div class="xl-wrap">
+                <div class="xl-fbar">
+                    <span class="xl-fa">D2</span><span style="color:#cdd3da;font-size:1.2em">|</span>
+                    <span class="xl-fx">ƒx</span>
+                    <span class="xl-fc fml">= ?</span>
+                </div>
+                <div class="xl-scr">
+                    <table class="xl-t">
+                        <tr><th class="rn"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr>
+                        <tr>
+                            <td class="rn">1</td>
+                            <td><div class="cval">Destination</div></td>
+                            <td><div class="cval">Élèves inscrits</div></td>
+                            <td><div class="cval">Coût/élève (€)</div></td>
+                            <td><div class="cval">Coût total (€)</div></td>
+                            <td><div class="cval">Part du budget (%)</div></td>
+                        </tr>
+                        <tr><td class="rn">2</td><td class="lbl"><div class="cval">Rome</div></td><td class="num"><div class="cval r">28</div></td><td class="num"><div class="cval r">420</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">3</td><td class="lbl"><div class="cval">Londres</div></td><td class="num"><div class="cval r">35</div></td><td class="num"><div class="cval r">380</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">4</td><td class="lbl"><div class="cval">Berlin</div></td><td class="num"><div class="cval r">22</div></td><td class="num"><div class="cval r">350</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">5</td><td class="lbl"><div class="cval">Barcelone</div></td><td class="num"><div class="cval r">30</div></td><td class="num"><div class="cval r">400</div></td><td class="question"><div class="cval c">?</div></td><td class="question"><div class="cval c">?</div></td></tr>
+                        <tr><td class="rn">6</td><td class="lbl total-row"><div class="cval">TOTAL</div></td><td class="question"><div class="cval c">?</div></td><td class="empty"></td><td class="question"><div class="cval c">?</div></td><td class="empty"></td></tr>
+                        <tr><td class="rn">7</td><td class="lbl avg-row"><div class="cval">Coût moy./destination</div></td><td class="empty"></td><td class="empty"></td><td class="question"><div class="cval c">?</div></td><td class="empty"></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><p>Écris la formule pour calculer le coût total de chaque destination en colonne D (D2 à D5). Calcule les valeurs.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Écris les formules <span class="formula-tag">SOMME</span> pour <span class="cell-ref">B6</span> (total élèves) et <span class="cell-ref">D6</span> (budget total). Calcule ces valeurs.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Écris la formule <span class="formula-tag">MOYENNE</span> en <span class="cell-ref">D7</span> pour le coût moyen par destination. Calcule-la. Quelle destination coûte le moins cher au total ?</p></div>
+            <div class="q-row"><span class="qnum">4</span><p>La colonne E doit afficher la <strong>part de chaque destination dans le budget global</strong> en pourcentage : part = coût de la destination ÷ budget total × 100. Quelle formule écrire en <span class="cell-ref">E2</span> en utilisant les références D2 et D6 ? Calcule toutes les valeurs de la colonne E et vérifie que leur somme est bien 100 %.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h6-1">💡 Indice 1 – Question 1</button>
+                    <div class="hint-text" id="h6-1">Coût total = nombre d'élèves × coût par élève. Identifie les colonnes correspondantes et écris la formule pour la première ligne.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h6-2">💡 Indice 2 – Question 2</button>
+                    <div class="hint-text" id="h6-2">Pour chaque total de colonne, identifie la plage de cellules à additionner.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h6-3">💡 Indice 3 – Questions 3 et 4</button>
+                    <div class="hint-text" id="h6-3">La part représente le coût d'une activité rapporté au coût total. Attention : si tu copies la formule vers le bas, quelle cellule ne doit pas changer ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+
+            <div class="calcul-step red-step">
+                <p class="mini-section" style="margin-top:0;">Question 1 – Coûts totaux (colonne D)</p>
+                <div class="xl-wrap" style="margin-top:0.5rem;">
+                    <div class="xl-scr">
+                        <table class="xl-t">
+                            <tr><th class="rn"></th><th>A</th><th>D (formule)</th><th style="min-width:110px;">D (valeur)</th></tr>
+                            <tr><td class="rn">2</td><td class="lbl"><div class="cval">Rome</div></td><td class="fml-cell"><div class="cval">=B2*C2</div></td><td class="result"><div class="cval r">11 760 €</div></td></tr>
+                            <tr><td class="rn">3</td><td class="lbl"><div class="cval">Londres</div></td><td class="fml-cell"><div class="cval">=B3*C3</div></td><td class="result"><div class="cval r">13 300 €</div></td></tr>
+                            <tr><td class="rn">4</td><td class="lbl"><div class="cval">Berlin</div></td><td class="fml-cell"><div class="cval">=B4*C4</div></td><td class="result"><div class="cval r">7 700 €</div></td></tr>
+                            <tr><td class="rn">5</td><td class="lbl"><div class="cval">Barcelone</div></td><td class="fml-cell"><div class="cval">=B5*C5</div></td><td class="result"><div class="cval r">12 000 €</div></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="rule-box"><strong>🖱️ Sur un vrai tableur :</strong> on écrit =B2*C2 en D2 et on glisse vers le bas jusqu'à D5.</div>
+            </div>
+
+            <div class="calcul-step green-step">
+                <p class="mini-section">Question 2 – Totaux (ligne 6)</p>
+                <div class="xl-wrap" style="margin-top:0.5rem;">
+                    <div class="xl-scr">
+                        <table class="xl-t">
+                            <tr><th class="rn"></th><th>B6 (formule)</th><th>B6 (valeur)</th><th>D6 (formule)</th><th>D6 (valeur)</th></tr>
+                            <tr>
+                                <td class="rn">6</td>
+                                <td class="fml-cell"><div class="cval">=SOMME(B2:B5)</div></td>
+                                <td class="result"><div class="cval r">115 élèves</div></td>
+                                <td class="fml-cell"><div class="cval">=SOMME(D2:D5)</div></td>
+                                <td class="result"><div class="cval r">44 760 €</div></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="calcul-line natural">Total élèves : 28+35+22+30 = <strong>115</strong></div>
+                <div class="calcul-line natural">Budget total : 11 760+13 300+7 700+12 000 = <strong>44 760 €</strong></div>
+            </div>
+
+            <div class="calcul-step">
+                <p class="mini-section">Question 3 – Moyenne en D7</p>
+                <div class="calcul-line"><span class="formula-tag">=MOYENNE(D2:D5)</span></div>
+                <div class="calcul-line natural">44 760 ÷ 4 = <strong>11 190 €</strong> par destination en moyenne</div>
+                <div class="solution-text">La destination la moins chère au total est <strong>Berlin</strong> (7 700 €)</div>
+            </div>
+
+            <div class="calcul-step red-step">
+                <p class="mini-section">Question 4 – Parts en pourcentage (colonne E)</p>
+                <div class="calcul-line natural">Formule en E2 : <span class="formula-tag">=D2/D6*100</span></div>
+                <div class="xl-wrap" style="margin-top:0.75rem;">
+                    <div class="xl-scr">
+                        <table class="xl-t">
+                            <tr><th class="rn"></th><th>A</th><th>D (coût)</th><th>E (formule)</th><th style="min-width:110px;">E (valeur)</th></tr>
+                            <tr><td class="rn">2</td><td class="lbl"><div class="cval">Rome</div></td><td class="result"><div class="cval r">11 760 €</div></td><td class="fml-cell"><div class="cval">=D2/D6*100</div></td><td class="result-amber"><div class="cval r">≈ 26,27 %</div></td></tr>
+                            <tr><td class="rn">3</td><td class="lbl"><div class="cval">Londres</div></td><td class="result"><div class="cval r">13 300 €</div></td><td class="fml-cell"><div class="cval">=D3/D6*100</div></td><td class="result-amber"><div class="cval r">≈ 29,71 %</div></td></tr>
+                            <tr><td class="rn">4</td><td class="lbl"><div class="cval">Berlin</div></td><td class="result"><div class="cval r">7 700 €</div></td><td class="fml-cell"><div class="cval">=D4/D6*100</div></td><td class="result-amber"><div class="cval r">≈ 17,20 %</div></td></tr>
+                            <tr><td class="rn">5</td><td class="lbl"><div class="cval">Barcelone</div></td><td class="result"><div class="cval r">12 000 €</div></td><td class="fml-cell"><div class="cval">=D5/D6*100</div></td><td class="result-amber"><div class="cval r">≈ 26,81 %</div></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="solution-text">Vérification : 26,27 + 29,71 + 17,20 + 26,81 ≈ <strong>100 % ✓</strong></div>
+                <div class="rule-box red"><strong>⚠️ Point clé :</strong> le numérateur change (D2, D3, D4, D5) mais le dénominateur est toujours <strong>D6</strong> (le budget total). Sur un vrai tableur, on fixerait cette cellule en écrivant <span class="formula-tag">$D$6</span> pour pouvoir étirer la formule sans que D6 ne bouge : c'est ce qu'on appelle une <strong>référence absolue</strong>.</div>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! Retiens : toute formule commence par <strong>=</strong>, on écrit <strong>*</strong> pour multiplier, <strong>/</strong> pour diviser, et <strong>SOMME</strong> / <strong>MOYENNE</strong> évitent de tout calculer à la main.</footer>
+
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    const TOTAL = 6, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 6, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as tout revu, y compris le défi ! Bravo !' },
+        { min: 5, emoji: '🎉', stars: '⭐⭐⭐', title: 'Très bien !', msg: 'Presque tout ! Il reste le défi final, ose-le !' },
+        { min: 4, emoji: '👍', stars: '⭐⭐', title: 'Bien !', msg: 'Bonne progression. Continue sur ta lancée !' },
+        { min: 1, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir les autres corrections !" },
+    ];
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge amber">📚 Feuille n°3 complète</span>` +
+            `<span class="score-badge red">📊 Tableurs</span>`;
+        card.classList.add('visible');
+    }
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction); btn.classList.remove('active');
+            btn.textContent = 'Voir la correction'; openSet.delete(exId);
+        } else {
+            openCorrection(correction); btn.classList.add('active');
+            btn.textContent = 'Masquer la correction'; openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId); dot.classList.add('done');
+                card.classList.add('seen'); updateProgress();
+            }
+        }
+    }
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled = true; this.textContent = '✓ ' + this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
