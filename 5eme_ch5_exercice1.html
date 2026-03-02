@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Feuille d'exercices interactive – Multiples, diviseurs et division euclidienne – 5ème.">
+    <title>Multiples, Diviseurs & Division euclidienne | Mathématiques 5ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#4f46e5; --primary-dark:#3730a3; --primary-light:#e0e7ff;
+            --secondary:#f59e0b; --success:#059669; --bonus:#7c3aed; --bonus-light:#ede9fe;
+            --bg-card:#ffffff; --border:#c7d2fe; --text-dark:#1e1b4b; --text-medium:#475569;
+            --shadow:rgba(79,70,229,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#e0e7ff 0%,#ede9fe 50%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--bonus),#ec4899);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--bonus));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--bonus));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.blue{background:var(--primary-light);color:var(--primary-dark);}
+
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;position:relative;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        .seen-badge{position:absolute;top:1rem;right:1rem;background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(79,70,229,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(79,70,229,0.4);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);box-shadow:0 4px 15px rgba(5,150,105,0.3);}
+
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--bonus);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--bonus-light);color:var(--bonus);border:2px solid #c4b5fd;border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:nowrap;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--bonus);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;word-break:break-word;}
+        .hint-text.revealed{max-height:200px;padding:0.5rem 0.85rem;opacity:1;}
+
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+
+        /* ── Content ── */
+        .exercise-content{font-size:1.05rem;line-height:2;}
+        .q-list{display:flex;flex-direction:column;gap:0.6rem;margin:1rem 0;}
+        .q-item{background:#f8faff;padding:0.85rem 1.1rem;border-radius:10px;border:2px solid var(--border);font-size:1.05rem;display:flex;gap:0.75rem;align-items:baseline;}
+        .q-num{font-weight:700;color:var(--primary);min-width:1.6rem;font-size:0.9rem;}
+        .problem-box{background:#f0f4ff;border:2px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin:1rem 0;font-size:1.05rem;line-height:1.8;}
+        .correction-item{background:white;border-radius:10px;padding:1.1rem 1.4rem;margin:0.7rem 0;border-left:4px solid var(--success);}
+        .correction-item .num{font-weight:700;color:var(--primary);font-size:0.88rem;margin-bottom:0.35rem;}
+        .solution-text{background:#e0e7ff;border:2px solid var(--primary);padding:0.8rem 1.4rem;border-radius:10px;text-align:center;font-size:1.1rem;font-weight:600;color:var(--primary);margin:0.75rem 0;}
+        .rule-box{background:#fff7ed;border:2px solid var(--secondary);border-radius:10px;padding:0.9rem 1.2rem;margin:0.9rem 0;font-size:0.95rem;}
+        .rule-box strong{color:#b45309;}
+        .many-answers{background:#fef3c7;border:2px solid var(--secondary);border-radius:8px;padding:0.5rem 1rem;font-size:0.88rem;font-weight:600;color:#92400e;display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.4rem;}
+
+        /* ── Division euclidienne posée (table-based, digit-aligned) ── */
+        .division-wrapper{display:flex;justify-content:center;margin:1.25rem 0;}
+        .div-outer{display:inline-block;background:white;border:2px solid var(--border);border-radius:12px;padding:1.25rem 2rem;}
+        /* The whole operation is two side-by-side tables */
+        .div-container{display:inline-flex;align-items:flex-start;gap:0;font-family:'Times New Roman',serif;font-size:1.45rem;line-height:1.55;}
+        /* LEFT part: digit-grid of the long division */
+        .div-left{display:inline-block;}
+        .div-left table{border-collapse:collapse;}
+        .div-left td{
+            width:1.2ch; /* one digit wide + small gap */
+            min-width:1.2ch;
+            text-align:center;
+            padding:0.05em 0.1em;
+            vertical-align:bottom;
+            font-size:1.45rem;
+        }
+        .div-left td.minus{color:#dc2626;text-align:right;padding-right:0.15em;width:0.9ch;min-width:0.9ch;}
+        .div-left td.wide{width:auto;min-width:0.5ch;}
+        /* Top row = dividend */
+        .div-left tr.row-dividend td{border-bottom:3px solid var(--text-dark);}
+        /* Subtracted number row */
+        .div-left tr.row-sub td{border-bottom:2px solid var(--text-dark);}
+        /* Remainder colour */
+        .div-left td.rem{color:#059669;font-weight:700;}
+        /* RIGHT part: divisor on top, quotient below */
+        .div-right{border-left:3px solid var(--text-dark);display:inline-flex;flex-direction:column;padding-left:0.55rem;}
+        .div-right .divisor{border-bottom:3px solid var(--text-dark);padding-bottom:0.1rem;font-size:1.45rem;}
+        .div-right .quotient{padding-top:0.15rem;font-size:1.45rem;font-weight:700;color:var(--primary-dark);}
+
+        .euclid-formula{font-family:'Times New Roman',serif;font-size:1.25rem;text-align:center;margin:0.75rem 0;font-style:italic;}
+        .hl-green{color:#059669;font-weight:bold;}
+        .hl-blue{color:#2563eb;font-weight:bold;}
+        .hl-red{color:#dc2626;font-weight:bold;}
+        .divisors-list{display:flex;flex-wrap:wrap;gap:0.5rem;margin:0.5rem 0;}
+        .div-chip{background:#e0e7ff;color:var(--primary-dark);font-weight:700;padding:0.3rem 0.75rem;border-radius:99px;font-size:1rem;font-family:'Times New Roman',serif;}
+        .div-chip.common{background:#dcfce7;color:#166534;border:2px solid #059669;}
+        .part-title{font-family:'Crimson Pro',serif;font-size:1.2rem;font-weight:700;color:var(--primary);margin:1.5rem 0 0.6rem;padding-bottom:0.35rem;border-bottom:2px solid var(--primary-light);}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.solution-text{font-size:1rem;padding:0.75rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.score-card{padding:1.5rem 1.25rem;}.div-outer{padding:1rem 1.25rem;}.div-left td{font-size:1.2rem;width:1.1ch;min-width:1.1ch;}.div-right .divisor,.div-right .quotient{font-size:1.2rem;}.hint-item{flex-direction:column;}.hint-btn{white-space:normal;width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+        @media(max-width:380px){h1{font-size:1.2rem;}.exercise-title{font-size:1.05rem;}}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>📐 Feuille d'exercices</h1>
+        <p class="subtitle">Multiples, diviseurs &amp; division euclidienne – 5<sup>ème</sup> – Correction interactive</p>
+    </header>
+
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 6</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 1 ═══════════════════ -->
+    <div class="exercise" id="card-ex1">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 6</h2>
+                <span class="exercise-tag">Multiples</span>
+            </div>
+            <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span><span>Donner cinq multiples de 8.</span></div>
+                <div class="q-item"><span class="q-num">2.</span><span>Donner six multiples de 7.</span></div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box"><strong>Rappel :</strong> Les multiples d'un entier <i>n</i> sont les résultats de <i>n</i> × 1, <i>n</i> × 2, <i>n</i> × 3, etc. Il en existe une infinité !</div>
+            <div class="correction-item">
+                <div class="num">1. Cinq multiples de 8 (parmi d'autres)</div>
+                <div class="divisors-list">
+                    <span class="div-chip">8</span>
+                    <span class="div-chip">16</span>
+                    <span class="div-chip">24</span>
+                    <span class="div-chip">32</span>
+                    <span class="div-chip">40</span>
+                </div>
+                <p style="font-size:0.92rem;color:var(--text-medium);margin-top:0.4rem;">car 8×1=8 ; 8×2=16 ; 8×3=24 ; 8×4=32 ; 8×5=40</p>
+                <div class="many-answers">⚠️ De nombreuses autres réponses sont possibles ! (48, 56, 80, 120…)</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Six multiples de 7 (parmi d'autres)</div>
+                <div class="divisors-list">
+                    <span class="div-chip">7</span>
+                    <span class="div-chip">14</span>
+                    <span class="div-chip">21</span>
+                    <span class="div-chip">28</span>
+                    <span class="div-chip">35</span>
+                    <span class="div-chip">42</span>
+                </div>
+                <p style="font-size:0.92rem;color:var(--text-medium);margin-top:0.4rem;">car 7×1=7 ; 7×2=14 ; 7×3=21 ; 7×4=28 ; 7×5=35 ; 7×6=42</p>
+                <div class="many-answers">⚠️ De nombreuses autres réponses sont possibles ! (49, 56, 63, 70…)</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 2 ═══════════════════ -->
+    <div class="exercise" id="card-ex2">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 6</h2>
+                <span class="exercise-tag">Diviseurs communs</span>
+            </div>
+            <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span><span>Donner tous les diviseurs de 12, puis de 24.</span></div>
+                <div class="q-item"><span class="q-num">2.</span><span>Entourer dans les listes les diviseurs en commun.</span></div>
+                <div class="q-item"><span class="q-num">3.</span><span>Quel est le plus grand diviseur commun entre 12 et 24 ?</span></div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box"><strong>Méthode :</strong> Pour trouver tous les diviseurs de <i>n</i>, on cherche tous les entiers qui divisent <i>n</i> sans reste (de 1 jusqu'à <i>n</i>).</div>
+            <div class="correction-item">
+                <div class="num">1. Diviseurs de 12</div>
+                <div class="divisors-list">
+                    <span class="div-chip">1</span><span class="div-chip">2</span><span class="div-chip">3</span><span class="div-chip">4</span><span class="div-chip">6</span><span class="div-chip">12</span>
+                </div>
+                <div class="num" style="margin-top:0.75rem;">Diviseurs de 24</div>
+                <div class="divisors-list">
+                    <span class="div-chip">1</span><span class="div-chip">2</span><span class="div-chip">3</span><span class="div-chip">4</span><span class="div-chip">6</span><span class="div-chip">8</span><span class="div-chip">12</span><span class="div-chip">24</span>
+                </div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Diviseurs communs (entourés en vert)</div>
+                <p style="font-size:0.97rem;margin-bottom:0.5rem;">Les diviseurs présents dans <em>les deux</em> listes :</p>
+                <div class="divisors-list">
+                    <span class="div-chip common">1</span><span class="div-chip common">2</span><span class="div-chip common">3</span><span class="div-chip common">4</span><span class="div-chip common">6</span><span class="div-chip common">12</span>
+                </div>
+            </div>
+            <div class="correction-item">
+                <div class="num">3. Plus grand diviseur commun</div>
+                <div class="solution-text">Le plus grand diviseur commun de 12 et 24 est <strong>12</strong>.</div>
+                <p style="font-size:0.97rem;color:var(--text-medium);">On remarque que 12 divise 24 : 24 = 12 × 2. Donc tous les diviseurs de 12 divisent aussi 24, et 12 est le plus grand.</p>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 3 ═══════════════════ -->
+    <div class="exercise" id="card-ex3">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 6</h2>
+                <span class="exercise-tag">Division euclidienne</span>
+            </div>
+            <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span><span>Effectuer la division euclidienne de 494 par 6.</span></div>
+                <div class="q-item"><span class="q-num">2.</span><span>Est-ce que 6 est un diviseur de 494 ? Justifier.</span></div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box"><strong>Rappel :</strong> La division euclidienne de <i>a</i> par <i>b</i> donne : <i>a</i> = <i>b</i> × <i>q</i> + <i>r</i>, avec <i>q</i> le quotient et <i>r</i> le reste (0 ≤ <i>r</i> &lt; <i>b</i>).</div>
+
+            <div class="correction-item">
+                <div class="num">1. Division euclidienne posée de 494 par 6</div>
+                <div class="division-wrapper">
+                  <div class="div-outer">
+                    <div class="div-container">
+                      <!-- LEFT: long division body -->
+                      <div class="div-left">
+                        <table>
+                          <!-- Row 1 : dividend -->
+                          <tr class="row-dividend">
+                            <td></td><td>4</td><td>9</td><td>4</td>
+                          </tr>
+                          <!-- Row 2 : − 4 8 (aligned under positions 2-3) -->
+                          <tr class="row-sub">
+                            <td class="minus">−</td><td>4</td><td>8</td><td></td>
+                          </tr>
+                          <!-- Row 3 : remainder 1 → bring down → 14 -->
+                          <tr>
+                            <td></td><td></td><td>1</td><td>4</td>
+                          </tr>
+                          <!-- Row 4 : − 1 2 -->
+                          <tr class="row-sub">
+                            <td class="minus">−</td><td></td><td>1</td><td>2</td>
+                          </tr>
+                          <!-- Row 5 : remainder 2 -->
+                          <tr>
+                            <td></td><td></td><td></td><td class="rem"><strong>2</strong></td>
+                          </tr>
+                        </table>
+                      </div>
+                      <!-- RIGHT: divisor / quotient -->
+                      <div class="div-right">
+                        <span class="divisor">6</span>
+                        <span class="quotient">82</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="euclid-formula">494 = 6 × <span class="hl-blue">82</span> + <span class="hl-green">2</span></div>
+                <p style="font-size:0.97rem;color:var(--text-medium);text-align:center;">Quotient = <span class="hl-blue"><strong>82</strong></span> &nbsp;|&nbsp; Reste = <span class="hl-green"><strong>2</strong></span></p>
+            </div>
+
+            <div class="correction-item">
+                <div class="num">2. 6 est-il un diviseur de 494 ?</div>
+                <p style="font-size:1rem;margin:0.4rem 0;">La division euclidienne de 494 par 6 donne un reste de <span class="hl-green"><strong>2</strong></span>, qui est différent de 0.</p>
+                <div class="solution-text">Non, 6 n'est <strong>pas</strong> un diviseur de 494, car le reste de la division est 2 ≠ 0.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 4 ═══════════════════ -->
+    <div class="exercise" id="card-ex4">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 6</h2>
+                <span class="exercise-tag">Multiple ou non ?</span>
+            </div>
+            <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                Est-ce que 512 est un multiple de 8 ? Justifier.
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">Division euclidienne de 512 par 8</div>
+                <div class="division-wrapper">
+                  <div class="div-outer">
+                    <div class="div-container">
+                      <div class="div-left">
+                        <table>
+                          <!-- Row 1 : dividend 512 -->
+                          <tr class="row-dividend">
+                            <td></td><td>5</td><td>1</td><td>2</td>
+                          </tr>
+                          <!-- Row 2 : − 4 8 (aligned under pos 1-2) -->
+                          <tr class="row-sub">
+                            <td class="minus">−</td><td>4</td><td>8</td><td></td>
+                          </tr>
+                          <!-- Row 3 : bring down → 32 -->
+                          <tr>
+                            <td></td><td></td><td>3</td><td>2</td>
+                          </tr>
+                          <!-- Row 4 : − 3 2 -->
+                          <tr class="row-sub">
+                            <td class="minus">−</td><td></td><td>3</td><td>2</td>
+                          </tr>
+                          <!-- Row 5 : remainder 0 -->
+                          <tr>
+                            <td></td><td></td><td></td><td class="rem"><strong>0</strong></td>
+                          </tr>
+                        </table>
+                      </div>
+                      <div class="div-right">
+                        <span class="divisor">8</span>
+                        <span class="quotient">64</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="euclid-formula">512 = 8 × <span class="hl-blue">64</span> + <span class="hl-green">0</span></div>
+            </div>
+            <div class="solution-text">Oui, 512 est un multiple de 8, car le reste de la division euclidienne de 512 par 8 est <strong>0</strong>.<br>On a bien : 512 = 8 × 64.</div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 5 ═══════════════════ -->
+    <div class="exercise" id="card-ex5">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 6</h2>
+                <span class="exercise-tag">Problème – Rangées de chaises</span>
+            </div>
+            <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                Le principal du collège a convoqué les <strong>250 élèves</strong> de 5ème dans la salle polyvalente. Les surveillants ont disposé <strong>18 chaises par rangée</strong>.
+            </div>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span><span>Combien de rangées faut-il prévoir pour que tous les élèves soient assis ?</span></div>
+                <div class="q-item"><span class="q-num">2.</span><span>Combien reste-t-il de places libres dans la dernière rangée ?</span></div>
+            </div>
+        </div>
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">Division euclidienne de 250 par 18</div>
+                <div class="division-wrapper">
+                  <div class="div-outer">
+                    <div class="div-container">
+                      <div class="div-left">
+                        <table>
+                          <!-- Row 1 : dividend 250 — need 3 digits wide, but subtractor 180 needs col-position awareness -->
+                          <!-- We use 4 cols: sign + 3 digit positions -->
+                          <tr class="row-dividend">
+                            <td></td><td>2</td><td>5</td><td>0</td>
+                          </tr>
+                          <!-- Row 2 : − 1 8 0 -->
+                          <tr class="row-sub">
+                            <td class="minus">−</td><td>1</td><td>8</td><td>0</td>
+                          </tr>
+                          <!-- Row 3 : remainder 70 -->
+                          <tr>
+                            <td></td><td></td><td>7</td><td>0</td>
+                          </tr>
+                          <!-- Row 4 : − 5 4 (aligned under pos 2-3) -->
+                          <tr class="row-sub">
+                            <td class="minus">−</td><td></td><td>5</td><td>4</td>
+                          </tr>
+                          <!-- Row 5 : remainder 16 -->
+                          <tr>
+                            <td></td><td></td><td class="rem"><strong>1</strong></td><td class="rem"><strong>6</strong></td>
+                          </tr>
+                        </table>
+                      </div>
+                      <div class="div-right">
+                        <span class="divisor">18</span>
+                        <span class="quotient">13</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="euclid-formula">250 = 18 × <span class="hl-blue">13</span> + <span class="hl-green">16</span></div>
+            </div>
+            <div class="correction-item">
+                <div class="num">1. Nombre de rangées nécessaires</div>
+                <p style="font-size:1rem;margin:0.4rem 0;">Avec 13 rangées, on ne peut asseoir que 13 × 18 = 234 élèves. Il reste 16 élèves sans place. Il faut donc une rangée supplémentaire.</p>
+                <div class="solution-text">Il faut prévoir <strong>14 rangées</strong> pour que tous les élèves soient assis.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Places libres dans la dernière rangée</div>
+                <p style="font-size:1rem;margin:0.4rem 0;">La 14ème rangée contient 18 chaises, mais seulement 16 élèves s'y assoient.</p>
+                <div class="solution-text">Il reste <strong>18 − 16 = 2 places libres</strong> dans la dernière rangée.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 6 — INDICES ═══════════════════ -->
+    <div class="exercise" id="card-ex6">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 6 / 6</h2>
+                <span class="exercise-tag">Problème – Sachets de Louis ★</span>
+            </div>
+            <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                Louis possède <strong>15 chocolats</strong> et <strong>18 bonbons</strong>. Il décide de faire des sachets pour les donner à ses camarades, en mettant <em>le même contenu</em> dans chaque sachet (ni chocolat ni bonbon ne doit rester).
+            </div>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span><span>Donner tous les diviseurs de 15 et de 18.</span></div>
+                <div class="q-item"><span class="q-num">2.</span><span>Peut-il faire 5 sachets ? Justifier.</span></div>
+                <div class="q-item"><span class="q-num">3.</span><span>Quel est le plus grand nombre de sachets qu'il peut réaliser ? Justifier.</span></div>
+            </div>
+            <div class="hints-section">
+                <p class="hints-title">💡 Indices – clique sur celui de la question qui te bloque</p>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-1">💡 Indice — Question 1</button>
+                        <div class="hint-text" id="h6-1">Réfléchis à ce que signifie « sans reste » pour les chocolats et pour les bonbons. Quel lien y a-t-il entre le nombre de sachets et les deux quantités ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-2">💡 Indice — Question 2</button>
+                        <div class="hint-text" id="h6-2">Pour qu'un nombre de sachets soit possible, il faut qu'il soit compatible avec les deux quantités en même temps. Comment vérifier cela ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-3">💡 Indice — Question 3</button>
+                        <div class="hint-text" id="h6-3">Liste les diviseurs de 15 et les diviseurs de 18. Quels nombres apparaissent dans les deux listes ? Le plus grand d'entre eux sera ta réponse.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Diviseurs de 15 et de 18</div>
+                <p style="font-size:0.97rem;margin-bottom:0.4rem;">Diviseurs de 15 :</p>
+                <div class="divisors-list">
+                    <span class="div-chip">1</span><span class="div-chip">3</span><span class="div-chip">5</span><span class="div-chip">15</span>
+                </div>
+                <p style="font-size:0.97rem;margin:0.6rem 0 0.4rem;">Diviseurs de 18 :</p>
+                <div class="divisors-list">
+                    <span class="div-chip">1</span><span class="div-chip">2</span><span class="div-chip">3</span><span class="div-chip">6</span><span class="div-chip">9</span><span class="div-chip">18</span>
+                </div>
+                <p style="font-size:0.97rem;margin:0.6rem 0 0.4rem;">Diviseurs communs à 15 et 18 :</p>
+                <div class="divisors-list">
+                    <span class="div-chip common">1</span><span class="div-chip common">3</span>
+                </div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Peut-il faire 5 sachets ?</div>
+                <p style="font-size:1rem;margin:0.4rem 0;">Pour faire 5 sachets, il faudrait que 5 soit un diviseur à la fois de 15 et de 18.</p>
+                <p style="font-size:1rem;margin:0.2rem 0;">15 ÷ 5 = 3 (reste 0) ✓ &nbsp; → 5 divise bien 15.</p>
+                <p style="font-size:1rem;margin:0.2rem 0;">18 ÷ 5 = 3 (reste 3) ✗ &nbsp; → 5 ne divise <strong>pas</strong> 18.</p>
+                <div class="solution-text">Non, Louis ne peut pas faire 5 sachets : 5 n'est pas un diviseur de 18 (il resterait 3 bonbons).</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">3. Plus grand nombre de sachets possible</div>
+                <p style="font-size:1rem;margin:0.4rem 0;">Le nombre de sachets doit être un <strong>diviseur commun</strong> à 15 et à 18. Les diviseurs communs sont 1 et 3. Le plus grand est <strong>3</strong>.</p>
+                <div class="solution-text">Louis peut réaliser au maximum <strong>3 sachets</strong>.<br>Chaque sachet contiendra : 15 ÷ 3 = <strong>5 chocolats</strong> et 18 ÷ 3 = <strong>6 bonbons</strong>.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! Maîtrise bien les multiples, diviseurs et la division euclidienne !</footer>
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+
+</div>
+<script>
+    const TOTAL=6,seenSet=new Set(),openSet=new Set();
+    const SCORE_DATA=[
+        {min:6,emoji:'🏆',stars:'⭐⭐⭐',title:'Parfait !',msg:'Tu as revu tous les exercices. Excellent travail !'},
+        {min:5,emoji:'🎉',stars:'⭐⭐⭐',title:'Très bien !',msg:'Presque tout vérifié. Jette un œil au dernier !'},
+        {min:4,emoji:'👍',stars:'⭐⭐',title:'Bien !',msg:'Plus de la moitié vérifiée. Continue !'},
+        {min:1,emoji:'💪',stars:'⭐',title:"C'est un début !",msg:"N'hésite pas à ouvrir les autres corrections !"},
+    ];
+    const dotsContainer=document.getElementById('progressDots');
+    for(let i=1;i<=TOTAL;i++){const d=document.createElement('span');d.className='progress-dot';d.id=`dot-ex${i}`;d.title=`Exercice ${i}`;dotsContainer.appendChild(d);}
+    function updateProgress(){
+        const done=seenSet.size;
+        document.getElementById('progressFill').style.width=`${(done/TOTAL)*100}%`;
+        document.getElementById('progressCounter').textContent=`${done} / ${TOTAL}`;
+        if(done===TOTAL)showScoreCard();
+    }
+    function showScoreCard(){
+        const card=document.getElementById('scoreCard');
+        if(card.classList.contains('visible'))return;
+        const data=SCORE_DATA.find(d=>seenSet.size>=d.min)||SCORE_DATA[SCORE_DATA.length-1];
+        document.getElementById('scoreEmoji').textContent=data.emoji;
+        document.getElementById('scoreTitle').textContent=data.title;
+        document.getElementById('scoreStars').textContent=data.stars;
+        document.getElementById('scoreMessage').textContent=data.msg;
+        document.getElementById('scoreBreakdown').innerHTML=`<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span><span class="score-badge blue">📚 Feuille complète</span>`;
+        card.classList.add('visible');
+    }
+    function openCorrection(el){el.style.height=el.scrollHeight+'px';el.classList.add('show');}
+    function closeCorrection(el){el.style.height=el.scrollHeight+'px';requestAnimationFrame(()=>{el.style.height='0px';el.classList.remove('show');});}
+    function toggleCorrection(exId){
+        const correction=document.getElementById(exId);
+        const card=correction.closest('.exercise');
+        const btn=card.querySelector('.reveal-btn');
+        const dot=document.getElementById(`dot-${exId}`);
+        const isOpen=openSet.has(exId);
+        if(isOpen){closeCorrection(correction);btn.classList.remove('active');btn.textContent='Voir la correction';openSet.delete(exId);}
+        else{openCorrection(correction);btn.classList.add('active');btn.textContent='Masquer la correction';openSet.add(exId);
+            if(!seenSet.has(exId)){seenSet.add(exId);dot.classList.add('done');card.classList.add('seen');updateProgress();}}
+    }
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn=>{btn.addEventListener('click',()=>toggleCorrection(btn.dataset.target));});
+    document.querySelectorAll('.correction').forEach(el=>{el.addEventListener('transitionend',e=>{if(e.propertyName==='height'&&el.classList.contains('show'))el.style.height='auto';});});
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn=>{
+        btn.addEventListener('click',function(){
+            const id=this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled=true;this.textContent='✓ '+this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

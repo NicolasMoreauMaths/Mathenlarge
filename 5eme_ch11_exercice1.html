@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Feuille d'exercices interactive – Simplifier, réduire et développer des expressions algébriques. Niveau collège avec corrections détaillées.">
+    <title>Exercices – Simplifier, réduire et développer | Mathématiques</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:       #4f46e5;
+            --primary-dark:  #3730a3;
+            --primary-light: #e0e7ff;
+            --secondary:     #f59e0b;
+            --success:       #059669;
+            --success-light: #d1fae5;
+            --bonus:         #7c3aed;
+            --bonus-light:   #ede9fe;
+            --bg-card:       #ffffff;
+            --border:        #c7d2fe;
+            --text-dark:     #1e1b4b;
+            --text-medium:   #475569;
+            --shadow:        rgba(79, 70, 229, 0.10);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 50%, #fce7f3 100%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* ── HEADER ── */
+        header {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            margin-bottom: 1.5rem;
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--bonus), #ec4899);
+        }
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.5px;
+        }
+        .subtitle { font-size: 1.05rem; color: var(--text-medium); }
+
+        /* ── PROGRESS WIDGET ── */
+        .progress-wrapper {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .progress-label { font-size: 0.95rem; font-weight: 600; color: var(--text-medium); white-space: nowrap; }
+        .progress-bar-track {
+            flex: 1;
+            min-width: 120px;
+            height: 12px;
+            background: var(--primary-light);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--bonus));
+            border-radius: 99px;
+            transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+        .progress-counter { font-size: 0.95rem; font-weight: 700; color: var(--primary); white-space: nowrap; }
+        .progress-dots { display: flex; gap: 0.4rem; }
+        .progress-dot {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: white;
+            transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .progress-dot.done { background: var(--success); border-color: var(--success); transform: scale(1.2); }
+        .progress-dot.bonus-dot.done { background: var(--bonus); border-color: var(--bonus); }
+
+        /* ── SCORE CARD ── */
+        .score-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 30px var(--shadow);
+            text-align: center;
+            display: none;
+            animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative;
+            overflow: hidden;
+        }
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--success), #10b981, var(--bonus));
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.85) translateY(-10px); }
+            to   { opacity: 1; transform: scale(1)    translateY(0); }
+        }
+        .score-card.visible { display: block; }
+        .score-emoji  { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+        .score-title  { font-family: 'Crimson Pro', serif; font-size: 1.8rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+        .score-stars  { font-size: 1.8rem; letter-spacing: 0.2rem; margin: 0.5rem 0 1rem; }
+        .score-message { font-size: 1.05rem; color: var(--text-medium); max-width: 500px; margin: 0 auto; }
+        .score-breakdown { display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+        .score-badge { padding: 0.4rem 1rem; border-radius: 99px; font-size: 0.85rem; font-weight: 700; }
+        .score-badge.green  { background: #dcfce7; color: #166534; }
+        .score-badge.blue   { background: var(--primary-light); color: var(--primary-dark); }
+        .score-badge.purple { background: var(--bonus-light); color: var(--bonus); }
+
+        /* ── EXERCISE CARD ── */
+        .exercise {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-left: 5px solid var(--border);
+            border-radius: 18px;
+            padding: 2rem;
+            margin-bottom: 1.75rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.4s ease;
+            position: relative;
+        }
+        .exercise:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--shadow); }
+        .exercise.seen { border-left-color: var(--success); }
+        .exercise.bonus-exercise { border-color: #c4b5fd; border-left-color: #c4b5fd; }
+        .exercise.bonus-exercise.seen { border-left-color: var(--bonus); }
+        .exercise.bonus-exercise .exercise-header { border-bottom-color: #c4b5fd; }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .exercise-title-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .exercise-title { font-family: 'Crimson Pro', serif; font-size: 1.75rem; font-weight: 700; color: var(--primary-dark); }
+        .exercise.bonus-exercise .exercise-title { color: var(--bonus); }
+        .exercise-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.7rem;
+            border-radius: 99px;
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .exercise.bonus-exercise .exercise-tag { background: var(--bonus-light); color: var(--bonus); }
+
+        /* ── BADGE "VU" ── */
+        .seen-badge {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: var(--success);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 0.2rem 0.65rem;
+            border-radius: 99px;
+            opacity: 0;
+            transform: scale(0.5) translateY(-4px);
+            transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none;
+        }
+        .exercise.seen .seen-badge { opacity: 1; transform: scale(1) translateY(0); }
+        .exercise.bonus-exercise .seen-badge { background: var(--bonus); }
+
+        /* ── BUTTONS ── */
+        .reveal-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 50px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79,70,229,0.3);
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .reveal-btn::before {
+            content: '';
+            position: absolute; top:50%; left:50%;
+            width:0; height:0; border-radius:50%;
+            background: rgba(255,255,255,0.25);
+            transform:translate(-50%,-50%);
+            transition: width 0.5s, height 0.5s;
+        }
+        .reveal-btn:hover::before { width:280px; height:280px; }
+        .reveal-btn:hover  { transform:scale(1.05); box-shadow:0 6px 20px rgba(79,70,229,0.4); }
+        .reveal-btn:active { transform:scale(0.97); }
+        .reveal-btn.active { background: linear-gradient(135deg, var(--success), #047857); box-shadow: 0 4px 15px rgba(5,150,105,0.3); }
+        .exercise.bonus-exercise .reveal-btn { background: linear-gradient(135deg, var(--bonus), #5b21b6); box-shadow: 0 4px 15px rgba(124,58,237,0.3); }
+        .exercise.bonus-exercise .reveal-btn.active { background: linear-gradient(135deg, var(--success), #047857); }
+
+        /* ── BONUS BANNER ── */
+        .bonus-banner {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            background: var(--bonus-light); border: 2px solid #c4b5fd;
+            border-radius: 10px; padding: 0.9rem 1.1rem; margin-bottom: 1.25rem;
+            font-size: 0.95rem; color: #5b21b6;
+        }
+        .bonus-banner-icon { font-size: 1.2rem; flex-shrink: 0; }
+        .bonus-banner strong { color: var(--bonus); }
+
+        /* ── INDICES PROGRESSIFS ── */
+        .hints-section {
+            margin-top: 1.25rem;
+            border-top: 2px dashed #c4b5fd;
+            padding-top: 1.25rem;
+        }
+        .hints-title {
+            font-size: 0.85rem; font-weight: 700; color: var(--bonus);
+            letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.75rem;
+        }
+        .hints-list { display: flex; flex-direction: column; gap: 0.6rem; }
+        .hint-item  { display: flex; align-items: flex-start; gap: 0.6rem; flex-wrap: wrap; }
+        .hint-btn {
+            background: var(--bonus-light); color: var(--bonus);
+            border: 2px solid #c4b5fd; border-radius: 10px;
+            padding: 0.55rem 1rem;
+            font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease;
+            white-space: normal; flex-shrink: 0;
+        }
+        .hint-btn:hover:not(:disabled) { background: #ddd6fe; border-color: var(--bonus); }
+        .hint-btn:disabled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; cursor: default; }
+        .hint-text {
+            background: #faf5ff; border-left: 3px solid var(--bonus);
+            border-radius: 6px; padding: 0 0.85rem;
+            font-size: 0.92rem; color: var(--text-dark);
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease, opacity 0.3s ease;
+            opacity: 0; flex: 1; min-width: 0; word-break: break-word;
+        }
+        .hint-text.revealed { max-height: 200px; padding: 0.5rem 0.85rem; opacity: 1; }
+        .hint-text var { font-style: italic; font-family: 'Times New Roman','Cambria Math',serif; }
+
+        /* ── CORRECTION REVEAL ── */
+        .correction {
+            overflow: hidden; opacity: 0; height: 0; margin-top: 0;
+            transition: opacity 0.35s ease, height 0.35s cubic-bezier(0.4,0,0.2,1), margin-top 0.35s ease;
+        }
+        .correction.show { opacity: 1; margin-top: 1.5rem; }
+
+        .correction-box {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 2px solid var(--success); border-radius: 12px;
+            padding: 2.25rem 1.5rem 1.5rem; position: relative;
+        }
+        .correction-box::before {
+            content: '✓ Correction';
+            position: absolute; top:0; left:0;
+            background: var(--success); color: white;
+            padding: 0.45rem 1.25rem; border-radius: 12px 0 12px 0;
+            font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em;
+        }
+        .correction-content { margin-top: 0.75rem; line-height: 2; }
+
+        .solution {
+            font-family: 'Times New Roman','Cambria Math',serif;
+            background: white; padding: 0.45rem 1rem; border-radius: 8px;
+            border-left: 4px solid var(--success); margin: 0.5rem 0;
+            display: block; font-size: 1.08rem;
+         overflow-wrap: break-word; word-break: break-word; }
+
+        /* ── MATHS ── */
+        .exercise-content { font-size: 1.05rem; line-height: 2; }
+        .math-expr {
+            font-family: 'Times New Roman','Cambria Math',serif;
+            background: #f8faff; padding: 0.3rem 0.6rem;
+            border-radius: 6px; border: 1.5px solid var(--border);
+            display: inline-block; margin: 0.3rem; font-size: 1.12rem;
+         overflow-wrap: break-word; word-break: break-word; max-width: 100%; }
+        .math-expr var, .solution var, var {
+            font-style: italic; font-family: 'Times New Roman','Cambria Math',serif;
+        }
+
+        /* ── GRID ── */
+        .grid-exercises { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1rem 0; }
+
+        /* ── PROGRAMME ── */
+        .program-box { background: #f8faff; border: 2px solid var(--primary); border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+        .program-box var { font-family: 'Times New Roman','Cambria Math',serif; font-style: italic; }
+        .program-box div { padding: 0.5rem 0.5rem 0.5rem 1rem; border-left: 3px solid var(--secondary); margin: 0.5rem 0; }
+
+        /* ── FIGURES ── */
+        .figure-container { display: flex; gap: 2rem; margin: 1.5rem 0; flex-wrap: wrap; align-items: flex-start; }
+        .figure { text-align: center; }
+        .triangle-container { margin: 1.5rem 0; text-align: center; }
+
+        /* ── STEP BY STEP ── */
+        .step-by-step { background: #f8faff; border-left: 4px solid var(--primary); padding: 1rem; margin: 0.5rem 0; border-radius: 6px; }
+        .step-by-step var { font-family: 'Times New Roman','Cambria Math',serif; font-style: italic; }
+
+        /* ── FOOTER ── */
+        footer { text-align: center; margin-top: 3rem; padding: 2rem; color: var(--text-medium); font-style: italic; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width:900px) {
+            body { padding: 1.5rem 0.75rem; } h1 { font-size: 2rem; }
+            header { padding: 2rem 1.5rem; } .exercise { padding: 1.5rem; }
+            .exercise-title { font-size: 1.45rem; }
+            .grid-exercises { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        }
+        @media (max-width:600px) {
+            body { padding: 1rem 0.5rem; font-size: 0.97rem; }
+            h1 { font-size: 1.5rem; } .subtitle { font-size: 0.95rem; }
+            header { padding: 1.5rem 1rem; border-radius: 14px; }
+            .exercise { padding: 1rem 0.75rem; border-radius: 12px; margin-bottom: 1.25rem; }
+            .exercise-header { flex-direction: column; align-items: flex-start; }
+            .exercise-title { font-size: 1.2rem; }
+            .reveal-btn { width: 100%; text-align: center; padding: 0.85rem 1rem; }
+            .grid-exercises { grid-template-columns: 1fr; gap: 0.75rem; }
+            .math-expr { font-size: 1rem; padding: 0.25rem 0.5rem; }
+            .step-by-step { padding: 0.75rem; font-size: 0.97rem; }
+            .solution { font-size: 1rem; padding: 0.4rem 0.75rem; }
+            .program-box { padding: 0.75rem; }
+            .figure-container { flex-direction: column; gap: 1rem; }
+            .correction-box { padding: 1.75rem 0.75rem 1rem; }
+            .correction-box::before { font-size: 0.8rem; padding: 0.35rem 1rem; }
+            footer { margin-top: 2rem; padding: 1.25rem; font-size: 0.9rem; }
+            .progress-wrapper { padding: 1rem; gap: 0.75rem; }
+            .score-card { padding: 1.5rem 1.25rem; }
+            .hint-item { flex-direction: column; }
+            .hint-btn { white-space: normal; width: 100%; }
+            .hint-text { width: 100%; box-sizing: border-box; }
+            .hint-text.revealed { max-height: 600px; }
+        }
+        @media (max-width:380px) {
+            h1 { font-size: 1.25rem; } .exercise-title { font-size: 1.05rem; }
+            .math-expr, .solution { font-size: 0.9rem; }
+        }
+
+        .hint-for {
+            font-weight: 400; font-style: italic; text-transform: none;
+            letter-spacing: 0; font-size: 0.82rem; color: #6d28d9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>📐 Feuille d'exercices</h1>
+        <p class="subtitle">Simplifier, réduire et développer – Correction interactive</p>
+    </header>
+
+    <!-- BARRE DE PROGRESSION -->
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-counter" id="progressCounter">0 / 6</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- CARTE DE SCORE (apparaît quand tout est vu) -->
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji"   id="scoreEmoji"></span>
+        <div  class="score-title"   id="scoreTitle"></div>
+        <div  class="score-stars"   id="scoreStars"></div>
+        <p    class="score-message" id="scoreMessage"></p>
+        <div  class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+
+    <!-- ════ Exercice 1 ════ -->
+    <div class="exercise" id="card-ex1">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 6</h2>
+                <span class="exercise-tag">Simplifier</span>
+            </div>
+            <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Simplifier les expressions suivantes :</strong></p>
+            <div class="grid-exercises">
+                <div><span class="math-expr">1 × <var>x</var></span></div>
+                <div><span class="math-expr"><var>x</var> × <var>x</var></span></div>
+                <div><span class="math-expr">3 × <var>x</var></span></div>
+                <div><span class="math-expr"><var>x</var> × 4</span></div>
+                <div><span class="math-expr">8 × (<var>x</var> + 2)</span></div>
+                <div><span class="math-expr">2 × <var>x</var> × 3</span></div>
+                <div><span class="math-expr">2 × <var>a</var> × <var>b</var></span></div>
+                <div><span class="math-expr">2 × <var>y</var> × 3 × <var>y</var></span></div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-le si tu bloques <span class="hint-for">(pour l'exercice 1)</span></p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice 1/1</button>
+                    <div class="hint-text" id="h1-1">Que se passe-t-il quand on multiplie des puissances d'une même lettre ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex1">
+            <div class="correction-box">
+                <div class="correction-content">
+                    <div class="grid-exercises">
+                        <div><span class="solution">1 × <var>x</var> = <var>x</var></span></div>
+                        <div><span class="solution"><var>x</var> × <var>x</var> = <var>x</var>²</span></div>
+                        <div><span class="solution">3 × <var>x</var> = 3<var>x</var></span></div>
+                        <div><span class="solution"><var>x</var> × 4 = 4<var>x</var></span></div>
+                        <div><span class="solution">8 × (<var>x</var> + 2) = 8(<var>x</var> + 2)</span></div>
+                        <div><span class="solution">2 × <var>x</var> × 3 = 6<var>x</var></span></div>
+                        <div><span class="solution">2 × <var>a</var> × <var>b</var> = 2<var>ab</var></span></div>
+                        <div><span class="solution">2 × <var>y</var> × 3 × <var>y</var> = 6<var>y</var>²</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ Exercice 2 ════ -->
+    <div class="exercise" id="card-ex2">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 6</h2>
+                <span class="exercise-tag">Réduire</span>
+            </div>
+            <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Réduire les expressions suivantes :</strong></p>
+            <div class="grid-exercises">
+                <div><span class="math-expr">2<var>x</var> + 3<var>x</var></span></div>
+                <div><span class="math-expr">3<var>x</var> + 2<var>y</var></span></div>
+                <div><span class="math-expr"><var>z</var> + 15</span></div>
+                <div><span class="math-expr">8<var>x</var> − 7<var>x</var></span></div>
+                <div><span class="math-expr">2<var>x</var> + 2<var>y</var> + 8<var>x</var></span></div>
+                <div><span class="math-expr">9<var>x</var> + 3<var>y</var> + 2<var>z</var> + 8<var>x</var> + 5<var>y</var> − <var>z</var></span></div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-le si tu bloques <span class="hint-for">(pour l'exercice 2)</span></p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Indice 1/1</button>
+                    <div class="hint-text" id="h2-1">Toutes les additions sont-elles possibles ? Pense à ce que les termes doivent avoir en commun.</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex2">
+            <div class="correction-box">
+                <div class="correction-content">
+                    <div class="grid-exercises">
+                        <div><span class="solution">2<var>x</var> + 3<var>x</var> = 5<var>x</var></span></div>
+                        <div><span class="solution">3<var>x</var> + 2<var>y</var> = 3<var>x</var> + 2<var>y</var></span></div>
+                        <div><span class="solution"><var>z</var> + 15 = <var>z</var> + 15</span></div>
+                        <div><span class="solution">8<var>x</var> − 7<var>x</var> = <var>x</var></span></div>
+                        <div><span class="solution">2<var>x</var> + 2<var>y</var> + 8<var>x</var> = 10<var>x</var> + 2<var>y</var></span></div>
+                        <div><span class="solution">9<var>x</var> + 3<var>y</var> + 2<var>z</var> + 8<var>x</var> + 5<var>y</var> − <var>z</var> = 17<var>x</var> + 8<var>y</var> + <var>z</var></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ Exercice 3 ════ -->
+    <div class="exercise" id="card-ex3">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 6</h2>
+                <span class="exercise-tag">Programme de calcul</span>
+            </div>
+            <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>On considère le programme de calcul suivant :</strong></p>
+            <div class="program-box">
+                <div>- Choisir un nombre</div>
+                <div>- Multiplier ce nombre par 2</div>
+                <div>- Ajouter 3</div>
+            </div>
+            <p><strong>1.</strong> En prenant 4 comme nombre de départ, montrer que l'on obtient 11 comme nombre d'arrivée.</p>
+            <p><strong>2.</strong> Qu'obtient-on en prenant <var>x</var> au départ ?</p>
+        </div>
+        <div class="correction" id="ex3">
+            <div class="correction-box">
+                <div class="correction-content">
+                    <div class="step-by-step">
+                        <strong>Question 1 : Avec le nombre 4</strong><br>
+                        • Choisir un nombre : <strong>4</strong><br>
+                        • Multiplier par 2 : 4 × 2 = <strong>8</strong><br>
+                        • Ajouter 3 : 8 + 3 = <strong>11</strong><br>
+                        ✓ On obtient bien 11 comme nombre d'arrivée.
+                    </div>
+                    <div class="step-by-step">
+                        <strong>Question 2 : Avec le nombre <var>x</var></strong><br>
+                        • Choisir un nombre : <strong><var>x</var></strong><br>
+                        • Multiplier par 2 : <strong>2<var>x</var></strong><br>
+                        • Ajouter 3 : <strong>2<var>x</var> + 3</strong><br><br>
+                        <span class="solution">Réponse : 2<var>x</var> + 3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ Exercice 4 ════ -->
+    <div class="exercise" id="card-ex4">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 6</h2>
+                <span class="exercise-tag">Figures géométriques</span>
+            </div>
+            <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>On considère les figures suivantes :</strong></p>
+            <div class="figure-container">
+                <div class="figure">
+                    <svg viewBox="0 0 180 180" style="width:160px;height:160px;max-width:100%;overflow:visible;">
+                        <rect x="20" y="20" width="130" height="130" fill="white" stroke="#4f46e5" stroke-width="3"/>
+                        <text x="85" y="168" text-anchor="middle" font-family="Times New Roman,Cambria Math,serif" font-size="22" font-style="italic" fill="#1e1b4b">x</text>
+                        <text x="163" y="90" text-anchor="start" font-family="Times New Roman,Cambria Math,serif" font-size="22" font-style="italic" fill="#1e1b4b">x</text>
+                    </svg>
+                    <p style="font-size:0.85rem;color:var(--text-medium);margin-top:0.25rem;">Carré</p>
+                </div>
+                <div class="figure">
+                    <svg viewBox="0 0 240 170" style="width:220px;height:160px;max-width:100%;overflow:visible;">
+                        <rect x="20" y="25" width="190" height="110" fill="white" stroke="#be185d" stroke-width="3"/>
+                        <text x="115" y="155" text-anchor="middle" font-family="Times New Roman,Cambria Math,serif" font-size="22" font-style="italic" fill="#1e1b4b">y + 4</text>
+                        <text x="222" y="87" text-anchor="start" font-family="Times New Roman,Cambria Math,serif" font-size="22" font-style="italic" fill="#1e1b4b">y</text>
+                    </svg>
+                    <p style="font-size:0.85rem;color:var(--text-medium);margin-top:0.25rem;">Rectangle</p>
+                </div>
+            </div>
+            <p><strong>1.</strong> Quel est le périmètre du carré ?</p>
+            <p><strong>2.</strong> Quel est le périmètre du rectangle ?</p>
+            <p><strong>3.</strong> Quelle est l'aire du carré ?</p>
+            <p style="font-style:italic;color:#6b7280;margin-top:1rem;">
+                <strong>Indication :</strong> Le périmètre est le contour de la figure.<br>
+                L'aire d'un carré = <em>longueur</em> × <em>largeur</em>
+            </p>
+        </div>
+        <div class="correction" id="ex4">
+            <div class="correction-box">
+                <div class="correction-content">
+                    <div class="step-by-step">
+                        <strong>Question 1 : Périmètre du carré</strong><br>
+                        Un carré a 4 côtés égaux de longueur <var>x</var>.<br>
+                        Périmètre = <var>x</var> + <var>x</var> + <var>x</var> + <var>x</var> = <strong>4<var>x</var></strong>
+                        <br><span class="solution">Réponse : 4<var>x</var></span>
+                    </div>
+                    <div class="step-by-step">
+                        <strong>Question 2 : Périmètre du rectangle</strong><br>
+                        Largeur : <var>y</var> &nbsp;·&nbsp; Longueur : <var>y</var> + 4<br>
+                        Périmètre = 2 × <var>y</var> + 2 × (<var>y</var> + 4)<br>
+                        = 2<var>y</var> + 2<var>y</var> + 8 = <strong>4<var>y</var> + 8</strong>
+                        <br><span class="solution">Réponse : 4<var>y</var> + 8</span>
+                    </div>
+                    <div class="step-by-step">
+                        <strong>Question 3 : Aire du carré</strong><br>
+                        Aire = <var>x</var> × <var>x</var> = <strong><var>x</var>²</strong>
+                        <br><span class="solution">Réponse : <var>x</var>²</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ Exercice 5 ════ -->
+    <div class="exercise" id="card-ex5">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 6</h2>
+                <span class="exercise-tag">Développer</span>
+            </div>
+            <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Développer les expressions suivantes :</strong></p>
+            <div class="grid-exercises">
+                <div><span class="math-expr">12(<var>x</var> + 2)</span></div>
+                <div><span class="math-expr">5(<var>x</var> − 3)</span></div>
+                <div><span class="math-expr"><var>x</var>(2 + 3)</span></div>
+                <div><span class="math-expr"><var>a</var>(<var>b</var> + <var>c</var>)</span></div>
+            </div>
+            <div class="hints-section">
+                <p class="hints-title">💡 Indice – débloque-le si tu bloques <span class="hint-for">(pour l'exercice 5)</span></p>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h5-1">💡 Indice 1/1</button>
+                        <div class="hint-text" id="h5-1">Combien de multiplications faut-il faire quand il y a deux termes dans la parenthèse ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex5">
+            <div class="correction-box">
+                <div class="correction-content">
+                    <div class="grid-exercises">
+                        <div>
+                            <strong>12(<var>x</var> + 2)</strong><br>
+                            = 12 × <var>x</var> + 12 × 2<br>
+                            <span class="solution">= 12<var>x</var> + 24</span>
+                        </div>
+                        <div>
+                            <strong>5(<var>x</var> − 3)</strong><br>
+                            = 5 × <var>x</var> − 5 × 3<br>
+                            <span class="solution">= 5<var>x</var> − 15</span>
+                        </div>
+                        <div>
+                            <strong><var>x</var>(2 + 3)</strong><br>
+                            = <var>x</var> × 2 + <var>x</var> × 3 = 2<var>x</var> + 3<var>x</var><br>
+                            <span class="solution">= 5<var>x</var></span>
+                        </div>
+                        <div>
+                            <strong><var>a</var>(<var>b</var> + <var>c</var>)</strong><br>
+                            = <var>a</var> × <var>b</var> + <var>a</var> × <var>c</var><br>
+                            <span class="solution">= <var>ab</var> + <var>ac</var></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ Exercice 6 — BONUS ════ -->
+    <div class="exercise bonus-exercise" id="card-ex6">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 6 / 6</h2>
+                <span class="exercise-tag">⭐ Bonus – Mise en application</span>
+            </div>
+            <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+        </div>
+        <div class="bonus-banner">
+            <span class="bonus-banner-icon">🎯</span>
+            <span>
+                <strong>Bonus – Mise en application :</strong> Cet exercice va plus loin que la simplification.
+                Il mobilise la <em>résolution d'équation</em> et les propriétés des triangles.
+                C'est un excellent moyen de voir comment l'algèbre s'applique à la géométrie !
+            </span>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Léa affirme que ce triangle est rectangle. Comment peux-tu le montrer ?</strong></p>
+            <div class="triangle-container">
+                <svg viewBox="0 0 500 300" style="max-width:100%;height:auto;margin:1rem auto;display:block;">
+                    <polygon points="100,240 450,240 450,60" fill="none" stroke="#1e1b4b" stroke-width="2.5"/>
+                    <path d="M 100,240 L 140,240 L 130,225 Z" fill="#7c3aed" opacity="0.4"/>
+                    <path d="M 450,60  L 450,105 L 410,82 Z"  fill="#059669" opacity="0.4"/>
+                    <path d="M 450,240 L 450,200 L 410,240 Z" fill="#0891b2" opacity="0.4"/>
+                    <text x="78"  y="257" font-family="Times New Roman,Cambria Math,serif" font-size="26" font-weight="bold" fill="#1e1b4b">A</text>
+                    <text x="460" y="70"  font-family="Times New Roman,Cambria Math,serif" font-size="26" font-weight="bold" fill="#1e1b4b">B</text>
+                    <text x="460" y="257" font-family="Times New Roman,Cambria Math,serif" font-size="26" font-weight="bold" fill="#1e1b4b">C</text>
+                    <text x="128" y="232" font-family="Times New Roman,Cambria Math,serif" font-size="21" font-style="italic" fill="#7c3aed">x</text>
+                    <text x="415" y="93"  font-family="Times New Roman,Cambria Math,serif" font-size="21" font-style="italic" fill="#059669">2x</text>
+                    <text x="415" y="230" font-family="Times New Roman,Cambria Math,serif" font-size="21" font-style="italic" fill="#0891b2">3x</text>
+                </svg>
+            </div>
+            <p style="font-style:italic;color:#6b7280;">
+                <strong>Indication 1 :</strong> La somme des angles d'un triangle mesure 180°<br>
+                <strong>Indication 2 :</strong> Un angle droit mesure 90°
+            </p>
+
+            <!-- INDICES PROGRESSIFS -->
+            <div class="hints-section">
+                <p class="hints-title">🔍 Indices – débloque-les un par un si tu bloques <span class="hint-for">(pour l'exercice 6)</span></p>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-1">💡 Indice 1/3</button>
+                        <div class="hint-text" id="h6-1">Quelles informations te donne la figure ? Peux-tu exprimer les trois angles avec la variable <var>x</var> ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-2">💡 Indice 2/3</button>
+                        <div class="hint-text" id="h6-2">Tu as maintenant une équation. Y a-t-il des termes qu'on pourrait regrouper ensemble ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-3">💡 Indice 3/3</button>
+                        <div class="hint-text" id="h6-3">L'équation simplifiée ressemble à celles que tu as déjà résolues. Que fais-tu en général pour isoler l'inconnue ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex6">
+            <div class="correction-box">
+                <div class="correction-content">
+                    <div class="step-by-step">
+                        <strong>Étape 1 – Écrire l'équation</strong><br>
+                        <var>x</var> + 2<var>x</var> + 3<var>x</var> = 180°<br>
+                        6<var>x</var> = 180°<br><br>
+                        <strong>Étape 2 – Trouver <var>x</var></strong><br>
+                        <var>x</var> = 180° ÷ 6 = <strong>30°</strong><br><br>
+                        <strong>Étape 3 – Calculer chaque angle</strong><br>
+                        • Angle A = <var>x</var> = <strong>30°</strong><br>
+                        • Angle B = 2<var>x</var> = 2 × 30° = <strong>60°</strong><br>
+                        • Angle C = 3<var>x</var> = 3 × 30° = <strong>90°</strong><br><br>
+                        <span class="solution">
+                            ✓ Angle C = 90° → le triangle est bien rectangle. Léa a raison !
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>🎓 Bonne révision ! N'hésite pas à refaire les exercices pour bien consolider.</footer>
+</div>
+
+<script>
+    const TOTAL   = 6;
+    const seenSet = new Set();   // exercices vus (permanent)
+    const openSet = new Set();   // exercices actuellement ouverts
+
+    const SCORE_DATA = [
+        { min:6, emoji:'🏆', stars:'⭐⭐⭐', title:'Parfait !',       msg:'Tu as tout revu avec soin. Excellent travail !' },
+        { min:5, emoji:'🎉', stars:'⭐⭐⭐', title:'Très bien !',      msg:'Tu as vérifié presque tout. Jette encore un œil au dernier !' },
+        { min:4, emoji:'👍', stars:'⭐⭐',  title:'Bien !',            msg:'Plus de la moitié vérifiée. Continue sur ta lancée !' },
+        { min:1, emoji:'💪', stars:'⭐',   title:"C'est un début !",  msg:"N'hésite pas à ouvrir les autres corrections pour tout consolider." },
+    ];
+
+    /* ── Créer les points ── */
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'progress-dot' + (i === 6 ? ' bonus-dot' : '');
+        dot.id = `dot-ex${i}`;
+        dot.title = `Exercice ${i}`;
+        dotsContainer.appendChild(dot);
+    }
+
+    /* ── Mise à jour de la barre ── */
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width    = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+
+    /* ── Carte de score ── */
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+
+        const data  = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        const bonus = seenSet.has('ex6');
+
+        document.getElementById('scoreEmoji').textContent   = data.emoji;
+        document.getElementById('scoreTitle').textContent   = data.title;
+        document.getElementById('scoreStars').textContent   = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML = `
+            <span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>
+            ${bonus ? '<span class="score-badge purple">⭐ Bonus réalisé</span>' : ''}
+            <span class="score-badge blue">📚 Feuille complète</span>
+        `;
+
+        card.classList.add('visible');
+        setTimeout(() => card.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
+    }
+
+    /* ── Animation hauteur ── */
+    function openCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        el.classList.add('show');
+    }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+
+    /* ── Toggle ── */
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card       = correction.closest('.exercise');
+        const btn        = card.querySelector('.reveal-btn');
+        const dot        = document.getElementById(`dot-${exId}`);
+        const isOpen     = openSet.has(exId);
+
+        if (isOpen) {
+            closeCorrection(correction);
+            btn.classList.remove('active');
+            btn.textContent = 'Voir la correction';
+            openSet.delete(exId);
+        } else {
+            openCorrection(correction);
+            btn.classList.add('active');
+            btn.textContent = 'Masquer la correction';
+            openSet.add(exId);
+
+            /* Progression permanente : marquer une seule fois */
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId);
+                dot.classList.add('done');
+                card.classList.add('seen');
+                updateProgress();
+            }
+        }
+    }
+
+    /* ── Listeners boutons de correction ── */
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+
+    /* ── Reset height après transition ── */
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show'))
+                el.style.height = 'auto';
+        });
+    });
+
+    /* ── Indices indépendants ── */
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetId = this.dataset.hint;
+            document.getElementById(targetId).classList.add('revealed');
+            this.disabled    = true;
+            this.textContent = '✓ ' + this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

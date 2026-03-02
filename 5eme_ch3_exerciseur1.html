@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enchaînement d'opérations</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+    --board:#1a3325;
+    --board-light:#24452f;
+    --chalk:#f0ebe3;
+    --chalk-dim:rgba(240,235,227,0.5);
+    --yellow:#fcd34d;
+    --pink:#f9a8d4;
+    --blue:#7dd3fc;
+    --green-c:#86efac;
+    --red-c:#fca5a5;
+    --orange-c:#fdba74;
+    --wood:#6b4226;
+    --wood-light:#a0784c;
+    --wood-dark:#4a2e19;
+}
+
+body{
+    font-family:'Kalam',cursive;
+    min-height:100vh;
+    background:#2a1f14;
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:20px 10px;
+    -webkit-text-size-adjust:100%;
+    -webkit-tap-highlight-color:transparent;
+}
+
+/* ============ CHALKBOARD ============ */
+.board{
+    background:
+        radial-gradient(ellipse at 30% 30%,rgba(35,75,50,0.6) 0%,transparent 60%),
+        radial-gradient(ellipse at 70% 70%,rgba(30,65,45,0.5) 0%,transparent 60%),
+        linear-gradient(135deg,#152e1f 0%,#1e3a2c 40%,#173120 100%);
+    border-radius:6px;
+    padding:32px 28px;
+    max-width:820px;width:100%;position:relative;
+    min-height:90vh;color:var(--chalk);
+    /* Wooden frame */
+    border:10px solid var(--wood);
+    border-image:linear-gradient(180deg,var(--wood-light),var(--wood),var(--wood-dark)) 1;
+    box-shadow:
+        inset 0 0 60px rgba(0,0,0,0.3),
+        inset 0 0 120px rgba(0,0,0,0.1),
+        0 8px 32px rgba(0,0,0,0.4),
+        0 0 0 2px var(--wood-dark);
+}
+
+/* Chalk dust speckles */
+.board::before{
+    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+    background-image:
+        radial-gradient(circle 1px,rgba(255,255,255,0.03) 1px,transparent 1px),
+        radial-gradient(circle 1px,rgba(255,255,255,0.02) 1px,transparent 1px);
+    background-size:40px 40px,60px 60px;
+    background-position:0 0,30px 30px;
+    pointer-events:none;border-radius:2px;
+}
+
+/* Chalk tray */
+.board::after{
+    content:'';position:absolute;bottom:-18px;left:20px;right:20px;
+    height:8px;background:linear-gradient(180deg,var(--wood-light),var(--wood));
+    border-radius:0 0 4px 4px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.3);
+}
+
+h1{
+    font-family:'Playfair Display',serif;
+    font-size:1.8em;color:var(--yellow);
+    text-align:center;margin-bottom:6px;line-height:1.3;
+    text-shadow:0 0 8px rgba(252,211,77,0.2);
+}
+.subtitle{text-align:center;font-size:1.05em;color:var(--chalk-dim);margin-bottom:24px;}
+
+.screen{display:none;animation:fadeIn 0.35s ease;position:relative;z-index:1;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ BUTTONS ============ */
+.btn{
+    font-family:'Kalam',cursive;padding:12px 26px;border-radius:10px;
+    font-size:1.05em;cursor:pointer;transition:all 0.2s;border:2px solid;
+    min-height:46px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;
+}
+.btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+.btn-yellow{background:var(--yellow);color:#1a1a1a;border-color:var(--yellow);font-weight:700;
+    box-shadow:0 2px 12px rgba(252,211,77,0.2);}
+.btn-yellow:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(252,211,77,0.3);}
+
+.btn-green{background:var(--green-c);color:#1a1a1a;border-color:var(--green-c);font-weight:700;}
+.btn-green:hover:not(:disabled){transform:translateY(-2px);}
+
+.btn-chalk{background:transparent;color:var(--chalk);border-color:var(--chalk-dim);}
+.btn-chalk:hover{background:rgba(240,235,227,0.08);border-color:var(--chalk);}
+
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
+
+/* ============ INTRO ============ */
+.intro-screen{text-align:center;padding:16px 0;}
+.intro-visual{font-size:2em;margin-bottom:12px;color:var(--yellow);letter-spacing:2px;
+    text-shadow:0 0 10px rgba(252,211,77,0.15);}
+.intro-desc{color:var(--chalk-dim);font-size:1.05em;max-width:520px;margin:0 auto 24px;line-height:1.65;}
+
+/* ============ TUTORIAL ============ */
+.tuto-block{
+    background:rgba(255,255,255,0.04);border:1px dashed var(--chalk-dim);
+    border-radius:12px;padding:18px;margin-bottom:16px;
+}
+.tuto-title{font-family:'Playfair Display',serif;font-size:1.05em;color:var(--yellow);margin-bottom:10px;
+    padding-bottom:4px;border-bottom:1px solid rgba(252,211,77,0.2);}
+.tuto-text{color:var(--chalk-dim);line-height:1.6;margin-bottom:6px;}
+.tuto-text strong{color:var(--chalk);}
+
+.rule-table{width:100%;border-collapse:collapse;margin:8px 0;}
+.rule-table th{font-size:0.88em;color:var(--yellow);text-align:left;padding:6px 8px;border-bottom:1px solid rgba(252,211,77,0.2);}
+.rule-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.06);color:var(--chalk-dim);font-size:0.92em;line-height:1.4;}
+.rule-table td:first-child{color:var(--pink);font-weight:700;font-size:1.1em;text-align:center;width:50px;}
+.rule-table td:nth-child(2){color:var(--chalk);}
+
+.priority-box{
+    background:rgba(252,211,77,0.08);border:1px solid rgba(252,211,77,0.25);
+    border-radius:10px;padding:12px 16px;margin:10px 0;text-align:center;
+}
+.priority-box .p-high{color:var(--pink);font-weight:700;font-size:1.15em;}
+.priority-box .p-low{color:var(--blue);font-size:1em;}
+.priority-box .p-arrow{color:var(--chalk-dim);margin:4px 0;font-size:0.85em;}
+
+/* ============ MENU ============ */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;}
+.menu-card{
+    background:rgba(255,255,255,0.04);border:2px solid rgba(240,235,227,0.15);
+    border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;transition:all 0.25s;
+    min-height:110px;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.menu-card:hover{border-color:var(--yellow);transform:translateY(-4px);
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);background:rgba(255,255,255,0.07);}
+.menu-card .card-icon{font-size:1.8em;margin-bottom:4px;}
+.menu-card .card-title{font-size:1.05em;color:var(--yellow);font-weight:700;margin-bottom:2px;}
+.menu-card .card-desc{font-size:0.82em;color:var(--chalk-dim);}
+
+/* ============ EXERCISE HEADER ============ */
+.ex-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.ex-badge{background:var(--yellow);color:#1a1a1a;padding:5px 14px;border-radius:20px;font-size:0.88em;font-weight:700;}
+.ex-score{font-size:0.95em;color:var(--chalk);background:rgba(255,255,255,0.06);padding:5px 14px;border-radius:20px;}
+.progress-wrap{width:100%;background:rgba(255,255,255,0.08);border-radius:6px;height:5px;overflow:hidden;margin-bottom:16px;}
+.progress-fill{height:100%;background:var(--yellow);border-radius:6px;transition:width 0.4s ease;}
+
+/* ============ EXPRESSION DISPLAY ============ */
+.expr-display{
+    text-align:center;margin:16px 0;font-size:2.4em;font-weight:700;
+    color:var(--chalk);letter-spacing:3px;line-height:1.4;
+    text-shadow:0 0 6px rgba(240,235,227,0.1);
+}
+.expr-display .hl-pink{color:var(--pink);text-decoration:underline;text-decoration-color:var(--pink);text-underline-offset:6px;}
+.expr-display .hl-blue{color:var(--blue);}
+.expr-display .hl-yellow{color:var(--yellow);}
+.expr-display .hl-green{color:var(--green-c);}
+.expr-display .hl-orange{color:var(--orange-c);}
+.expr-display .hl-dim{color:var(--chalk-dim);}
+
+/* ============ PROMPT ============ */
+.prompt-zone{
+    background:rgba(255,255,255,0.05);border:2px solid rgba(240,235,227,0.12);
+    border-radius:14px;padding:18px 20px;text-align:center;margin-bottom:14px;
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.prompt-text{font-size:1.12em;color:var(--chalk);line-height:1.5;}
+.prompt-text .hl{color:var(--yellow);font-weight:700;}
+.prompt-text .hl-pink{color:var(--pink);font-weight:700;}
+.prompt-text .hl-blue{color:var(--blue);font-weight:700;}
+
+.prompt-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+.prompt-input{
+    font-family:'Kalam',cursive;font-size:1.4em;width:200px;text-align:center;
+    border:2px dashed var(--chalk-dim);border-radius:10px;background:rgba(0,0,0,0.2);
+    padding:10px;outline:none;color:var(--chalk);transition:all 0.2s;
+    min-height:48px;touch-action:manipulation;
+}
+.prompt-input:focus{border-color:var(--yellow);background:rgba(0,0,0,0.3);box-shadow:0 0 0 3px rgba(252,211,77,0.1);}
+.prompt-input.error{border-color:var(--red-c);background:rgba(220,38,38,0.1);animation:shake 0.4s;}
+.prompt-input::placeholder{color:var(--chalk-dim);}
+
+/* ============ CHOICE CHIPS ============ */
+.chips-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0;}
+.chip{
+    font-family:'Kalam',cursive;font-size:1.15em;padding:11px 22px;
+    border-radius:30px;cursor:pointer;border:2px solid var(--chalk-dim);
+    background:rgba(0,0,0,0.15);color:var(--chalk);transition:all 0.2s;
+    user-select:none;-webkit-tap-highlight-color:transparent;
+    min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;
+}
+.chip:hover{border-color:var(--chalk);background:rgba(255,255,255,0.08);}
+.chip.correct{background:rgba(134,239,172,0.2);color:var(--green-c);border-color:var(--green-c);}
+.chip.wrong{background:rgba(252,165,165,0.2);color:var(--red-c);border-color:var(--red-c);animation:shake 0.4s;}
+.chip:disabled,.chip.disabled{pointer-events:none;opacity:0.4;}
+
+/* Operation chips for priority level */
+.op-chip{
+    font-family:'Kalam',cursive;font-size:1.35em;padding:13px 24px;
+    border-radius:14px;cursor:pointer;border:3px solid var(--chalk-dim);
+    background:rgba(0,0,0,0.2);color:var(--chalk);transition:all 0.2s;
+    user-select:none;min-width:100px;text-align:center;
+    -webkit-tap-highlight-color:transparent;
+    min-height:52px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;
+}
+.op-chip:hover{border-color:var(--yellow);background:rgba(252,211,77,0.08);}
+.op-chip.correct{border-color:var(--green-c);background:rgba(134,239,172,0.15);color:var(--green-c);}
+.op-chip.wrong{border-color:var(--red-c);background:rgba(252,165,165,0.1);color:var(--red-c);animation:shake 0.4s;}
+.op-chip:disabled{pointer-events:none;opacity:0.35;}
+
+/* ============ STEP-BY-STEP DISPLAY ============ */
+.step-history{
+    display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0;
+}
+.step-line{
+    font-size:1.5em;color:var(--chalk-dim);text-align:center;
+    padding:4px 16px;border-radius:8px;transition:all 0.3s;
+}
+.step-line.current{color:var(--chalk);font-weight:700;background:rgba(255,255,255,0.05);}
+.step-line.done{color:var(--chalk-dim);font-size:1.3em;}
+.step-line.final{color:var(--green-c);font-weight:700;font-size:1.6em;}
+.step-line .hl-underline{
+    color:var(--pink);text-decoration:underline wavy;
+    text-decoration-color:var(--pink);text-underline-offset:5px;
+}
+
+/* ============ STEP TEXT INPUT ============ */
+.step-input-wrap{
+    display:flex;align-items:center;gap:8px;justify-content:center;
+    margin:10px 0;flex-wrap:wrap;
+}
+.step-prefix{font-size:1.7em;color:var(--chalk);font-weight:700;flex-shrink:0;}
+.step-text-input{
+    font-family:'Kalam',cursive;font-size:1.35em;width:280px;text-align:center;
+    border:2px dashed var(--chalk-dim);border-radius:10px;background:rgba(0,0,0,0.25);
+    padding:12px 14px;outline:none;color:var(--chalk);transition:all 0.2s;
+    min-height:50px;touch-action:manipulation;
+}
+.step-text-input:focus{border-color:var(--yellow);background:rgba(0,0,0,0.35);box-shadow:0 0 0 3px rgba(252,211,77,0.12);}
+.step-text-input.error{border-color:var(--red-c);background:rgba(220,38,38,0.12);animation:shake 0.4s;}
+.step-text-input.correct{border-color:var(--green-c);background:rgba(134,239,172,0.1);}
+.step-text-input::placeholder{color:var(--chalk-dim);}
+
+.step-hint{font-size:0.92em;color:var(--chalk-dim);text-align:center;min-height:22px;margin-top:4px;}
+.step-hint .expected{color:var(--yellow);font-weight:700;}
+
+/* ============ FEEDBACK ============ */
+.feedback-box{
+    margin-top:14px;padding:14px 18px;border-radius:12px;
+    font-size:1em;text-align:center;display:none;animation:fadeIn 0.3s ease;
+}
+.feedback-box.correct{background:rgba(134,239,172,0.12);color:var(--green-c);border:2px solid rgba(134,239,172,0.3);display:block;}
+.feedback-box.incorrect{background:rgba(252,165,165,0.1);color:var(--red-c);border:2px solid rgba(252,165,165,0.25);display:block;}
+
+.prompt-feedback{font-size:1em;min-height:24px;text-align:center;}
+
+/* ============ RESULTS ============ */
+.results-screen{text-align:center;padding:16px 0;}
+.results-emoji{font-size:3.5em;margin-bottom:10px;}
+.results-score{font-family:'Playfair Display',serif;font-size:2.6em;font-weight:700;color:var(--yellow);margin-bottom:4px;}
+.results-label{font-size:1em;color:var(--chalk-dim);margin-bottom:16px;}
+.results-bar{width:100%;max-width:260px;height:8px;background:rgba(255,255,255,0.08);border-radius:6px;margin:0 auto 16px;overflow:hidden;}
+.results-bar-fill{height:100%;border-radius:6px;transition:width 1s ease;width:0%;}
+.results-bar-fill.good{background:var(--green-c);}
+.results-bar-fill.bad{background:var(--red-c);}
+.results-msg{font-size:1.2em;color:var(--chalk);margin-bottom:20px;}
+
+/* ============ VOCAB CARD ============ */
+.vocab-card{
+    text-align:center;margin:20px 0;padding:20px;
+    background:rgba(255,255,255,0.04);border:2px solid rgba(240,235,227,0.1);
+    border-radius:16px;
+}
+.vocab-operation{font-size:3em;font-weight:700;color:var(--yellow);margin-bottom:8px;letter-spacing:6px;}
+.vocab-word{font-size:2.2em;font-weight:700;color:var(--pink);margin-bottom:8px;}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ==================== RESPONSIVE ==================== */
+@media(max-width:768px){
+body{padding:18px 8px;}
+.board{padding:28px 20px;border-width:8px;}
+h1{font-size:1.6em;}
+.subtitle{font-size:1em;}
+.intro-visual{font-size:1.8em;}
+.intro-desc{font-size:1em;max-width:100%;}
+.tuto-block{padding:16px;}
+.tuto-title{font-size:1.02em;}
+.rule-table th{font-size:0.86em;}
+.rule-table td{font-size:0.9em;padding:6px 7px;}
+.menu-grid{grid-template-columns:1fr 1fr;gap:10px;}
+.menu-card{padding:16px 12px;min-height:100px;}
+.menu-card .card-icon{font-size:1.65em;}
+.menu-card .card-title{font-size:1em;}
+.menu-card .card-desc{font-size:0.8em;}
+.btn{padding:11px 24px;font-size:1em;min-height:44px;}
+.controls{gap:9px;}
+.expr-display{font-size:1.9em;letter-spacing:3px;}
+.step-line{font-size:1.35em;}
+.step-line.done{font-size:1.2em;}
+.step-line.final{font-size:1.5em;}
+.step-text-input{width:240px;font-size:1.25em;padding:11px 12px;min-height:48px;}
+.step-prefix{font-size:1.55em;}
+.op-chip{font-size:1.25em;padding:12px 22px;min-width:90px;min-height:50px;}
+.chip{font-size:1.1em;padding:10px 20px;min-height:42px;}
+.prompt-input{width:180px;font-size:1.3em;padding:10px;min-height:46px;}
+.vocab-operation{font-size:2.6em;}
+.vocab-word{font-size:1.8em;}
+.results-emoji{font-size:3.2em;}
+.results-score{font-size:2.4em;}
+}
+
+@media(max-width:600px){
+body{padding:16px 6px;}
+.board{padding:24px 16px;border-width:7px;min-height:85vh;}
+h1{font-size:1.4em;}
+.subtitle{font-size:0.96em;margin-bottom:20px;}
+.intro-visual{font-size:1.65em;letter-spacing:1px;}
+.intro-desc{font-size:0.98em;line-height:1.6;margin-bottom:20px;}
+.tuto-block{padding:15px;margin-bottom:14px;}
+.tuto-title{font-size:1em;}
+.tuto-text{font-size:0.96em;}
+.rule-table th{font-size:0.84em;padding:5px 7px;}
+.rule-table td{font-size:0.88em;padding:6px 6px;}
+.rule-table td:first-child{font-size:1em;width:45px;}
+.priority-box{padding:11px 14px;}
+.priority-box .p-high{font-size:1.1em;}
+.menu-grid{grid-template-columns:1fr 1fr;gap:9px;}
+.menu-card{padding:15px 11px;min-height:95px;}
+.menu-card .card-icon{font-size:1.5em;margin-bottom:3px;}
+.menu-card .card-title{font-size:0.98em;}
+.menu-card .card-desc{font-size:0.78em;}
+.btn{padding:10px 22px;font-size:0.98em;min-height:42px;}
+.btn-yellow,.btn-green{font-size:0.96em;}
+.controls{gap:8px;margin-top:14px;}
+.ex-header{gap:7px;margin-bottom:10px;}
+.ex-badge{padding:4px 12px;font-size:0.85em;}
+.ex-score{font-size:0.92em;padding:4px 12px;}
+.expr-display{font-size:1.7em;letter-spacing:2px;padding:10px;}
+.prompt-text{font-size:1em;}
+.prompt-row{gap:8px;}
+.prompt-input{width:160px;font-size:1.2em;padding:9px;min-height:44px;}
+.chips-row{gap:9px;}
+.chip{font-size:1em;padding:9px 18px;min-height:40px;}
+.op-chip{font-size:1.1em;padding:11px 20px;min-width:80px;min-height:48px;}
+.step-history{gap:3px;margin:8px 0;}
+.step-line{font-size:1.2em;padding:3px 14px;}
+.step-line.done{font-size:1.1em;}
+.step-line.final{font-size:1.4em;}
+.step-input-wrap{gap:7px;margin:8px 0;}
+.step-prefix{font-size:1.35em;}
+.step-text-input{width:200px;font-size:1.15em;padding:10px 12px;min-height:46px;}
+.step-hint{font-size:0.9em;}
+.feedback-box{padding:12px 16px;font-size:0.98em;}
+.vocab-operation{font-size:2.2em;}
+.vocab-word{font-size:1.6em;}
+.vocab-card{padding:18px;margin:16px 0;}
+.results-emoji{font-size:3em;}
+.results-score{font-size:2.2em;}
+.results-label{font-size:0.98em;}
+.results-msg{font-size:1.15em;}
+}
+
+@media(max-width:480px){
+body{padding:14px 5px;}
+.board{padding:22px 14px;border-width:6px;}
+h1{font-size:1.3em;}
+.subtitle{font-size:0.92em;}
+.intro-visual{font-size:1.5em;}
+.intro-desc{font-size:0.95em;}
+.tuto-block{padding:14px;}
+.tuto-title{font-size:0.98em;}
+.tuto-text{font-size:0.94em;}
+.rule-table{font-size:0.9em;}
+.rule-table th{font-size:0.82em;}
+.rule-table td{font-size:0.86em;padding:5px;}
+.menu-grid{grid-template-columns:1fr;gap:8px;}
+.menu-card{padding:14px 10px;min-height:90px;}
+.menu-card .card-icon{font-size:1.4em;}
+.menu-card .card-title{font-size:0.95em;}
+.menu-card .card-desc{font-size:0.76em;}
+.btn{padding:9px 20px;font-size:0.95em;min-height:40px;}
+.controls{gap:7px;}
+.ex-badge{font-size:0.82em;}
+.ex-score{font-size:0.9em;}
+.expr-display{font-size:1.5em;letter-spacing:1px;padding:9px;}
+.prompt-text{font-size:0.98em;}
+.prompt-input{width:140px;font-size:1.15em;padding:8px;min-height:42px;}
+.chip{font-size:0.98em;padding:8px 16px;min-height:38px;}
+.op-chip{font-size:1.05em;padding:10px 18px;min-width:75px;min-height:46px;}
+.step-line{font-size:1.15em;}
+.step-line.done{font-size:1.05em;}
+.step-line.final{font-size:1.3em;}
+.step-prefix{font-size:1.25em;}
+.step-text-input{width:180px;font-size:1.1em;padding:9px 11px;min-height:44px;}
+.step-hint{font-size:0.88em;}
+.feedback-box{padding:11px 14px;font-size:0.96em;}
+.vocab-operation{font-size:2em;}
+.vocab-word{font-size:1.5em;}
+.vocab-card{padding:16px;}
+.results-emoji{font-size:2.8em;}
+.results-score{font-size:2em;}
+.results-msg{font-size:1.1em;}
+}
+
+@media(max-width:380px){
+.board{padding:20px 12px;border-width:5px;}
+h1{font-size:1.2em;}
+.intro-visual{font-size:1.35em;}
+.intro-desc{font-size:0.92em;}
+.menu-card{padding:13px 9px;min-height:85px;}
+.menu-card .card-icon{font-size:1.3em;}
+.btn{padding:8px 18px;font-size:0.92em;}
+.expr-display{font-size:1.4em;}
+.prompt-input{width:130px;font-size:1.1em;}
+.chip{font-size:0.95em;padding:7px 14px;}
+.op-chip{font-size:1em;padding:9px 16px;min-width:70px;}
+.step-text-input{width:160px;font-size:1.05em;}
+.vocab-operation{font-size:1.8em;}
+.vocab-word{font-size:1.4em;}
+}
+
+</style>
+</head>
+<body>
+<div class="board">
+
+<!-- ============ INTRO ============ -->
+<div class="screen active" id="introScreen">
+    <div class="intro-screen">
+        <div class="intro-visual">3 + 4 × 5 = ?</div>
+        <h1>Enchaînement d'opérations</h1>
+        <p class="subtitle">Priorités, vocabulaire et calcul pas à pas</p>
+        <p class="intro-desc">Est-ce qu'on fait 3 + 4 d'abord, puis × 5 ? Ou 4 × 5 d'abord, puis + 3 ? Apprends les règles de priorité et le vocabulaire des opérations !</p>
+        <button class="btn btn-yellow" onclick="show('tutorialScreen')">C'est parti ! ✏️</button>
+    </div>
+</div>
+
+<!-- ============ TUTORIAL ============ -->
+<div class="screen" id="tutorialScreen">
+    <h1>📖 Les règles du jeu</h1>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Le vocabulaire</div>
+        <table class="rule-table">
+            <tr><th></th><th>Nom du résultat</th><th>Exemple</th></tr>
+            <tr><td>+</td><td><strong>Somme</strong></td><td>La somme de 3 et de 5 → 3 + 5</td></tr>
+            <tr><td>−</td><td><strong>Différence</strong></td><td>La différence de 8 et de 3 → 8 − 3</td></tr>
+            <tr><td>×</td><td><strong>Produit</strong></td><td>Le produit de 4 par 7 → 4 × 7</td></tr>
+            <tr><td>÷</td><td><strong>Quotient</strong></td><td>Le quotient de 12 par 3 → 12 ÷ 3</td></tr>
+        </table>
+    </div>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Les priorités</div>
+        <div class="priority-box">
+            <div class="p-high">① Parenthèses ( )</div>
+            <div class="p-arrow">puis ↓</div>
+            <div class="p-high">② Multiplications × et divisions ÷</div>
+            <div class="p-arrow">puis ↓</div>
+            <div class="p-low">③ Additions + et soustractions −</div>
+        </div>
+        <p class="tuto-text" style="margin-top:10px;">⚠️ Quand deux opérations ont la <strong>même priorité</strong>, on calcule de <strong>gauche à droite</strong>.</p>
+    </div>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Exemple : 3 + 4 × 5</div>
+        <p class="tuto-text">
+            On fait d'abord <strong style="color:var(--pink)">4 × 5 = 20</strong> (× prioritaire sur +)<br>
+            Puis <strong style="color:var(--blue)">3 + 20 = 23</strong><br><br>
+            ✏️ On détaille :<br>
+            A = 3 + <span style="color:var(--pink)">4 × 5</span><br>
+            A = 3 + <span style="color:var(--pink)">20</span><br>
+            A = <strong style="color:var(--green-c)">23</strong>
+        </p>
+    </div>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Exemple avec parenthèses : (3 + 4) × 5</div>
+        <p class="tuto-text">
+            On fait d'abord <strong style="color:var(--pink)">3 + 4 = 7</strong> (parenthèses d'abord !)<br>
+            Puis <strong style="color:var(--blue)">7 × 5 = 35</strong><br><br>
+            ⚡ Les parenthèses <strong>changent l'ordre</strong> !
+        </p>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-yellow" onclick="show('menuScreen')">J'ai compris !</button>
+    </div>
+</div>
+
+<!-- ============ MENU ============ -->
+<div class="screen" id="menuScreen">
+    <h1>Choisis ton exercice</h1>
+    <p class="subtitle">4 niveaux pour tout maîtriser</p>
+
+    <div class="menu-grid">
+        <div class="menu-card" onclick="startLevel(1)">
+            <div class="card-icon">🔤</div>
+            <div class="card-title">Vocabulaire</div>
+            <div class="card-desc">Somme, différence,<br>produit, quotient</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(2)">
+            <div class="card-icon">🎯</div>
+            <div class="card-title">Priorités</div>
+            <div class="card-desc">Quelle opération<br>en premier ?</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(3)">
+            <div class="card-icon">📝</div>
+            <div class="card-title">Pas à pas</div>
+            <div class="card-desc">Détaille le calcul<br>étape par étape</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(4)">
+            <div class="card-icon">📖</div>
+            <div class="card-title">Les phrases</div>
+            <div class="card-desc">Traduis entre phrase<br>et calcul</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-chalk" onclick="show('tutorialScreen')">📖 Revoir les règles</button>
+    </div>
+</div>
+
+<!-- ============ EXERCISE ============ -->
+<div class="screen" id="exerciseScreen">
+    <div class="ex-header">
+        <div class="ex-badge" id="exBadge">Vocabulaire</div>
+        <div class="ex-score">Score : <span id="exScore">0</span> / <span id="exTotal">10</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div id="exprArea"></div>
+    <div id="promptArea"></div>
+    <div id="stepsArea"></div>
+
+    <div class="feedback-box" id="mainFeedback"></div>
+
+    <div class="controls" id="mainControls">
+        <button class="btn btn-yellow" id="btnNext" style="display:none" onclick="nextQ()">Suivant →</button>
+        <button class="btn btn-chalk" onclick="show('menuScreen')">← Menu</button>
+    </div>
+</div>
+
+<!-- ============ RESULTS ============ -->
+<div class="screen" id="resultsScreen">
+    <div class="results-screen">
+        <div class="results-emoji" id="resEmoji">📝</div>
+        <div class="results-score" id="resScoreText">0 / 0</div>
+        <div class="results-label">Bonnes réponses</div>
+        <div class="results-bar"><div class="results-bar-fill" id="resBarFill"></div></div>
+        <div class="results-msg" id="resMsg"></div>
+        <button class="btn btn-yellow" onclick="show('menuScreen')">Retour au menu</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+// ============================== UTILS ==============================
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function rv(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+// ============================== STATE ==============================
+let level=1,score=0,qIdx=0,questions=[];
+
+const COUNTS={1:10,2:8,3:8,4:8};
+const NAMES={1:'Vocabulaire',2:'Priorités',3:'Pas à pas',4:'Les phrases'};
+
+// ============================== LEVEL 1: VOCABULARY ==============================
+const VOCAB = [
+    {sym:'+',word:'somme',article:'une'},
+    {sym:'−',word:'différence',article:'une'},
+    {sym:'×',word:'produit',article:'un'},
+    {sym:'÷',word:'quotient',article:'un'}
+];
+
+function genVocab(){
+    const qs=[];
+    // Type A: show operation → pick word (5 questions)
+    for(let i=0;i<5;i++){
+        const v=rv(VOCAB);
+        const a=ri(2,20), b=ri(2,15);
+        qs.push({
+            type:'op2word',
+            expr:`${a} ${v.sym} ${b}`,
+            sym:v.sym,
+            correctWord:v.word,
+            options:shuffle(VOCAB.map(x=>x.word))
+        });
+    }
+    // Type B: show word → pick symbol (5 questions)
+    for(let i=0;i<5;i++){
+        const v=rv(VOCAB);
+        const a=ri(2,20), b=ri(2,15);
+        qs.push({
+            type:'word2op',
+            phrase:`${v.article} ${v.word}`,
+            word:v.word,
+            correctSym:v.sym,
+            example:`${a} ? ${b}`,
+            a, b,
+            options:shuffle(VOCAB.map(x=>x.sym))
+        });
+    }
+    return shuffle(qs);
+}
+
+function showVocabQ(q){
+    const area=document.getElementById('exprArea');
+    const prompt=document.getElementById('promptArea');
+
+    if(q.type==='op2word'){
+        area.innerHTML=`<div class="vocab-card"><div class="vocab-operation">${q.expr}</div></div>`;
+        prompt.innerHTML=`
+            <div class="prompt-zone">
+                <div class="prompt-text">C'est <span class="hl">...</span></div>
+                <div class="chips-row" id="vocabChips">
+                    ${q.options.map(w=>`<div class="chip" onclick="checkVocab(this,'${w}','${q.correctWord}')">${w}</div>`).join('')}
+                </div>
+                <div class="prompt-feedback" id="pFb"></div>
+            </div>`;
+    } else {
+        area.innerHTML=`<div class="vocab-card"><div class="vocab-word">${q.phrase}</div></div>`;
+        prompt.innerHTML=`
+            <div class="prompt-zone">
+                <div class="prompt-text">Quel signe utilise-t-on ?</div>
+                <div class="chips-row" id="vocabChips">
+                    ${q.options.map(s=>`<div class="chip" style="font-size:1.5em;min-width:60px;" onclick="checkVocab(this,'${s}','${q.correctSym}')">${s}</div>`).join('')}
+                </div>
+                <div class="prompt-feedback" id="pFb"></div>
+            </div>`;
+    }
+}
+
+function checkVocab(el,chosen,correct){
+    document.querySelectorAll('#vocabChips .chip').forEach(c=>{c.style.pointerEvents='none';});
+    if(chosen===correct){
+        el.classList.add('correct');
+        document.getElementById('pFb').innerHTML=`<span style="color:var(--green-c)">✅ Correct !</span>`;
+        showNext(true);
+    } else {
+        el.classList.add('wrong');
+        document.querySelectorAll('#vocabChips .chip').forEach(c=>{
+            if(c.textContent===correct) c.classList.add('correct');
+        });
+        document.getElementById('pFb').innerHTML=`<span style="color:var(--red-c)">❌ C'est ${correct}.</span>`;
+        showNext(false);
+    }
+}
+
+// ============================== LEVEL 2: PRIORITIES ==============================
+function genPriority(){
+    const templates=[
+        // × before +
+        ()=>{const a=ri(2,15),b=ri(2,9),c=ri(2,9);return{expr:`${a} + ${b} × ${c}`,ops:[{txt:`${a} + ${b}`,sym:'+',pos:0},{txt:`${b} × ${c}`,sym:'×',pos:1}],correctIdx:1,rule:'× est prioritaire sur +'}},
+        // × before −
+        ()=>{const a=ri(10,30),b=ri(2,9),c=ri(2,5);return{expr:`${a} − ${b} × ${c}`,ops:[{txt:`${a} − ${b}`,sym:'−',pos:0},{txt:`${b} × ${c}`,sym:'×',pos:1}],correctIdx:1,rule:'× est prioritaire sur −'}},
+        // ÷ before +
+        ()=>{const c2=ri(2,9),q=ri(2,9),b=c2*q,a=ri(2,20);return{expr:`${a} + ${b} ÷ ${c2}`,ops:[{txt:`${a} + ${b}`,sym:'+',pos:0},{txt:`${b} ÷ ${c2}`,sym:'÷',pos:1}],correctIdx:1,rule:'÷ est prioritaire sur +'}},
+        // × first (left position)
+        ()=>{const a=ri(2,9),b=ri(2,9),c=ri(2,15);return{expr:`${a} × ${b} + ${c}`,ops:[{txt:`${a} × ${b}`,sym:'×',pos:0},{txt:`${b*1} + ${c}`,sym:'+',pos:1}],correctIdx:0,rule:'× est prioritaire sur +'}},
+        // Parentheses
+        ()=>{const a=ri(2,9),b=ri(2,9),c=ri(2,7);return{expr:`(${a} + ${b}) × ${c}`,ops:[{txt:`${a} + ${b}`,sym:'( )',pos:0},{txt:`... × ${c}`,sym:'×',pos:1}],correctIdx:0,rule:'Les parenthèses sont prioritaires'}},
+        ()=>{const a=ri(2,7),b=ri(2,9),c=ri(2,9);return{expr:`${a} × (${b} − ${c > b ? b-1 : c})`,ops:[{txt:`${b} − ${c > b ? b-1 : c}`,sym:'( )',pos:0},{txt:`${a} × ...`,sym:'×',pos:1}],correctIdx:0,rule:'Les parenthèses sont prioritaires'}},
+        // Left to right: + then −
+        ()=>{const a=ri(5,20),b=ri(2,10),c=ri(1,Math.min(a+b-1,12));return{expr:`${a} + ${b} − ${c}`,ops:[{txt:`${a} + ${b}`,sym:'gauche',pos:0},{txt:`${b} − ${c}`,sym:'droite',pos:1}],correctIdx:0,rule:'Même priorité → de gauche à droite'}},
+        // Left to right: × then ÷
+        ()=>{const a=ri(2,6),b=ri(2,6);const ab=a*b;const c=rv([2,3,4,5,6].filter(x=>ab%x===0));return{expr:`${a} × ${b} ÷ ${c||2}`,ops:[{txt:`${a} × ${b}`,sym:'gauche',pos:0},{txt:`${b} ÷ ${c||2}`,sym:'droite',pos:1}],correctIdx:0,rule:'Même priorité → de gauche à droite'}},
+    ];
+    return shuffle(templates.map(t=>({type:'priority',...t()}))).slice(0,8);
+}
+
+function showPriorityQ(q){
+    const area=document.getElementById('exprArea');
+    const prompt=document.getElementById('promptArea');
+
+    area.innerHTML=`<div class="expr-display">${q.expr}</div>`;
+    prompt.innerHTML=`
+        <div class="prompt-zone">
+            <div class="prompt-text">Quelle opération fait-on <span class="hl">en premier</span> ?</div>
+            <div class="chips-row" id="prioChips">
+                ${q.ops.map((o,i)=>`<div class="op-chip" onclick="checkPriority(${i},${q.correctIdx})">${o.txt}</div>`).join('')}
+            </div>
+            <div class="prompt-feedback" id="pFb"></div>
+        </div>`;
+}
+
+function checkPriority(chosen,correct){
+    const chips=document.querySelectorAll('#prioChips .op-chip');
+    chips.forEach(c=>c.style.pointerEvents='none');
+    const q=questions[qIdx];
+
+    if(chosen===correct){
+        chips[chosen].classList.add('correct');
+        document.getElementById('pFb').innerHTML=`<span style="color:var(--green-c)">✅ ${q.rule}</span>`;
+        showNext(true);
+    } else {
+        chips[chosen].classList.add('wrong');
+        chips[correct].classList.add('correct');
+        document.getElementById('pFb').innerHTML=`<span style="color:var(--red-c)">❌ ${q.rule}</span>`;
+        showNext(false);
+    }
+}
+
+// ============================== LEVEL 3: STEP BY STEP ==============================
+// --- Expression engine ---
+function tokenize(str){
+    const tokens=[];let i=0;const s=str.replace(/\s+/g,'');
+    while(i<s.length){
+        if(/\d/.test(s[i])){let n='';while(i<s.length&&/\d/.test(s[i]))n+=s[i++];tokens.push(n);}
+        else tokens.push(s[i++]);
+    }
+    return tokens;
+}
+
+function tokStr(tokens){
+    return tokens.join(' ').replace(/\( /g,'(').replace(/ \)/g,')').replace(/\s+/g,' ').trim();
+}
+
+function opPrio(t){if(t==='×'||t==='÷')return 2;if(t==='+'||t==='−')return 1;return-1;}
+
+function findInnermostGroups(tokens){
+    const groups=[];let lastOpen=-1;
+    for(let i=0;i<tokens.length;i++){
+        if(tokens[i]==='(')lastOpen=i;
+        else if(tokens[i]===')'){if(lastOpen!==-1)groups.push([lastOpen,i]);lastOpen=-1;}
+    }
+    return groups;
+}
+
+function removeSingleNumberParens(tokens){
+    let changed=true;
+    while(changed){
+        changed=false;
+        for(let j=0;j<tokens.length-2;j++){
+            if(tokens[j]==='('&&/^-?\d+$/.test(tokens[j+1])&&tokens[j+2]===')'){
+                tokens.splice(j+2,1);tokens.splice(j,1);changed=true;break;
+            }
+        }
+    }
+    return tokens;
+}
+
+function allValidNextSteps(tokens){
+    const groups=findInnermostGroups(tokens);
+    let ranges;
+    if(groups.length>0) ranges=groups.map(([s,e])=>[s+1,e-1]);
+    else ranges=[[0,tokens.length-1]];
+
+    let maxP=-1;
+    for(const[s,e]of ranges)for(let i=s;i<=e;i++){const p=opPrio(tokens[i]);if(p>maxP)maxP=p;}
+    if(maxP===-1)return[];
+
+    const results=[];
+    for(const[s,e]of ranges){
+        for(let i=s;i<=e;i++){
+            if(opPrio(tokens[i])===maxP){
+                const nt=[...tokens];
+                const left=Number(nt[i-1]),op=nt[i],right=Number(nt[i+1]);
+                let res;
+                if(op==='+')res=left+right;
+                else if(op==='−')res=left-right;
+                else if(op==='×')res=left*right;
+                else if(op==='÷')res=left/right;
+                nt.splice(i-1,3,String(Math.round(res)));
+                removeSingleNumberParens(nt);
+                results.push(nt);
+            }
+        }
+    }
+    return results;
+}
+
+function isDone(tokens){return tokens.length===1&&/^-?\d+$/.test(tokens[0]);}
+
+function normalizeExpr(s){
+    let r=s.replace(/\s+/g,'');
+    r=r.replace(/\*/g,'×');r=r.replace(/\//g,'÷');r=r.replace(/[-–—]/g,'−');
+    r=r.replace(/(\d)[xX](\d)/g,'$1×$2');
+    return r;
+}
+
+// --- Compute the "canonical" full reduction (left-to-right) for display ---
+function canonicalSteps(exprStr){
+    let tokens=tokenize(exprStr);
+    const lines=[tokStr(tokens)];
+    for(let safe=0;safe<30;safe++){
+        if(isDone(tokens))break;
+        const nexts=allValidNextSteps(tokens);
+        if(nexts.length===0)break;
+        tokens=nexts[0]; // leftmost
+        lines.push(tokStr(tokens));
+        // Check for bad values
+        for(const t of tokens){
+            if(/^-\d/.test(t))return null; // negative
+            if(/^\d+$/.test(t)&&Number(t)>9999)return null; // too large
+        }
+    }
+    if(!isDone(tokens))return null;
+    return lines;
+}
+
+// --- Expression templates ---
+function genStepByStep(){
+    const shortT=[
+        ()=>{const b=ri(2,9),c=ri(2,9),a=ri(2,20);return`${a} + ${b} × ${c}`;},
+        ()=>{const a=ri(2,9),b=ri(2,9),c=ri(1,a*b-1);return`${a} × ${b} − ${c}`;},
+        ()=>{const c2=ri(2,9),q=ri(2,9),a=ri(2,20);return`${a} + ${c2*q} ÷ ${c2}`;},
+        ()=>{const a=ri(2,9),b=ri(2,9),c=ri(2,20);return`${a} × ${b} + ${c}`;},
+        ()=>{const a=ri(8,25),b=ri(2,10),c=ri(1,Math.min(12,a+b-1));return`${a} + ${b} − ${c}`;},
+        ()=>{const a=ri(2,6),b=ri(2,6);const vals=[2,3,4,5,6].filter(x=>(a*b)%x===0);const c2=vals.length?rv(vals):2;return`${a} × ${b} ÷ ${c2}`;},
+    ];
+    const medT=[
+        ()=>{const a=ri(2,6),b=ri(2,6),c=ri(2,6),d=ri(2,6);return`${a} × ${b} + ${c} × ${d}`;},
+        ()=>{const a=ri(2,9),b=ri(2,9),c=ri(2,7);return`(${a} + ${b}) × ${c}`;},
+        ()=>{const a=ri(2,7),c=ri(2,8),b=c+ri(1,10);return`${a} × (${b} − ${c})`;},
+        ()=>{const b=ri(2,6),c=ri(2,6),a=ri(5,15),d=ri(1,a+b*c-1);return`${a} + ${b} × ${c} − ${d}`;},
+        ()=>{const a=ri(2,6),b=ri(2,9),c=ri(2,9);return`${a} × (${b} + ${c})`;},
+        ()=>{const c2=ri(2,6),q=ri(2,6),a=ri(2,15);return`${a} − ${c2*q} ÷ ${c2}`;},
+    ];
+    const longT=[
+        ()=>{const a=ri(2,8),b=ri(2,8),c=ri(2,8),d=ri(2,8);return`(${a} + ${b}) × (${c} + ${d})`;},
+        ()=>{const c2=ri(2,5),d=ri(2,5),b=ri(2,10),a=ri(2,5);return`${a} × (${b} + ${c2} × ${d})`;},
+        ()=>{const b=ri(2,5),c=ri(2,5),a=ri(2,10),d=ri(1,Math.max(1,a+b*c-1));return`(${a} + ${b} × ${c}) − ${d}`;},
+        ()=>{const a=ri(2,5),b=ri(2,5),c=ri(2,5),d=ri(2,5),e=ri(2,15);return`${a} × ${b} + ${c} × ${d} − ${e}`;},
+        ()=>{const a=ri(2,6),c=ri(2,6),b=c+ri(1,8),d=ri(2,6);return`(${b} − ${c}) × (${a} + ${d})`;},
+        ()=>{const a=ri(2,5),b=ri(2,5),c=ri(2,5),d=ri(2,8);return`${a} × (${b} × ${c} + ${d})`;},
+    ];
+    const vlongT=[
+        ()=>{const a=ri(2,6),b=ri(2,6),c=ri(2,5),d=ri(2,5),e=ri(2,5);return`(${a} + ${b}) × ${c} + ${d} × ${e}`;},
+        ()=>{const a=ri(2,4),b=ri(2,5),c=ri(2,5),d=ri(2,5),e=ri(2,5);return`${a} × (${b} + ${c}) + (${d} + ${e})`;},
+        ()=>{const a=ri(2,4),b=ri(2,4),c=ri(2,4),d=ri(2,5),e=ri(2,5);return`(${a} + ${b}) × ${c} + (${d} + ${e})`;},
+        ()=>{const a=ri(2,4),b=ri(2,5),c=ri(2,5),d=ri(2,4),e=ri(2,8),f=ri(1,Math.max(1,e-1));return`${a} × (${b} + ${c}) − (${e} − ${f}) × ${d}`;},
+        ()=>{const a=ri(2,5),b=ri(2,5),c=ri(2,5),d=ri(2,5),e=ri(2,5);return`${a} × ${b} + ${c} × (${d} + ${e})`;},
+    ];
+
+    function pickValid(pool,count){
+        const out=[];const used=new Set();let att=0;
+        while(out.length<count&&att<100){
+            att++;const expr=rv(pool)();
+            if(used.has(expr))continue;
+            const steps=canonicalSteps(expr);
+            if(!steps||steps.length<2)continue;
+            used.add(expr);out.push({type:'step',expr,stepCount:steps.length-1});
+        }
+        return out;
+    }
+
+    let qs=[];
+    qs.push(...pickValid(shortT,2));
+    qs.push(...pickValid(medT,3));
+    qs.push(...pickValid(longT,2));
+    qs.push(...pickValid(vlongT,1));
+    // If we don't have enough, fill with medium
+    while(qs.length<8)qs.push(...pickValid(medT,1));
+    return qs.slice(0,8);
+}
+
+// --- UI ---
+let stepTokens=[], stepHistory=[], stepMistakes=false, stepAttempts=0;
+
+function showStepQ(q){
+    stepTokens=tokenize(q.expr);
+    stepHistory=[tokStr(stepTokens)];
+    stepMistakes=false;
+    stepAttempts=0;
+    renderStepUI();
+}
+
+function renderStepUI(){
+    const area=document.getElementById('exprArea');
+    const prompt=document.getElementById('promptArea');
+
+    // Build history
+    let html='<div class="step-history">';
+    for(let i=0;i<stepHistory.length;i++){
+        const isFinal=isDone(tokenize(stepHistory[i]))&&i===stepHistory.length-1;
+        if(isFinal) html+=`<div class="step-line final">A = ${stepHistory[i]}</div>`;
+        else html+=`<div class="step-line done">A = ${stepHistory[i]}</div>`;
+    }
+    html+='</div>';
+    area.innerHTML=html;
+
+    if(isDone(stepTokens)){
+        // Finished!
+        prompt.innerHTML=`<div class="prompt-zone"><div class="prompt-text" style="color:var(--green-c)">✅ Bravo, calcul terminé !</div></div>`;
+        showNext(!stepMistakes);
+    } else {
+        // Show input for next line
+        stepAttempts=0;
+        prompt.innerHTML=`
+            <div class="prompt-zone">
+                <div class="prompt-text">Écris la ligne suivante du calcul :</div>
+                <div class="step-input-wrap">
+                    <span class="step-prefix">A =</span>
+                    <input type="text" class="step-text-input" id="stepInput" placeholder="..." autocomplete="off" autocapitalize="off" spellcheck="false">
+                    <button class="btn btn-green" onclick="checkStepAnswer()">✓</button>
+                </div>
+                <div class="step-hint" id="stepHint"></div>
+            </div>`;
+        setTimeout(()=>{
+            const el=document.getElementById('stepInput');
+            if(el){el.focus();el.addEventListener('keydown',e=>{if(e.key==='Enter')checkStepAnswer();});}
+        },60);
+    }
+}
+
+function checkStepAnswer(){
+    const el=document.getElementById('stepInput');
+    const hint=document.getElementById('stepHint');
+    if(!el||!el.value.trim())return;
+
+    const userNorm=normalizeExpr(el.value);
+    el.classList.remove('error','correct');
+
+    // Get all valid next steps
+    const valids=allValidNextSteps(stepTokens);
+    const validStrs=valids.map(v=>tokStr(v));
+    const validNorms=validStrs.map(s=>normalizeExpr(s));
+
+    // Check match
+    const matchIdx=validNorms.indexOf(userNorm);
+
+    if(matchIdx!==-1){
+        // Correct!
+        el.classList.add('correct');
+        el.disabled=true;
+        stepTokens=valids[matchIdx];
+        stepHistory.push(validStrs[matchIdx]);
+        hint.innerHTML=`<span style="color:var(--green-c)">✅ Correct !</span>`;
+        setTimeout(()=>renderStepUI(),700);
+    } else {
+        stepAttempts++;
+        stepMistakes=true;
+        el.classList.add('error');
+
+        if(stepAttempts>=2){
+            // Reveal answer and advance
+            const expected=validStrs[0];
+            hint.innerHTML=`<span style="color:var(--red-c)">La réponse était :</span> <span class="expected">${expected}</span>`;
+            el.value=expected;el.disabled=true;el.classList.remove('error');el.classList.add('correct');
+            stepTokens=valids[0];
+            stepHistory.push(expected);
+            setTimeout(()=>renderStepUI(),1500);
+        } else {
+            // Give a hint
+            const expected=validStrs[0];
+            // Try to detect: did they compute a low-priority op first?
+            let hintMsg='Ce n\'est pas la bonne étape.';
+
+            // Check if user result equals final answer (skipped steps)
+            const finalTokens=tokenize(stepHistory[0]);
+            const finalSteps=canonicalSteps(tokStr(tokenize(stepHistory[0])));
+            if(finalSteps){
+                const finalVal=finalSteps[finalSteps.length-1];
+                if(userNorm===normalizeExpr(finalVal)&&stepHistory.length<finalSteps.length-1){
+                    hintMsg='C\'est le résultat final, mais il manque des étapes !';
+                }
+            }
+
+            // Check if user entered the same thing as current line
+            if(userNorm===normalizeExpr(stepHistory[stepHistory.length-1])){
+                hintMsg='C\'est la même ligne ! Il faut calculer une opération.';
+            }
+
+            hint.innerHTML=`<span style="color:var(--red-c)">❌ ${hintMsg} Essaie encore.</span>`;
+            el.value='';el.focus();
+        }
+    }
+}
+
+// ============================== LEVEL 4: PHRASES ==============================
+function genPhrases(){
+    const qs=[];
+
+    // Phrase → Calc templates
+    const p2c=[
+        ()=>{const a=ri(3,20),b=ri(3,20);return{phrase:`la somme de ${a} et de ${b}`,calc:`${a} + ${b}`}},
+        ()=>{const a=ri(10,30),b=ri(2,15);return{phrase:`la différence de ${a} et de ${b}`,calc:`${a} − ${b}`}},
+        ()=>{const a=ri(2,12),b=ri(2,12);return{phrase:`le produit de ${a} par ${b}`,calc:`${a} × ${b}`}},
+        ()=>{const b=ri(2,9),q=ri(2,9),a=b*q;return{phrase:`le quotient de ${a} par ${b}`,calc:`${a} ÷ ${b}`}},
+        ()=>{const a=ri(2,15),b=ri(2,8),c=ri(2,8);return{phrase:`la somme de ${a} et du produit de ${b} par ${c}`,calc:`${a} + ${b} × ${c}`}},
+        ()=>{const a=ri(2,6),b=ri(2,10),c=ri(2,10);return{phrase:`le produit de ${a} par la somme de ${b} et de ${c}`,calc:`${a} × (${b} + ${c})`}},
+        ()=>{const a=ri(2,8),b=ri(2,8),c=ri(1,a*b-1);return{phrase:`la différence du produit de ${a} par ${b} et de ${c}`,calc:`${a} × ${b} − ${c}`}},
+        ()=>{const a=ri(2,6),b=ri(5,15),c=ri(2,8);return{phrase:`le produit de ${a} par la différence de ${b} et de ${c > b ? b-1 : c}`,calc:`${a} × (${b} − ${c > b ? b-1 : c})`}},
+    ];
+
+    // Type A: phrase → calc (4 questions)
+    for(let i=0;i<4;i++){
+        const t=rv(p2c)();
+        qs.push({type:'phrase2calc',phrase:t.phrase,calc:t.calc});
+    }
+
+    // Type B: calc → phrase (4 questions, MCQ)
+    for(let i=0;i<4;i++){
+        const correct=rv(p2c)();
+        // Generate wrong answers
+        const wrongs=[];
+        for(let j=0;j<10&&wrongs.length<2;j++){
+            const w=rv(p2c)();
+            if(w.calc!==correct.calc && w.phrase!==correct.phrase && !wrongs.find(x=>x.phrase===w.phrase)){
+                wrongs.push(w);
+            }
+        }
+        // Fallback wrongs
+        while(wrongs.length<2) wrongs.push(rv(p2c)());
+        const options=shuffle([correct,...wrongs].map(x=>x.phrase));
+        qs.push({type:'calc2phrase',calc:correct.calc,correctPhrase:correct.phrase,options});
+    }
+
+    return shuffle(qs);
+}
+
+function showPhraseQ(q){
+    const area=document.getElementById('exprArea');
+    const prompt=document.getElementById('promptArea');
+
+    if(q.type==='phrase2calc'){
+        area.innerHTML=`<div class="vocab-card"><div class="vocab-word" style="font-size:1.4em;color:var(--yellow);line-height:1.5;">"${q.phrase.charAt(0).toUpperCase()+q.phrase.slice(1)}"</div></div>`;
+        prompt.innerHTML=`
+            <div class="prompt-zone">
+                <div class="prompt-text">Écris le calcul correspondant :</div>
+                <div class="prompt-row">
+                    <input type="text" class="prompt-input" id="pInput" placeholder="ex: 3 + 4 × 5" style="width:220px;font-size:1.3em;">
+                    <button class="btn btn-green" onclick="checkPhrase2Calc()">✓</button>
+                </div>
+                <div class="prompt-feedback" id="pFb"></div>
+            </div>`;
+        focusInput();
+    } else {
+        area.innerHTML=`<div class="expr-display" style="margin:20px 0;">${q.calc}</div>`;
+        prompt.innerHTML=`
+            <div class="prompt-zone">
+                <div class="prompt-text">Quelle phrase correspond à ce calcul ?</div>
+                <div class="chips-row" id="phraseChips" style="flex-direction:column;align-items:stretch;max-width:500px;">
+                    ${q.options.map(p=>`<div class="chip" style="text-align:left;font-size:1em;padding:12px 18px;" onclick="checkCalc2Phrase(this,'${p.replace(/'/g,"\\'")}')">« ${p} »</div>`).join('')}
+                </div>
+                <div class="prompt-feedback" id="pFb"></div>
+            </div>`;
+    }
+}
+
+function normalizeCalc(s){
+    return s.replace(/\s+/g,'')
+        .replace(/[*]/g,'×')
+        .replace(/[-–—]/g,'−')
+        .replace(/[\/]/g,'÷')
+        .replace(/[xX](?=\d)/g,'×');
+}
+
+function checkPhrase2Calc(){
+    const el=document.getElementById('pInput');
+    const fb=document.getElementById('pFb');
+    const q=questions[qIdx];
+    const userNorm=normalizeCalc(el.value);
+    const correctNorm=normalizeCalc(q.calc);
+    el.classList.remove('error');
+
+    if(!el.value.trim()){
+        el.classList.add('error');fb.innerHTML=`<span style="color:var(--red-c)">Écris un calcul.</span>`;el.focus();return;
+    }
+
+    if(userNorm===correctNorm){
+        fb.innerHTML=`<span style="color:var(--green-c)">✅ Correct ! ${q.calc}</span>`;
+        showNext(true);
+    } else {
+        el.classList.add('error');
+        fb.innerHTML=`<span style="color:var(--red-c)">❌ La bonne réponse est : <strong>${q.calc}</strong></span>`;
+        showNext(false);
+    }
+}
+
+function checkCalc2Phrase(el,chosen){
+    const q=questions[qIdx];
+    document.querySelectorAll('#phraseChips .chip').forEach(c=>c.style.pointerEvents='none');
+
+    if(chosen===q.correctPhrase){
+        el.classList.add('correct');
+        document.getElementById('pFb').innerHTML=`<span style="color:var(--green-c)">✅ Correct !</span>`;
+        showNext(true);
+    } else {
+        el.classList.add('wrong');
+        document.querySelectorAll('#phraseChips .chip').forEach(c=>{
+            if(c.textContent===`« ${q.correctPhrase} »`) c.classList.add('correct');
+        });
+        document.getElementById('pFb').innerHTML=`<span style="color:var(--red-c)">❌ C'est « ${q.correctPhrase} ».</span>`;
+        showNext(false);
+    }
+}
+
+// ============================== FLOW ==============================
+function startLevel(lvl){
+    level=lvl;score=0;qIdx=0;
+    const total=COUNTS[lvl];
+
+    if(lvl===1) questions=genVocab().slice(0,total);
+    else if(lvl===2) questions=genPriority().slice(0,total);
+    else if(lvl===3) questions=genStepByStep().slice(0,total);
+    else questions=genPhrases().slice(0,total);
+
+    document.getElementById('exBadge').textContent=NAMES[lvl];
+    document.getElementById('exScore').textContent='0';
+    document.getElementById('exTotal').textContent=total;
+    show('exerciseScreen');
+    showQuestion();
+}
+
+function showQuestion(){
+    document.getElementById('progressFill').style.width=(qIdx/questions.length*100)+'%';
+    document.getElementById('mainFeedback').className='feedback-box';
+    document.getElementById('btnNext').style.display='none';
+    document.getElementById('stepsArea').innerHTML='';
+    document.getElementById('exprArea').innerHTML='';
+    document.getElementById('promptArea').innerHTML='';
+
+    const q=questions[qIdx];
+    if(q.type==='op2word'||q.type==='word2op') showVocabQ(q);
+    else if(q.type==='priority') showPriorityQ(q);
+    else if(q.type==='step') showStepQ(q);
+    else if(q.type==='phrase2calc'||q.type==='calc2phrase') showPhraseQ(q);
+}
+
+function focusInput(){
+    setTimeout(()=>{
+        const el=document.getElementById('pInput');
+        if(el){el.focus();el.addEventListener('keydown',e=>{
+            if(e.key==='Enter'){
+                const btn=el.parentElement.querySelector('.btn');
+                if(btn) btn.click();
+            }
+        });}
+    },60);
+}
+
+function showNext(correct){
+    if(correct){score++;document.getElementById('exScore').textContent=score;}
+    document.getElementById('btnNext').style.display='';
+}
+
+function nextQ(){
+    qIdx++;
+    if(qIdx>=questions.length) showResults();
+    else showQuestion();
+}
+
+function showResults(){
+    const total=questions.length;
+    const pct=Math.round(score/total*100);
+    document.getElementById('resEmoji').textContent=pct===100?'🏆':pct>=80?'📝':pct>=60?'✏️':'💪';
+    document.getElementById('resScoreText').textContent=`${score} / ${total}`;
+    document.getElementById('resMsg').textContent=pct===100?'Parfait !':pct>=80?'Très bien !':pct>=60?'Pas mal, continue !':'Révise les règles et réessaie !';
+    const bf=document.getElementById('resBarFill');
+    bf.className='results-bar-fill '+(pct>=60?'good':'bad');
+    bf.style.width='0%';
+    show('resultsScreen');
+    setTimeout(()=>bf.style.width=pct+'%',100);
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

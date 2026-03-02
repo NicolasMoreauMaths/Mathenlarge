@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>∑ Calcul Mental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@300;400;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+:root{
+  --bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2e;
+  --accent:#e8c97e;--accent2:#c97eb0;--accent3:#7eb0e8;
+  --text:#f0ead8;--text-dim:#7a7468;
+  --success:#7ecfa0;--error:#e87e7e;
+  --border:rgba(232,201,126,0.13);--glow:rgba(232,201,126,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Crimson Pro',serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 60% 40% at 20% 20%,rgba(201,126,176,0.06) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 60% at 80% 80%,rgba(126,176,232,0.06) 0%,transparent 70%),
+  radial-gradient(ellipse 40% 50% at 50% 50%,rgba(232,201,126,0.04) 0%,transparent 70%);
+  pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background-image:
+  linear-gradient(rgba(232,201,126,0.025) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(232,201,126,0.025) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 20px;}
+
+.screen{width:100%;max-width:720px;display:none;animation:fadeIn 0.35s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.logo{text-align:center;margin-bottom:34px;padding-top:6px;}
+.logo-symbol{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;font-style:italic;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1;display:block;letter-spacing:-2px;}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:300;letter-spacing:0.28em;text-transform:uppercase;color:var(--text-dim);margin-top:6px;}
+
+.difficulty-bar{display:flex;gap:8px;justify-content:center;margin-bottom:26px;flex-wrap:wrap;}
+.diff-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);
+  padding:7px 18px;border-radius:50px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.diff-btn:hover,.diff-btn.active{background:var(--accent);border-color:var(--accent);color:var(--bg);}
+
+.category-section{margin-bottom:18px;}
+.category-label{font-family:'JetBrains Mono',monospace;font-size:0.57rem;letter-spacing:0.25em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;
+  display:flex;align-items:center;gap:10px;}
+.category-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:580px){.menu-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:360px){.menu-grid{grid-template-columns:1fr;}}
+
+.mode-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:17px 13px 15px;cursor:pointer;transition:all 0.22s ease;
+  position:relative;overflow:hidden;text-align:left;}
+.mode-card::before{content:'';position:absolute;inset:0;background:var(--glow);opacity:0;transition:opacity 0.22s;}
+.mode-card:hover{border-color:var(--ca,var(--accent));transform:translateY(-2px);
+  box-shadow:0 6px 28px rgba(0,0,0,0.4),0 0 0 1px var(--ca,var(--accent));}
+.mode-card:hover::before{opacity:1;}
+.mode-icon{font-size:1.45rem;margin-bottom:7px;display:block;}
+.mode-name{font-family:'Playfair Display',serif;font-size:0.98rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+.mode-desc{font-size:0.76rem;color:var(--text-dim);line-height:1.35;font-style:italic;}
+.mode-level{position:absolute;top:9px;right:11px;font-family:'JetBrains Mono',monospace;
+  font-size:0.53rem;letter-spacing:0.1em;color:var(--ca,var(--accent));
+  opacity:0.8;text-transform:uppercase;background:rgba(0,0,0,0.35);
+  padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.05);}
+
+.game-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.menu-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);
+  padding:7px 14px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.menu-btn:hover{border-color:var(--accent);color:var(--accent);}
+.game-title{font-family:'Playfair Display',serif;font-size:0.9rem;font-style:italic;color:var(--text-dim);flex:1;text-align:center;}
+.stats-row{display:flex;gap:8px;align-items:center;}
+.stat-pill{background:var(--bg3);border:1px solid var(--border);border-radius:50px;
+  padding:4px 11px;font-family:'JetBrains Mono',monospace;font-size:0.67rem;display:flex;align-items:center;gap:4px;}
+.stat-val{color:var(--accent);font-weight:600;font-size:0.8rem;}
+
+.progress-wrap{margin-bottom:22px;height:3px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width 0.4s ease;}
+
+.question-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;
+  padding:34px 30px;margin-bottom:18px;position:relative;overflow:hidden;
+  min-height:148px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.question-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.35;}
+.question-label{font-family:'JetBrains Mono',monospace;font-size:0.57rem;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:16px;align-self:flex-start;}
+.question-math{font-size:1.9rem;line-height:1.7;text-align:center;color:var(--text);width:100%;}
+.katex{font-size:1.85rem !important;}
+.katex-display{margin:0 !important;}
+.hint-text{font-family:'Crimson Pro',serif;font-style:italic;font-size:0.87rem;color:var(--text-dim);margin-top:12px;text-align:center;}
+
+.input-zone{display:flex;gap:8px;margin-bottom:14px;}
+.answer-input{flex:1;background:var(--bg2);border:2px solid var(--border);border-radius:12px;
+  padding:13px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;
+  font-size:1.25rem;text-align:center;outline:none;transition:all 0.2s;}
+.answer-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,201,126,0.1);}
+.answer-input.correct{border-color:var(--success);background:rgba(126,207,160,0.08);box-shadow:0 0 0 3px rgba(126,207,160,0.12);}
+.answer-input.wrong{border-color:var(--error);background:rgba(232,126,126,0.08);box-shadow:0 0 0 3px rgba(232,126,126,0.12);}
+.validate-btn{background:var(--accent);border:none;border-radius:12px;padding:13px 20px;
+  color:var(--bg);font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.validate-btn:hover{background:#f0d890;transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,201,126,0.3);}
+
+.feedback{text-align:center;padding:11px;border-radius:10px;font-family:'Crimson Pro',serif;
+  font-size:1.05rem;margin-bottom:14px;display:none;animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+.feedback.show{display:block;}
+.correct-fb{background:rgba(126,207,160,0.12);border:1px solid rgba(126,207,160,0.3);color:var(--success);}
+.wrong-fb{background:rgba(232,126,126,0.1);border:1px solid rgba(232,126,126,0.25);color:var(--error);}
+@keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+
+.next-btn{display:none;width:100%;background:transparent;border:1px solid var(--border);
+  border-radius:12px;padding:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;
+  font-size:0.67rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.next-btn:hover{border-color:var(--accent);color:var(--accent);}
+.next-btn.show{display:block;}
+
+.timer-wrap{position:relative;width:42px;height:42px;flex-shrink:0;}
+.timer-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.tbg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:3;}
+.tarc{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 0.1s linear,stroke 0.3s;}
+.timer-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:600;color:var(--accent);}
+
+.streak-indicator{position:fixed;top:14px;right:14px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:50px;padding:6px 13px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;
+  display:flex;align-items:center;gap:5px;z-index:100;transition:all 0.3s;opacity:0;pointer-events:none;}
+.streak-indicator.show{opacity:1;}
+.streak-num{color:var(--accent);font-weight:600;}
+
+.particle{position:fixed;pointer-events:none;z-index:200;font-size:1.1rem;animation:pfly 0.8s ease forwards;}
+@keyframes pfly{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0.4)}}
+
+.results-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:42px 30px;text-align:center;margin-bottom:18px;}
+.score-ring{width:128px;height:128px;margin:0 auto 20px;position:relative;}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+.srbg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:6;}
+.srfill{fill:none;stroke:url(#gg);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1);}
+.score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-number{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:var(--accent);line-height:1;}
+.score-denom{font-family:'JetBrains Mono',monospace;font-size:0.67rem;color:var(--text-dim);}
+.results-title{font-family:'Playfair Display',serif;font-size:1.65rem;font-weight:700;font-style:italic;margin-bottom:5px;}
+.results-subtitle{font-family:'Crimson Pro',serif;font-style:italic;color:var(--text-dim);font-size:0.93rem;margin-bottom:26px;}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px;}
+.stat-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:13px 8px;}
+.stat-box-val{font-family:'JetBrains Mono',monospace;font-size:1.18rem;font-weight:600;color:var(--accent);display:block;}
+.stat-box-label{font-size:0.7rem;color:var(--text-dim);margin-top:3px;}
+.action-btns{display:flex;gap:8px;}
+.btn-primary{flex:1;background:var(--accent);border:none;border-radius:12px;padding:12px;
+  color:var(--bg);font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.btn-primary:hover{background:#f0d890;transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,201,126,0.3);}
+.btn-secondary{flex:1;background:transparent;border:1px solid var(--border);border-radius:12px;
+  padding:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.7rem;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+
+@media(max-width:500px){
+  .question-card{padding:22px 16px;}
+  .katex{font-size:1.4rem !important;}
+  .question-math{font-size:1.4rem;}
+  .results-card{padding:28px 16px;}
+  .logo-symbol{font-size:2.4rem;}
+}
+
+/* ===== CONFIG SCREEN ===== */
+.config-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:30px 24px;margin-bottom:16px;}
+.config-title{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;font-style:italic;color:var(--accent);margin-bottom:6px;}
+.config-sub{font-size:0.8rem;color:var(--text-dim);font-style:italic;margin-bottom:22px;}
+.config-section-label{font-family:'JetBrains Mono',monospace;font-size:0.57rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.config-section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.chapters-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:22px;}
+@media(max-width:420px){.chapters-grid{grid-template-columns:1fr;}}
+.chapter-toggle{display:flex;align-items:center;gap:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.2s;user-select:none;}
+.chapter-toggle:hover{border-color:var(--accent);background:rgba(232,201,126,0.05);}
+.chapter-toggle.selected{border-color:var(--accent);background:rgba(232,201,126,0.09);}
+.chapter-toggle.selected .ct-check{background:var(--accent);border-color:var(--accent);color:var(--bg);}
+.ct-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;transition:all 0.2s;}
+.ct-icon{font-size:1rem;flex-shrink:0;}
+.ct-label{font-size:0.8rem;line-height:1.2;flex:1;}
+.ct-label strong{display:block;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text);}
+.ct-label span{font-size:0.7rem;color:var(--text-dim);}
+
+.timer-config-wrap{margin-bottom:22px;}
+.timer-config-row{display:flex;align-items:center;gap:14px;}
+.timer-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:var(--border);border-radius:4px;outline:none;}
+.timer-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg);}
+.timer-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg);}
+.timer-val-display{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:600;color:var(--accent);min-width:42px;text-align:right;}
+
+.config-action-row{display:flex;gap:10px;align-items:center;}
+.btn-launch{flex:1;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;padding:14px;color:var(--bg);font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.btn-launch:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(232,201,126,0.3);}
+.btn-launch:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.config-warn{font-size:0.75rem;color:var(--error);font-style:italic;display:none;margin-top:8px;}
+.config-warn.show{display:block;}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+<div class="streak-indicator" id="streakIndicator">
+  <span>🔥</span>
+  <span class="streak-num" id="streakNum">0</span>
+  <span style="color:var(--text-dim);font-size:0.57rem;letter-spacing:0.1em">SÉRIE</span>
+</div>
+
+<!-- MENU -->
+<div class="screen active" id="menuScreen">
+  <div class="logo">
+    <span class="logo-symbol">∑ Calcul</span>
+    <div class="logo-sub">exerciseur général · toutes compétences</div>
+  </div>
+
+  <div class="difficulty-bar">
+    <button class="diff-btn active" data-diff="easy">Facile</button>
+    <button class="diff-btn" data-diff="medium">Moyen</button>
+    <button class="diff-btn" data-diff="hard">Difficile</button>
+  </div>
+
+  <div class="category-section">
+    <div class="category-label">Arithmétique de base</div>
+    <div class="menu-grid">
+      <div class="mode-card" data-mode="addition" style="--ca:#e8c97e">
+        <span class="mode-level">CM2 · 6e</span><span class="mode-icon">➕</span>
+        <div class="mode-name">Additions</div>
+        <div class="mode-desc">Sommes, retenues, grands entiers</div>
+      </div>
+      <div class="mode-card" data-mode="soustraction" style="--ca:#7eb0e8">
+        <span class="mode-level">CM2 · 6e</span><span class="mode-icon">➖</span>
+        <div class="mode-name">Soustractions</div>
+        <div class="mode-desc">Différences, résultats négatifs</div>
+      </div>
+      <div class="mode-card" data-mode="multiplication" style="--ca:#c97eb0">
+        <span class="mode-level">CM2 · 6e</span><span class="mode-icon">✖</span>
+        <div class="mode-name">Multiplications</div>
+        <div class="mode-desc">Tables et produits jusqu'aux centaines</div>
+      </div>
+      <div class="mode-card" data-mode="division" style="--ca:#7ecfa0">
+        <span class="mode-level">CM2 · 6e</span><span class="mode-icon">÷</span>
+        <div class="mode-name">Divisions</div>
+        <div class="mode-desc">Quotients entiers exacts</div>
+      </div>
+      <div class="mode-card" data-mode="fractions" style="--ca:#e87e7e">
+        <span class="mode-level">6e · 5e</span><span class="mode-icon">𝑓</span>
+        <div class="mode-name">Fractions</div>
+        <div class="mode-desc">Opérations et simplifications</div>
+      </div>
+      <div class="mode-card" data-mode="triples" style="--ca:#f08888">
+        <span class="mode-level">CM2 · 5e</span><span class="mode-icon">⅓</span>
+        <div class="mode-name">Double · Triple…</div>
+        <div class="mode-desc">Moitié, quart, tiers, triple d'un nombre</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-label">Nombres &amp; divisibilité</div>
+    <div class="menu-grid">
+      <div class="mode-card" data-mode="relatifs" style="--ca:#f0a050">
+        <span class="mode-level">5e · 4e</span><span class="mode-icon">±</span>
+        <div class="mode-name">Nombres relatifs</div>
+        <div class="mode-desc">Opérations sur ℤ, valeur absolue</div>
+      </div>
+      <div class="mode-card" data-mode="diviseurs" style="--ca:#d4c87e">
+        <span class="mode-level">6e · 5e</span><span class="mode-icon">🔢</span>
+        <div class="mode-name">Diviseurs &amp; Multiples</div>
+        <div class="mode-desc">PGCD, PPCM, divisibilité</div>
+      </div>
+      <div class="mode-card" data-mode="proportionnalite" style="--ca:#78d8c0">
+        <span class="mode-level">5e · 4e</span><span class="mode-icon">⚖</span>
+        <div class="mode-name">Proportionnalité</div>
+        <div class="mode-desc">Règle de trois, pourcentages, échelles</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-label">Algèbre &amp; fonctions</div>
+    <div class="menu-grid">
+      <div class="mode-card" data-mode="litteral" style="--ca:#a0c4f0">
+        <span class="mode-level">4e · 3e</span><span class="mode-icon">𝑥</span>
+        <div class="mode-name">Calcul littéral</div>
+        <div class="mode-desc">Évaluer, simplifier, développer, factoriser</div>
+      </div>
+      <div class="mode-card" data-mode="equations" style="--ca:#e8a0c8">
+        <span class="mode-level">4e · 3e</span><span class="mode-icon">⟺</span>
+        <div class="mode-name">Équations</div>
+        <div class="mode-desc">Résoudre ax+b=c, équations du 1er degré</div>
+      </div>
+      <div class="mode-card" data-mode="fonctions" style="--ca:#b8a0e8">
+        <span class="mode-level">3e · 2nde</span><span class="mode-icon">📈</span>
+        <div class="mode-name">Fonctions</div>
+        <div class="mode-desc">Images, antécédents, f(x) = ax + b</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-label">Défi général</div>
+    <div class="menu-grid">
+      <div class="mode-card" data-mode="mixte" style="--ca:#c4a0f0">
+        <span class="mode-level">Tous niveaux</span><span class="mode-icon">⚡</span>
+        <div class="mode-name">Mode Défi — Toutes compétences</div>
+        <div class="mode-desc">Mix aléatoire de l'ensemble des modules, contre la montre</div>
+      </div>
+      <div class="mode-card" id="customModeCard" style="--ca:#78e8c0;cursor:pointer;">
+        <span class="mode-level">Personnalisé</span><span class="mode-icon">🎛</span>
+        <div class="mode-name">Défi Personnalisé</div>
+        <div class="mode-desc">Choisis tes chapitres, règle la durée par question</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG SCREEN -->
+<div class="screen" id="configScreen">
+  <div class="config-card">
+    <div class="config-title">🎛 Défi Personnalisé</div>
+    <div class="config-sub">Sélectionne les chapitres à inclure et règle le temps par question</div>
+
+    <div class="config-section-label">Chapitres</div>
+    <div class="chapters-grid" id="chaptersGrid">
+      <!-- filled by JS -->
+    </div>
+    <div class="config-warn" id="configWarn">⚠ Sélectionne au moins un chapitre</div>
+
+    <div class="config-section-label">Durée par question</div>
+    <div class="timer-config-wrap">
+      <div class="timer-config-row">
+        <span style="font-size:0.8rem;color:var(--text-dim);">5 s</span>
+        <input type="range" class="timer-slider" id="timerSlider" min="5" max="60" step="5" value="20">
+        <span style="font-size:0.8rem;color:var(--text-dim);">60 s</span>
+        <span class="timer-val-display"><span id="timerSliderVal">20</span>s</span>
+      </div>
+    </div>
+
+    <div class="config-action-row">
+      <button class="btn-secondary" id="configBackBtn" style="flex:0 0 auto;padding:14px 18px;">← Retour</button>
+      <button class="btn-launch" id="launchCustomBtn">Lancer ⚡</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="gameScreen">
+  <div class="game-header">
+    <button class="menu-btn" id="menuBtnGame">← Menu</button>
+    <div class="game-title" id="gameTitle">Calcul</div>
+    <div class="stats-row">
+      <div class="stat-pill"><span style="color:var(--text-dim);font-size:0.57rem">Q</span><span class="stat-val" id="questionCounter">1/10</span></div>
+      <div class="stat-pill"><span style="color:var(--text-dim);font-size:0.57rem">✓</span><span class="stat-val" id="scoreDisplay">0</span></div>
+      <div class="timer-wrap">
+        <svg viewBox="0 0 42 42">
+          <circle class="tbg" cx="21" cy="21" r="17"/>
+          <circle class="tarc" id="timerArc" cx="21" cy="21" r="17"/>
+        </svg>
+        <div class="timer-label" id="timerLabel">20</div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="question-card" id="questionCard">
+    <div class="question-label" id="questionLabel">Calculez</div>
+    <div class="question-math" id="questionMath"></div>
+    <div class="hint-text" id="hintText"></div>
+  </div>
+  <div class="input-zone">
+    <input type="text" class="answer-input" id="answerInput" placeholder="?" inputmode="decimal" autocomplete="off"/>
+    <button class="validate-btn" id="validateBtn">Valider</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="next-btn" id="nextBtn">Question suivante →</button>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="resultsScreen">
+  <div class="results-card">
+    <div class="score-ring">
+      <svg viewBox="0 0 128 128">
+        <defs>
+          <linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#e8c97e"/>
+            <stop offset="100%" style="stop-color:#c97eb0"/>
+          </linearGradient>
+        </defs>
+        <circle class="srbg" cx="64" cy="64" r="54"/>
+        <circle class="srfill" id="scoreRingFill" cx="64" cy="64" r="54"/>
+      </svg>
+      <div class="score-center">
+        <span class="score-number" id="finalScore">0</span>
+        <span class="score-denom" id="finalTotal">/10</span>
+      </div>
+    </div>
+    <div class="results-title" id="resultsTitle">Bien joué !</div>
+    <div class="results-subtitle" id="resultsSubtitle">Continuez à vous entraîner</div>
+    <div class="stats-grid">
+      <div class="stat-box"><span class="stat-box-val" id="resultTime">—</span><div class="stat-box-label">Temps moy.</div></div>
+      <div class="stat-box"><span class="stat-box-val" id="resultAccuracy">—</span><div class="stat-box-label">Précision</div></div>
+      <div class="stat-box"><span class="stat-box-val" id="resultStreak">—</span><div class="stat-box-label">Meilleure série</div></div>
+    </div>
+    <div class="action-btns">
+      <button class="btn-primary" id="retryBtn">Rejouer</button>
+      <button class="btn-secondary" id="menuBtnResults">Menu</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// UTILS
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);return b===0?a:gcd(b,a%b);}
+function lcm(a,b){return a===0||b===0?0:Math.abs(a)/gcd(a,b)*Math.abs(b);}
+function simplify(n,d){if(d===0)return[n,1];const g=gcd(Math.abs(n),Math.abs(d));return[n/g,d/g];}
+function fmtFrac(n,d){const[sn,sd]=simplify(n,d);if(sd===1)return`${sn}`;if(sd===0)return`${sn}`;return`${sn}/${sd}`;}
+function renderMath(el,latex){
+  if(!window.katex){el.textContent=latex;return;}
+  try{katex.render(latex,el,{throwOnError:false,displayMode:true});}catch(e){el.textContent=latex;}
+}
+
+// DIFF
+const D={
+  easy:  {timer:30,add:[1,50], sub:[1,50], mul:[1,10],  div:[1,10]},
+  medium:{timer:22,add:[10,200],sub:[1,200],mul:[2,20],  div:[2,20]},
+  hard:  {timer:13,add:[50,999],sub:[1,999],mul:[5,50],  div:[3,99]},
+};
+
+// GENERATORS
+const G={
+
+  addition(d){
+    const c=D[d],a=rand(c.add[0],c.add[1]),b=rand(c.add[0],c.add[1]);
+    return{latex:`${a} + ${b} = \\boldsymbol{?}`,answer:a+b,label:'Calculez la somme'};
+  },
+
+  soustraction(d){
+    const c=D[d];
+    let a=rand(c.sub[0],c.sub[1]);
+    let b=d==='hard'?rand(c.sub[0],c.sub[1]):rand(0,a);
+    return{latex:`${a} - ${b} = \\boldsymbol{?}`,answer:a-b,label:'Calculez la différence',hint:a-b<0?'Le résultat peut être négatif':''};
+  },
+
+  multiplication(d){
+    const c=D[d],a=rand(c.mul[0],c.mul[1]),b=rand(c.mul[0],c.mul[1]);
+    return{latex:`${a} \\times ${b} = \\boldsymbol{?}`,answer:a*b,label:'Calculez le produit'};
+  },
+
+  division(d){
+    const c=D[d],b=rand(c.div[0],c.div[1]),q=rand(1,d==='hard'?30:12);
+    return{latex:`${b*q} \\div ${b} = \\boldsymbol{?}`,answer:q,label:'Calculez le quotient',hint:'Résultat entier'};
+  },
+
+  fractions(d){
+    const op=pick(['+','-']);
+    if(d==='hard'){
+      const d1=pick([2,3,4,5]),d2=pick([3,4,5,6]);
+      const n1=rand(1,d1-1),n2=rand(1,d2-1);
+      const L=lcm(d1,d2);
+      const rn=op==='+'?(n1*(L/d1)+n2*(L/d2)):(n1*(L/d1)-n2*(L/d2));
+      const[sn,sd]=simplify(rn,L);
+      return{latex:`\\dfrac{${n1}}{${d1}} ${op} \\dfrac{${n2}}{${d2}} = ?`,
+        answer:rn/L,answerDisplay:fmtFrac(rn,L),label:'Calculez et simplifiez',hint:'Ex : 3/4 ou entier',isFraction:true,numAns:sn,denAns:sd};
+    }
+    if(d==='easy'){
+      // simplify
+      const den=pick([2,3,4,5,6]);
+      const factor=rand(2,4),num=rand(1,den-1);
+      const[sn,sd]=simplify(num,den);
+      return{latex:`\\text{Simplifier : }\\dfrac{${num*factor}}{${den*factor}}`,
+        answer:num/den,answerDisplay:fmtFrac(num,den),label:'Simplifiez la fraction',hint:'Ex : 3/4',isFraction:true,numAns:sn,denAns:sd};
+    }
+    const den=pick([2,3,4,5,6]),a=rand(1,den-1),b=rand(1,den-1);
+    const rn=op==='+'?a+b:a-b;
+    const[sn,sd]=simplify(rn,den);
+    return{latex:`\\dfrac{${a}}{${den}} ${op} \\dfrac{${b}}{${den}} = ?`,
+      answer:rn/den,answerDisplay:fmtFrac(rn,den),label:'Calculez et simplifiez',hint:'Ex : 3/4 ou entier',isFraction:true,numAns:sn,denAns:sd};
+  },
+
+  triples(d){
+    const pool=d==='easy'
+      ?[{n:'double',f:2},{n:'moitié',f:0.5},{n:'triple',f:3}]
+      :[{n:'double',f:2},{n:'moitié',f:0.5},{n:'triple',f:3},{n:'tiers',f:1/3},{n:'quart',f:0.25},{n:'quadruple',f:4}];
+    const op=pick(pool);
+    let base;
+    if(op.f===0.5||op.f===0.25)base=rand(1,d==='easy'?20:80)*(op.f===0.25?4:2);
+    else if(Math.abs(op.f-1/3)<0.01)base=rand(1,d==='easy'?10:30)*3;
+    else base=rand(2,d==='easy'?30:120);
+    const ans=Math.round(base*op.f*1000)/1000;
+    const cap=op.n.charAt(0).toUpperCase()+op.n.slice(1);
+    return{latex:`\\text{${cap} de }\\;${base} = ?`,answer:ans,label:`Calcul rapide : ${op.n}`};
+  },
+
+  relatifs(d){
+    const r=d==='easy'?12:d==='medium'?40:150;
+    const op=d==='easy'?pick(['+','-']):pick(['+','-','×']);
+    let a=rand(-r,r),b=rand(-r,r),ans,latex;
+    if(op==='×'){
+      a=rand(1,d==='easy'?8:20)*(rand(0,1)?1:-1);
+      b=rand(1,d==='easy'?8:15)*(rand(0,1)?1:-1);
+      ans=a*b;latex=`(${a}) \\times (${b}) = ?`;
+    } else if(op==='+'){ans=a+b;latex=`(${a}) + (${b}) = ?`;}
+    else{ans=a-b;latex=`(${a}) - (${b}) = ?`;}
+    return{latex,answer:ans,label:'Nombres relatifs'};
+  },
+
+  diviseurs(d){
+    const pool=d==='easy'?['div','mul']:d==='medium'?['div','mul','pgcd']:['pgcd','ppcm','premier'];
+    const type=pick(pool);
+    if(type==='div'){
+      const b=rand(2,d==='easy'?12:20),q=rand(2,15);
+      return{latex:`${b*q} \\div ${b} = ?`,answer:q,label:'Division exacte'};
+    }
+    if(type==='mul'){
+      const base=rand(2,d==='easy'?15:25),k=rand(2,15);
+      return{latex:`${base} \\times ${k} = ?`,answer:base*k,label:`Multiple de ${base}`};
+    }
+    if(type==='pgcd'){
+      const a=rand(2,d==='hard'?60:30),b=rand(2,d==='hard'?60:30);
+      return{latex:`\\text{PGCD}(${a},\\,${b}) = ?`,answer:gcd(a,b),label:'Plus grand commun diviseur'};
+    }
+    if(type==='ppcm'){
+      const a=rand(2,18),b=rand(2,18);
+      return{latex:`\\text{PPCM}(${a},\\,${b}) = ?`,answer:lcm(a,b),label:'Plus petit commun multiple'};
+    }
+    const primes=[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47];
+    const comps=[4,6,8,9,10,12,14,15,16,18,20,21,22,24,25,26,27,28];
+    const ip=rand(0,1)===0,n=ip?pick(primes):pick(comps);
+    return{latex:`${n}\\;\\text{est-il premier ?}\\;(1=\\text{oui},\\;0=\\text{non})`,
+      answer:ip?1:0,label:'Nombre premier',hint:'Tapez 1 pour Oui, 0 pour Non'};
+  },
+
+  proportionnalite(d){
+    const pool=d==='easy'?['r3','pct']:d==='medium'?['r3','pct','augm']:['r3','pct','augm','echelle'];
+    const type=pick(pool);
+    if(type==='r3'){
+      const unit=rand(2,d==='easy'?15:50),qty=rand(2,10),ask=rand(1,qty-1);
+      return{latex:`\\text{Si }${qty}\\text{ objets }\\rightarrow ${unit*qty}€,\\;\\text{ combien pour }${ask}\\text{ objets ?}`,
+        answer:unit*ask,label:'Règle de trois'};
+    }
+    if(type==='pct'){
+      const pcts=d==='easy'?[10,20,25,50]:[5,10,15,20,25,30,40,50,75];
+      const p=pick(pcts),base=rand(2,20)*(d==='easy'?10:5);
+      return{latex:`${p}\\%\\text{ de }${base} = ?`,answer:base*p/100,label:'Pourcentage d\'un nombre'};
+    }
+    if(type==='augm'){
+      const tx=pick([5,10,15,20,25]),base=rand(10,100)*pick([2,4,5]);
+      return{latex:`${base}\\;\\text{augmenté de }${tx}\\% = ?`,answer:base*(1+tx/100),label:'Augmentation en %'};
+    }
+    const scale=pick([100,500,1000,2000]),real=rand(1,10)*scale;
+    return{latex:`\\text{Échelle }1\\!:\\!${scale}.\\;\\text{Réel: }${real}\\,\\text{cm}\\;\\Rightarrow\\;\\text{dessin ?}\\,\\text{cm}`,
+      answer:real/scale,label:`Échelle 1:${scale}`};
+  },
+
+  litteral(d){
+    const pool=d==='easy'?['eval','red']:d==='medium'?['eval','red','dev']:['eval2','dev','factor'];
+    const type=pick(pool);
+    if(type==='eval'){
+      const a=rand(1,8),b=rand(-15,15),x=rand(d==='hard'?-10:-5,d==='hard'?10:8);
+      return{latex:`\\text{Si }x=${x},\\;${a}x ${b>=0?'+':''}${b} = ?`,answer:a*x+b,label:'Évaluation'};
+    }
+    if(type==='red'){
+      const a=rand(1,8),b=rand(1,8),c=rand(0,15);
+      return{latex:`${a}x + ${b}x + ${c} = \\boxed{?}\\,x + ${c}`,answer:a+b,label:'Réduire les termes semblables',hint:'Trouvez le coefficient de x'};
+    }
+    if(type==='dev'){
+      const k=rand(2,7),a=rand(1,8),b=rand(-10,10);
+      return{latex:`${k}(${a}x ${b>=0?'+':''}${b}) = \\boxed{?}\\,x ${k*b>=0?'+':''}${k*b}`,
+        answer:k*a,label:'Développer',hint:'Coefficient de x'};
+    }
+    if(type==='eval2'){
+      const a=rand(1,5),b=rand(1,5),c=rand(-5,5),x=rand(-5,5),y=rand(-5,5);
+      return{latex:`x=${x},\\,y=${y} :\\;${a}x+${b}y${c>=0?'+':''}${c} = ?`,answer:a*x+b*y+c,label:'Évaluation à 2 variables'};
+    }
+    const k=rand(2,6),a=rand(2,8),b=rand(1,8);
+    return{latex:`${k*a}x + ${k*b} = ${k}(${a}x + ?)`,answer:b,label:'Factorisation',hint:`Facteur commun : ${k}`};
+  },
+
+  equations(d){
+    const pool=d==='easy'?['xb','axb']:d==='medium'?['axb','two']:['two','frac','sq'];
+    const type=pick(pool);
+    if(type==='xb'){
+      const b=rand(-15,15),ans=rand(-12,12);
+      return{latex:`x ${b>=0?'+':''}${b} = ${ans+b}\\quad x = ?`,answer:ans,label:'Résoudre l\'équation'};
+    }
+    if(type==='axb'){
+      const a=rand(2,10),b=rand(-15,15),ans=rand(-8,8);
+      return{latex:`${a}x ${b>=0?'+':''}${b} = ${a*ans+b}\\quad x = ?`,answer:ans,label:'Résoudre l\'équation'};
+    }
+    if(type==='two'){
+      const a=rand(3,8),b=rand(1,5),c=rand(-8,8),ans=rand(-6,6);
+      const rhs=b*ans, lhsConst=a*ans+c;
+      return{latex:`${a}x ${c>=0?'+':''}${c} = ${b}x ${lhsConst-rhs>=0?'+':''}${lhsConst-rhs}\\quad x=?`,answer:ans,label:'Équation — deux membres'};
+    }
+    if(type==='frac'){
+      const a=rand(2,6),ans=rand(1,10)*a;
+      return{latex:`\\dfrac{x}{${a}} = ${ans/a}\\quad x = ?`,answer:ans,label:'Équation avec fraction'};
+    }
+    const k=pick([1,4,9,16,25,36,49,64,81,100]);
+    return{latex:`x^2 = ${k},\\;x > 0\\quad x = ?`,answer:Math.sqrt(k),label:'Équation du second degré',hint:'Racine positive'};
+  },
+
+  fonctions(d){
+    const pool=d==='easy'?['img','ant']:d==='medium'?['img','ant','pente']:['pente','zero','comp'];
+    const type=pick(pool);
+    const a=(rand(1,5))*(rand(0,1)?1:-1),b=rand(-10,10),x=rand(-7,7);
+    if(type==='img'){
+      return{latex:`f(x)=${a}x ${b>=0?'+':''}${b}\\quad f(${x})=?`,answer:a*x+b,label:'Calculer une image'};
+    }
+    if(type==='ant'){
+      const y=a*x+b;
+      return{latex:`f(x)=${a}x ${b>=0?'+':''}${b},\\;f(x)=${y}\\;\\Rightarrow\\; x=?`,answer:x,label:'Trouver un antécédent'};
+    }
+    if(type==='pente'){
+      const x2=rand(-7,7);
+      const y1=a*x+b,y2=a*x2+b;
+      if(x===x2)return G.fonctions(d);
+      return{latex:`f(${x})=${y1},\\;f(${x2})=${y2}\\quad \\text{coeff. directeur}=?`,answer:a,label:'Coefficient directeur',hint:'(y₂−y₁)/(x₂−x₁)'};
+    }
+    if(type==='zero'){
+      const aa=pick([-4,-3,-2,-1,1,2,3,4]),zero=rand(-8,8),bb=-aa*zero;
+      return{latex:`f(x)=${aa}x ${bb>=0?'+':''}${bb}=0\\quad x=?`,answer:zero,label:'Zéro de la fonction'};
+    }
+    const c=rand(1,4),e=rand(-5,5),xc=rand(-4,4),inner=a*xc+b,outer=c*inner+e;
+    return{latex:`g(x)=${a}x ${b>=0?'+':''}${b},\\;f(x)=${c}x ${e>=0?'+':''}${e}\\quad f(g(${xc}))=?`,
+      answer:outer,label:'Composition de fonctions'};
+  },
+
+  mixte(d){
+    const modes=['addition','soustraction','multiplication','division','fractions','relatifs',
+                 'diviseurs','triples','proportionnalite','litteral','equations','fonctions'];
+    return G[pick(modes)](d);
+  }
+};
+
+// STATE
+const state={
+  mode:'addition',difficulty:'easy',
+  currentQuestion:0,totalQuestions:10,
+  score:0,streak:0,maxStreak:0,
+  questions:[],answered:false,
+  timerInterval:null,timerVal:20,timerMax:20,
+  questionStart:0,answerTimes:[],
+};
+
+function buildQuestions(){
+  state.questions=[];
+  for(let i=0;i<state.totalQuestions;i++){
+    let q;try{q=G[state.mode](state.difficulty);}catch(e){q=G.addition(state.difficulty);}
+    if(!q||q.answer===undefined)q=G.addition(state.difficulty);
+    state.questions.push(q);
+  }
+}
+
+function startTimer(){
+  clearInterval(state.timerInterval);
+  const t=D[state.difficulty].timer;
+  state.timerVal=t;state.timerMax=t;state.questionStart=Date.now();
+  updateTimerUI();
+  state.timerInterval=setInterval(()=>{
+    state.timerVal--;updateTimerUI();
+    if(state.timerVal<=0){clearInterval(state.timerInterval);if(!state.answered)timeOut();}
+  },1000);
+}
+function updateTimerUI(){
+  const circ=2*Math.PI*17,frac=state.timerVal/state.timerMax;
+  const arc=document.getElementById('timerArc'),lbl=document.getElementById('timerLabel');
+  arc.style.strokeDasharray=circ;arc.style.strokeDashoffset=circ*(1-frac);
+  lbl.textContent=state.timerVal;
+  const col=frac<0.33?'var(--error)':frac<0.6?'var(--accent2)':'var(--accent)';
+  arc.style.stroke=col;lbl.style.color=col;
+}
+function timeOut(){
+  state.answered=true;
+  document.getElementById('answerInput').classList.add('wrong');
+  const q=state.questions[state.currentQuestion];
+  const fb=document.getElementById('feedback');
+  fb.className='feedback wrong-fb show';
+  const ans=q.answerDisplay!=null?q.answerDisplay:(Number.isInteger(q.answer)?q.answer:+q.answer.toFixed(3));
+  fb.textContent=`⏱ Temps écoulé — Réponse : ${ans}`;
+  state.streak=0;updateStreak();
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function displayQuestion(){
+  const q=state.questions[state.currentQuestion];
+  state.answered=false;
+  // Wait for KaTeX
+  const doRender=()=>renderMath(document.getElementById('questionMath'),q.latex);
+  if(window.katex)doRender();else window.addEventListener('load',doRender,{once:true});
+  document.getElementById('questionLabel').textContent=q.label||'Calculez';
+  document.getElementById('hintText').textContent=q.hint||'';
+  document.getElementById('questionCounter').textContent=`${state.currentQuestion+1}/${state.totalQuestions}`;
+  document.getElementById('progressFill').style.width=(state.currentQuestion/state.totalQuestions*100)+'%';
+  const inp=document.getElementById('answerInput');
+  inp.value='';inp.className='answer-input';
+  setTimeout(()=>inp.focus(),50);
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('nextBtn').classList.remove('show');
+  const card=document.getElementById('questionCard');
+  card.style.animation='none';card.offsetHeight;card.style.animation='fadeIn 0.3s ease';
+  startTimer();
+}
+
+function checkAnswer(q,raw){
+  if(q.isFraction){
+    if(raw.includes('/')){
+      const pts=raw.split('/');
+      const n=parseInt(pts[0]),d=parseInt(pts[1]);
+      if(!isNaN(n)&&!isNaN(d)&&d!==0){
+        if(Math.abs(n/d-q.answer)<0.002)return true;
+        const[sn,sd]=simplify(n,d);
+        return sn===q.numAns&&sd===q.denAns;
+      }
+    }
+    const v=parseFloat(raw.replace(',','.'));
+    return !isNaN(v)&&Math.abs(v-q.answer)<0.002;
+  }
+  const v=parseFloat(raw.replace(',','.'));
+  return !isNaN(v)&&Math.abs(v-q.answer)<0.002;
+}
+
+function validate(){
+  if(state.answered){nextQuestion();return;}
+  const q=state.questions[state.currentQuestion];
+  const raw=document.getElementById('answerInput').value.trim();
+  if(!raw)return;
+  clearInterval(state.timerInterval);
+  state.answerTimes.push((Date.now()-state.questionStart)/1000);
+  state.answered=true;
+  const inp=document.getElementById('answerInput'),fb=document.getElementById('feedback');
+  if(checkAnswer(q,raw)){
+    state.score++;state.streak++;state.maxStreak=Math.max(state.maxStreak,state.streak);
+    inp.classList.add('correct');
+    fb.className='feedback correct-fb show';
+    fb.textContent=pick(['Excellent ! ✓','Parfait ! ✓','Bravo ! ✓','Très bien ! ✓','💯 Impeccable !']);
+    document.getElementById('scoreDisplay').textContent=state.score;
+    updateStreak();spawnParticles();
+  } else {
+    state.streak=0;inp.classList.add('wrong');
+    fb.className='feedback wrong-fb show';
+    const ans=q.answerDisplay!=null?q.answerDisplay:(Number.isInteger(q.answer)?q.answer:+q.answer.toFixed(3));
+    fb.textContent=`Incorrect — La réponse était : ${ans}`;
+    updateStreak();
+  }
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function nextQuestion(){
+  state.currentQuestion++;
+  if(state.currentQuestion>=state.totalQuestions)showResults();
+  else displayQuestion();
+}
+
+function updateStreak(){
+  const ind=document.getElementById('streakIndicator');
+  document.getElementById('streakNum').textContent=state.streak;
+  if(state.streak>=2)ind.classList.add('show');else ind.classList.remove('show');
+}
+
+function spawnParticles(){
+  const emojis=['✨','⭐','💫','🌟','🎉'];
+  const r=document.getElementById('questionCard').getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  for(let i=0;i<6;i++){
+    const el=document.createElement('div');el.className='particle';
+    el.textContent=pick(emojis);
+    el.style.left=cx+rand(-50,50)+'px';el.style.top=cy+rand(-40,40)+'px';
+    el.style.setProperty('--dx',rand(-90,90)+'px');el.style.setProperty('--dy',rand(-130,-40)+'px');
+    document.body.appendChild(el);setTimeout(()=>el.remove(),800);
+  }
+}
+
+function showResults(){
+  clearInterval(state.timerInterval);showScreen('resultsScreen');
+  const sc=state.score,tot=state.totalQuestions,pct=Math.round(sc/tot*100);
+  document.getElementById('finalScore').textContent=sc;
+  document.getElementById('finalTotal').textContent=`/${tot}`;
+  const ring=document.getElementById('scoreRingFill'),circ=2*Math.PI*54;
+  ring.style.strokeDasharray=circ;ring.style.strokeDashoffset=circ;
+  setTimeout(()=>ring.style.strokeDashoffset=circ*(1-pct/100),100);
+  const tiers=[[100,'Parfait !','Score absolu — maîtrise totale ✦'],[80,'Excellent !','Quasi parfait, vous progressez vite'],[60,'Bien joué !','De bons réflexes, continuez'],[40,'Pas mal !','Encore un peu de pratique'],[0,'Continuez !','L\'entraînement paie toujours']];
+  const[,ti,su]=tiers.find(([th])=>pct>=th);
+  document.getElementById('resultsTitle').textContent=ti;
+  document.getElementById('resultsSubtitle').textContent=su;
+  const avg=state.answerTimes.length?(state.answerTimes.reduce((a,b)=>a+b,0)/state.answerTimes.length).toFixed(1)+'s':'—';
+  document.getElementById('resultTime').textContent=avg;
+  document.getElementById('resultAccuracy').textContent=pct+'%';
+  document.getElementById('resultStreak').textContent=state.maxStreak;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const TITLES={addition:'Additions',soustraction:'Soustractions',multiplication:'Multiplications',
+  division:'Divisions',fractions:'Fractions',relatifs:'Nombres relatifs',
+  diviseurs:'Diviseurs & Multiples',triples:'Double · Triple · Moitié',
+  proportionnalite:'Proportionnalité',litteral:'Calcul littéral',
+  equations:'Équations',fonctions:'Fonctions',mixte:'Mode Défi'};
+
+function startGame(mode){
+  Object.assign(state,{mode,currentQuestion:0,score:0,streak:0,maxStreak:0,answered:false,answerTimes:[]});
+  document.getElementById('streakIndicator').classList.remove('show');
+  document.getElementById('scoreDisplay').textContent='0';
+  document.getElementById('gameTitle').textContent=TITLES[mode]||mode;
+  buildQuestions();showScreen('gameScreen');displayQuestion();
+}
+
+// EVENTS
+document.querySelectorAll('.mode-card').forEach(c=>c.addEventListener('click',()=>startGame(c.dataset.mode)));
+document.querySelectorAll('.diff-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.diff-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');state.difficulty=b.dataset.diff;
+}));
+document.getElementById('validateBtn').addEventListener('click',validate);
+document.getElementById('answerInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){if(state.answered)nextQuestion();else validate();}
+});
+document.getElementById('nextBtn').addEventListener('click',nextQuestion);
+document.getElementById('menuBtnGame').addEventListener('click',()=>{
+  clearInterval(state.timerInterval);
+  document.getElementById('streakIndicator').classList.remove('show');
+  showScreen('menuScreen');
+});
+document.getElementById('menuBtnResults').addEventListener('click',()=>{
+  document.getElementById('streakIndicator').classList.remove('show');showScreen('menuScreen');
+});
+document.getElementById('retryBtn').addEventListener('click',()=>startGame(state.mode));
+
+// ===== CUSTOM / PERSONNALISÉ MODE =====
+const CHAPTERS = [
+  {id:'addition',       icon:'➕', name:'Additions',           desc:'Sommes & retenues'},
+  {id:'soustraction',   icon:'➖', name:'Soustractions',        desc:'Différences'},
+  {id:'multiplication', icon:'✖',  name:'Multiplications',     desc:'Tables & produits'},
+  {id:'division',       icon:'÷',  name:'Divisions',            desc:'Quotients exacts'},
+  {id:'fractions',      icon:'𝑓',  name:'Fractions',            desc:'Opérations & simplifs'},
+  {id:'triples',        icon:'⅓',  name:'Double · Triple…',    desc:'Moitié, quart, tiers'},
+  {id:'relatifs',       icon:'±',  name:'Nombres relatifs',    desc:'Opérations sur ℤ'},
+  {id:'diviseurs',      icon:'🔢', name:'Diviseurs & Multiples',desc:'PGCD, PPCM'},
+  {id:'proportionnalite',icon:'⚖', name:'Proportionnalité',    desc:'%, règle de trois'},
+  {id:'litteral',       icon:'𝑥',  name:'Calcul littéral',     desc:'Évaluer, développer'},
+  {id:'equations',      icon:'⟺', name:'Équations',           desc:'Résoudre ax+b=c'},
+  {id:'fonctions',      icon:'📈', name:'Fonctions',            desc:'Images, antécédents'},
+];
+
+let selectedChapters = new Set(CHAPTERS.map(c=>c.id));
+let customTimerVal = 20;
+
+function buildConfigScreen(){
+  const grid = document.getElementById('chaptersGrid');
+  grid.innerHTML = '';
+  CHAPTERS.forEach(ch => {
+    const div = document.createElement('div');
+    div.className = 'chapter-toggle' + (selectedChapters.has(ch.id) ? ' selected' : '');
+    div.dataset.id = ch.id;
+    div.innerHTML = `
+      <div class="ct-check">${selectedChapters.has(ch.id) ? '✓' : ''}</div>
+      <span class="ct-icon">${ch.icon}</span>
+      <div class="ct-label"><strong>${ch.name}</strong><span>${ch.desc}</span></div>`;
+    div.addEventListener('click', () => {
+      if(selectedChapters.has(ch.id)){
+        selectedChapters.delete(ch.id);
+        div.classList.remove('selected');
+        div.querySelector('.ct-check').textContent = '';
+      } else {
+        selectedChapters.add(ch.id);
+        div.classList.add('selected');
+        div.querySelector('.ct-check').textContent = '✓';
+      }
+      document.getElementById('configWarn').classList.toggle('show', selectedChapters.size === 0);
+      document.getElementById('launchCustomBtn').disabled = selectedChapters.size === 0;
+    });
+    grid.appendChild(div);
+  });
+}
+
+document.getElementById('customModeCard').addEventListener('click', () => {
+  buildConfigScreen();
+  // sync slider
+  document.getElementById('timerSlider').value = customTimerVal;
+  document.getElementById('timerSliderVal').textContent = customTimerVal;
+  showScreen('configScreen');
+});
+
+document.getElementById('timerSlider').addEventListener('input', function(){
+  customTimerVal = parseInt(this.value);
+  document.getElementById('timerSliderVal').textContent = customTimerVal;
+});
+
+document.getElementById('configBackBtn').addEventListener('click', () => showScreen('menuScreen'));
+
+document.getElementById('launchCustomBtn').addEventListener('click', () => {
+  if(selectedChapters.size === 0){
+    document.getElementById('configWarn').classList.add('show');
+    return;
+  }
+  // Override timer for custom mode
+  state.customTimer = customTimerVal;
+  state.customChapters = [...selectedChapters];
+  startGame('custom');
+});
+
+// Extend generator for custom mode
+G.custom = function(d){
+  const list = state.customChapters || CHAPTERS.map(c=>c.id);
+  const mode = pick(list);
+  return G[mode](d);
+};
+
+// Override startTimer to respect custom timer
+const _origStartTimer = startTimer;
+startTimer = function(){
+  if(state.mode === 'custom' && state.customTimer){
+    clearInterval(state.timerInterval);
+    const t = state.customTimer;
+    state.timerVal = t; state.timerMax = t; state.questionStart = Date.now();
+    updateTimerUI();
+    state.timerInterval = setInterval(()=>{
+      state.timerVal--; updateTimerUI();
+      if(state.timerVal <= 0){clearInterval(state.timerInterval); if(!state.answered) timeOut();}
+    }, 1000);
+  } else {
+    _origStartTimer();
+  }
+};
+
+TITLES['custom'] = 'Défi Personnalisé';
+
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

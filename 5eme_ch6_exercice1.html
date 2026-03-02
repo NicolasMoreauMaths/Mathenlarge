@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repérage sur une droite graduée | 5ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1a1f2e;
+            --bg: #f8f5f0;
+            --card: #ffffff;
+            --terracotta: #c2531a;
+            --terracotta-light: #fdf0e8;
+            --terracotta-dark: #9a3d0f;
+            --sage: #2d6a4f;
+            --sage-light: #d8f3dc;
+            --indigo: #3730a3;
+            --indigo-light: #e0e7ff;
+            --amber: #b45309;
+            --amber-light: #fef3c7;
+            --rose: #be123c;
+            --rose-light: #ffe4e6;
+            --slate: #475569;
+            --border: #e5ddd0;
+            --muted: #78716c;
+            --shadow: rgba(26, 31, 46, 0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 0% 0%, rgba(194,83,26,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 100% 100%, rgba(45,106,79,0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: var(--ink);
+            line-height: 1.7;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 860px; margin: 0 auto; }
+
+        /* ── HEADER ── */
+        header { background: var(--ink); border-radius: 22px; padding: 2.75rem 2.5rem 2.5rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+        header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--terracotta), var(--amber), var(--sage), var(--indigo)); }
+        header::after { content: '◂▸'; position: absolute; right: 1.5rem; bottom: -2rem; font-size: 12rem; color: rgba(255,255,255,0.03); pointer-events: none; line-height: 1; font-family: 'Lora', serif; }
+        .header-inner { position: relative; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1.1rem; }
+        .header-text h1 { font-family: 'Lora', serif; font-size: 2.4rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 0.25rem; }
+        .header-text .subtitle { font-size: 0.95rem; color: rgba(255,255,255,0.5); }
+        .header-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; align-self: flex-start; }
+        .hbadge { padding: 0.3rem 0.85rem; border-radius: 99px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+        .hbadge.terra { background: var(--terracotta); color: #fff; }
+        .hbadge.sage { background: var(--sage-light); color: var(--sage); }
+        .hbadge.indigo { background: var(--indigo-light); color: var(--indigo); }
+
+        /* ── INTRO ── */
+        .intro-box { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 3px 16px var(--shadow); }
+        .intro-title { font-size: 0.73rem; font-weight: 800; color: var(--terracotta-dark); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.6rem; }
+        .intro-body { font-size: 0.93rem; color: var(--muted); line-height: 1.65; }
+        .intro-body strong { color: var(--ink); }
+
+        /* ── PROGRESS ── */
+        .progress-wrapper { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 1rem 1.4rem; margin-bottom: 1.75rem; box-shadow: 0 3px 12px var(--shadow); display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+        .progress-label { font-size: 0.87rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+        .progress-bar-track { flex: 1; min-width: 100px; height: 10px; background: #ede8e0; border-radius: 99px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--terracotta), var(--sage)); border-radius: 99px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+        .progress-counter { font-size: 0.9rem; font-weight: 800; color: var(--terracotta-dark); white-space: nowrap; }
+        .progress-dots { display: flex; gap: 0.4rem; }
+        .progress-dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--border); background: white; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .progress-dot.done { background: var(--sage); border-color: var(--sage); transform: scale(1.2); }
+
+        /* ── EXERCISE CARD ── */
+        .exercise { background: var(--card); border: 2px solid var(--border); border-left: 5px solid var(--border); border-radius: 18px; padding: 2rem; margin-bottom: 1.75rem; box-shadow: 0 4px 20px var(--shadow); transition: transform 0.3s ease, box-shadow 0.3s ease, border-left-color 0.4s ease; }
+        .exercise:hover { transform: translateY(-2px); box-shadow: 0 10px 32px var(--shadow); }
+        .exercise.seen { border-left-color: var(--sage); }
+        .exercise-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.3rem; padding-bottom: 1rem; border-bottom: 2px dashed var(--border); flex-wrap: wrap; gap: 0.65rem; }
+        .exercise-title-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .exercise-title { font-family: 'Lora', serif; font-size: 1.55rem; font-weight: 700; color: var(--ink); }
+        .tag-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .etag { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.17rem 0.62rem; border-radius: 99px; }
+        .etag.terra { background: var(--terracotta-light); color: var(--terracotta-dark); }
+        .etag.sage { background: var(--sage-light); color: var(--sage); }
+        .etag.indigo { background: var(--indigo-light); color: var(--indigo); }
+        .etag.amber { background: var(--amber-light); color: var(--amber); }
+        .etag.rose { background: var(--rose-light); color: var(--rose); }
+        .header-right { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+        .seen-badge { display: none; background: var(--sage); color: white; font-size: 0.67rem; font-weight: 800; letter-spacing: 0.05em; padding: 0.18rem 0.55rem; border-radius: 99px; white-space: nowrap; align-self: center; animation: popBadge 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes popBadge { from { opacity:0; transform:scale(0.5); } to { opacity:1; transform:scale(1); } }
+        .exercise.seen .seen-badge { display: inline-block; }
+        .exercise-content { font-size: 1.02rem; line-height: 1.85; }
+
+        /* ── CONTEXT BANNER ── */
+        .ctx-banner { border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1.1rem; font-size: 0.97rem; line-height: 1.65; border-left: 4px solid; }
+        .ctx-banner.terra { background: var(--terracotta-light); border-color: var(--terracotta); }
+        .ctx-banner.sage  { background: var(--sage-light);       border-color: var(--sage); }
+        .ctx-banner.indigo{ background: var(--indigo-light);     border-color: var(--indigo); }
+        .ctx-banner.amber { background: var(--amber-light);      border-color: var(--amber); }
+        .ctx-banner.rose  { background: var(--rose-light);       border-color: var(--rose); }
+        .ctx-banner.slate { background: #f1f5f9;                 border-color: var(--slate); }
+        .ctx-banner .ctx-icon { font-size: 1.3rem; margin-right: 0.5rem; vertical-align: middle; }
+        .ctx-banner strong { color: var(--ink); }
+
+        /* ── QUESTIONS ── */
+        .q-list { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.85rem; }
+        .q-item { background: #faf8f5; border: 2px solid var(--border); border-radius: 10px; padding: 0.72rem 1rem; font-size: 1rem; line-height: 1.6; }
+        .q-num { font-weight: 800; color: var(--terracotta-dark); margin-right: 0.4rem; }
+
+        /* ── BUTTONS ── */
+        .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.2rem; }
+        .reveal-btn { background: var(--ink); color: white; border: none; padding: 0.62rem 1.25rem; border-radius: 50px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.87rem; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 3px 10px var(--shadow); position: relative; overflow: hidden; flex-shrink: 0; }
+        .reveal-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.18); transform: translate(-50%,-50%); transition: width 0.4s, height 0.4s; }
+        .reveal-btn:hover::before { width: 260px; height: 260px; }
+        .reveal-btn:hover { transform: scale(1.04); }
+        .reveal-btn.active { background: linear-gradient(135deg, var(--sage), #1b4332); }
+        .hint-toggle-btn { background: var(--indigo-light); color: var(--indigo); border: 2px solid #a5b4fc; padding: 0.57rem 1rem; border-radius: 50px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.87rem; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; }
+        .hint-toggle-btn:hover { background: #c7d2fe; }
+
+        /* ── HINTS ── */
+        .hints-section { margin-top: 1.1rem; border-top: 2px dashed #a5b4fc; padding-top: 1.1rem; display: none; }
+        .hints-section.open { display: block; }
+        .hints-title { font-size: 0.72rem; font-weight: 800; color: var(--indigo); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.65rem; }
+        .hints-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .hint-item { display: flex; align-items: flex-start; gap: 0.5rem; }
+        .hint-btn { background: var(--indigo-light); color: var(--indigo); border: 2px solid #a5b4fc; border-radius: 9px; padding: 0.45rem 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
+        .hint-btn:hover:not(:disabled) { background: #c7d2fe; border-color: var(--indigo); }
+        .hint-btn:disabled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; cursor: default; }
+        .hint-text { background: #eef2ff; border-left: 3px solid var(--indigo); border-radius: 6px; padding: 0 0.8rem; font-size: 0.88rem; color: var(--ink); max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease, opacity 0.3s ease; opacity: 0; flex: 1; min-width: 0; word-break: break-word; }
+        .hint-text.revealed { max-height: 200px; padding: 0.48rem 0.8rem; opacity: 1; }
+
+        /* ── CORRECTION ── */
+        .correction { overflow: hidden; opacity: 0; height: 0; margin-top: 0; transition: opacity 0.35s ease, height 0.35s cubic-bezier(0.4,0,0.2,1), margin-top 0.35s ease; }
+        .correction.show { opacity: 1; margin-top: 1.4rem; }
+        .correction-box { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 2px solid var(--sage); border-radius: 12px; padding: 2.1rem 1.5rem 1.5rem; position: relative; }
+        .correction-box::before { content: '✓ Correction'; position: absolute; top: 0; left: 0; background: var(--sage); color: white; padding: 0.38rem 1.1rem; border-radius: 12px 0 12px 0; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; }
+        .correction-content { margin-top: 0.6rem; }
+        .part-title { font-family: 'Lora', serif; font-size: 1.05rem; font-weight: 700; color: var(--ink); margin: 1.3rem 0 0.6rem; padding-bottom: 0.3rem; border-bottom: 2px solid #86efac; }
+        .corr-item { background: white; border-radius: 10px; padding: 0.9rem 1.2rem; margin: 0.55rem 0; border-left: 4px solid var(--sage); font-size: 0.97rem; line-height: 1.7; }
+        .solution-box { background: #ecfdf5; border: 2px solid var(--sage); padding: 0.72rem 1.1rem; border-radius: 10px; font-size: 1rem; font-weight: 700; color: #064e3b; margin: 0.6rem 0; }
+
+        /* ── DROITE GRADUÉE SVG ── */
+        .droite-container { overflow-x: auto; margin: 1rem 0; padding: 0.5rem 0; }
+        .droite-container svg { display: block; min-width: 480px; }
+
+        /* Math */
+        .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 0.15em; line-height: 1.1; }
+        .frac .fn { border-bottom: 2px solid currentColor; padding: 0 0.25em 0.05em; font-size: 0.9em; }
+        .frac .fd { padding: 0.05em 0.25em 0; font-size: 0.9em; }
+
+        .hl-sage   { color: var(--sage);    font-weight: 800; }
+        .hl-terra  { color: var(--terracotta-dark); font-weight: 800; }
+        .hl-amber  { color: var(--amber);   font-weight: 800; }
+        .hl-indigo { color: var(--indigo);  font-weight: 800; }
+        .hl-rose   { color: var(--rose);    font-weight: 800; }
+
+        /* Score card */
+        .score-card { background: var(--ink); border-radius: 20px; padding: 2rem 2.5rem; margin-top: 1.5rem; margin-bottom: 2rem; box-shadow: 0 10px 40px var(--shadow); text-align: center; display: none; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); position: relative; overflow: hidden; }
+        .score-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--terracotta), var(--amber), var(--sage), var(--indigo)); }
+        @keyframes popIn { from { opacity:0; transform:scale(0.85) translateY(-10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        .score-card.visible { display: block; }
+        .score-emoji { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+        .score-title { font-family: 'Lora', serif; font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+        .score-stars { font-size: 1.8rem; letter-spacing: 0.2rem; margin: 0.5rem 0 1rem; }
+        .score-message { font-size: 1rem; color: rgba(255,255,255,0.6); max-width: 460px; margin: 0 auto; }
+        .score-breakdown { display: flex; justify-content: center; gap: 0.7rem; margin-top: 1.2rem; flex-wrap: wrap; }
+        .sc-badge { padding: 0.35rem 0.9rem; border-radius: 99px; font-size: 0.8rem; font-weight: 800; }
+        .sc-badge.terra { background: var(--terracotta); color: #fff; }
+        .sc-badge.sage  { background: var(--sage-light); color: var(--sage); }
+
+        footer { text-align: center; margin-top: 3rem; padding: 1.75rem; color: var(--muted); font-style: italic; font-size: 0.9rem; }
+
+        @media(max-width:900px) { body{padding:1.5rem 0.75rem;} .header-text h1{font-size:2rem;} .exercise{padding:1.5rem;} .exercise-title{font-size:1.3rem;} }
+        @media(max-width:600px) {
+            body{padding:1rem 0.5rem;}
+            header{padding:1.5rem 1rem;border-radius:14px;}
+            .header-text h1{font-size:1.65rem;}
+            .exercise{padding:1.1rem 0.9rem;border-radius:12px;margin-bottom:1.25rem;}
+            .exercise-header{flex-direction:column;align-items:flex-start;}
+            .exercise-title{font-size:1.15rem;}
+            .reveal-btn,.hint-toggle-btn{width:100%;text-align:center;padding:0.82rem 1rem;}
+            .correction-box{padding:1.7rem 0.8rem 1rem;}
+            .correction-box::before{font-size:0.76rem;padding:0.33rem 0.85rem;}
+            .score-card{padding:1.5rem 1.1rem;}
+            .progress-wrapper{padding:0.9rem 1rem;gap:0.7rem;}
+            .hint-item{flex-direction:column;}
+            .hint-btn{white-space:normal;width:100%;}
+            .hint-text{width:100%;box-sizing:border-box;}
+            .hint-text.revealed{max-height:600px;}
+        }
+        @media(max-width:380px) { .header-text h1{font-size:1.3rem;} .exercise-title{font-size:1rem;} }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <div class="header-inner">
+            <div class="header-text">
+                <h1>Repérage sur une droite graduée</h1>
+                <p class="subtitle">Nombres relatifs — 5<sup>ème</sup></p>
+            </div>
+            <div class="header-badges">
+                <span class="hbadge terra">📏 Droite graduée</span>
+                <span class="hbadge sage">✓ Entiers & Fractions</span>
+                <span class="hbadge indigo">5<sup>ème</sup></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="intro-box">
+        <p class="intro-title">📌 Rappel du cours</p>
+        <p class="intro-body">
+            Une <strong>droite graduée</strong> est une droite sur laquelle on a choisi une origine (le point 0), un sens positif (vers la droite) et une unité. Les <strong>nombres négatifs</strong> se placent à gauche du zéro, les positifs à droite. Une <strong>fraction</strong> comme <span class="frac"><span class="fn">−3</span><span class="fd">2</span></span> se place entre −2 et −1 (à mi-chemin si le pas vaut 1). Pour lire une abscisse, on compte combien de graduations séparent le point de l'origine et on applique le signe.
+        </p>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-wrapper">
+        <span class="progress-label">Progression</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 5</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         EXERCICE 1 — Lire des abscisses (entiers)
+    ══════════════════════════════ -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 5</h2>
+                <div class="tag-row">
+                    <span class="etag terra">Lire une abscisse</span>
+                    <span class="etag sage">Entiers relatifs</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="ctx-banner indigo">
+                <span class="ctx-icon">📏</span>
+                <strong>Droite graduée — entiers.</strong> Chaque graduation correspond à une unité.
+            </div>
+            <p style="margin-bottom:0.6rem; font-size:0.97rem;">La droite ci-dessous est graduée de −5 à 5. Cinq points A, B, C, D et E y sont placés.</p>
+            <div class="droite-container">
+                <!-- SVG droite graduée entiers avec points A B C D E -->
+                <svg viewBox="0 0 600 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px;height:90px;">
+                    <!-- Axe -->
+                    <line x1="30" y1="45" x2="570" y2="45" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <!-- Flèches -->
+                    <polygon points="570,45 558,39 558,51" fill="#1a1f2e"/>
+                    <polygon points="30,45 42,39 42,51" fill="#1a1f2e"/>
+                    <!-- Graduations et labels: de -5 à 5, pas = 50px, origine à x=300 -->
+                    <!-- -5 --> <line x1="50" y1="38" x2="50" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="50" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">−5</text>
+                    <!-- -4 --> <line x1="100" y1="38" x2="100" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="100" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">−4</text>
+                    <!-- -3 --> <line x1="150" y1="38" x2="150" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="150" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">−3</text>
+                    <!-- -2 --> <line x1="200" y1="38" x2="200" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="200" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">−2</text>
+                    <!-- -1 --> <line x1="250" y1="38" x2="250" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="250" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">−1</text>
+                    <!-- 0  --> <line x1="300" y1="35" x2="300" y2="55" stroke="#1a1f2e" stroke-width="2"/><text x="300" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">0</text>
+                    <!-- 1  --> <line x1="350" y1="38" x2="350" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="350" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">1</text>
+                    <!-- 2  --> <line x1="400" y1="38" x2="400" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="400" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">2</text>
+                    <!-- 3  --> <line x1="450" y1="38" x2="450" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="450" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">3</text>
+                    <!-- 4  --> <line x1="500" y1="38" x2="500" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="500" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">4</text>
+                    <!-- 5  --> <line x1="550" y1="38" x2="550" y2="52" stroke="#1a1f2e" stroke-width="1.5"/><text x="550" y="68" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#475569">5</text>
+                    <!-- Points : A=-3, B=2, C=-5, D=4, E=-1 -->
+                    <!-- A = -3 → x=150 -->
+                    <circle cx="150" cy="45" r="6" fill="#c2531a" stroke="white" stroke-width="2"/>
+                    <text x="150" y="28" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#c2531a">A</text>
+                    <!-- B = 2 → x=400 -->
+                    <circle cx="400" cy="45" r="6" fill="#3730a3" stroke="white" stroke-width="2"/>
+                    <text x="400" y="28" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#3730a3">B</text>
+                    <!-- C = -5 → x=50 -->
+                    <circle cx="50" cy="45" r="6" fill="#2d6a4f" stroke="white" stroke-width="2"/>
+                    <text x="50" y="28" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#2d6a4f">C</text>
+                    <!-- D = 4 → x=500 -->
+                    <circle cx="500" cy="45" r="6" fill="#b45309" stroke="white" stroke-width="2"/>
+                    <text x="500" y="28" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#b45309">D</text>
+                    <!-- E = -1 → x=250 -->
+                    <circle cx="250" cy="45" r="6" fill="#be123c" stroke="white" stroke-width="2"/>
+                    <text x="250" y="28" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#be123c">E</text>
+                </svg>
+            </div>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span>Donne l'abscisse (la coordonnée) de chacun des points A, B, C, D et E.</div>
+                <div class="q-item"><span class="q-num">2.</span>Quel est le point le plus éloigné de l'origine ? Justifie ta réponse en comptant les graduations.</div>
+                <div class="q-item"><span class="q-num">3.</span>Cite les points dans l'ordre croissant de leurs abscisses.</div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="hint-toggle-btn" data-hints="hints1">💡 Indices</button>
+        </div>
+        <div class="hints-section" id="hints1">
+            <p class="hints-title">💡 Indices – clique sur celui de la question qui te bloque</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice — Question 1 (signe)</button>
+                    <div class="hint-text" id="h1-1">Observe de quel côté du 0 se trouve chaque point. Quel signe aura son abscisse ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Indice — Question 1 (méthode)</button>
+                    <div class="hint-text" id="h1-2">Pour lire une abscisse, à quoi sert de compter les graduations entre le point et le 0 ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-3">💡 Indice — Questions 2 et 3</button>
+                    <div class="hint-text" id="h1-3">Pour comparer les éloignements, qu'est-ce qui compte : le signe de l'abscisse, ou le nombre de graduations qui séparent le point du 0 ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <p class="part-title">Question 1 — Abscisses des points</p>
+            <div class="corr-item">
+                <p>En comptant les graduations depuis l'origine :</p>
+                <p>Point <span class="hl-terra">A</span> : 3 graduations à gauche du 0 → abscisse = <strong>−3</strong></p>
+                <p>Point <span class="hl-indigo">B</span> : 2 graduations à droite du 0 → abscisse = <strong>2</strong></p>
+                <p>Point <span class="hl-sage">C</span> : 5 graduations à gauche du 0 → abscisse = <strong>−5</strong></p>
+                <p>Point <span class="hl-amber">D</span> : 4 graduations à droite du 0 → abscisse = <strong>4</strong></p>
+                <p>Point <span class="hl-rose">E</span> : 1 graduation à gauche du 0 → abscisse = <strong>−1</strong></p>
+            </div>
+            <p class="part-title">Question 2 — Point le plus éloigné</p>
+            <div class="corr-item">
+                <p>On compte le nombre de graduations entre chaque point et le 0 :</p>
+                <p>A : 3 grad. &nbsp;|&nbsp; B : 2 grad. &nbsp;|&nbsp; C : <span class="hl-sage">5 grad.</span> &nbsp;|&nbsp; D : 4 grad. &nbsp;|&nbsp; E : 1 grad.</p>
+                <div class="solution-box">Le point le plus éloigné de l'origine est le point <strong>C</strong>, d'abscisse −5, car il est à 5 graduations du 0 (le plus grand écart).</div>
+            </div>
+            <p class="part-title">Question 3 — Ordre croissant</p>
+            <div class="corr-item">
+                <p>Sur une droite graduée, les abscisses croissent de gauche à droite.</p>
+                <div class="solution-box">Ordre croissant : C (−5) &lt; A (−3) &lt; E (−1) &lt; B (2) &lt; D (4)</div>
+            </div>
+        </div></div></div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         EXERCICE 2 — Placer des points (entiers)
+    ══════════════════════════════ -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 5</h2>
+                <div class="tag-row">
+                    <span class="etag indigo">Placer des points</span>
+                    <span class="etag sage">Entiers relatifs</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="ctx-banner amber">
+                <span class="ctx-icon">✏️</span>
+                <strong>Sur la droite graduée ci-dessous</strong> (de −6 à 6, graduée par entiers), place les points suivants.
+            </div>
+            <div class="droite-container">
+                <!-- SVG droite graduée vierge de -6 à 6 -->
+                <svg viewBox="0 0 620 70" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:620px;height:70px;">
+                    <line x1="20" y1="40" x2="600" y2="40" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <polygon points="600,40 588,34 588,46" fill="#1a1f2e"/>
+                    <polygon points="20,40 32,34 32,46" fill="#1a1f2e"/>
+                    <!-- Origine à x=310, pas=45px -->
+                    <!-- -6 --> <line x1="40" y1="33" x2="40" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="40" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−6</text>
+                    <!-- -5 --> <line x1="85" y1="33" x2="85" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="85" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−5</text>
+                    <!-- -4 --> <line x1="130" y1="33" x2="130" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="130" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−4</text>
+                    <!-- -3 --> <line x1="175" y1="33" x2="175" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="175" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−3</text>
+                    <!-- -2 --> <line x1="220" y1="33" x2="220" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="220" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−2</text>
+                    <!-- -1 --> <line x1="265" y1="33" x2="265" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="265" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−1</text>
+                    <!-- 0  --> <line x1="310" y1="30" x2="310" y2="50" stroke="#1a1f2e" stroke-width="2"/><text x="310" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#1a1f2e" font-weight="700">0</text>
+                    <!-- 1  --> <line x1="355" y1="33" x2="355" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="355" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">1</text>
+                    <!-- 2  --> <line x1="400" y1="33" x2="400" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="400" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">2</text>
+                    <!-- 3  --> <line x1="445" y1="33" x2="445" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="445" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">3</text>
+                    <!-- 4  --> <line x1="490" y1="33" x2="490" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="490" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">4</text>
+                    <!-- 5  --> <line x1="535" y1="33" x2="535" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="535" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">5</text>
+                    <!-- 6  --> <line x1="580" y1="33" x2="580" y2="47" stroke="#1a1f2e" stroke-width="1.5"/><text x="580" y="62" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">6</text>
+                    <!-- Points d'interrogation à placer -->
+                    <text x="310" y="18" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#9ca3af" font-style="italic">← Place les points ici →</text>
+                </svg>
+            </div>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">F</span>a pour abscisse <strong>−4</strong></div>
+                <div class="q-item"><span class="q-num">G</span>a pour abscisse <strong>3</strong></div>
+                <div class="q-item"><span class="q-num">H</span>a pour abscisse <strong>−6</strong></div>
+                <div class="q-item"><span class="q-num">I</span>a pour abscisse <strong>0</strong></div>
+                <div class="q-item"><span class="q-num">J</span>a pour abscisse <strong>5</strong></div>
+                <div class="q-item"><span class="q-num">K</span>a pour abscisse <strong>−2</strong></div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="hint-toggle-btn" data-hints="hints2">💡 Indices</button>
+        </div>
+        <div class="hints-section" id="hints2">
+            <p class="hints-title">💡 Indices – clique sur celui de la question qui te bloque</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Étape 1 — Quel côté du 0 ?</button>
+                    <div class="hint-text" id="h2-1">Avant de placer un point, réfléchis : de quel côté du 0 doit-il se trouver selon le signe de son abscisse ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2" disabled>💡 Étape 2 — Compter les graduations</button>
+                    <div class="hint-text" id="h2-2">Comment le nombre qui apparaît dans l'abscisse (sans le signe) te permet-il de savoir où t'arrêter en comptant les graduations ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-3" disabled>💡 Étape 3 — Cas particuliers</button>
+                    <div class="hint-text" id="h2-3">Que signifie une abscisse égale à 0 sur une droite graduée ? Et pour les points aux extrémités, comment le nombre de graduations visible sur la droite peut-il t'aider ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <p class="part-title">Correction — Droite avec tous les points placés</p>
+            <div class="droite-container">
+                <svg viewBox="0 0 620 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:620px;height:90px;">
+                    <line x1="20" y1="55" x2="600" y2="55" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <polygon points="600,55 588,49 588,61" fill="#1a1f2e"/>
+                    <polygon points="20,55 32,49 32,61" fill="#1a1f2e"/>
+                    <!-- -6 --> <line x1="40" y1="48" x2="40" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="40" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−6</text>
+                    <!-- -5 --> <line x1="85" y1="48" x2="85" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="85" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−5</text>
+                    <!-- -4 --> <line x1="130" y1="48" x2="130" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="130" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−4</text>
+                    <!-- -3 --> <line x1="175" y1="48" x2="175" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="175" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−3</text>
+                    <!-- -2 --> <line x1="220" y1="48" x2="220" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="220" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−2</text>
+                    <!-- -1 --> <line x1="265" y1="48" x2="265" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="265" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">−1</text>
+                    <!-- 0  --> <line x1="310" y1="45" x2="310" y2="65" stroke="#1a1f2e" stroke-width="2"/><text x="310" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#1a1f2e" font-weight="700">0</text>
+                    <!-- 1  --> <line x1="355" y1="48" x2="355" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="355" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">1</text>
+                    <!-- 2  --> <line x1="400" y1="48" x2="400" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="400" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">2</text>
+                    <!-- 3  --> <line x1="445" y1="48" x2="445" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="445" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">3</text>
+                    <!-- 4  --> <line x1="490" y1="48" x2="490" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="490" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">4</text>
+                    <!-- 5  --> <line x1="535" y1="48" x2="535" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="535" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">5</text>
+                    <!-- 6  --> <line x1="580" y1="48" x2="580" y2="62" stroke="#1a1f2e" stroke-width="1.5"/><text x="580" y="77" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#475569">6</text>
+                    <!-- F=-4 x=130 --> <circle cx="130" cy="55" r="6" fill="#c2531a" stroke="white" stroke-width="2"/><text x="130" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#c2531a">F</text>
+                    <!-- G=3  x=445 --> <circle cx="445" cy="55" r="6" fill="#3730a3" stroke="white" stroke-width="2"/><text x="445" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#3730a3">G</text>
+                    <!-- H=-6 x=40  --> <circle cx="40" cy="55" r="6" fill="#2d6a4f" stroke="white" stroke-width="2"/><text x="40" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#2d6a4f">H</text>
+                    <!-- I=0  x=310 --> <circle cx="310" cy="55" r="6" fill="#b45309" stroke="white" stroke-width="2"/><text x="310" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#b45309">I</text>
+                    <!-- J=5  x=535 --> <circle cx="535" cy="55" r="6" fill="#be123c" stroke="white" stroke-width="2"/><text x="535" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#be123c">J</text>
+                    <!-- K=-2 x=220 --> <circle cx="220" cy="55" r="6" fill="#7c3aed" stroke="white" stroke-width="2"/><text x="220" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#7c3aed">K</text>
+                </svg>
+            </div>
+            <div class="corr-item">
+                <p><strong>F</strong> (−4) : 4 graduations à gauche du 0</p>
+                <p><strong>G</strong> (3) : 3 graduations à droite du 0</p>
+                <p><strong>H</strong> (−6) : 6 graduations à gauche du 0 — extrémité gauche</p>
+                <p><strong>I</strong> (0) : sur l'origine même</p>
+                <p><strong>J</strong> (5) : 5 graduations à droite du 0</p>
+                <p><strong>K</strong> (−2) : 2 graduations à gauche du 0</p>
+            </div>
+        </div></div></div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         EXERCICE 3 — Lire des abscisses (fractions)
+    ══════════════════════════════ -->
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 5</h2>
+                <div class="tag-row">
+                    <span class="etag terra">Lire une abscisse</span>
+                    <span class="etag rose">Fractions</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="ctx-banner rose">
+                <span class="ctx-icon">🔢</span>
+                <strong>Droite graduée avec subdivisions.</strong> Les grandes graduations correspondent aux entiers. Des petites graduations supplémentaires sont visibles entre eux.
+            </div>
+            <p style="margin-bottom:0.6rem; font-size:0.97rem;">Lis l'abscisse de chaque point. Exprime le résultat <strong>sous forme de fraction ou d'entier</strong>.</p>
+            <div class="droite-container">
+                <!-- SVG demi-unités, de -3 à 3, pas grand = 80px, petit pas = 40px -->
+                <svg viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px;height:100px;">
+                    <line x1="30" y1="55" x2="570" y2="55" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <polygon points="570,55 558,49 558,61" fill="#1a1f2e"/>
+                    <polygon points="30,55 42,49 42,61" fill="#1a1f2e"/>
+                    <!-- Origine à x=300, grand pas = 80, petit pas = 40 -->
+                    <!-- Grandes graduations de -3 à 3 -->
+                    <!-- -3 x=60 --> <line x1="60" y1="46" x2="60" y2="64" stroke="#1a1f2e" stroke-width="2"/><text x="60" y="80" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−3</text>
+                    <!-- -2 x=140 --> <line x1="140" y1="46" x2="140" y2="64" stroke="#1a1f2e" stroke-width="2"/><text x="140" y="80" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−2</text>
+                    <!-- -1 x=220 --> <line x1="220" y1="46" x2="220" y2="64" stroke="#1a1f2e" stroke-width="2"/><text x="220" y="80" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−1</text>
+                    <!-- 0  x=300 --> <line x1="300" y1="44" x2="300" y2="66" stroke="#1a1f2e" stroke-width="2.5"/><text x="300" y="80" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="800">0</text>
+                    <!-- 1  x=380 --> <line x1="380" y1="46" x2="380" y2="64" stroke="#1a1f2e" stroke-width="2"/><text x="380" y="80" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">1</text>
+                    <!-- 2  x=460 --> <line x1="460" y1="46" x2="460" y2="64" stroke="#1a1f2e" stroke-width="2"/><text x="460" y="80" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">2</text>
+                    <!-- 3  x=540 --> <line x1="540" y1="46" x2="540" y2="64" stroke="#1a1f2e" stroke-width="2"/><text x="540" y="80" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">3</text>
+                    <!-- Petites graduations (½) -->
+                    <!-- -5/2 x=100 --> <line x1="100" y1="50" x2="100" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- -3/2 x=180 --> <line x1="180" y1="50" x2="180" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- -1/2 x=260 --> <line x1="260" y1="50" x2="260" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- 1/2  x=340 --> <line x1="340" y1="50" x2="340" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- 3/2  x=420 --> <line x1="420" y1="50" x2="420" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- 5/2  x=500 --> <line x1="500" y1="50" x2="500" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- Points : L=-5/2 x=100, M=1/2 x=340, N=-3/2 x=180, P=5/2 x=500, Q=-1 x=220 -->
+                    <!-- L = -5/2 x=100 -->
+                    <circle cx="100" cy="55" r="6" fill="#c2531a" stroke="white" stroke-width="2"/>
+                    <text x="100" y="38" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#c2531a">L</text>
+                    <!-- M = 1/2 x=340 -->
+                    <circle cx="340" cy="55" r="6" fill="#3730a3" stroke="white" stroke-width="2"/>
+                    <text x="340" y="38" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#3730a3">M</text>
+                    <!-- N = -3/2 x=180 -->
+                    <circle cx="180" cy="55" r="6" fill="#2d6a4f" stroke="white" stroke-width="2"/>
+                    <text x="180" y="38" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#2d6a4f">N</text>
+                    <!-- P = 5/2 x=500 -->
+                    <circle cx="500" cy="55" r="6" fill="#b45309" stroke="white" stroke-width="2"/>
+                    <text x="500" y="38" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#b45309">P</text>
+                    <!-- Q = -1 x=220 -->
+                    <circle cx="220" cy="55" r="6" fill="#be123c" stroke="white" stroke-width="2"/>
+                    <text x="220" y="38" text-anchor="middle" font-family="Lora,serif" font-size="14" font-weight="700" fill="#be123c">Q</text>
+                    <!-- Légende unité -->
+                    <text x="300" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#9ca3af" font-style="italic">Observe les subdivisions</text>
+                </svg>
+            </div>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span>Quelle est l'abscisse de chacun des points L, M, N, P et Q ?</div>
+                <div class="q-item"><span class="q-num">2.</span>Encadre chaque abscisse par deux entiers consécutifs (exemple : −2 &lt; … &lt; −1).</div>
+                <div class="q-item"><span class="q-num">3.</span>Donne la valeur de chaque abscisse sous forme <strong>décimale</strong>.</div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="hint-toggle-btn" data-hints="hints3">💡 Indices</button>
+        </div>
+        <div class="hints-section" id="hints3">
+            <p class="hints-title">💡 Indices – clique sur celui de la question qui te bloque</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-1">💡 Indice — Question 1 (valeur intervalle)</button>
+                    <div class="hint-text" id="h3-1">Combien de petits intervalles compte-t-on entre deux grandes graduations consécutives ? Qu'est-ce que cela signifie pour la valeur de chaque petit intervalle ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-2">💡 Indice — Questions 1 et 2</button>
+                    <div class="hint-text" id="h3-2">Une fois que tu sais ce que vaut un petit intervalle, comment exprimer l'abscisse d'un point sous forme de fraction en comptant ses intervalles depuis le 0 ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-3">💡 Indice — Questions 2 et 3</button>
+                    <div class="hint-text" id="h3-3">Pour encadrer une fraction par deux entiers, repère entre quels entiers elle se situe sur la droite. Pour passer en écriture décimale, pense à ce que représente la barre de fraction en termes d'opération.</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <p class="part-title">Question 1 — Abscisses</p>
+            <div class="corr-item">
+                <p>Chaque petite graduation vaut ½. On compte depuis le 0 :</p>
+                <p>Point <span class="hl-terra">L</span> : 5 demi-unités à gauche → <strong>−<span class="frac"><span class="fn">5</span><span class="fd">2</span></span></strong></p>
+                <p>Point <span class="hl-indigo">M</span> : 1 demi-unité à droite → <strong><span class="frac"><span class="fn">1</span><span class="fd">2</span></span></strong></p>
+                <p>Point <span class="hl-sage">N</span> : 3 demi-unités à gauche → <strong>−<span class="frac"><span class="fn">3</span><span class="fd">2</span></span></strong></p>
+                <p>Point <span class="hl-amber">P</span> : 5 demi-unités à droite → <strong><span class="frac"><span class="fn">5</span><span class="fd">2</span></span></strong></p>
+                <p>Point <span class="hl-rose">Q</span> : sur la grande graduation −1 → <strong>−1</strong></p>
+            </div>
+            <p class="part-title">Question 2 — Encadrements</p>
+            <div class="corr-item">
+                <p>L : −3 &lt; −<span class="frac"><span class="fn">5</span><span class="fd">2</span></span> &lt; −2</p>
+                <p>M : 0 &lt; <span class="frac"><span class="fn">1</span><span class="fd">2</span></span> &lt; 1</p>
+                <p>N : −2 &lt; −<span class="frac"><span class="fn">3</span><span class="fd">2</span></span> &lt; −1</p>
+                <p>P : 2 &lt; <span class="frac"><span class="fn">5</span><span class="fd">2</span></span> &lt; 3</p>
+                <p>Q : −1 est un entier, donc −2 &lt; −1 &lt; 0</p>
+            </div>
+            <p class="part-title">Question 3 — Valeurs décimales</p>
+            <div class="corr-item">
+                <p>L : −5 ÷ 2 = <span class="hl-sage">−2,5</span> &nbsp;|&nbsp; M : 1 ÷ 2 = <span class="hl-sage">0,5</span></p>
+                <p>N : −3 ÷ 2 = <span class="hl-sage">−1,5</span> &nbsp;|&nbsp; P : 5 ÷ 2 = <span class="hl-sage">2,5</span> &nbsp;|&nbsp; Q = <span class="hl-sage">−1</span></p>
+            </div>
+        </div></div></div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         EXERCICE 4 — Placer des points (fractions tierces)
+    ══════════════════════════════ -->
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 5</h2>
+                <div class="tag-row">
+                    <span class="etag indigo">Placer des points</span>
+                    <span class="etag rose">Fractions (tiers)</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="ctx-banner terra">
+                <span class="ctx-icon">🎯</span>
+                <strong>Droite graduée avec subdivisions.</strong> Les grandes graduations correspondent aux entiers. Des petites graduations supplémentaires découpent chaque unité.
+            </div>
+            <div class="droite-container">
+                <!-- SVG tiers de -2 à 2, grand pas=120px, petit pas=40px, origine x=270 -->
+                <svg viewBox="0 0 580 70" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:580px;height:70px;">
+                    <line x1="20" y1="40" x2="560" y2="40" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <polygon points="560,40 548,34 548,46" fill="#1a1f2e"/>
+                    <polygon points="20,40 32,34 32,46" fill="#1a1f2e"/>
+                    <!-- Origine x=270, grand pas=120, tiers pas=40 -->
+                    <!-- -2 x=30 --> <line x1="30" y1="32" x2="30" y2="48" stroke="#1a1f2e" stroke-width="2"/><text x="30" y="63" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−2</text>
+                    <!-- -1 x=150 --> <line x1="150" y1="32" x2="150" y2="48" stroke="#1a1f2e" stroke-width="2"/><text x="150" y="63" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−1</text>
+                    <!-- 0  x=270 --> <line x1="270" y1="30" x2="270" y2="50" stroke="#1a1f2e" stroke-width="2.5"/><text x="270" y="63" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="800">0</text>
+                    <!-- 1  x=390 --> <line x1="390" y1="32" x2="390" y2="48" stroke="#1a1f2e" stroke-width="2"/><text x="390" y="63" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">1</text>
+                    <!-- 2  x=510 --> <line x1="510" y1="32" x2="510" y2="48" stroke="#1a1f2e" stroke-width="2"/><text x="510" y="63" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">2</text>
+                    <!-- Petites graduations (tiers) -->
+                    <!-- entre -2 et -1: x=70, 110 --> <line x1="70" y1="35" x2="70" y2="45" stroke="#9ca3af" stroke-width="1.5"/><line x1="110" y1="35" x2="110" y2="45" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- entre -1 et 0: x=190, 230 --> <line x1="190" y1="35" x2="190" y2="45" stroke="#9ca3af" stroke-width="1.5"/><line x1="230" y1="35" x2="230" y2="45" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- entre 0 et 1: x=310, 350 --> <line x1="310" y1="35" x2="310" y2="45" stroke="#9ca3af" stroke-width="1.5"/><line x1="350" y1="35" x2="350" y2="45" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- entre 1 et 2: x=430, 470 --> <line x1="430" y1="35" x2="430" y2="45" stroke="#9ca3af" stroke-width="1.5"/><line x1="470" y1="35" x2="470" y2="45" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- Points d'interrogation -->
+                    <text x="270" y="20" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#9ca3af" font-style="italic">← Place les points R, S, T, U →</text>
+                </svg>
+            </div>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">R</span>a pour abscisse <strong>−<span class="frac"><span class="fn">4</span><span class="fd">3</span></span></strong></div>
+                <div class="q-item"><span class="q-num">S</span>a pour abscisse <strong><span class="frac"><span class="fn">2</span><span class="fd">3</span></span></strong></div>
+                <div class="q-item"><span class="q-num">T</span>a pour abscisse <strong>−<span class="frac"><span class="fn">5</span><span class="fd">3</span></span></strong></div>
+                <div class="q-item"><span class="q-num">U</span>a pour abscisse <strong><span class="frac"><span class="fn">4</span><span class="fd">3</span></span></strong></div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="hint-toggle-btn" data-hints="hints4">💡 Indices</button>
+        </div>
+        <div class="hints-section" id="hints4">
+            <p class="hints-title">💡 Indices – clique sur celui de la question qui te bloque</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-1">💡 Étape 1 — Sens selon le signe</button>
+                    <div class="hint-text" id="h4-1">Combien de petits intervalles y a-t-il entre deux grandes graduations consécutives ? Qu'est-ce que cela t'indique sur la valeur de chaque subdivision ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-2" disabled>💡 Étape 2 — Fractions et graduations</button>
+                    <div class="hint-text" id="h4-2">Le numérateur d'une fraction te dit combien de petits intervalles compter depuis le 0. Comment le signe t'indique-t-il dans quel sens compter ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-3" disabled>💡 Étape 3 — Coordonnées entières</button>
+                    <div class="hint-text" id="h4-3">Quand le numérateur est supérieur au dénominateur, le point dépasse-t-il 1 (ou −1) ? Comment repérer de combien d'intervalles il dépasse ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <p class="part-title">Correction — Droite avec les points placés</p>
+            <div class="droite-container">
+                <svg viewBox="0 0 580 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:580px;height:90px;">
+                    <line x1="20" y1="55" x2="560" y2="55" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <polygon points="560,55 548,49 548,61" fill="#1a1f2e"/>
+                    <polygon points="20,55 32,49 32,61" fill="#1a1f2e"/>
+                    <!-- -2 x=30 --> <line x1="30" y1="47" x2="30" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="30" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−2</text>
+                    <!-- -1 x=150 --> <line x1="150" y1="47" x2="150" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="150" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−1</text>
+                    <!-- 0  x=270 --> <line x1="270" y1="45" x2="270" y2="65" stroke="#1a1f2e" stroke-width="2.5"/><text x="270" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="800">0</text>
+                    <!-- 1  x=390 --> <line x1="390" y1="47" x2="390" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="390" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">1</text>
+                    <!-- 2  x=510 --> <line x1="510" y1="47" x2="510" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="510" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">2</text>
+                    <!-- Petites graduations -->
+                    <line x1="70" y1="50" x2="70" y2="60" stroke="#9ca3af" stroke-width="1.5"/><line x1="110" y1="50" x2="110" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="190" y1="50" x2="190" y2="60" stroke="#9ca3af" stroke-width="1.5"/><line x1="230" y1="50" x2="230" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="310" y1="50" x2="310" y2="60" stroke="#9ca3af" stroke-width="1.5"/><line x1="350" y1="50" x2="350" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="430" y1="50" x2="430" y2="60" stroke="#9ca3af" stroke-width="1.5"/><line x1="470" y1="50" x2="470" y2="60" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- R = -4/3 : 0 - 4×(120/3) = 270 - 160 = 110 → x=110 -->
+                    <circle cx="110" cy="55" r="6" fill="#c2531a" stroke="white" stroke-width="2"/><text x="110" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#c2531a">R</text>
+                    <!-- S = 2/3 : 270 + 2×40 = 350 → x=350 -->
+                    <circle cx="350" cy="55" r="6" fill="#3730a3" stroke="white" stroke-width="2"/><text x="350" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#3730a3">S</text>
+                    <!-- T = -5/3 : 270 - 5×40 = 270 - 200 = 70 → x=70 -->
+                    <circle cx="70" cy="55" r="6" fill="#2d6a4f" stroke="white" stroke-width="2"/><text x="70" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#2d6a4f">T</text>
+                    <!-- U = 4/3 : 270 + 4×40 = 430 → x=430 -->
+                    <circle cx="430" cy="55" r="6" fill="#b45309" stroke="white" stroke-width="2"/><text x="430" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#b45309">U</text>
+                </svg>
+            </div>
+            <div class="corr-item">
+                <p><strong>R</strong> (−4/3) : 4/3 = 1 unité + 1 tiers → 1 tiers au-delà de −1, côté négatif</p>
+                <p><strong>S</strong> (2/3) : 2 tiers depuis 0 vers la droite</p>
+                <p><strong>T</strong> (−5/3) : 5/3 = 1 unité + 2 tiers → 2 tiers au-delà de −1, côté négatif</p>
+                <p><strong>U</strong> (4/3) : 4/3 = 1 unité + 1 tiers → 1 tiers au-delà de 1, côté positif</p>
+                <div class="solution-box">Rappel : <span class="frac"><span class="fn">n</span><span class="fd">3</span></span> unités = n petits intervalles depuis le 0. Le signe donne le côté.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         EXERCICE 5 — Lire et placer (graduations inconnues)
+    ══════════════════════════════ -->
+    <div class="exercise" id="card-ex5">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 5</h2>
+                <div class="tag-row">
+                    <span class="etag amber">Lire & Placer</span>
+                    <span class="etag rose">Fractions & Entiers</span>
+                    <span class="etag terra">⭐ Bilan</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="ctx-banner amber">
+                <span class="ctx-icon">🧩</span>
+                <strong>Exercice bilan.</strong> La droite suivante est graduée mais l'unité est à découvrir : seuls deux repères sont indiqués (−1 et 1). Chaque unité est divisée en <strong>4 parties égales</strong>.
+            </div>
+            <div class="droite-container">
+                <!-- SVG quarts de -2 à 2, grand pas=120px, quart pas=30px, origine x=270 -->
+                <svg viewBox="0 0 580 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:580px;height:100px;">
+                    <line x1="20" y1="55" x2="560" y2="55" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <polygon points="560,55 548,49 548,61" fill="#1a1f2e"/>
+                    <polygon points="20,55 32,49 32,61" fill="#1a1f2e"/>
+                    <!-- Origine x=270, grand pas=120 -->
+                    <!-- -2 x=30 --> <line x1="30" y1="47" x2="30" y2="63" stroke="#1a1f2e" stroke-width="2"/>
+                    <!-- -1 x=150 --> <line x1="150" y1="47" x2="150" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="150" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">−1</text>
+                    <!-- 0  x=270 --> <line x1="270" y1="45" x2="270" y2="65" stroke="#1a1f2e" stroke-width="2.5"/><text x="270" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="800">0</text>
+                    <!-- 1  x=390 --> <line x1="390" y1="47" x2="390" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="390" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#1a1f2e" font-weight="700">1</text>
+                    <!-- 2  x=510 --> <line x1="510" y1="47" x2="510" y2="63" stroke="#1a1f2e" stroke-width="2"/>
+                    <!-- Petites graduations (quarts = 30px) -->
+                    <!-- entre -2 et -1: 60, 90, 120 --> 
+                    <line x1="60" y1="51" x2="60" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="90" y1="51" x2="90" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="120" y1="51" x2="120" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- entre -1 et 0: 180, 210, 240 -->
+                    <line x1="180" y1="51" x2="180" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="210" y1="51" x2="210" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="240" y1="51" x2="240" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- entre 0 et 1: 300, 330, 360 -->
+                    <line x1="300" y1="51" x2="300" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="330" y1="51" x2="330" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="360" y1="51" x2="360" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- entre 1 et 2: 420, 450, 480 -->
+                    <line x1="420" y1="51" x2="420" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="450" y1="51" x2="450" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="480" y1="51" x2="480" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- Points déjà placés : W et X visible, V et Z à lire -->
+                    <!-- V = -3/4 : 270 - 3×30 = 180 → x=180 (lu par élève) -->
+                    <circle cx="180" cy="55" r="6" fill="#be123c" stroke="white" stroke-width="2"/>
+                    <text x="180" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#be123c">V</text>
+                    <!-- W = 7/4 : 270 + 7×30 = 480 → x=480 (lu par élève) -->
+                    <circle cx="480" cy="55" r="6" fill="#7c3aed" stroke="white" stroke-width="2"/>
+                    <text x="480" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#7c3aed">W</text>
+                    <!-- Zone pour placer X et Z -->
+                    <text x="270" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#9ca3af" font-style="italic">Observe les subdivisions</text>
+                </svg>
+            </div>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">1.</span>Quelle est la valeur d'un petit intervalle ? (Justifie en utilisant les repères −1 et 1 visibles.)</div>
+                <div class="q-item"><span class="q-num">2.</span>Lis l'abscisse des points V et W déjà placés. Exprime-les sous forme de fractions irréductibles.</div>
+                <div class="q-item"><span class="q-num">3.</span>Place les points X d'abscisse −<span class="frac"><span class="fn">9</span><span class="fd">4</span></span> et Z d'abscisse <span class="frac"><span class="fn">1</span><span class="fd">4</span></span> sur la droite.</div>
+                <div class="q-item"><span class="q-num">4.</span>Classe les points V, W, X et Z dans l'ordre décroissant.</div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="hint-toggle-btn" data-hints="hints5">💡 Indices</button>
+        </div>
+        <div class="hints-section" id="hints5">
+            <p class="hints-title">💡 Indices – clique sur celui de la question qui te bloque</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-1">💡 Indice — Question 1</button>
+                    <div class="hint-text" id="h5-1">Pour trouver la valeur d'un petit intervalle, quelles informations peux-tu tirer des deux seuls repères visibles sur la droite ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-2">💡 Indice — Question 1 (détail)</button>
+                    <div class="hint-text" id="h5-2">Tu connais la position de −1 et de 1 sur la droite. Combien d'unités les séparent ? Et combien de petits intervalles couvrent cette même distance ? Que peux-tu en déduire ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-3">💡 Indice — Questions 2, 3 et 4</button>
+                    <div class="hint-text" id="h5-3">Quand une fraction a un numérateur plus grand que le dénominateur, comment savoir à quelle position sur la droite elle correspond par rapport aux entiers ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+            <p class="part-title">Question 1 — Valeur d'un petit intervalle</p>
+            <div class="corr-item">
+                <p>Entre −1 et 1, il y a 2 unités et on compte <strong>8 petits intervalles</strong>.</p>
+                <p>Valeur d'un intervalle : 2 ÷ 8 = <span class="hl-sage">1/4</span></p>
+                <div class="solution-box">Chaque petit intervalle vaut <strong>¼ unité</strong>.</div>
+            </div>
+            <p class="part-title">Question 2 — Abscisses de V et W</p>
+            <div class="corr-item">
+                <p><span class="hl-rose">V</span> : 3 petits intervalles à gauche de 0 → −3 × ¼ = <strong>−<span class="frac"><span class="fn">3</span><span class="fd">4</span></span></strong> (déjà irréductible)</p>
+                <p><span class="hl-indigo">W</span> : 7 petits intervalles à droite de 0 → 7 × ¼ = <strong><span class="frac"><span class="fn">7</span><span class="fd">4</span></span></strong> (déjà irréductible)</p>
+            </div>
+            <p class="part-title">Question 3 — Droite complète avec X et Z</p>
+            <div class="droite-container">
+                <svg viewBox="0 0 580 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:580px;height:90px;">
+                    <line x1="20" y1="55" x2="560" y2="55" stroke="#1a1f2e" stroke-width="2.5"/>
+                    <polygon points="560,55 548,49 548,61" fill="#1a1f2e"/>
+                    <polygon points="20,55 32,49 32,61" fill="#1a1f2e"/>
+                    <line x1="30" y1="47" x2="30" y2="63" stroke="#1a1f2e" stroke-width="2"/>
+                    <line x1="150" y1="47" x2="150" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="150" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#1a1f2e" font-weight="700">−1</text>
+                    <line x1="270" y1="45" x2="270" y2="65" stroke="#1a1f2e" stroke-width="2.5"/><text x="270" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#1a1f2e" font-weight="800">0</text>
+                    <line x1="390" y1="47" x2="390" y2="63" stroke="#1a1f2e" stroke-width="2"/><text x="390" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#1a1f2e" font-weight="700">1</text>
+                    <line x1="510" y1="47" x2="510" y2="63" stroke="#1a1f2e" stroke-width="2"/>
+                    <line x1="60" y1="51" x2="60" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="90" y1="51" x2="90" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="120" y1="51" x2="120" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="180" y1="51" x2="180" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="210" y1="51" x2="210" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="240" y1="51" x2="240" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="300" y1="51" x2="300" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="330" y1="51" x2="330" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="360" y1="51" x2="360" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="420" y1="51" x2="420" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="450" y1="51" x2="450" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <line x1="480" y1="51" x2="480" y2="59" stroke="#9ca3af" stroke-width="1.5"/>
+                    <!-- V = -3/4 x=180 --> <circle cx="180" cy="55" r="6" fill="#be123c" stroke="white" stroke-width="2"/><text x="180" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#be123c">V</text>
+                    <!-- W = 7/4 x=480 --> <circle cx="480" cy="55" r="6" fill="#7c3aed" stroke="white" stroke-width="2"/><text x="480" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#7c3aed">W</text>
+                    <!-- X = -9/4 : 270 - 9×30 = 270 - 270 = 0... recalc. 30px/quart. -9/4 = -2,25 = -2 unités - 1/4 → x = 30 - 1×30 mais 30 est déjà -2. Recalc: x= 270 + (-9/4)×120 = 270 - 270 = 0... Hmm. Let me recalculate: 1 unit = 120px. x=270 + val*120. X=-9/4: 270 + (-9/4)*120 = 270 - 270 = 0. But x=0 is off screen. Let me put X at x=270-9*30=270-270=0. But minimum is 20... so X at x=30 which is -2. Actually -9/4 = -2.25, so 270 + (-2.25)*120 = 270-270 = 0. That's off the left. Let me show it slightly clipped or adjust. Actually x=0 is outside, let me show near left edge with note -->
+                    <!-- X = -9/4 : x = 270 - 9*30 = 0 which is off screen. Showing at x=20 edge with label -->
+                    <circle cx="3" cy="55" r="6" fill="#c2531a" stroke="white" stroke-width="2"/>
+                    <text x="25" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#c2531a">X←</text>
+                    <!-- Z = 1/4 : 270 + 1×30 = 300 → x=300 --> <circle cx="300" cy="55" r="6" fill="#2d6a4f" stroke="white" stroke-width="2"/><text x="300" y="38" text-anchor="middle" font-family="Lora,serif" font-size="13" font-weight="700" fill="#2d6a4f">Z</text>
+                </svg>
+            </div>
+            <div class="corr-item">
+                <p><span class="hl-terra">X</span> (−9/4 = −2,25) : au-delà de −2, 1 quart à gauche → légèrement hors du cadre de la droite affichée (mais bien à gauche de −2)</p>
+                <p><span class="hl-sage">Z</span> (1/4) : 1 quart depuis 0 vers la droite, premier petit intervalle positif</p>
+            </div>
+            <p class="part-title">Question 4 — Ordre décroissant</p>
+            <div class="corr-item">
+                <p>Valeurs décimales : W = 1,75 &nbsp;|&nbsp; Z = 0,25 &nbsp;|&nbsp; V = −0,75 &nbsp;|&nbsp; X = −2,25</p>
+                <div class="solution-box">Ordre décroissant : W (<span class="frac"><span class="fn">7</span><span class="fd">4</span></span>) &gt; Z (<span class="frac"><span class="fn">1</span><span class="fd">4</span></span>) &gt; V (−<span class="frac"><span class="fn">3</span><span class="fd">4</span></span>) &gt; X (−<span class="frac"><span class="fn">9</span><span class="fd">4</span></span>)</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>📏 Chapitre terminé — tu maîtrises le repérage sur la droite graduée !</footer>
+
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+
+</div>
+<script>
+    const TOTAL = 5, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        {min:5, emoji:'🏆', stars:'⭐⭐⭐', title:'Parfait !',       msg:'Tous les exercices consultés — la droite graduée n\'a plus de secrets pour toi !'},
+        {min:4, emoji:'🎉', stars:'⭐⭐⭐', title:'Très bien !',     msg:'Encore un exercice à consulter pour tout maîtriser !'},
+        {min:3, emoji:'👍', stars:'⭐⭐',   title:'Bien !',          msg:'Plus de la moitié vérifiée, continue !'},
+        {min:1, emoji:'💪', stars:'⭐',     title:"C'est parti !",   msg:"N'hésite pas à ouvrir toutes les corrections !"},
+    ];
+
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done/TOTAL)*100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length-1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="sc-badge terra">✓ ${seenSet.size} / ${TOTAL} exercices vus</span>` +
+            `<span class="sc-badge sage">📏 Droite graduée maîtrisée</span>`;
+        card.classList.add('visible');
+    }
+
+    function openC(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeC(el) { el.style.height = el.scrollHeight + 'px'; requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); }); }
+
+    function toggleCorrection(exId) {
+        const corr = document.getElementById(exId);
+        const card = corr.closest('.exercise');
+        const btns = card.querySelectorAll('.reveal-btn[data-target]');
+        const dot  = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeC(corr); btns.forEach(b => { b.classList.remove('active'); b.textContent = 'Voir la correction'; }); openSet.delete(exId);
+        } else {
+            openC(corr); btns.forEach(b => { b.classList.add('active'); b.textContent = 'Masquer la correction'; }); openSet.add(exId);
+            if (!seenSet.has(exId)) { seenSet.add(exId); dot.classList.add('done'); card.classList.add('seen'); updateProgress(); }
+        }
+    }
+
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => btn.addEventListener('click', () => toggleCorrection(btn.dataset.target)));
+    document.querySelectorAll('.correction').forEach(el => el.addEventListener('transitionend', e => { if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto'; }));
+
+    document.querySelectorAll('.hint-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const s = document.getElementById(this.dataset.hints);
+            s.classList.toggle('open');
+            this.textContent = s.classList.contains('open') ? '💡 Masquer les indices' : '💡 Indices';
+        });
+    });
+
+    // Hint chains: each chain lists hint ids in order
+    const hintChains = {
+        hints1: ['h1-1','h1-2','h1-3'],
+        hints2: ['h2-1','h2-2','h2-3'],
+        hints3: ['h3-1','h3-2','h3-3'],
+        hints4: ['h4-1','h4-2','h4-3'],
+        hints5: ['h5-1','h5-2','h5-3'],
+    };
+
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled = true; this.textContent = '✓ ' + this.textContent.replace(/^Indice/, 'Indice');
+            for (const [, chain] of Object.entries(hintChains)) {
+                const idx = chain.indexOf(id);
+                if (idx !== -1 && idx + 1 < chain.length) {
+                    const nb = document.querySelector(`.hint-btn[data-hint="${chain[idx+1]}"]`);
+                    if (nb) { nb.disabled = false; break; }
+                }
+            }
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
