@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide le Robot — Exerciseur d'Algorithmique</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#263348;--surface3:#2d3f5a;
+  --blue:#38bdf8;--blue-dark:#0284c7;
+  --green:#4ade80;--green-dark:#16a34a;--green-pale:rgba(74,222,128,.12);
+  --red:#f87171;--red-pale:rgba(248,113,113,.12);
+  --orange:#fb923c;--orange-pale:rgba(251,146,60,.1);
+  --yellow:#facc15;--yellow-pale:rgba(250,204,21,.12);
+  --purple:#a78bfa;--purple-pale:rgba(167,139,250,.12);--purple-border:rgba(167,139,250,.4);
+  --text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;
+  --border:#334155;--border-light:#3f5070;
+  --path:rgba(56,189,248,.18);--cell:50px;
+}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:var(--bg);
+  background-image:radial-gradient(circle at 15% 15%,rgba(56,189,248,.06) 0%,transparent 50%),
+    radial-gradient(circle at 85% 85%,rgba(167,139,250,.05) 0%,transparent 50%),
+    linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,24px 24px,24px 24px;
+  color:var(--text);display:flex;justify-content:center;padding:14px 10px 60px;
+  -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+.app{max-width:960px;width:100%}
+
+/* HEADER */
+.app-header{background:linear-gradient(135deg,#0c1a2e 0%,#1a2744 100%);
+  border:1px solid var(--border-light);border-radius:16px 16px 0 0;
+  padding:14px 22px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 24px rgba(0,0,0,.4);overflow:hidden;position:relative}
+.app-header::before{content:'';position:absolute;top:-50px;left:-50px;width:200px;height:200px;
+  background:radial-gradient(circle,rgba(56,189,248,.07),transparent 70%);pointer-events:none}
+.app-title{font-size:1.05em;font-weight:800;color:var(--blue);letter-spacing:.5px;display:flex;align-items:center;gap:8px;position:relative}
+.hdr-menu{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);
+  padding:7px 16px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.82em;font-weight:700;
+  cursor:pointer;transition:all .2s;display:none}
+.hdr-menu:hover{background:rgba(56,189,248,.22);transform:translateY(-1px)}
+
+/* MAIN */
+.main{background:var(--surface);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 16px 16px;padding:24px 20px;box-shadow:0 12px 40px rgba(0,0,0,.3);min-height:55vh}
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+h1{font-size:1.5em;font-weight:900;text-align:center;margin-bottom:6px;
+  background:linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{text-align:center;font-size:.9em;color:var(--text-dim);margin-bottom:22px;line-height:1.6}
+
+/* BUTTONS */
+.btn{font-family:'Nunito',sans-serif;padding:10px 22px;border-radius:10px;font-size:.9em;font-weight:700;
+  cursor:pointer;transition:all .2s;border:2px solid;min-height:42px;touch-action:manipulation;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-blue{background:var(--blue-dark);color:#fff;border-color:var(--blue-dark)}
+.btn-blue:hover:not(:disabled){background:#0ea5e9;transform:translateY(-2px)}
+.btn-green{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}
+.btn-green:hover:not(:disabled){background:#15803d;transform:translateY(-2px)}
+.btn-orange{background:#d97706;color:#fff;border-color:#d97706}
+.btn-orange:hover:not(:disabled){background:#b45309;transform:translateY(-2px)}
+.btn-red{background:#dc2626;color:#fff;border-color:#dc2626}
+.btn-red:hover:not(:disabled){background:#b91c1c;transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--text-dim);border-color:var(--border)}
+.btn-ghost:hover{background:var(--surface2);border-color:var(--border-light)}
+.btn-purple{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.btn-purple:hover:not(:disabled){background:#6d28d9;transform:translateY(-2px)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* MENU */
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.mc{background:var(--surface2);border:2px solid var(--border);border-radius:14px;
+  padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;position:relative;
+  min-height:115px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.mc:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 8px 24px rgba(56,189,248,.15)}
+.mc-icon{font-size:1.9em;margin-bottom:2px}
+.mc-t{font-size:.88em;color:var(--blue);font-weight:800}
+.mc-d{font-size:.74em;color:var(--text-muted)}
+.mc-badge{position:absolute;top:8px;right:8px;font-size:.62em;font-weight:800;padding:2px 7px;border-radius:8px;background:var(--yellow-pale);color:var(--yellow)}
+.mc-inf{position:absolute;top:8px;right:8px;font-size:.62em;font-weight:800;padding:2px 7px;border-radius:8px;background:var(--purple-pale);color:var(--purple)}
+
+/* EX HEADER */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.ex-badge{background:rgba(56,189,248,.12);color:var(--blue);padding:5px 14px;border-radius:20px;font-size:.82em;font-weight:800;border:1px solid rgba(56,189,248,.2)}
+.ex-score{font-size:.85em;color:var(--text-muted);font-weight:700}
+.pbar{width:100%;background:var(--surface3);border-radius:4px;height:5px;margin-bottom:14px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:4px;transition:width .4s}
+.level-info{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.level-chip{font-size:.76em;font-weight:800;padding:4px 12px;border-radius:20px;background:var(--yellow-pale);color:var(--yellow);border:1px solid rgba(250,204,21,.25)}
+.level-tip{font-size:.76em;color:var(--text-muted);background:var(--surface3);padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
+
+/* GAME AREA */
+.game-area{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+
+/* MAZE */
+.grid-panel{background:var(--surface2);border:2px solid var(--border);border-radius:14px;padding:14px}
+.grid-title{font-size:.78em;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;text-align:center}
+.puzzle-label{text-align:center;font-size:.78em;font-weight:700;color:var(--text-muted);margin-bottom:8px}
+.maze-wrap{display:flex;justify-content:center;overflow:auto;-webkit-overflow-scrolling:touch}
+.maze-grid{display:inline-grid;border:2px solid var(--border-light);border-radius:8px;overflow:hidden;gap:0}
+.cell{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center;font-size:1.3em;position:relative;border:1px solid rgba(255,255,255,.035);transition:background .12s}
+.cell.empty{background:#16213e}
+.cell.wall{background:#374151;background-image:repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(0,0,0,.12) 5px,rgba(0,0,0,.12) 10px)}
+.cell.path{background:var(--path)}
+.cell.robot-here{background:rgba(56,189,248,.1)}
+.cell.robot-here::after{content:'';position:absolute;inset:4px;border-radius:6px;border:2px solid var(--blue);animation:pulse 1s ease-in-out infinite;pointer-events:none}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.88)}}
+.robot-sprite{font-size:1.4em;display:block;animation:robotBob .9s ease-in-out infinite alternate;transition:transform .2s}
+@keyframes robotBob{from{transform-origin:center;transform:translateY(0)}to{transform-origin:center;transform:translateY(-2px)}}
+.goal-sprite{font-size:1.3em;animation:goalPulse 1.5s ease-in-out infinite}
+@keyframes goalPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.dir-legend{display:flex;gap:5px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.dir-chip{font-size:.7em;font-weight:700;padding:3px 7px;border-radius:6px;background:var(--surface3);color:var(--text-dim);border:1px solid var(--border)}
+.dir-chip b{color:var(--blue)}
+.speed-wrap{display:flex;align-items:center;gap:8px;justify-content:center;font-size:.75em;color:var(--text-muted);margin-top:8px}
+.speed-wrap input[type=range]{accent-color:var(--blue);cursor:pointer;width:80px}
+
+/* PROGRAM PANEL */
+.prog-panel{background:var(--surface2);border:2px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.prog-title{font-size:.78em;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:1px;text-align:center}
+.palette-label,.seq-label{font-size:.72em;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+
+/* COMMAND PALETTE */
+.cmd-palette{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cmd-btn{background:var(--surface3);border:2px solid var(--border);border-radius:10px;
+  padding:9px 6px;text-align:center;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif;
+  font-size:.82em;font-weight:700;color:var(--text);touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px;justify-content:center;user-select:none}
+.cmd-btn:active{transform:scale(.95)}
+.cmd-btn.cmd-fwd{border-color:rgba(56,189,248,.4);color:var(--blue)}.cmd-btn.cmd-fwd:hover{background:rgba(56,189,248,.1);border-color:var(--blue)}
+.cmd-btn.cmd-left{border-color:rgba(250,204,21,.35);color:var(--yellow)}.cmd-btn.cmd-left:hover{background:rgba(250,204,21,.08);border-color:var(--yellow)}
+.cmd-btn.cmd-right{border-color:rgba(251,146,60,.35);color:var(--orange)}.cmd-btn.cmd-right:hover{background:rgba(251,146,60,.08);border-color:var(--orange)}
+.cmd-btn.cmd-rep{border-color:rgba(167,139,250,.35);color:var(--purple)}.cmd-btn.cmd-rep:hover{background:rgba(167,139,250,.1);border-color:var(--purple)}
+.cmd-icon{font-size:1.4em;line-height:1}
+
+/* SEQUENCE AREA */
+.prog-seq{min-height:64px;background:var(--surface3);border:2px dashed var(--border);border-radius:10px;
+  padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;transition:border-color .2s;position:relative}
+.prog-seq.drag-over{border-color:var(--blue);background:rgba(56,189,248,.04)}
+.prog-seq-empty{color:var(--text-muted);font-size:.78em;font-style:italic;padding:6px;width:100%;text-align:center;pointer-events:none}
+.drag-hint{font-size:.7em;color:var(--text-muted);text-align:center;margin-top:2px}
+
+/* INSTRUCTIONS */
+.inst{display:inline-flex;align-items:center;gap:5px;border:2px solid;
+  border-radius:8px;padding:7px 10px;font-size:.84em;font-weight:700;cursor:grab;
+  touch-action:manipulation;position:relative;user-select:none;font-family:'Nunito',sans-serif;transition:box-shadow .15s,opacity .15s}
+.inst:active{cursor:grabbing}
+.inst.dragging{opacity:.25;transform:scale(.95)}
+.inst.drop-before{border-left:3px solid var(--blue);margin-left:2px}
+.inst.drop-after{border-right:3px solid var(--blue);margin-right:2px}
+.inst.fwd{border-color:rgba(56,189,248,.5);color:var(--blue);background:rgba(56,189,248,.08)}
+.inst.left{border-color:rgba(250,204,21,.5);color:var(--yellow);background:rgba(250,204,21,.06)}
+.inst.right{border-color:rgba(251,146,60,.5);color:var(--orange);background:rgba(251,146,60,.06)}
+.inst-del{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
+  border-radius:50%;background:rgba(248,113,113,.18);color:var(--red);font-size:.78em;margin-left:3px;
+  transition:background .15s;cursor:pointer;line-height:1;flex-shrink:0}
+.inst-del:hover{background:rgba(248,113,113,.45)}
+.inst.active-step{box-shadow:0 0 0 3px var(--yellow);transform:scale(1.08);z-index:10}
+
+/* REPEAT BLOCK — large & readable */
+.rep-block{background:rgba(167,139,250,.06);border:2px solid var(--purple-border);
+  border-radius:12px;padding:14px;width:100%;cursor:grab;position:relative;transition:box-shadow .15s,opacity .15s}
+.rep-block:active{cursor:grabbing}
+.rep-block.dragging{opacity:.25}
+.rep-block.drop-before{border-top:3px solid var(--blue)}
+.rep-block.drop-after{border-bottom:3px solid var(--blue)}
+.rep-block.active-step{box-shadow:0 0 0 3px var(--yellow)}
+
+.rep-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.rep-label{color:var(--purple);font-weight:800;font-size:1em;white-space:nowrap}
+.rep-n-wrap{display:flex;align-items:center;gap:6px;background:rgba(167,139,250,.08);
+  border:1px solid var(--purple-border);border-radius:10px;padding:4px 8px}
+.rep-n-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--purple-border);
+  background:rgba(167,139,250,.15);color:var(--purple);font-size:1.2em;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'Nunito',sans-serif;line-height:1}
+.rep-n-btn:hover{background:rgba(167,139,250,.35)}
+.rep-n-display{min-width:44px;text-align:center;font-family:'Fira Code',monospace;font-size:1.4em;
+  font-weight:700;color:var(--purple);padding:2px 4px}
+.rep-fois{color:var(--text-dim);font-size:.9em;font-weight:700}
+.rep-del{margin-left:auto;background:var(--red-pale);border:1px solid rgba(248,113,113,.3);color:var(--red);
+  padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.8em;font-family:'Nunito',sans-serif;font-weight:700;transition:all .15s}
+.rep-del:hover{background:rgba(248,113,113,.3)}
+
+.rep-body{display:flex;flex-wrap:wrap;gap:6px;min-height:44px;
+  background:rgba(167,139,250,.04);border:1px dashed rgba(167,139,250,.25);border-radius:8px;padding:8px}
+.rep-body-empty{color:var(--text-muted);font-size:.78em;font-style:italic;padding:4px;pointer-events:none;width:100%;text-align:center}
+
+.rep-add-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.rep-add-btn{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);
+  padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.82em;font-family:'Nunito',sans-serif;font-weight:700;transition:all .15s}
+.rep-add-btn:hover{background:rgba(167,139,250,.22)}
+
+/* CODE */
+.code-display{background:#0d1117;border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-family:'Fira Code',monospace;font-size:.78em;color:#79c0ff;
+  max-height:120px;overflow-y:auto;line-height:1.8;white-space:pre}
+.code-display .kw{color:#ff7b72}.code-display .num{color:#e3b341}.code-display .fn{color:#d2a8ff}.code-display .comment{color:#8b949e}
+
+.prog-actions{display:flex;gap:7px;flex-wrap:wrap}
+
+/* FEEDBACK */
+.fb{margin-top:10px;padding:12px 16px;border-radius:10px;font-size:.9em;text-align:center;
+  display:none;animation:fadeIn .25s;font-weight:700;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.fb.info{display:block;background:var(--yellow-pale);color:var(--yellow);border:1px solid rgba(250,204,21,.2)}
+
+/* RESULTS */
+.rc{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:16px auto;border:4px solid}
+.rc.good{border-color:var(--green);background:var(--green-pale)}.rc.mid{border-color:var(--orange);background:var(--orange-pale)}.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2.1em;font-weight:900;line-height:1}.rm{font-size:1em;text-align:center;margin:14px 0;color:var(--text-dim)}
+
+.intro-katex{text-align:center;margin:20px 0;padding:18px;background:var(--surface2);border:2px solid var(--border);border-radius:14px}
+
+@keyframes celebrate{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.25) rotate(-20deg)}75%{transform:scale(1.25) rotate(20deg)}}
+
+/* RESPONSIVE */
+@media(max-width:720px){:root{--cell:44px}.game-area{grid-template-columns:1fr}.menu-grid{grid-template-columns:1fr 1fr}.main{padding:18px 14px}h1{font-size:1.3em}}
+@media(max-width:480px){:root{--cell:38px}.menu-grid{grid-template-columns:1fr}.main{padding:16px 12px}h1{font-size:1.2em}.app-header{padding:12px 16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+  <div class="app-title"><span>🤖</span> Guide le Robot</div>
+  <button class="hdr-menu" id="menuBtn" onclick="goMenu()">☰ Menu</button>
+</div>
+<div class="main">
+
+<!-- INTRO -->
+<div class="screen active" id="S_intro">
+  <h1>Guide le Robot</h1>
+  <p class="sub">Apprends les bases de l'algorithmique en programmant<br>un robot pour qu'il atteigne sa cible !</p>
+  <div class="intro-katex" id="introKatex"></div>
+  <p class="sub" style="margin-top:14px">🎯 Construis des séquences · 🔁 Utilise les boucles<br>🔀 Glisse-dépose pour réordonner · ♾️ Mode infini généré aléatoirement !</p>
+  <div class="controls"><button class="btn btn-blue" onclick="show('S_menu');$('menuBtn').style.display='block'">C'est parti !</button></div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="S_menu">
+  <h1>Choisis ton niveau</h1>
+  <p class="sub">5 niveaux progressifs + un mode infini avec labyrinthes aléatoires !</p>
+  <div class="menu-grid">
+    <div class="mc" onclick="startLevel(1)"><div class="mc-icon">🌱</div><div class="mc-t">Niveau 1 — Débutant</div><div class="mc-d">Couloirs droits, séquences simples</div></div>
+    <div class="mc" onclick="startLevel(2)"><div class="mc-icon">🔄</div><div class="mc-t">Niveau 2 — Virages</div><div class="mc-d">Tournants et obstacles basiques</div></div>
+    <div class="mc" onclick="startLevel(3)"><div class="mc-icon">🔁</div><div class="mc-t">Niveau 3 — Répétitions</div><div class="mc-d">Compacte ton code avec les boucles</div><div class="mc-badge">★ Avancé</div></div>
+    <div class="mc" onclick="startLevel(4)"><div class="mc-icon">🧩</div><div class="mc-t">Niveau 4 — Labyrinthes</div><div class="mc-d">Labyrinthes complexes à résoudre</div><div class="mc-badge">★★ Expert</div></div>
+    <div class="mc" onclick="startLevel(5)"><div class="mc-icon">🏆</div><div class="mc-t">Niveau 5 — Maître</div><div class="mc-d">Grands labyrinthes, logique poussée</div><div class="mc-badge">★★★ Maître</div></div>
+    <div class="mc" onclick="startInfinite()"><div class="mc-icon">♾️</div><div class="mc-t">Mode Infini</div><div class="mc-d">Labyrinthes aléatoires à l'infini !</div><div class="mc-inf">∞ Aléatoire</div></div>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div class="screen" id="S_ex">
+  <div class="ex-top">
+    <div class="ex-badge" id="badge">—</div>
+    <div class="ex-score" id="scLbl">0 / 0</div>
+  </div>
+  <div class="pbar"><div class="pfill" id="pfill"></div></div>
+  <div class="level-info">
+    <div class="level-chip" id="levelChip">Niveau 1</div>
+    <div class="level-tip" id="levelTip">Amène 🤖 jusqu'à 🎯</div>
+  </div>
+
+  <div class="game-area">
+    <div class="grid-panel">
+      <div class="grid-title">🗺️ Labyrinthe</div>
+      <div class="puzzle-label" id="puzzleLabel">—</div>
+      <div class="maze-wrap"><div class="maze-grid" id="mazeGrid"></div></div>
+      <div class="dir-legend">
+        <div class="dir-chip">⬆️ <b>Nord</b></div>
+        <div class="dir-chip">➡️ <b>Est</b></div>
+        <div class="dir-chip">⬇️ <b>Sud</b></div>
+        <div class="dir-chip">⬅️ <b>Ouest</b></div>
+      </div>
+      <div class="speed-wrap">🐢 <input type="range" id="speedSlider" min="1" max="5" value="3"> 🐇</div>
+    </div>
+
+    <div class="prog-panel">
+      <div class="prog-title">📋 Mon Programme</div>
+      <div>
+        <div class="palette-label">Commandes disponibles</div>
+        <div class="cmd-palette">
+          <div class="cmd-btn cmd-fwd" onclick="addCmd('fwd')"><div class="cmd-icon">⬆️</div><div>Avancer</div></div>
+          <div class="cmd-btn cmd-left" onclick="addCmd('left')"><div class="cmd-icon">↩️</div><div>Tourner Gauche</div></div>
+          <div class="cmd-btn cmd-right" onclick="addCmd('right')"><div class="cmd-icon">↪️</div><div>Tourner Droite</div></div>
+          <div class="cmd-btn cmd-rep" onclick="addCmd('rep')"><div class="cmd-icon">🔁</div><div>Répéter X fois</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="seq-label">Ma séquence <span id="instrCount" style="color:var(--text-muted)">(0 instruction)</span></div>
+        <div class="prog-seq" id="progSeq"></div>
+        <div class="drag-hint">💡 Glisse les blocs pour les réordonner · ✕ pour supprimer</div>
+      </div>
+
+      <div>
+        <div class="seq-label">Pseudocode généré</div>
+        <div class="code-display" id="codeDisplay"><span class="comment">// Ton programme apparaîtra ici…</span></div>
+      </div>
+
+      <div class="prog-actions">
+        <button class="btn btn-green" id="btnLaunch" onclick="runProgram()">▶ Lancer</button>
+        <button class="btn btn-orange" onclick="resetRobot()">↺ Réinit.</button>
+        <button class="btn btn-red" onclick="clearProgram()">🗑 Effacer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fb" id="fb"></div>
+  <div class="controls">
+    <button class="btn btn-blue" id="nxt" style="display:none" onclick="nextPuzzle()">Suivant →</button>
+    <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="S_res">
+  <h1>Résultats 🎉</h1>
+  <div class="rc" id="rCirc"><div class="rp" id="rPct">0%</div><div style="font-size:.72em;color:var(--text-muted);margin-top:2px">de réussite</div></div>
+  <div class="rm" id="rMsg"></div>
+  <div class="controls">
+    <button class="btn btn-blue" onclick="goMenu()">Retour au menu</button>
+    <button class="btn btn-purple" onclick="retryLevel()">↺ Rejouer</button>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+/* ══════════════════ UTILS ══════════════════ */
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function goMenu(){show('S_menu');$('menuBtn').style.display='none'}
+function retryLevel(){if(infiniteMode)startInfinite();else startLevel(currentLevel)}
+
+/* ══════════════════ STATE ══════════════════ */
+let currentLevel=1,puzzleIndex=0,score=0,puzzles=[],curPuzzle=null;
+let robotPos={r:0,c:0},robotDir=0; // 0=N 1=E 2=S 3=W
+let program=[];
+let isRunning=false;
+let infiniteMode=false;
+let dragSrcIdx=null;
+const DELTA={0:{dr:-1,dc:0},1:{dr:0,dc:1},2:{dr:1,dc:0},3:{dr:0,dc:-1}};
+const CMD_LABELS={fwd:'⬆️ Avancer',left:'↩️ T.Gauche',right:'↪️ T.Droite'};
+const CMD_SHORT={fwd:'⬆️',left:'↩️',right:'↪️'};
+
+/* ══════════════════ PUZZLES ══════════════════
+   Grid: 0=empty, 1=wall, 'S'=start, 'G'=goal
+   startDir: 0=Nord 1=Est 2=Sud 3=Ouest
+═══════════════════════════════════════════════ */
+const LEVELS={
+  1:{name:'Niveau 1 — Débutant',tip:'Utilise seulement <b>Avancer</b>',puzzles:[
+    {label:'Couloir simple (Est)',
+      grid:[[1,1,1,1,1],[1,'S',0,0,'G'],[1,1,1,1,1]],startDir:1},
+    {label:'Couloir plus long (Est)',
+      grid:[[1,1,1,1,1,1,1],[1,'S',0,0,0,0,'G'],[1,1,1,1,1,1,1]],startDir:1},
+    {label:'Vers le bas (Sud)',
+      grid:[[1,'S',1],[1,0,1],[1,0,1],[1,'G',1]],startDir:2},
+    {label:'Vers le haut (Nord)',
+      grid:[[1,'G',1],[1,0,1],[1,0,1],[1,'S',1]],startDir:0},
+    {label:'Long couloir × 7',
+      grid:[[1,1,1,1,1,1,1,1,1],[1,'S',0,0,0,0,0,0,'G'],[1,1,1,1,1,1,1,1,1]],startDir:1},
+  ]},
+  2:{name:'Niveau 2 — Virages',tip:'Utilise <b>Tourner</b> pour changer de direction',puzzles:[
+    {label:'Premier virage',
+      grid:[[1,1,1,1],[1,'S',0,1],[1,1,0,1],[1,1,'G',1]],startDir:1},
+    {label:'Virage en L',
+      grid:[[1,'G',1,1,1],[1,0,1,1,1],[1,0,0,0,'S'],[1,1,1,1,1]],startDir:3},
+    {label:'Zigzag',
+      grid:[[1,1,1,1,1,1],[1,'S',0,1,1,1],[1,1,0,0,1,1],[1,1,1,0,0,'G'],[1,1,1,1,1,1]],startDir:1},
+    {label:'Demi-contour',
+      grid:[[1,1,1,1,1],[1,'S',0,0,1],[1,1,1,0,1],[1,1,1,'G',1],[1,1,1,1,1]],startDir:1},
+    {label:'U ouvert',
+      grid:[[1,'S',0,0,'G'],[1,1,1,0,1],[1,1,1,0,1],[1,1,1,1,1]],startDir:1},
+    {label:'S inversé',
+      grid:[[1,'S',0,0,1,1],[1,1,1,0,0,1],[1,1,1,1,0,1],[1,1,1,1,'G',1],[1,1,1,1,1,1]],startDir:1},
+  ]},
+  3:{name:'Niveau 3 — Répétitions',tip:'Utilise <b>Répéter</b> pour compacter ton code',puzzles:[
+    {label:'Couloir × 6',
+      grid:[[1,1,1,1,1,1,1,1],[1,'S',0,0,0,0,0,'G'],[1,1,1,1,1,1,1,1]],startDir:1},
+    {label:'Colonne × 4',
+      grid:[[1,'S',1],[1,0,1],[1,0,1],[1,0,1],[1,'G',1]],startDir:2},
+    {label:'Escalier diagonal',
+      grid:[[1,1,1,1,1,1,1],[1,'S',0,1,1,1,1],[1,1,0,0,1,1,1],[1,1,1,0,0,1,1],[1,1,1,1,0,'G',1],[1,1,1,1,1,1,1]],startDir:1},
+    {label:'Rectangle (tour)',
+      grid:[[1,'S',0,0,0,0,1],[1,1,1,1,1,0,1],[1,1,1,1,1,0,1],[1,'G',0,0,0,0,1],[1,1,1,1,1,1,1]],startDir:1},
+    {label:'Serpentin',
+      grid:[[1,1,1,1,1,1,1,1],[1,'S',0,0,0,1,1,1],[1,1,1,1,0,1,1,1],[1,1,1,1,0,0,0,1],[1,1,1,1,1,1,'G',1],[1,1,1,1,1,1,1,1]],startDir:1},
+  ]},
+  4:{name:'Niveau 4 — Labyrinthes',tip:'Analyse bien le labyrinthe avant de coder',puzzles:[
+    // All carefully verified: robot at 'S', startDir points into open space
+    {label:'Labyrinthe A',
+      grid:[
+        [1,1,1,1,1,1,1],
+        [1,'S',0,0,1,1,1],
+        [1,1,1,0,1,1,1],
+        [1,1,1,0,0,0,1],
+        [1,1,1,1,1,'G',1],
+        [1,1,1,1,1,1,1],
+      ],startDir:1}, // facing East, cell(1,2) is 0 ✓
+    {label:'Labyrinthe B',
+      grid:[
+        [1,1,1,1,1,1,1],
+        [1,'S',1,1,1,1,1],
+        [1,0,0,0,0,1,1],
+        [1,0,1,1,0,1,1],
+        [1,0,0,0,0,'G',1],
+        [1,1,1,1,1,1,1],
+      ],startDir:2}, // facing South, cell(2,1) is 0 ✓
+    {label:'Labyrinthe C',
+      grid:[
+        [1,1,1,1,1,1,1,1],
+        [1,'S',0,0,1,0,0,1],
+        [1,1,1,0,0,0,1,1],
+        [1,1,1,1,1,0,0,1],
+        [1,1,1,1,1,1,'G',1],
+        [1,1,1,1,1,1,1,1],
+      ],startDir:1}, // facing East, cell(1,2) is 0 ✓
+    {label:'Labyrinthe D',
+      grid:[
+        [1,1,1,1,1,1,1],
+        [1,'S',1,1,1,1,1],
+        [1,0,0,1,1,1,1],
+        [1,1,0,0,1,1,1],
+        [1,1,1,0,0,1,1],
+        [1,1,1,1,0,'G',1],
+        [1,1,1,1,1,1,1],
+      ],startDir:2}, // facing South, cell(2,1) is 0 ✓
+    {label:'Labyrinthe E',
+      grid:[
+        [1,1,1,1,1,1,1,1],
+        [1,'S',0,0,0,1,1,1],
+        [1,1,1,1,0,1,1,1],
+        [1,1,1,1,0,0,0,1],
+        [1,1,0,0,0,1,0,1],
+        [1,1,0,1,1,1,0,1],
+        [1,1,'G',1,1,1,0,1],
+        [1,1,1,1,1,1,1,1],
+      ],startDir:1}, // facing East, cell(1,2) is 0 ✓
+  ]},
+  5:{name:'Niveau 5 — Maître',tip:'Grands labyrinthes — concentration maximale !',puzzles:[
+    {label:'Grand Labyrinthe I',
+      grid:[
+        [1,1,1,1,1,1,1,1,1],
+        [1,'S',0,0,1,1,1,1,1],
+        [1,1,1,0,1,1,1,1,1],
+        [1,1,1,0,0,0,1,1,1],
+        [1,1,1,1,1,0,0,1,1],
+        [1,1,1,1,1,1,0,0,1],
+        [1,1,1,1,1,1,1,'G',1],
+        [1,1,1,1,1,1,1,1,1],
+      ],startDir:1},
+    {label:'Grand Labyrinthe II',
+      grid:[
+        [1,1,1,1,1,1,1,1,1],
+        [1,'S',1,1,1,1,1,1,1],
+        [1,0,0,0,0,1,1,1,1],
+        [1,0,1,1,0,0,0,1,1],
+        [1,0,1,1,1,1,0,1,1],
+        [1,0,0,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,'G',1],
+        [1,1,1,1,1,1,1,1,1],
+      ],startDir:2}, // South → cell(2,1) is 0 ✓
+    {label:'Grand Labyrinthe III',
+      grid:[
+        [1,1,1,1,1,1,1,1,1,1],
+        [1,'S',0,0,1,1,1,1,1,1],
+        [1,1,1,0,0,1,1,1,1,1],
+        [1,1,1,1,0,0,1,1,1,1],
+        [1,1,1,1,1,0,0,1,1,1],
+        [1,1,1,1,1,1,0,0,1,1],
+        [1,1,1,1,1,1,1,0,0,1],
+        [1,1,1,1,1,1,1,1,'G',1],
+        [1,1,1,1,1,1,1,1,1,1],
+      ],startDir:1},
+    {label:'Grand Labyrinthe IV',
+      grid:[
+        [1,1,1,1,1,1,1,1,1],
+        [1,'S',0,0,0,0,0,0,1],
+        [1,0,1,1,1,1,1,0,1],
+        [1,0,1,0,0,0,1,0,1],
+        [1,0,1,0,1,0,1,0,1],
+        [1,0,0,0,1,'G',1,0,1],
+        [1,1,1,1,1,1,1,0,1],
+        [1,1,1,1,1,1,1,1,1],
+      ],startDir:1},
+  ]},
+};
+
+/* ══════════════════ RANDOM MAZE (Recursive Backtracker) ══════════════════ */
+function generateMaze(rows,cols){
+  const gr=rows*2+1,gc=cols*2+1;
+  const grid=Array.from({length:gr},()=>Array(gc).fill(1));
+  const visited=Array.from({length:rows},()=>Array(cols).fill(false));
+  function inBounds(r,c){return r>=0&&r<rows&&c>=0&&c<cols}
+  function carve(r,c){
+    visited[r][c]=true;
+    grid[r*2+1][c*2+1]=0;
+    const dirs=[[0,1],[0,-1],[1,0],[-1,0]].sort(()=>Math.random()-.5);
+    for(const[dr,dc]of dirs){
+      const nr=r+dr,nc=c+dc;
+      if(inBounds(nr,nc)&&!visited[nr][nc]){
+        grid[r*2+1+dr][c*2+1+dc]=0;
+        carve(nr,nc);
+      }
+    }
+  }
+  carve(0,0);
+  grid[1][1]='S';
+  grid[gr-2][gc-2]='G';
+  return grid;
+}
+
+/* ══════════════════ INIT ══════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  try{katex.render('\\text{Programme}\\;=\\;\\underbrace{(\\,c_1,\\;c_2,\\;\\ldots,\\;c_n\\,)}_{\\text{séquence d\'instructions}}',
+    $('introKatex'),{throwOnError:false,displayMode:true})}catch(e){}
+});
+
+/* ══════════════════ LEVEL START ══════════════════ */
+function startLevel(lv){
+  infiniteMode=false;currentLevel=lv;
+  const lvData=LEVELS[lv];
+  puzzles=lvData.puzzles;puzzleIndex=0;score=0;
+  $('badge').textContent=lvData.name;
+  $('levelChip').textContent=lvData.name.split(' — ')[0];
+  $('levelTip').innerHTML=lvData.tip;
+  show('S_ex');$('menuBtn').style.display='block';
+  loadPuzzle();
+}
+
+function loadPuzzle(){
+  curPuzzle=puzzles[puzzleIndex];
+  $('scLbl').textContent=`${score} / ${puzzleIndex}`;
+  $('pfill').style.width=(puzzleIndex/puzzles.length*100)+'%';
+  $('fb').className='fb';$('nxt').style.display='none';
+  program=[];renderProgSeq();initRobot();renderMaze();
+}
+
+function startInfinite(){
+  infiniteMode=true;currentLevel=0;puzzleIndex=0;score=0;
+  $('badge').textContent='Mode Infini ♾️';
+  $('levelChip').textContent='Mode Infini';
+  $('levelTip').innerHTML='Labyrinthes aléatoires, de plus en plus grands !';
+  show('S_ex');$('menuBtn').style.display='block';
+  loadInfinitePuzzle();
+}
+
+function loadInfinitePuzzle(){
+  const sz=Math.min(3+Math.floor(puzzleIndex/2),8);
+  const grid=generateMaze(sz,sz);
+  curPuzzle={label:`Labyrinthe aléatoire #${puzzleIndex+1} (${sz}×${sz})`,grid,startDir:1};
+  $('scLbl').textContent=`${score} / ${puzzleIndex}`;
+  $('pfill').style.width='0%';
+  $('fb').className='fb';$('nxt').style.display='none';
+  program=[];renderProgSeq();initRobot();renderMaze();
+}
+
+/* ══════════════════ MAZE RENDER ══════════════════ */
+function initRobot(){
+  const g=curPuzzle.grid;
+  for(let r=0;r<g.length;r++)for(let c=0;c<g[r].length;c++)if(g[r][c]==='S'){robotPos={r,c};break;}
+  robotDir=curPuzzle.startDir;
+}
+
+function renderMaze(highlightPath=[]){
+  const g=curPuzzle.grid;
+  const rows=g.length,cols=g[0].length;
+  const mg=$('mazeGrid');
+  mg.style.gridTemplateColumns=`repeat(${cols},var(--cell))`;
+  mg.innerHTML='';
+  $('puzzleLabel').textContent=curPuzzle.label||'';
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      const v=g[r][c];
+      if(v===1)cell.classList.add('wall');
+      else cell.classList.add('empty');
+      if(highlightPath.some(p=>p.r===r&&p.c===c))cell.classList.add('path');
+      if(robotPos.r===r&&robotPos.c===c){
+        cell.classList.add('robot-here');
+        const sp=document.createElement('div');
+        sp.className='robot-sprite';
+        sp.style.transform=`rotate(${robotDir*90}deg)`;
+        sp.textContent='🤖';
+        cell.appendChild(sp);
+      } else if(v==='G'){
+        const gs=document.createElement('div');gs.className='goal-sprite';gs.textContent='🎯';cell.appendChild(gs);
+      } else if(v==='S'){
+        const ss=document.createElement('span');ss.style.cssText='font-size:.75em;opacity:.3';ss.textContent='🏠';cell.appendChild(ss);
+      }
+      mg.appendChild(cell);
+    }
+  }
+}
+
+/* ══════════════════ PROGRAM BUILDER ══════════════════ */
+function addCmd(type){
+  if(isRunning)return;
+  program.push(type==='rep'?{type:'rep',cmds:[],n:3}:{type});
+  renderProgSeq();
+}
+function removeCmd(idx){if(isRunning)return;program.splice(idx,1);renderProgSeq()}
+function addCmdToRep(repIdx,type){if(isRunning||type==='rep')return;program[repIdx].cmds.push(type);renderProgSeq()}
+function removeCmdFromRep(repIdx,cmdIdx){if(isRunning)return;program[repIdx].cmds.splice(cmdIdx,1);renderProgSeq()}
+function changeRepN(repIdx,delta){
+  if(isRunning)return;
+  program[repIdx].n=Math.max(1,Math.min(50,(program[repIdx].n||1)+delta));
+  // Update just the display value without full re-render to avoid focus loss
+  const disp=document.getElementById(`repN_${repIdx}`);
+  if(disp)disp.textContent=program[repIdx].n;
+  updateCodeDisplay();
+  const n=countInstructions();$('instrCount').textContent=`(${n} instruction${n!==1?'s':''})`;
+}
+
+/* ── DRAG & DROP ── */
+function onDragStart(e,idx){
+  if(isRunning){e.preventDefault();return}
+  dragSrcIdx=idx;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',String(idx));
+  setTimeout(()=>{const el=document.querySelector(`[data-prog-idx="${idx}"]`);if(el)el.classList.add('dragging')},0);
+}
+function onDragEnd(){
+  document.querySelectorAll('[data-prog-idx]').forEach(el=>el.classList.remove('dragging','drop-before','drop-after'));
+  dragSrcIdx=null;
+}
+function onDragOver(e,idx){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  if(dragSrcIdx===null||dragSrcIdx===idx)return;
+  document.querySelectorAll('[data-prog-idx]').forEach(el=>el.classList.remove('drop-before','drop-after'));
+  const el=document.querySelector(`[data-prog-idx="${idx}"]`);
+  if(el)el.classList.add(dragSrcIdx<idx?'drop-after':'drop-before');
+}
+function onDrop(e,toIdx){
+  e.preventDefault();
+  if(dragSrcIdx===null||dragSrcIdx===toIdx)return;
+  const item=program.splice(dragSrcIdx,1)[0];
+  const insertAt=dragSrcIdx<toIdx?toIdx-1:toIdx;
+  program.splice(Math.max(0,insertAt),0,item);
+  dragSrcIdx=null;
+  renderProgSeq();
+}
+
+function renderProgSeq(){
+  const seq=$('progSeq');
+  seq.innerHTML='';
+  if(program.length===0){
+    const d=document.createElement('div');d.className='prog-seq-empty';
+    d.textContent='Clique sur les commandes ci-dessus pour construire ton programme…';
+    seq.appendChild(d);
+  }
+  program.forEach((inst,i)=>{
+    if(inst.type==='rep'){
+      const el=document.createElement('div');
+      el.className='rep-block';
+      el.setAttribute('data-prog-idx',i);
+      el.setAttribute('draggable','true');
+      el.addEventListener('dragstart',e=>onDragStart(e,i));
+      el.addEventListener('dragend',onDragEnd);
+      el.addEventListener('dragover',e=>onDragOver(e,i));
+      el.addEventListener('drop',e=>onDrop(e,i));
+
+      // Header
+      const hdr=document.createElement('div');hdr.className='rep-header';
+      // Label
+      const lbl=document.createElement('span');lbl.className='rep-label';lbl.textContent='🔁 Répéter';
+      hdr.appendChild(lbl);
+      // N controls
+      const nwrap=document.createElement('div');nwrap.className='rep-n-wrap';
+      const btnM=document.createElement('button');btnM.className='rep-n-btn';btnM.textContent='−';btnM.title='Moins';
+      btnM.onclick=(e)=>{e.stopPropagation();changeRepN(i,-1)};
+      const ndisp=document.createElement('span');ndisp.className='rep-n-display';ndisp.id=`repN_${i}`;ndisp.textContent=inst.n;
+      const btnP=document.createElement('button');btnP.className='rep-n-btn';btnP.textContent='+';btnP.title='Plus';
+      btnP.onclick=(e)=>{e.stopPropagation();changeRepN(i,1)};
+      nwrap.appendChild(btnM);nwrap.appendChild(ndisp);nwrap.appendChild(btnP);
+      const fois=document.createElement('span');fois.className='rep-fois';fois.textContent='fois :';
+      hdr.appendChild(nwrap);hdr.appendChild(fois);
+      // Del button
+      const del=document.createElement('button');del.className='rep-del';del.textContent='✕ Supprimer';
+      del.onclick=(e)=>{e.stopPropagation();removeCmd(i)};
+      hdr.appendChild(del);
+      el.appendChild(hdr);
+
+      // Body
+      const body=document.createElement('div');body.className='rep-body';
+      if(inst.cmds.length===0){
+        const empty=document.createElement('div');empty.className='rep-body-empty';empty.textContent='Utilise les boutons + ci-dessous pour ajouter des commandes';
+        body.appendChild(empty);
+      } else {
+        inst.cmds.forEach((c,ci)=>{
+          const b=document.createElement('div');
+          b.className=`inst ${c}`;
+          const label={fwd:'⬆️ Avancer',left:'↩️ Gauche',right:'↪️ Droite'}[c];
+          b.innerHTML=label;
+          const del2=document.createElement('span');del2.className='inst-del';del2.textContent='✕';del2.title='Supprimer';
+          del2.onclick=(e)=>{e.stopPropagation();removeCmdFromRep(i,ci)};
+          b.appendChild(del2);
+          body.appendChild(b);
+        });
+      }
+      el.appendChild(body);
+
+      // Add row
+      const addRow=document.createElement('div');addRow.className='rep-add-row';
+      [{t:'fwd',l:'+ ⬆️ Avancer'},{t:'left',l:'+ ↩️ Gauche'},{t:'right',l:'+ ↪️ Droite'}].forEach(({t,l})=>{
+        const ab=document.createElement('button');ab.className='rep-add-btn';ab.textContent=l;
+        ab.onclick=(e)=>{e.stopPropagation();addCmdToRep(i,t)};
+        addRow.appendChild(ab);
+      });
+      el.appendChild(addRow);
+      seq.appendChild(el);
+    } else {
+      const el=document.createElement('div');
+      el.className=`inst ${inst.type}`;
+      el.setAttribute('data-prog-idx',i);
+      el.setAttribute('draggable','true');
+      el.textContent=CMD_LABELS[inst.type];
+      const del=document.createElement('span');del.className='inst-del';del.textContent='✕';del.title='Supprimer';
+      del.onclick=(e)=>{e.stopPropagation();removeCmd(i)};
+      el.appendChild(del);
+      el.addEventListener('dragstart',e=>onDragStart(e,i));
+      el.addEventListener('dragend',onDragEnd);
+      el.addEventListener('dragover',e=>onDragOver(e,i));
+      el.addEventListener('drop',e=>onDrop(e,i));
+      seq.appendChild(el);
+    }
+  });
+  const n=countInstructions();
+  $('instrCount').textContent=`(${n} instruction${n!==1?'s':''})`;
+  updateCodeDisplay();
+}
+
+function countInstructions(){
+  let n=0;program.forEach(inst=>{if(inst.type==='rep')n+=inst.cmds.length+1;else n++;});return n;
+}
+
+function updateCodeDisplay(){
+  const lines=[];
+  program.forEach(inst=>{
+    if(inst.type==='rep'){
+      lines.push(`<span class="kw">répéter</span> <span class="num">${inst.n}</span> <span class="kw">fois</span> {`);
+      inst.cmds.forEach(c=>{
+        const fn={fwd:'avancer',left:'tourner_gauche',right:'tourner_droite'}[c];
+        lines.push(`  <span class="fn">${fn}</span>()`);
+      });
+      lines.push('}');
+    } else {
+      const fn={fwd:'avancer',left:'tourner_gauche',right:'tourner_droite'}[inst.type];
+      lines.push(`<span class="fn">${fn}</span>()`);
+    }
+  });
+  $('codeDisplay').innerHTML=lines.length?lines.join('\n'):'<span class="comment">// Ton programme apparaîtra ici…</span>';
+}
+
+/* ══════════════════ EXECUTION ══════════════════ */
+function getDelay(){const v=parseInt($('speedSlider').value)||3;return[600,380,220,120,50][v-1]}
+
+function flattenProgram(){
+  const steps=[];
+  program.forEach((inst,i)=>{
+    if(inst.type==='rep'){for(let k=0;k<inst.n;k++)inst.cmds.forEach(c=>steps.push({type:c,instIdx:i}));}
+    else steps.push({type:inst.type,instIdx:i});
+  });
+  return steps;
+}
+
+function highlightInst(idx){
+  document.querySelectorAll('[data-prog-idx]').forEach(el=>el.classList.remove('active-step'));
+  const el=document.querySelector(`[data-prog-idx="${idx}"]`);if(el)el.classList.add('active-step');
+}
+function clearInstHighlight(){document.querySelectorAll('[data-prog-idx]').forEach(el=>el.classList.remove('active-step'))}
+
+async function runProgram(){
+  if(isRunning)return;
+  if(program.length===0){showFb('info','⚠️ Programme vide ! Ajoute des commandes.');return;}
+  // Check rep blocks have commands
+  for(let inst of program){if(inst.type==='rep'&&inst.cmds.length===0){showFb('info','⚠️ Un bloc Répéter est vide ! Ajoute des commandes à l\'intérieur.');return;}}
+  isRunning=true;$('btnLaunch').disabled=true;
+  $('fb').className='fb';initRobot();renderMaze();
+  const steps=flattenProgram(),path=[];
+  let success=false,hitWall=false;
+  const delay=getDelay();
+  for(let s=0;s<steps.length;s++){
+    const step=steps[s];
+    highlightInst(step.instIdx);
+    if(step.type==='fwd'){
+      await sleep(delay);
+      const d=DELTA[robotDir];
+      const nr=robotPos.r+d.dr,nc=robotPos.c+d.dc;
+      const g=curPuzzle.grid;
+      if(nr<0||nr>=g.length||nc<0||nc>=g[0].length||g[nr][nc]===1){hitWall=true;break;}
+      robotPos={r:nr,c:nc};path.push({r:nr,c:nc});renderMaze(path);
+      if(g[nr][nc]==='G'){success=true;break;}
+    } else {
+      await sleep(delay*0.4);
+      robotDir=step.type==='left'?(robotDir+3)%4:(robotDir+1)%4;
+      renderMaze(path);
+    }
+  }
+  clearInstHighlight();isRunning=false;$('btnLaunch').disabled=false;
+  if(success){
+    score++;$('scLbl').textContent=`${score} / ${puzzleIndex+1}`;
+    celebrateRobot();
+    showFb('ok','✅ Bravo ! Le robot a atteint la cible ! 🎯 — Appuie sur Entrée pour continuer');
+    $('nxt').style.display='inline-flex';
+  } else if(hitWall){
+    showFb('bad','💥 Le robot a percuté un mur ! Vérifie la direction du robot (l\'emoji 🤖 tourne) et ta séquence de commandes.');
+  } else {
+    showFb('bad','❌ Le robot s\'est arrêté sans atteindre la cible. Il manque peut-être des instructions ou il faut corriger les virages.');
+  }
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+function celebrateRobot(){
+  const robot=document.querySelector('.robot-sprite');
+  if(robot){robot.style.animation='celebrate .4s ease 4';setTimeout(()=>{if(robot)robot.style.animation='robotBob .9s ease-in-out infinite alternate'},1700);}
+}
+
+function resetRobot(){if(isRunning)return;initRobot();renderMaze();$('fb').className='fb'}
+function clearProgram(){if(isRunning)return;program=[];renderProgSeq();initRobot();renderMaze();$('fb').className='fb'}
+function showFb(type,msg){const fb=$('fb');fb.className=`fb ${type}`;fb.textContent=msg}
+
+/* ══════════════════ NAVIGATION ══════════════════ */
+function nextPuzzle(){
+  puzzleIndex++;
+  if(infiniteMode)loadInfinitePuzzle();
+  else if(puzzleIndex>=puzzles.length)showResults();
+  else loadPuzzle();
+}
+
+function showResults(){
+  const tot=puzzles.length,pct=tot>0?Math.round(score/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className=`rc ${tier}`;$('rPct').textContent=`${pct}%`;
+  $('rPct').style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+  $('rMsg').textContent=pct===100?'Parfait ! Tu maîtrises l\'algorithmique ! 🎉':
+    pct>=80?'Excellent ! Continue à t\'entraîner.':
+    pct>=50?'Pas mal ! Réessaie pour améliorer ton score.':
+    'Continue à t\'entraîner — l\'algo ça s\'apprend avec la pratique !';
+  show('S_res');$('menuBtn').style.display='block';
+}
+
+/* ══════════════════ KEYBOARD ══════════════════ */
+document.addEventListener('keydown',e=>{
+  if(isRunning)return;
+  const ae=document.activeElement;
+  if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable))return;
+  if(e.key==='Enter'){
+    const s=document.querySelector('.screen.active');
+    if(s&&s.id==='S_ex'){e.preventDefault();if($('nxt').style.display!=='none')nextPuzzle();else runProgram();}
+  }
+});
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

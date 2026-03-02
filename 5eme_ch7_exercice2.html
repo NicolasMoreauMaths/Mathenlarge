@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axes de symétrie – Correction interactive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#0f766e; --primary-dark:#134e4a; --primary-light:#ccfbf1;
+            --success:#059669; --bonus:#7c3aed; --bonus-light:#ede9fe;
+            --bg-card:#ffffff; --border:#99f6e4; --text-dark:#0f172a; --text-medium:#475569;
+            --shadow:rgba(15,118,110,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#ccfbf1 0%,#ede9fe 50%,#dbeafe 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--bonus),#2563eb);}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .recap-card{border-radius:10px;padding:1rem 1.25rem;font-size:0.97rem;line-height:1.9;background:var(--primary-light);border:2px solid #5eead4;}
+        .recap-card strong{color:var(--primary-dark);}
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--bonus));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--bonus));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.teal{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.purple{background:var(--bonus-light);color:var(--bonus);}
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-count{background:var(--primary-light);color:var(--primary-dark);}
+        .tag-draw{background:#dbeafe;color:#1e40af;}
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(15,118,110,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--bonus);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--bonus-light);color:var(--bonus);border:2px solid #c4b5fd;border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:nowrap;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--bonus);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;word-break:break-word;}
+        .hint-text.revealed{max-height:400px;padding:0.5rem 0.85rem;opacity:1;}
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+        .rule-box{background:#faf5ff;border:2px solid #c4b5fd;border-radius:10px;padding:0.9rem 1.25rem;margin:0.75rem 0;font-size:0.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--bonus);}
+
+        /* Grille de figures */
+        .figures-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1.25rem;margin:1.25rem 0;}
+        .figure-card{background:#f8fafc;border:2px solid var(--border);border-radius:14px;padding:1rem 0.75rem;display:flex;flex-direction:column;align-items:center;gap:0.6rem;transition:border-color 0.3s, background 0.3s;}
+        .figure-card.answered-correct{border-color:var(--success);background:#f0fdf4;}
+        .figure-card.answered-wrong{border-color:#dc2626;background:#fff5f5;}
+        .figure-label{font-weight:700;font-size:0.88rem;color:var(--text-medium);text-align:center;}
+        .figure-svg{display:flex;align-items:center;justify-content:center;min-height:100px;}
+
+        /* Axes SVG animés via stroke-dashoffset */
+        .axis-line{
+            opacity:0;
+            stroke-dasharray:300;
+            stroke-dashoffset:300;
+            transition:opacity 0.05s, stroke-dashoffset 0.55s ease;
+        }
+        .axis-text{
+            opacity:0;
+            transition:opacity 0.4s ease;
+        }
+        .axis-line.show{
+            opacity:1;
+            stroke-dashoffset:0;
+        }
+        .axis-text.show{
+            opacity:1;
+        }
+
+        /* MCQ */
+        .mcq-options{display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:center;}
+        .mcq-btn{background:white;border:2px solid var(--border);border-radius:10px;padding:0.4rem 0.85rem;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s ease;color:var(--text-dark);min-width:2.2rem;}
+        .mcq-btn:hover:not(:disabled){border-color:var(--primary);background:var(--primary-light);}
+        .mcq-btn.correct{background:#dcfce7;border-color:var(--success);color:#166534;}
+        .mcq-btn.wrong{background:#fee2e2;border-color:#dc2626;color:#991b1b;}
+        .mcq-btn.revealed-correct{background:#dcfce7;border-color:var(--success);color:#166534;}
+        .mcq-btn:disabled{cursor:default;}
+        .mcq-feedback{font-size:0.82rem;font-weight:600;min-height:1.2em;text-align:center;}
+        .mcq-feedback.ok{color:var(--success);}
+        .mcq-feedback.ko{color:#dc2626;}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:600px){
+            body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}
+            header{padding:1.5rem 1rem;border-radius:14px;}
+            .exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}
+            .exercise-header{flex-direction:column;align-items:flex-start;}
+            .exercise-title{font-size:1.2rem;}
+            .btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}
+            .correction-box{padding:1.75rem 0.75rem 1rem;}
+            .correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}
+            footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}
+            .progress-wrapper{padding:1rem;gap:0.75rem;}
+            .figures-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+            .hint-item{flex-direction:column;}
+            .hint-btn{white-space:normal;width:100%;}
+            .hint-text{width:100%;box-sizing:border-box;}
+            .hint-text.revealed{max-height:600px;}
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🪞 Feuille d'exercices</h1>
+        <p class="subtitle">Axes de symétrie – Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">5ème</span>
+            <span class="header-chip">2 exercices</span>
+            <span class="header-chip">Figures · Lettres</span>
+        </div>
+    </header>
+
+    <div class="recap">
+        <div class="recap-title">📖 Ce qu'il faut savoir</div>
+        <div class="recap-card">
+            <strong>Axe de symétrie d'une figure</strong>
+            <ul style="margin-top:0.5rem;padding-left:1.2rem;line-height:2;">
+                <li>Une droite est un axe de symétrie d'une figure si, en <strong>pliant la feuille</strong> le long de cette droite, les deux parties de la figure se superposent exactement.</li>
+                <li>Pour vérifier, on peut aussi utiliser un <strong>miroir</strong> : si l'image dans le miroir complète parfaitement la figure, la droite est un axe.</li>
+                <li>Une figure peut avoir <strong>0, 1, 2 ou une infinité</strong> d'axes de symétrie.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 2</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ===== EXERCICE 1 ===== -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 2</h2>
+                <span class="exercise-tag tag-count">Figures géométriques</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Pour chaque figure, clique sur le <strong>nombre d'axes de symétrie</strong> qu'elle possède. Les axes s'afficheront automatiquement !</p>
+            <div class="figures-grid">
+
+                <!-- Carré : 4 axes -->
+                <div class="figure-card" id="fc-carre">
+                    <div class="figure-label">Carré</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 110 110" width="100" height="100">
+                            <rect x="15" y="15" width="80" height="80" fill="#e0f2fe" stroke="#0369a1" stroke-width="2.5" rx="2"/>
+                            <line class="axis-line" id="ax-carre-1" x1="55" y1="3"   x2="55"  y2="107" stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-carre-2" x1="3"  y1="55"  x2="107" y2="55"  stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-carre-3" x1="15" y1="15"  x2="95"  y2="95"  stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-carre-4" x1="95" y1="15"  x2="15"  y2="95"  stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="carre" data-answer="4" data-axes="ax-carre-1,ax-carre-2,ax-carre-3,ax-carre-4">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                        <button class="mcq-btn" data-val="4">4</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-carre"></div>
+                </div>
+
+                <!-- Rectangle : 2 axes -->
+                <div class="figure-card" id="fc-rectangle">
+                    <div class="figure-label">Rectangle</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 140 90" width="128" height="82">
+                            <rect x="10" y="15" width="120" height="60" fill="#e0f2fe" stroke="#0369a1" stroke-width="2.5" rx="2"/>
+                            <line class="axis-line" id="ax-rect-1" x1="70" y1="3"   x2="70"  y2="87"  stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-rect-2" x1="2"  y1="45"  x2="138" y2="45"  stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="rectangle" data-answer="2" data-axes="ax-rect-1,ax-rect-2">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                        <button class="mcq-btn" data-val="4">4</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-rectangle"></div>
+                </div>
+
+                <!-- Triangle équilatéral : 3 axes -->
+                <div class="figure-card" id="fc-tri-equi">
+                    <div class="figure-label">Triangle équilatéral</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 110 100" width="100" height="91">
+                            <polygon points="55,8 105,95 5,95" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+                            <line class="axis-line" id="ax-teq-1" x1="55"   y1="2"    x2="55"   y2="99"   stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-teq-2" x1="3"    y1="97"   x2="84"   y2="50"   stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-teq-3" x1="107"  y1="97"   x2="26"   y2="50"   stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="tri-equi" data-answer="3" data-axes="ax-teq-1,ax-teq-2,ax-teq-3">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="3">3</button>
+                        <button class="mcq-btn" data-val="6">6</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-tri-equi"></div>
+                </div>
+
+                <!-- Triangle quelconque : 0 axes -->
+                <div class="figure-card" id="fc-tri-scal">
+                    <div class="figure-label">Triangle quelconque</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 120 105" width="110" height="96">
+                            <polygon points="15,95 105,95 35,12" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+                            <text class="axis-text" id="ax-tscal-0" x="38" y="64" font-size="12" fill="#dc2626" font-family="DM Sans,sans-serif" font-weight="700">0 axe ✓</text>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="tri-scal" data-answer="0" data-axes="ax-tscal-0" data-types="text">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                        <button class="mcq-btn" data-val="3">3</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-tri-scal"></div>
+                </div>
+
+                <!-- Losange : 2 axes -->
+                <div class="figure-card" id="fc-losange">
+                    <div class="figure-label">Losange</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 110 130" width="88" height="104">
+                            <polygon points="55,8 105,64 55,120 5,64" fill="#fce7f3" stroke="#db2777" stroke-width="2.5"/>
+                            <line class="axis-line" id="ax-los-1" x1="55" y1="2"   x2="55"  y2="128" stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-los-2" x1="1" y1="64"   x2="109" y2="64"  stroke="#dc2626" stroke-width="2" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="losange" data-answer="2" data-axes="ax-los-1,ax-los-2">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                        <button class="mcq-btn" data-val="4">4</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-losange"></div>
+                </div>
+
+                <!-- Cercle : infini -->
+                <div class="figure-card" id="fc-cercle">
+                    <div class="figure-label">Cercle</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 110 110" width="100" height="100">
+                            <circle cx="55" cy="55" r="47" fill="#fef9c3" stroke="#ca8a04" stroke-width="2.5"/>
+                            <line class="axis-line" id="ax-cer-1" x1="55" y1="3"   x2="55"  y2="107" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="5,3"/>
+                            <line class="axis-line" id="ax-cer-2" x1="3"  y1="55"  x2="107" y2="55"  stroke="#dc2626" stroke-width="1.8" stroke-dasharray="5,3"/>
+                            <line class="axis-line" id="ax-cer-3" x1="22" y1="22"  x2="88"  y2="88"  stroke="#dc2626" stroke-width="1.8" stroke-dasharray="5,3"/>
+                            <line class="axis-line" id="ax-cer-4" x1="88" y1="22"  x2="22"  y2="88"  stroke="#dc2626" stroke-width="1.8" stroke-dasharray="5,3"/>
+                            <text class="axis-text" id="ax-cer-5" x="27" y="59" font-size="11" fill="#b45309" font-family="DM Sans,sans-serif" font-weight="700">∞ axes…</text>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="cercle" data-answer="infini" data-axes="ax-cer-1,ax-cer-2,ax-cer-3,ax-cer-4,ax-cer-5" data-types="line,line,line,line,text">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="4">4</button>
+                        <button class="mcq-btn" data-val="8">8</button>
+                        <button class="mcq-btn" data-val="infini">∞</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-cercle"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices – débloque-les dans l'ordre si tu bloques</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Étape 1 — Plis possibles</button>
+                    <div class="hint-text" id="h1-1">Imagine que tu plies la figure en deux : si les deux moitiés se superposent parfaitement, le pli est un axe de symétrie. Combien de façons différentes peux-tu plier chaque figure ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Étape 2 — Figures spéciales</button>
+                    <div class="hint-text" id="h1-2">Pour les figures régulières, pense aux plis horizontaux, verticaux et diagonaux. Pour un triangle quelconque, demande-toi si ses côtés sont tous de longueurs différentes — est-ce qu'un pli peut vraiment faire coïncider les deux parties ?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">
+                <strong>✓ Astuce :</strong> Pour les polygones réguliers (tous les côtés égaux, tous les angles égaux), le nombre d'axes est toujours égal au nombre de côtés. Carré (4 côtés) → 4 axes, triangle équilatéral (3 côtés) → 3 axes, etc.
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 2 ===== -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 2</h2>
+                <span class="exercise-tag tag-draw">Lettres de l'alphabet</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Pour chaque lettre majuscule, clique sur le <strong>nombre d'axes de symétrie</strong>. Les axes s'afficheront automatiquement !</p>
+            <div class="figures-grid">
+
+                <!-- A : 1 axe vertical -->
+                <div class="figure-card" id="fc-letA">
+                    <div class="figure-label">Lettre A</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 100 110" width="80" height="88">
+                            <text x="50" y="95" font-size="100" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" fill="#0f172a">A</text>
+                            <line class="axis-line" id="ax-letA-1" x1="50" y1="0" x2="50" y2="110" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="letA" data-answer="1" data-axes="ax-letA-1">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-letA"></div>
+                </div>
+
+                <!-- B : 1 axe horizontal -->
+                <div class="figure-card" id="fc-letB">
+                    <div class="figure-label">Lettre B</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 100 110" width="80" height="88">
+                            <text x="50" y="95" font-size="100" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" fill="#0f172a">B</text>
+                            <line class="axis-line" id="ax-letB-1" x1="0" y1="62" x2="100" y2="62" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="letB" data-answer="1" data-axes="ax-letB-1">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-letB"></div>
+                </div>
+
+                <!-- C : 1 axe horizontal -->
+                <div class="figure-card" id="fc-letC">
+                    <div class="figure-label">Lettre C</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 100 110" width="80" height="88">
+                            <text x="50" y="95" font-size="100" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" fill="#0f172a">C</text>
+                            <line class="axis-line" id="ax-letC-1" x1="0" y1="62" x2="100" y2="62" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="letC" data-answer="1" data-axes="ax-letC-1">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-letC"></div>
+                </div>
+
+                <!-- H : 2 axes -->
+                <div class="figure-card" id="fc-letH">
+                    <div class="figure-label">Lettre H</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 100 110" width="80" height="88">
+                            <text x="50" y="95" font-size="100" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" fill="#0f172a">H</text>
+                            <line class="axis-line" id="ax-letH-1" x1="50" y1="0"   x2="50"  y2="110" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6,3"/>
+                            <line class="axis-line" id="ax-letH-2" x1="0"  y1="62"  x2="100" y2="62"  stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="letH" data-answer="2" data-axes="ax-letH-1,ax-letH-2">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-letH"></div>
+                </div>
+
+                <!-- M : 1 axe vertical -->
+                <div class="figure-card" id="fc-letM">
+                    <div class="figure-label">Lettre M</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 100 110" width="80" height="88">
+                            <text x="50" y="95" font-size="100" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" fill="#0f172a">M</text>
+                            <line class="axis-line" id="ax-letM-1" x1="50" y1="0" x2="50" y2="110" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6,3"/>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="letM" data-answer="1" data-axes="ax-letM-1">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-letM"></div>
+                </div>
+
+                <!-- S : 0 axe -->
+                <div class="figure-card" id="fc-letS">
+                    <div class="figure-label">Lettre S</div>
+                    <div class="figure-svg">
+                        <svg viewBox="0 0 100 110" width="80" height="88">
+                            <text x="50" y="95" font-size="100" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" fill="#0f172a">S</text>
+                            <text class="axis-text" id="ax-letS-0" x="50" y="55" font-size="13" text-anchor="middle" fill="#dc2626" font-family="DM Sans,sans-serif" font-weight="700">0 axe ✓</text>
+                        </svg>
+                    </div>
+                    <div class="mcq-options" data-figure="letS" data-answer="0" data-axes="ax-letS-0" data-types="text">
+                        <button class="mcq-btn" data-val="0">0</button>
+                        <button class="mcq-btn" data-val="1">1</button>
+                        <button class="mcq-btn" data-val="2">2</button>
+                    </div>
+                    <div class="mcq-feedback" id="fb-letS"></div>
+                </div>
+
+            </div>
+            <p style="font-size:0.93rem;color:var(--text-medium);margin-top:0.5rem;">💡 Sur ta feuille, <strong>trace les axes</strong> sur chaque lettre après avoir trouvé le nombre.</p>
+        </div>
+
+        <div class="hints-section">
+            <p class="hints-title">💡 Indices – débloque-les dans l'ordre si tu bloques</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Étape 1 — Pli vertical et horizontal</button>
+                    <div class="hint-text" id="h2-1">Essaie de plier mentalement la lettre en deux, d'abord verticalement, puis horizontalement. Est-ce que les deux moitiés se superposent exactement dans chaque cas ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2">💡 Étape 2 — Cas particuliers (S…)</button>
+                    <div class="hint-text" id="h2-2">Attention aux lettres qui semblent symétriques mais ne le sont pas tout à fait (regarde bien la forme des courbes). Et pense à la lettre S : est-ce qu'un pli vertical ou horizontal peut faire coïncider ses deux parties ?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">
+                <strong>✓ Remarque :</strong> La lettre S a une symétrie <em>centrale</em> (elle se superpose à elle-même par rotation de 180°), mais elle n'a <strong>aucun axe de symétrie</strong> — les plis verticaux et horizontaux ne font pas coïncider ses deux parties.
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🪞 Bonne révision ! Pour vérifier un axe de symétrie, l'astuce du pli ou du miroir marche à chaque fois.</footer>
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    const TOTAL = 2, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 2, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as revu toutes les corrections. Excellent travail !' },
+        { min: 1, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir l'autre correction !" },
+    ];
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge teal">📚 Feuille complète</span>` +
+            `<span class="score-badge purple">🪞 Axes de symétrie</span>`;
+        card.classList.add('visible');
+    }
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction); btn.classList.remove('active');
+            btn.textContent = 'Voir la correction'; openSet.delete(exId);
+        } else {
+            openCorrection(correction); btn.classList.add('active');
+            btn.textContent = 'Masquer la correction'; openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId); dot.classList.add('done');
+                card.classList.add('seen'); updateProgress();
+            }
+        }
+    }
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+
+    // ---- MCQ + axes animés ----
+    document.querySelectorAll('.mcq-options').forEach(group => {
+        const figure   = group.dataset.figure;
+        const answer   = group.dataset.answer;
+        const axeIds   = group.dataset.axes ? group.dataset.axes.split(',') : [];
+        const types    = group.dataset.types ? group.dataset.types.split(',') : [];
+        const feedback = document.getElementById(`fb-${figure}`);
+        const card     = document.getElementById(`fc-${figure}`);
+
+        group.querySelectorAll('.mcq-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (group.querySelector('.mcq-btn.correct, .mcq-btn.wrong')) return;
+
+                const val = this.dataset.val;
+                group.querySelectorAll('.mcq-btn').forEach(b => b.disabled = true);
+
+                // Afficher les axes en cascade
+                axeIds.forEach((id, i) => {
+                    const isText = types[i] === 'text' || (types.length === 0 && document.getElementById(id) && document.getElementById(id).tagName === 'text');
+                    setTimeout(() => {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        // Détecter le type via le tagName SVG
+                        if (el.tagName.toLowerCase() === 'text') {
+                            el.classList.add('axis-text', 'show');
+                        } else {
+                            el.classList.add('show');
+                        }
+                    }, i * 200);
+                });
+
+                if (val === answer) {
+                    this.classList.add('correct');
+                    card.classList.add('answered-correct');
+                    feedback.textContent = '✓ Bonne réponse !';
+                    feedback.className = 'mcq-feedback ok';
+                } else {
+                    this.classList.add('wrong');
+                    card.classList.add('answered-wrong');
+                    group.querySelectorAll('.mcq-btn').forEach(b => {
+                        if (b.dataset.val === answer) b.classList.add('revealed-correct');
+                    });
+                    feedback.textContent = '✗ Regarde les axes !';
+                    feedback.className = 'mcq-feedback ko';
+                }
+            });
+        });
+    });
+
+    // ---- Hints ----
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled = true; this.textContent = '✓ ' + this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

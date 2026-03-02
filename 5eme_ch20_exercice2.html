@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AP Scratch n°2 – Variables & Géométrie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#0369a1; --primary-dark:#0c4a6e; --primary-light:#e0f2fe;
+            --orange:#ea580c; --orange-light:#fff7ed; --orange-border:#fed7aa;
+            --green:#15803d; --green-light:#f0fdf4; --green-border:#86efac;
+            --purple:#7c3aed; --purple-light:#faf5ff; --purple-border:#c4b5fd;
+            --red:#be123c; --red-light:#fff1f2; --red-border:#fda4af;
+            --yellow:#d97706; --yellow-light:#fefce8; --yellow-border:#fde047;
+            --success:#059669;
+            --bg-card:#ffffff; --border:#bae6fd; --text-dark:#0f172a; --text-medium:#475569;
+            --shadow:rgba(3,105,161,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#fce7f3 50%,#fef9c3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--orange),var(--purple));}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+        /* Rappel box */
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        .recap-card{border-radius:10px;padding:0.9rem 1.1rem;font-size:0.93rem;line-height:1.8;}
+        .rc-blue{background:var(--primary-light);border:2px solid #7dd3fc;}
+        .rc-orange{background:var(--orange-light);border:2px solid var(--orange-border);}
+        .rc-blue strong{color:var(--primary-dark);}
+        .rc-orange strong{color:var(--orange);}
+
+        /* Progress */
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--orange));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+        /* Score card */
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--orange));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.teal{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.orange{background:var(--orange-light);color:var(--orange);}
+
+        /* Section divider */
+        .section-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;}
+        .section-divider-line{flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent);}
+        .section-divider-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+
+        /* Exercise card */
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-blue{background:var(--primary-light);color:var(--primary);border:1.5px solid var(--border);}
+        .tag-orange{background:var(--orange-light);color:var(--orange);border:1.5px solid var(--orange-border);}
+        .tag-green{background:var(--green-light);color:var(--green);border:1.5px solid var(--green-border);}
+        .tag-purple{background:var(--purple-light);color:var(--purple);border:1.5px solid var(--purple-border);}
+        .tag-red{background:var(--red-light);color:var(--red);border:1.5px solid var(--red-border);}
+
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(3,105,161,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+
+        /* Hints */
+        .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:1rem 0;}
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--purple);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--purple-light);color:var(--purple);border:2px solid var(--purple-border);border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:normal;flex-shrink:0;text-align:left;}
+        .hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--purple);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--purple);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;word-break:break-word;}
+        .hint-text.revealed{max-height:400px;padding:0.5rem 0.85rem;opacity:1;}
+
+        /* Correction */
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+
+        /* Content helpers */
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-row{display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.7rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:0.8rem;font-weight:700;width:1.5rem;height:1.5rem;border-radius:50%;text-align:center;line-height:1.5rem;flex-shrink:0;margin-top:0.2rem;}
+        .context-box{background:#eff6ff;border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0 1rem;font-size:0.97rem;line-height:1.8;}
+        .context-box strong{color:var(--primary-dark);}
+        .rule-box{background:var(--purple-light);border:2px solid var(--purple-border);border-radius:10px;padding:0.9rem 1.25rem;margin:0.75rem 0;font-size:0.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--purple);}
+        .calcul-step{background:white;padding:1.25rem 1.5rem;border-radius:10px;margin:0.75rem 0;border-left:4px solid var(--primary);}
+        .calcul-step.orange-step{border-left-color:var(--orange);}
+        .calcul-step.green-step{border-left-color:var(--green);}
+        .calcul-step.purple-step{border-left-color:var(--purple);}
+        .calcul-line{font-size:1.1rem;text-align:center;margin:0.4rem 0;font-family:'Times New Roman',serif;font-style:italic;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .solution-text.orange{background:var(--orange-light);border-color:var(--orange);color:var(--orange);}
+        .solution-text.green{background:var(--green-light);border-color:var(--green);color:var(--green);}
+        .mini-section{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:700;color:var(--primary);margin:1.25rem 0 0.5rem;}
+        .mini-section.orange{color:var(--orange);}
+        .mini-section.green{color:var(--green);}
+        .mini-section.purple{color:var(--purple);}
+        .illus-frame{background:#f8fafc;border:2px solid var(--border);border-radius:12px;padding:1rem;margin:1rem 0;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:1rem;}
+
+        /* Scratch blocks */
+        .scratch-program{background:#1e1b4b;border-radius:14px;padding:1.25rem 1.5rem;margin:1rem 0;display:inline-block;min-width:220px;}
+        .scratch-block{border-radius:8px;padding:0.45rem 1rem;margin:3px 0;font-size:0.92rem;font-weight:600;font-family:'DM Sans',sans-serif;color:white;display:flex;align-items:center;gap:0.5rem;cursor:default;flex-wrap:wrap;}
+        .scratch-block.event{background:#e6a817;}
+        .scratch-block.control{background:#e6841a;}
+        .scratch-block.motion{background:#4c97ff;}
+        .scratch-block.pen{background:#59c059;}
+        .scratch-block.var{background:#ff8c1a;}
+        .scratch-block.sensing{background:#5cb1d6;}
+        .scratch-block.operator{background:#59c059;}
+        .scratch-block.looks{background:#9966ff;}
+        .scratch-block.indented{margin-left:24px;}
+        .scratch-val{background:rgba(255,255,255,0.25);border-radius:99px;padding:0.05rem 0.55rem;font-weight:700;font-size:0.9rem;display:inline-block;}
+        .scratch-val.answer{background:#fef08a;color:#92400e;}
+        .scratch-blank{background:rgba(255,255,255,0.15);border-radius:6px;padding:0.05rem 1.2rem;display:inline-block;border:2px dashed rgba(255,255,255,0.5);min-width:2rem;}
+
+        /* Programme de calcul */
+        .prog-calcul{background:#f1f5f9;border:2px solid #cbd5e1;border-radius:10px;padding:1rem 1.5rem;font-size:0.97rem;line-height:2;min-width:200px;}
+        .prog-calcul .step{display:flex;align-items:center;gap:0.5rem;}
+        .prog-calcul .arrow{color:#94a3b8;font-size:1.2rem;}
+        .prog-blank{background:white;border:2px dashed #94a3b8;border-radius:6px;padding:0 1rem;display:inline-block;min-width:3rem;color:#94a3b8;font-style:italic;}
+
+        /* Layout helpers */
+        .two-col{display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin:1rem 0;}
+        .two-col > *{flex:1;min-width:200px;}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}.recap-grid{grid-template-columns:1fr;}.two-col{flex-direction:column;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.hint-item{flex-direction:column;}.hint-btn{white-space:normal;width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>🐱 Scratch n°2</h1>
+        <p class="subtitle">Variables & Géométrie · Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">5ème / 4ème</span>
+            <span class="header-chip">8 exercices</span>
+            <span class="header-chip">Variables · Programmes de calcul · Géométrie</span>
+        </div>
+    </header>
+
+    <!-- Rappel -->
+    <div class="recap">
+        <div class="recap-title">📖 Rappels – Les variables en Scratch</div>
+        <div class="recap-grid">
+            <div class="recap-card rc-blue">
+                <strong>📦 Une variable = une mémoire</strong><br>
+                Imagine une petite boîte dans l'ordinateur. Cette boîte a un <em>nom</em> (par exemple <strong>x</strong>) et elle peut stocker une information : un nombre, un texte…<br>
+                Le programme peut <strong>lire</strong> cette boîte (pour s'en souvenir) et <strong>modifier</strong> son contenu à tout moment.<br>
+                <span style="font-size:0.87rem;color:var(--primary-dark);">Exemple : <em>mettre x à 5</em> → la boîte x contient maintenant 5.</span>
+            </div>
+            <div class="recap-card rc-orange">
+                <strong>🔄 Réutiliser la mémoire pour avancer</strong><br>
+                Pour faire avancer un calcul, on <strong>relit la boîte</strong> et on la met à jour :<br>
+                <em>mettre x à x * 3</em> → on prend ce qui est dans x, on multiplie par 3, et on remet le résultat dans x.<br>
+                <em>ajouter 5 à x</em> → on rajoute 5 à ce qui est déjà dans x.<br>
+                <span style="font-size:0.87rem;color:var(--orange);">⚠️ <strong>mettre</strong> = remplace tout · <strong>ajouter</strong> = s'ajoute à ce qui existe déjà</span>
+            </div>
+        </div>
+        <!-- schéma logique mémoire -->
+        <div style="margin-top:1rem;background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:0.9rem 1.25rem;font-size:0.93rem;line-height:1.9;">
+            <strong style="color:#15803d;">🧠 Comment fonctionne un programme avec une variable ?</strong><br>
+            <strong>Étape 1 :</strong> On <em>crée la mémoire</em> → <code>mettre x à réponse</code> (x stocke le nombre choisi par l'utilisateur)<br>
+            <strong>Étape 2 :</strong> On <em>utilise la mémoire</em> pour calculer → <code>mettre x à x * 4</code> (on relit x, on calcule, on remet dans x)<br>
+            <strong>Étape 3 :</strong> On <em>relit la mémoire</em> pour afficher → <code>dire x</code> (on affiche ce que x contient)<br>
+            <span style="font-size:0.87rem;color:#166534;">À chaque étape, la boîte x change de contenu. C'est ça qui fait "avancer" le programme !</span>
+        </div>
+    </div>
+
+    <!-- Progression -->
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 8</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ===== PARTIE 1 : VARIABLES ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">📦</div>
+        <div class="section-divider-title">Partie 1 – Les variables</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- EX 1 -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 8</h2>
+                <span class="exercise-tag tag-blue">Programme de calcul → Scratch</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Remplir le programme Scratch pour que les deux programmes correspondent.
+            </div>
+            <div class="two-col">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par 3</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 5</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> * <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">ajouter <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> à <span class="scratch-val">x ▼</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                </div>
+            </div>
+
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h1-1">💡 Indice 1/2 – Identifier les blocs de saisie</button>
+                        <div class="hint-text" id="h1-1">Le programme récupère la saisie de l'utilisateur, puis effectue deux opérations dans l'ordre. Quel bloc Scratch stocke ce que l'utilisateur a tapé ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h1-2">💡 Indice 2/2 – Ajouter et afficher le résultat</button>
+                        <div class="hint-text" id="h1-2">Comment traduit-on « ajouter 5 à x » en Scratch ? Et comment afficher la valeur finale à l'écran ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">🔑 Chaque étape du programme de calcul correspond à une instruction Scratch qui modifie la mémoire x.<br>
+            <span style="font-size:0.9rem;">📦 x est une <strong>boîte mémoire</strong> : à chaque ligne, on relit son contenu, on calcule, et on remet le résultat dedans.</span></div>
+            <div class="two-col" style="align-items:center;">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par 3</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 5</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">réponse</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">x</span> * <span class="scratch-val answer">3</span></div>
+                    <div class="scratch-block var">ajouter <span class="scratch-val answer">5</span> à <span class="scratch-val">x ▼</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-val answer">x</span></div>
+                </div>
+            </div>
+            <div class="calcul-step" style="font-size:0.93rem;line-height:1.9;">
+                <strong style="color:var(--primary);">🧠 Suivi de la mémoire x avec le nombre 4 :</strong><br>
+                <span style="color:#475569;">① <code>mettre x à réponse</code></span> → x contient <strong>4</strong><br>
+                <span style="color:#475569;">② <code>mettre x à x * 3</code></span> → on relit x (= 4), on calcule 4 × 3 = 12 → x contient maintenant <strong>12</strong><br>
+                <span style="color:#475569;">③ <code>ajouter 5 à x</code></span> → on relit x (= 12), on ajoute 5 → x contient maintenant <strong>17</strong><br>
+                <span style="color:#475569;">④ <code>dire x</code></span> → on affiche le contenu de x : le programme affiche <strong>17</strong>.
+            </div>
+            <div class="solution-text">Résultat : 4 × 3 + 5 = <strong>17</strong>. Ce programme calcule <em>3x + 5</em>.</div>
+        </div></div></div>
+    </div>
+
+    <!-- EX 2 -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 8</h2>
+                <span class="exercise-tag tag-orange">Programme de calcul ↔ Scratch</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Remplir le programme de calcul <strong>et</strong> le programme Scratch pour que les deux correspondent.
+            </div>
+            <div class="two-col">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 17</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par <span class="prog-blank">. . . .</span> le résultat</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> + <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> * <span class="scratch-val">4</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                </div>
+            </div>
+
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h2-1">💡 Indice 1/2 – Repérer le nombre manquant</button>
+                        <div class="hint-text" id="h2-1">Lis attentivement le bloc de multiplication dans le programme Scratch. Quel nombre manque dans le programme de calcul écrit ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h2-2">💡 Indice 2/2 – Relier chaque étape à un bloc Scratch</button>
+                        <div class="hint-text" id="h2-2">Relis les étapes du programme de calcul dans l'ordre. Comment chaque étape se traduit-elle en un bloc Scratch ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">🔑 En lisant le programme Scratch, on voit la multiplication par 4 → le programme de calcul dit « Multiplier par <strong>4</strong> le résultat ».</div>
+            <div class="two-col" style="align-items:center;">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 17</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par <strong style="color:var(--success);">4</strong> le résultat</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">réponse</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">x</span> + <span class="scratch-val answer">17</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">x</span> * <span class="scratch-val">4</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-val answer">x</span></div>
+                </div>
+            </div>
+            <div class="calcul-step" style="font-size:0.93rem;line-height:1.9;">
+                <strong style="color:var(--primary);">🧠 Suivi de la mémoire x avec le nombre 3 :</strong><br>
+                <span style="color:#475569;">① <code>mettre x à réponse</code></span> → x contient <strong>3</strong><br>
+                <span style="color:#475569;">② <code>mettre x à x + 17</code></span> → on relit x (= 3), 3 + 17 = 20 → x contient maintenant <strong>20</strong><br>
+                <span style="color:#475569;">③ <code>mettre x à x * 4</code></span> → on relit x (= 20), 20 × 4 = 80 → x contient maintenant <strong>80</strong><br>
+                <span style="color:#475569;">④ <code>dire x</code></span> → le programme affiche <strong>80</strong>. Ce programme calcule <em>4(x+17)</em>.
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- EX 3 -->
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 8</h2>
+                <span class="exercise-tag tag-purple">Programme de calcul → Scratch · Développer</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Remplir le programme Scratch pour que les deux programmes correspondent.
+            </div>
+            <div class="two-col">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 5</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par 2 le résultat</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> + <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> * <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                </div>
+            </div>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">★</span><span>En prenant <em>x</em> au départ, montrer que le résultat s'écrit <strong>2x + 10</strong>. (Utilise la distributivité.)</span></div>
+
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h3-1">💡 Indice 1/2 – Traduire les deux opérations</button>
+                        <div class="hint-text" id="h3-1">Le programme effectue deux opérations sur x dans l'ordre. Comment chacune se traduit-elle en bloc Scratch ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h3-2">💡 Indice 2/2 – Exprimer le résultat en fonction de x</button>
+                        <div class="hint-text" id="h3-2">Après « ajouter 5 », qu'est-ce que x contient en fonction du nombre de départ ? Que se passe-t-il quand on multiplie cette expression par 2 ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">🔑 La mémoire x change à chaque étape : on lit ce qu'elle contient, on calcule, on y remet le résultat.</div>
+            <div class="two-col" style="align-items:center;">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 5</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par 2 le résultat</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">réponse</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">x</span> + <span class="scratch-val answer">5</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">x</span> * <span class="scratch-val answer">2</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-val answer">x</span></div>
+                </div>
+            </div>
+            <div class="calcul-step" style="font-size:0.93rem;line-height:1.9;">
+                <strong style="color:var(--primary);">🧠 Suivi de la mémoire x avec le nombre 3 :</strong><br>
+                <span style="color:#475569;">① <code>mettre x à réponse</code></span> → x contient <strong>3</strong><br>
+                <span style="color:#475569;">② <code>mettre x à x + 5</code></span> → on relit x (= 3), 3 + 5 = 8 → x contient maintenant <strong>8</strong><br>
+                <span style="color:#475569;">③ <code>mettre x à x * 2</code></span> → on relit x (= 8), 8 × 2 = 16 → x contient maintenant <strong>16</strong><br>
+                <span style="color:#475569;">④ <code>dire x</code></span> → le programme affiche <strong>16</strong>.
+            </div>
+            <p class="mini-section purple">★ Développement algébrique</p>
+            <div class="calcul-step purple-step">
+                <div class="calcul-line">Départ : <strong>x</strong></div>
+                <div class="calcul-line">Après « Ajouter 5 » : x + 5</div>
+                <div class="calcul-line">Après « Multiplier par 2 » : 2 × (x + 5)</div>
+                <div class="calcul-line">= 2 × x + 2 × 5 &nbsp;&nbsp; (distributivité)</div>
+                <div class="calcul-line">= <strong style="color:#059669;">2x + 10</strong> ✓</div>
+            </div>
+            <div class="solution-text">Vérification : avec x = 3 → 2 × 3 + 10 = 6 + 10 = <strong>16</strong> ✓</div>
+        </div></div></div>
+    </div>
+
+    <!-- EX 4 -->
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 8</h2>
+                <span class="exercise-tag tag-green">Deux variables · Division</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Remplir le programme Scratch pour que les deux programmes correspondent. <strong>Attention :</strong> ce programme utilise deux variables x et y.
+            </div>
+            <div class="two-col">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Diviser ce nombre par 8</div>
+                    <div class="step"><span class="arrow">↓</span> Retrancher 5</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">y ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> / <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block var">ajouter <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> à <span class="scratch-val">y ▼</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                </div>
+            </div>
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h4-1">💡 Indice 1/2 – Identifier les deux variables et la première opération</button>
+                        <div class="hint-text" id="h4-1">Deux variables sont utilisées : x pour la saisie, y pour les calculs. Quelle opération s'applique à y en premier ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h4-2">💡 Indice 2/2 – Traduire « retrancher » en bloc Scratch</button>
+                        <div class="hint-text" id="h4-2">Comment traduit-on « retrancher 5 » avec le bloc « ajouter ___ à y » ? Quel nombre faut-il écrire ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">🔑 Ici on utilise <strong>deux boîtes mémoire</strong> : x garde le nombre de départ intact, y accumule les calculs.<br>
+            <span style="font-size:0.9rem;">« Retrancher 5 » = ajouter <strong>−5</strong> (dans Scratch, le bloc "ajouter" accepte les nombres négatifs).</span></div>
+            <div class="two-col" style="align-items:center;">
+                <div class="prog-calcul">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Diviser ce nombre par 8</div>
+                    <div class="step"><span class="arrow">↓</span> Retrancher 5</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">réponse</span></div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">y ▼</span> à <span class="scratch-val answer">x</span> / <span class="scratch-val answer">8</span></div>
+                    <div class="scratch-block var">ajouter <span class="scratch-val answer">−5</span> à <span class="scratch-val">y ▼</span></div>
+                    <div class="scratch-block looks">dire <span class="scratch-val answer">y</span></div>
+                </div>
+            </div>
+            <div class="calcul-step" style="font-size:0.93rem;line-height:1.9;">
+                <strong style="color:var(--primary);">🧠 Suivi des deux mémoires avec le nombre 40 :</strong><br>
+                <span style="color:#475569;">① <code>mettre x à réponse</code></span> → x contient <strong>40</strong>, y est vide<br>
+                <span style="color:#475569;">② <code>mettre y à x / 8</code></span> → on relit x (= 40), 40 ÷ 8 = 5 → y contient <strong>5</strong> (x reste à 40)<br>
+                <span style="color:#475569;">③ <code>ajouter −5 à y</code></span> → on relit y (= 5), 5 + (−5) = 0 → y contient <strong>0</strong><br>
+                <span style="color:#475569;">④ <code>dire y</code></span> → le programme affiche <strong>0</strong>.
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- EX 5 -->
+    <div class="exercise" id="card-ex5">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 8</h2>
+                <span class="exercise-tag tag-red">Algèbre · Développer · Programme complet</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Programme de calcul :
+                <div class="prog-calcul" style="margin-top:0.75rem;">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 6</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par 3</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+            </div>
+            <div class="q-row"><span class="qnum">1</span><span>Que donne ce programme si on part de <strong>4</strong> ? Détailler chaque étape.</span></div>
+            <div class="q-row"><span class="qnum">2</span><span>Montrer qu'en prenant <em>x</em> au départ, on obtient <strong>3x + 18</strong> à l'arrivée. (Utilise la distributivité.)</span></div>
+            <div class="q-row"><span class="qnum">3</span><span>Écrire entièrement le programme Scratch correspondant (inspire-toi des exercices 1 et 2).</span></div>
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h5-1">💡 Indice 1/2 – Suivre les étapes avec un exemple</button>
+                        <div class="hint-text" id="h5-1">Suis les étapes du programme une à une avec le nombre 4. Ensuite, recommence avec la lettre x pour exprimer le résultat de façon générale.</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h5-2">💡 Indice 2/2 – Traduire chaque étape en bloc Scratch</button>
+                        <div class="hint-text" id="h5-2">Traduis chaque étape du programme de calcul en un bloc Scratch, dans l'ordre. Quel bloc affiche le résultat à la fin ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+            <p class="mini-section">Question 1 – Suivi de la mémoire avec le nombre 4</p>
+            <div class="calcul-step" style="font-size:0.93rem;line-height:1.9;">
+                📦 x est notre boîte mémoire.<br>
+                <span style="color:#475569;">① Départ :</span> x contient <strong>4</strong><br>
+                <span style="color:#475569;">② Ajouter 6 :</span> on relit x (= 4), 4 + 6 = 10 → x contient maintenant <strong>10</strong><br>
+                <span style="color:#475569;">③ Multiplier par 3 :</span> on relit x (= 10), 10 × 3 = 30 → x contient maintenant <strong>30</strong><br>
+            </div>
+            <div class="solution-text">Résultat avec 4 : le programme affiche <strong>30</strong>.</div>
+            <p class="mini-section green">Question 2 – Développement algébrique</p>
+            <div class="calcul-step green-step">
+                <div class="calcul-line">Départ : <strong>x</strong></div>
+                <div class="calcul-line">Après « Ajouter 6 » : x + 6</div>
+                <div class="calcul-line">Après « Multiplier par 3 » : 3 × (x + 6)</div>
+                <div class="calcul-line">= 3 × x + 3 × 6 &nbsp;&nbsp; (distributivité)</div>
+                <div class="calcul-line">= <strong style="color:#059669;">3x + 18</strong> ✓</div>
+            </div>
+            <div class="solution-text green">Vérification : x = 4 → 3×4 + 18 = 12 + 18 = <strong>30</strong> ✓</div>
+            <p class="mini-section purple">Question 3 – Programme Scratch</p>
+            <div class="scratch-program">
+                <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">réponse</span></div>
+                <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">x</span> + <span class="scratch-val answer">6</span></div>
+                <div class="scratch-block var">mettre <span class="scratch-val">x ▼</span> à <span class="scratch-val answer">x</span> * <span class="scratch-val answer">3</span></div>
+                <div class="scratch-block looks">dire <span class="scratch-val answer">x</span></div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- EX 6 -->
+    <div class="exercise" id="card-ex6">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 6 / 8</h2>
+                <span class="exercise-tag tag-red">Deux mémoires · Algèbre</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Programme de calcul :
+                <div class="prog-calcul" style="margin-top:0.75rem;">
+                    <div class="step">Choisir un nombre</div>
+                    <div class="step"><span class="arrow">↓</span> Multiplier par 4</div>
+                    <div class="step"><span class="arrow">↓</span> Ajouter 2</div>
+                    <div class="step"><span class="arrow">↓</span> Donner le résultat</div>
+                </div>
+            </div>
+            <div class="q-row"><span class="qnum">1</span><span>Que donne ce programme si on part de <strong>5</strong> ? Détailler chaque étape en indiquant le contenu des mémoires.</span></div>
+            <div class="q-row"><span class="qnum">2</span><span>Montrer qu'en prenant <em>x</em> au départ, on obtient <strong>4x + 2</strong> comme résultat.</span></div>
+            <div class="q-row"><span class="qnum">3</span><span>Remplir les cases blanches du programme Scratch ci-dessous. <strong>Attention :</strong> ce programme utilise deux mémoires : <em>Nombre Choisi</em> et <em>Résultat</em>.</span></div>
+            <div class="scratch-program" style="margin-top:0.75rem;">
+                <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                <div class="scratch-block var">mettre <span class="scratch-val">Nombre Choisi ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                <div class="scratch-block var">mettre <span class="scratch-val">Résultat ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> * <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span></div>
+                <div class="scratch-block var">ajouter <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> à <span class="scratch-val">Résultat ▼</span></div>
+                <div class="scratch-block looks">dire <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+            </div>
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-1">💡 Indice 1/2 – Distinguer les rôles des deux variables</button>
+                        <div class="hint-text" id="h6-1">Il y a deux variables dans ce programme. Laquelle garde le nombre de départ, et laquelle évolue au fil des calculs ? Suis les étapes avec 5.</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h6-2">💡 Indice 2/2 – Traduire les opérations dans l'ordre</button>
+                        <div class="hint-text" id="h6-2">Traduis chaque étape en blocs Scratch en utilisant les deux variables. Dans quel ordre les opérations doivent-elles apparaître ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+            <p class="mini-section">Question 1 – Suivi des deux mémoires avec le nombre 5</p>
+            <div class="calcul-step" style="font-size:0.93rem;line-height:1.9;">
+                📦 <em>Nombre Choisi</em> garde le nombre de départ. 📦 <em>Résultat</em> stocke les calculs.<br>
+                <span style="color:#475569;">① Départ :</span> Nombre Choisi = <strong>5</strong>, Résultat = vide<br>
+                <span style="color:#475569;">② × 4 :</span> Résultat = 5 × 4 = <strong>20</strong><br>
+                <span style="color:#475569;">③ + 2 :</span> on relit Résultat (= 20), 20 + 2 = <strong>22</strong> → Résultat contient maintenant <strong>22</strong><br>
+            </div>
+            <div class="solution-text">Résultat avec 5 : le programme affiche <strong>22</strong>.</div>
+
+            <p class="mini-section orange">Question 2 – Démonstration algébrique</p>
+            <div class="calcul-step orange-step">
+                <div class="calcul-line">Départ : <strong>x</strong></div>
+                <div class="calcul-line">Après « Multiplier par 4 » : 4 × x = 4x</div>
+                <div class="calcul-line">Après « Ajouter 2 » : 4x + 2</div>
+                <div class="calcul-line">Résultat = <strong style="color:#059669;">4x + 2</strong> ✓</div>
+            </div>
+            <div class="solution-text orange">Vérification : x = 5 → 4 × 5 + 2 = 20 + 2 = <strong>22</strong> ✓</div>
+
+            <p class="mini-section purple">Question 3 – Programme Scratch complété</p>
+            <div style="background:#fffbeb;border:2px solid #fde047;border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.75rem;font-size:0.9rem;line-height:1.7;">
+                💡 <strong>Pourquoi deux mémoires ?</strong><br>
+                <em>Nombre Choisi</em> sert à garder le nombre de départ intact (on ne le touche plus).<br>
+                <em>Résultat</em> est la mémoire de travail où s'accumulent les calculs.
+            </div>
+            <div class="scratch-program">
+                <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                <div class="scratch-block sensing">demander <span class="scratch-val">Quel est le nombre de départ ?</span> et attendre</div>
+                <div class="scratch-block var">mettre <span class="scratch-val">Nombre Choisi ▼</span> à <span class="scratch-val answer">réponse</span></div>
+                <div class="scratch-block var">mettre <span class="scratch-val">Résultat ▼</span> à <span class="scratch-val answer">Nombre Choisi</span> * <span class="scratch-val answer">4</span></div>
+                <div class="scratch-block var">ajouter <span class="scratch-val answer">2</span> à <span class="scratch-val">Résultat ▼</span></div>
+                <div class="scratch-block looks">dire <span class="scratch-val answer">Résultat</span></div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== PARTIE 2 : GÉOMÉTRIE ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">📐</div>
+        <div class="section-divider-title">Partie 2 – Mélange variables et géométrie</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- EX 7 -->
+    <div class="exercise" id="card-ex7">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 7 / 8</h2>
+                <span class="exercise-tag tag-blue">Variable taille · Spirale</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex7">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Remplir le programme Scratch pour qu'il réalise la figure suivante (spirale rectangulaire dont les côtés valent 50, 80, 110, 140).
+            </div>
+            <div class="two-col" style="align-items:center;">
+                <div class="illus-frame" style="flex:0 0 auto;">
+                    <img src="data:image/png;base64,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" style="max-height:200px;border-radius:8px;" alt="Figure spirale 50 80 110 140"/>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block pen">✏️ effacer tout</div>
+                    <div class="scratch-block pen">✏️ stylo en position d'écriture</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">taille ▼</span> à <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="scratch-block control">répéter <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> fois</div>
+                    <div class="scratch-block motion indented">avancer de <span class="scratch-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span> pas</div>
+                    <div class="scratch-block motion indented">tourner ↺ de <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> degrés</div>
+                    <div class="scratch-block var indented">ajouter <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> à <span class="scratch-val">taille ▼</span></div>
+                    <div class="scratch-block control" style="border-radius:0 0 8px 8px;">↩</div>
+                </div>
+            </div>
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h7-1">💡 Indice 1/2 – Comprendre l'évolution de la longueur</button>
+                        <div class="hint-text" id="h7-1">Observe comment les longueurs des 4 traits évoluent. Quel est le point de départ de la variable, et de combien augmente-t-elle à chaque fois ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h7-2">💡 Indice 2/2 – Placer les blocs dans la boucle</button>
+                        <div class="hint-text" id="h7-2">À quel angle le lutin tourne-t-il entre chaque trait ? Dans quel ordre faut-il placer les blocs à l'intérieur de la boucle ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex7"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">🔑 La mémoire <strong>taille</strong> commence à 50 et augmente de 30 à chaque tour : 50 → 80 → 110 → 140. On répète <strong>4</strong> fois (4 côtés).<br>
+            <span style="font-size:0.9rem;">📦 C'est la même logique qu'un programme de calcul : la boîte <em>taille</em> est relue à chaque "avancer de taille pas", puis mise à jour avec +30.</span></div>
+            <div class="two-col" style="align-items:center;">
+                <div>
+                    <table style="border-collapse:collapse;font-size:0.93rem;margin:0.5rem 0;">
+                        <thead><tr style="background:#e0f2fe;"><th style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;">Tour</th><th style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;">taille</th></tr></thead>
+                        <tbody>
+                            <tr><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;">1</td><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;font-weight:700;color:var(--primary);">50</td></tr>
+                            <tr style="background:#f0f9ff;"><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;">2</td><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;font-weight:700;color:var(--primary);">80</td></tr>
+                            <tr><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;">3</td><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;font-weight:700;color:var(--primary);">110</td></tr>
+                            <tr style="background:#f0f9ff;"><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;">4</td><td style="border:2px solid #bae6fd;padding:0.4rem 0.8rem;font-weight:700;color:var(--primary);">140</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block pen">✏️ effacer tout</div>
+                    <div class="scratch-block pen">✏️ stylo en position d'écriture</div>
+                    <div class="scratch-block var">mettre <span class="scratch-val">taille ▼</span> à <span class="scratch-val answer">50</span></div>
+                    <div class="scratch-block control">répéter <span class="scratch-val answer">4</span> fois</div>
+                    <div class="scratch-block motion indented">avancer de <span class="scratch-val answer">taille</span> pas</div>
+                    <div class="scratch-block motion indented">tourner ↺ de <span class="scratch-val answer">90</span> degrés</div>
+                    <div class="scratch-block var indented">ajouter <span class="scratch-val answer">30</span> à <span class="scratch-val">taille ▼</span></div>
+                    <div class="scratch-block control" style="border-radius:0 0 8px 8px;">↩</div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- EX 8 -->
+    <div class="exercise" id="card-ex8">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 8 / 8</h2>
+                <span class="exercise-tag tag-green">Rectangle · Pas = mètre</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex8">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                Remplir le programme Scratch pour qu'il trace le rectangle ci-dessous. <strong>1 pas = 1 m.</strong>
+            </div>
+            <div class="two-col" style="align-items:center;">
+                <div class="illus-frame" style="flex:0 0 auto;">
+                    <img src="data:image/png;base64,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" style="max-height:160px;border-radius:8px;" alt="Rectangle 12m × 8m"/>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block pen">✏️ effacer tout</div>
+                    <div class="scratch-block pen">✏️ stylo en position d'écriture</div>
+                    <div class="scratch-block control">répéter <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> fois</div>
+                    <div class="scratch-block motion indented">avancer de <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> pas</div>
+                    <div class="scratch-block motion indented">tourner ↺ de <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> degrés</div>
+                    <div class="scratch-block motion indented">avancer de <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> pas</div>
+                    <div class="scratch-block motion indented">tourner ↺ de <span class="scratch-blank">&nbsp;&nbsp;&nbsp;</span> degrés</div>
+                    <div class="scratch-block control" style="border-radius:0 0 8px 8px;">↩</div>
+                </div>
+            </div>
+            <div class="hints-section">
+                <div class="hints-title">💡 Indices – clique sur celui dont tu as besoin</div>
+                <div class="hints-list">
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h8-1">💡 Indice 1/2 – Comprendre la structure de la boucle</button>
+                        <div class="hint-text" id="h8-1">Un rectangle a deux paires de côtés. Comment un programme qui « répète 2 fois » peut-il tracer les 4 côtés ? Que doit contenir chaque répétition ?</div>
+                    </div>
+                    <div class="hint-item">
+                        <button class="hint-btn" data-hint="h8-2">💡 Indice 2/2 – Compléter le contenu de la répétition</button>
+                        <div class="hint-text" id="h8-2">Dans quel ordre place-t-on les blocs à l'intérieur de la répétition ? Combien de virages faut-il pour fermer chaque motif ?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex8"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box">🔑 Un rectangle a 2 grands côtés (12 m) et 2 petits côtés (8 m). On répète <strong>2 fois</strong> le motif : grand côté → tourner → petit côté → tourner.</div>
+            <div class="two-col" style="align-items:center;">
+                <div>
+                    <div class="calcul-step">
+                        <p>Périmètre = 2 × (12 + 8) = 2 × 20 = <strong>40 m</strong></p>
+                        <p style="margin-top:0.5rem;">1 pas = 1 m → 12 pas = 12 m, 8 pas = 8 m ✓</p>
+                    </div>
+                </div>
+                <div class="scratch-program">
+                    <div class="scratch-block event">🚩 quand ⚑ est cliqué</div>
+                    <div class="scratch-block pen">✏️ effacer tout</div>
+                    <div class="scratch-block pen">✏️ stylo en position d'écriture</div>
+                    <div class="scratch-block control">répéter <span class="scratch-val answer">2</span> fois</div>
+                    <div class="scratch-block motion indented">avancer de <span class="scratch-val answer">12</span> pas</div>
+                    <div class="scratch-block motion indented">tourner ↺ de <span class="scratch-val answer">90</span> degrés</div>
+                    <div class="scratch-block motion indented">avancer de <span class="scratch-val answer">8</span> pas</div>
+                    <div class="scratch-block motion indented">tourner ↺ de <span class="scratch-val answer">90</span> degrés</div>
+                    <div class="scratch-block control" style="border-radius:0 0 8px 8px;">↩</div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Score -->
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+
+    <footer>AP Scratch n°2 · Variables &amp; Géométrie · Correction interactive</footer>
+</div>
+
+<script>
+    const TOTAL = 8, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 8, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as revu tous les exercices. Excellent travail !' },
+        { min: 6, emoji: '🎉', stars: '⭐⭐⭐', title: 'Très bien !', msg: 'Presque tout vérifié. Jette un œil aux derniers !' },
+        { min: 4, emoji: '👍', stars: '⭐⭐', title: 'Bien !', msg: 'Plus de la moitié. Continue !' },
+        { min: 2, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir les autres corrections !" },
+        { min: 0, emoji: '📚', stars: '', title: "À toi de jouer !", msg: "Commence par les rappels en haut !" },
+    ];
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge teal">🐱 AP Scratch n°2</span>` +
+            `<span class="score-badge orange">📦 Variables & Géométrie</span>`;
+        card.classList.add('visible');
+    }
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction); btn.classList.remove('active');
+            btn.textContent = 'Voir la correction'; openSet.delete(exId);
+        } else {
+            openCorrection(correction); btn.classList.add('active');
+            btn.textContent = 'Masquer la correction'; openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId); dot.classList.add('done');
+                card.classList.add('seen'); updateProgress();
+            }
+        }
+    }
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+    // Indices indépendants
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled = true; this.textContent = '✓ ' + this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

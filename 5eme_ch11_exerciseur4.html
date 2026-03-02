@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programmes de Calcul — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f4f0e8;--grid:#e2dace;
+  --card:#fffdf8;--card2:#fff9ef;
+  --ink:#18120a;--ink2:#453720;--ink3:#8a7358;
+  --blue:#1e4fa3;--blue-lt:#2563c8;
+  --blue-pale:rgba(30,79,163,.09);--blue-brd:rgba(30,79,163,.22);
+  --orange:#b85818;--orange-pale:rgba(184,88,24,.09);--orange-brd:rgba(184,88,24,.22);
+  --green:#15803d;--green-pale:rgba(21,128,61,.1);--green-brd:rgba(21,128,61,.28);
+  --red:#c0392b;--red-pale:rgba(192,57,43,.08);--red-brd:rgba(192,57,43,.22);
+  --purple:#5b21b6;--purple-pale:rgba(91,33,182,.08);--purple-brd:rgba(91,33,182,.18);
+  --border:#d4c8b0;--shadow:rgba(24,18,10,.1);
+}
+body{
+  font-family:'DM Sans',sans-serif;min-height:100vh;
+  background:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;
+  display:flex;justify-content:center;
+  padding:14px 8px 90px;color:var(--ink);
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
+}
+.app{max-width:820px;width:100%}
+
+/* ── HEADER ── */
+.hdr{
+  background:linear-gradient(128deg,#0c1f4a 0%,#1e4fa3 50%,#b85818 100%);
+  color:#fff;padding:13px 22px;border-radius:14px 14px 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 20px rgba(12,31,74,.35);position:relative;overflow:hidden;
+}
+.hdr::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.11),transparent 55%);pointer-events:none}
+.hdr-title{font-size:1.02em;font-weight:700;letter-spacing:.03em;position:relative}
+.hdr-btn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:6px 15px;
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82em;font-weight:600;
+  cursor:pointer;transition:background .18s;position:relative}
+.hdr-btn:hover{background:rgba(255,255,255,.32)}
+
+/* ── MAIN ── */
+.main{background:var(--card);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 14px 14px;padding:26px 24px;
+  box-shadow:0 8px 30px var(--shadow);min-height:52vh}
+.screen{display:none;animation:fadeUp .28s ease}.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+h1{font-family:'Crimson Pro',serif;font-size:1.55em;font-weight:700;
+  text-align:center;margin-bottom:5px}
+.sub{text-align:center;font-size:.91em;color:var(--ink3);margin-bottom:20px;line-height:1.55}
+
+/* ── BUTTONS ── */
+.btn{font-family:'DM Sans',sans-serif;padding:11px 22px;border-radius:10px;
+  font-size:.91em;font-weight:600;cursor:pointer;transition:all .18s;
+  border:2px solid;min-height:44px;touch-action:manipulation;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);
+  box-shadow:0 2px 8px rgba(30,79,163,.18)}
+.btn-blue:hover:not(:disabled){background:var(--blue-lt);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--ink3);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--ink3)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* ── MENU ── */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0}
+.mc{background:var(--card2);border:2px solid var(--border);border-radius:13px;
+  padding:17px 13px;text-align:center;cursor:pointer;transition:all .22s;
+  position:relative;min-height:108px;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mc:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 9px 22px var(--shadow)}
+.mc-icon{font-size:1.6em;margin-bottom:4px}
+.mc-t{font-family:'Crimson Pro',serif;font-size:.96em;color:var(--blue);font-weight:700;margin-bottom:2px}
+.mc-d{font-size:.75em;color:var(--ink3);line-height:1.4}
+.mc-lvl{position:absolute;top:7px;right:8px;font-size:.61em;font-weight:700;
+  padding:2px 7px;border-radius:9px}
+.lv5{background:var(--green-pale);color:var(--green)}
+.lv4{background:var(--blue-pale);color:var(--blue)}
+.lv3{background:var(--orange-pale);color:var(--orange)}
+
+/* ── EX TOP ── */
+.ex-top{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:9px;flex-wrap:wrap;gap:5px}
+.ex-badge{background:var(--blue-pale);color:var(--blue);padding:4px 13px;
+  border-radius:18px;font-size:.83em;font-weight:700}
+.ex-score{font-size:.87em;color:var(--ink3);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:18px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--orange));
+  border-radius:4px;transition:width .4s}
+
+/* ══════════════════════════════════════════
+   PROGRAMME BOX — instructions uniquement
+   (aucun résultat affiché)
+══════════════════════════════════════════ */
+.prog-box{
+  background:linear-gradient(135deg,var(--blue-pale),rgba(255,249,238,.5));
+  border:2px solid var(--blue-brd);border-radius:13px;
+  padding:16px 18px;margin-bottom:6px;
+}
+.prog-box-B{
+  background:linear-gradient(135deg,var(--orange-pale),rgba(255,249,238,.5));
+  border:2px solid var(--orange-brd);border-radius:13px;
+  padding:16px 18px;margin-bottom:6px;
+}
+.prog-title{font-size:.69em;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.5px;color:var(--blue);margin-bottom:10px}
+.prog-title-B{font-size:.69em;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.5px;color:var(--orange);margin-bottom:10px}
+.prog-steps{display:flex;flex-direction:column;gap:5px}
+
+/* Each step in the programme: just num + instruction (no answer shown) */
+.prog-step{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 12px;
+  background:rgba(255,255,255,.78);border-radius:8px;
+  border:1px solid rgba(30,79,163,.1);
+}
+.prog-step-B{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 12px;
+  background:rgba(255,255,255,.78);border-radius:8px;
+  border:1px solid rgba(184,88,24,.1);
+}
+.step-n{background:var(--blue);color:#fff;width:22px;height:22px;min-width:22px;
+  border-radius:50%;font-size:.7em;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Sans',sans-serif}
+.step-n-B{background:var(--orange);color:#fff;width:22px;height:22px;min-width:22px;
+  border-radius:50%;font-size:.7em;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Sans',sans-serif}
+/* Instruction text — KaTeX rendered inline */
+.step-instr{
+  font-family:'Crimson Pro',serif;font-size:.97em;color:var(--ink2);
+  line-height:1.4;
+}
+/* KaTeX inside instructions */
+.step-instr .katex{font-size:1em!important}
+
+/* ══════════════════════════════════════════
+   STUDENT ANSWER ROWS
+   Each row: → [calc input] = [reduced input]
+══════════════════════════════════════════ */
+.student-zone{margin-top:4px}
+.s-row{
+  display:flex;align-items:center;gap:7px;
+  margin:7px 0;flex-wrap:wrap;
+}
+.s-arrow{
+  font-size:1.2em;color:var(--blue);font-weight:700;
+  flex-shrink:0;user-select:none;margin-right:2px;
+}
+.s-arrow-B{
+  font-size:1.2em;color:var(--orange);font-weight:700;
+  flex-shrink:0;user-select:none;margin-right:2px;
+}
+
+/* Individual input field */
+/* ── Champs de saisie mathématiques ──
+   Police Times New Roman italique — même approche que le fichier de référence.
+   Simple, propre, aucun bug.
+*/
+.s-wrap{display:inline-flex;align-items:center;min-width:120px;}
+.s-field{
+  font-family:'Times New Roman',serif;
+  font-style:italic;font-size:1.15em;font-weight:600;
+  border:2px dashed var(--blue-brd);border-radius:9px;
+  background:#fff;padding:7px 12px;
+  color:var(--ink);outline:none;
+  min-height:40px;min-width:120px;width:100%;
+  text-align:center;
+  transition:border .15s,box-shadow .15s,background .15s;
+  touch-action:manipulation;
+}
+.s-field-B{
+  font-family:'Times New Roman',serif;
+  font-style:italic;font-size:1.15em;font-weight:600;
+  border:2px dashed var(--orange-brd);border-radius:9px;
+  background:#fff;padding:7px 12px;
+  color:var(--ink);outline:none;
+  min-height:40px;min-width:120px;width:100%;
+  text-align:center;
+  transition:border .15s,box-shadow .15s,background .15s;
+  touch-action:manipulation;
+}
+.s-field:focus{border-color:var(--blue);border-style:solid;box-shadow:0 0 0 3px var(--blue-pale);}
+.s-field-B:focus{border-color:var(--orange);border-style:solid;box-shadow:0 0 0 3px var(--orange-pale);}
+.s-field.ok,.s-field-B.ok{
+  border-color:var(--green)!important;border-style:solid!important;
+  background:var(--green-pale)!important;color:var(--green)!important;
+}
+.s-field.err,.s-field-B.err{
+  border-color:var(--red)!important;border-style:solid!important;
+  background:var(--red-pale)!important;color:var(--red)!important;
+  animation:shake .32s;
+}
+
+/* Equals sign between the two input fields */
+.s-eq{
+  font-family:'Crimson Pro',serif;font-size:1.2em;font-weight:700;
+  color:var(--ink3);flex-shrink:0;user-select:none;
+}
+
+/* ── SECTION LABEL ── */
+.sec-lbl{font-size:.7em;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.5px;color:var(--blue);
+  padding-bottom:8px;margin-top:4px;margin-bottom:12px;
+  border-bottom:2px solid rgba(30,79,163,.1)}
+
+/* ── HINT BOX (identité remarquable) ── */
+.hint-lit{
+  background:var(--purple-pale);border:1.5px solid var(--purple-brd);
+  border-radius:9px;padding:10px 14px;
+  color:var(--purple);margin:8px 0 4px;
+  font-family:'Crimson Pro',serif;font-size:.95em;line-height:1.6;
+}
+.hint-lit .katex{font-size:1em!important}
+
+/* ── DOUBLE PROG ── */
+.two-progs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
+
+/* ── EQUALITY CHECK ── */
+.eq-zone{background:var(--card2);border:2px solid var(--border);
+  border-radius:11px;padding:14px 16px;margin-top:14px;text-align:center}
+.eq-q{font-family:'Crimson Pro',serif;font-size:1.02em;color:var(--ink2);margin-bottom:12px}
+.eq-q .katex{font-size:1em!important}
+.eq-radios{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.eq-lbl{display:flex;align-items:center;gap:7px;cursor:pointer;
+  font-family:'Crimson Pro',serif;font-size:.97em;
+  background:#fff;border:2px solid var(--border);border-radius:9px;
+  padding:9px 18px;transition:all .18s}
+.eq-lbl:hover{border-color:var(--blue)}
+.eq-lbl input[type=radio]{display:none}
+.eq-lbl.sel-oui{border-color:var(--green);background:var(--green-pale);color:var(--green);font-weight:700}
+.eq-lbl.sel-non{border-color:var(--red);background:var(--red-pale);color:var(--red);font-weight:700}
+.eq-lbl.locked{pointer-events:none}
+
+/* ── FEEDBACK ── */
+.fb{margin-top:13px;padding:11px 16px;border-radius:9px;font-size:.91em;
+  text-align:center;display:none;animation:fadeUp .22s;font-weight:600;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid var(--green-brd)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid var(--red-brd)}
+
+/* ── RESULTS ── */
+.rc{width:118px;height:118px;border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:14px auto;border:5px solid}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:#c27a10;background:rgba(194,122,16,.1)}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2em;font-weight:700;line-height:1}
+.rm{font-size:1.05em;text-align:center;margin:13px 0;font-family:'Crimson Pro',serif}
+
+/* ══════════════════════════════════════════
+   ORGANIGRAMME
+══════════════════════════════════════════ */
+.orga-wrap{margin:10px auto;max-width:560px;overflow-x:auto;padding-bottom:6px}
+.orga{display:flex;flex-direction:column;align-items:center;gap:0}
+.o-term{
+  background:linear-gradient(135deg,#0c1f4a,var(--blue));
+  color:#fff;border-radius:50px;padding:9px 26px;
+  font-family:'Crimson Pro',serif;font-size:.95em;font-weight:700;
+  text-align:center;min-width:180px;
+  box-shadow:0 2px 8px rgba(30,79,163,.22);
+}
+.o-term .katex{font-size:.95em!important;color:#fff}
+.o-term.end{background:linear-gradient(135deg,var(--orange),#7a2a00)}
+.o-arrow{font-size:1.5em;color:var(--ink3);line-height:1.1;text-align:center;
+  margin:2px 0;user-select:none}
+.o-act{
+  background:var(--card2);border:2.5px solid var(--blue-brd);
+  border-radius:7px;padding:9px 20px;
+  font-family:'Crimson Pro',serif;font-size:.95em;font-weight:600;
+  text-align:center;min-width:200px;color:var(--ink);
+}
+.o-act .katex{font-size:.95em!important}
+/* Student input inside orga */
+.o-inp-wrap,.o-inp-wrap-B{
+  border:2.5px dashed var(--blue-brd);border-radius:7px;
+  min-width:200px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;padding:6px 10px;transition:all .2s;flex-wrap:wrap;
+}
+.o-inp-wrap-B{border-color:var(--orange-brd);}
+.o-inp-wrap:focus-within{border-color:var(--blue);border-style:solid;box-shadow:0 0 0 3px var(--blue-pale)}
+.o-inp-wrap-B:focus-within{border-color:var(--orange);border-style:solid;box-shadow:0 0 0 3px var(--orange-pale)}
+.o-inp-wrap.ok,.o-inp-wrap-B.ok{border-color:var(--green)!important;border-style:solid!important;background:var(--green-pale)!important}
+.o-inp-wrap.err,.o-inp-wrap-B.err{border-color:var(--red)!important;border-style:solid!important;background:var(--red-pale)!important;animation:shake .32s}
+.o-inp{border:none;outline:none;background:transparent;
+  font-family:'Crimson Pro',serif;font-size:1.02em;font-weight:600;
+  text-align:center;color:var(--ink);min-height:36px;
+  touch-action:manipulation;width:100px;}
+.o-eq{font-family:'Crimson Pro',serif;font-size:1.15em;font-weight:700;
+  color:var(--ink3);user-select:none;flex-shrink:0}
+.o-act-lbl{font-size:.72em;color:var(--ink3);text-align:center;
+  margin-bottom:3px;font-family:'DM Sans',sans-serif}
+/* Branch */
+.o-hbar{width:65%;height:2.5px;background:var(--ink3);margin:0 auto}
+.o-branch-cols{display:flex;gap:0;justify-content:center;align-items:flex-start;width:100%}
+.o-bcol{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;max-width:260px;padding:0 8px}
+.o-bcol-lbl{font-size:.7em;font-weight:700;font-family:'DM Sans',sans-serif;
+  margin-top:4px;margin-bottom:3px}
+.lbl-A{color:var(--blue)}.lbl-B{color:var(--orange)}
+.o-act-B{
+  background:var(--card2);border:2.5px solid var(--orange-brd);
+  border-radius:7px;padding:9px 20px;
+  font-family:'Crimson Pro',serif;font-size:.95em;font-weight:600;
+  text-align:center;min-width:160px;color:var(--ink);
+}
+.o-inp-wrap-B{
+  border:2.5px dashed var(--orange-brd);border-radius:7px;
+  min-width:160px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  gap:4px;padding:4px 8px;transition:all .2s;flex-wrap:wrap;
+}
+.o-inp-wrap-B:focus-within{border-color:var(--orange);border-style:solid;
+  box-shadow:0 0 0 3px var(--orange-pale)}
+.o-inp-wrap-B.ok{border-color:var(--green)!important;border-style:solid!important;
+  background:var(--green-pale)!important}
+.o-inp-wrap-B.err{border-color:var(--red)!important;border-style:solid!important;
+  background:var(--red-pale)!important;animation:shake .32s}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* ── Bouton brouillon ── */
+.btn-brouillon{
+  background:var(--card2);color:var(--ink2);
+  border-color:var(--border);
+  font-size:.85em;padding:8px 16px;
+}
+.btn-brouillon:hover{background:var(--bg);border-color:var(--ink3);}
+
+/* ── Panel brouillon ── */
+.brouillon-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;
+  animation:fadeIn .18s;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.brouillon-box{
+  position:fixed;bottom:0;left:0;right:0;
+  max-width:600px;margin:0 auto;
+  background:var(--card);border-radius:18px 18px 0 0;
+  border:2px solid var(--border);border-bottom:none;
+  padding:20px 20px 24px;z-index:101;
+  box-shadow:0 -6px 30px rgba(0,0,0,.18);
+  animation:slideUp .22s ease;
+  max-height:90vh;overflow-y:auto;
+}
+@keyframes slideUp{from{transform:translateY(80px);opacity:.5}to{transform:none;opacity:1}}
+@media(min-width:640px){
+  .brouillon-box{
+    position:fixed;top:50%;left:50%;right:auto;bottom:auto;
+    transform:translate(-50%,-50%);
+    border-radius:18px;border:2px solid var(--border);
+    width:520px;max-height:85vh;
+    animation:popIn .2s ease;
+  }
+  @keyframes popIn{from{transform:translate(-50%,-50%) scale(.94);opacity:.5}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+}
+.brouillon-hdr{
+  display:flex;justify-content:space-between;align-items:center;
+  font-weight:700;font-size:1.05em;color:var(--blue);
+  margin-bottom:10px;
+}
+.brouillon-close{
+  background:none;border:none;font-size:1.2em;cursor:pointer;
+  color:var(--ink3);padding:2px 6px;border-radius:6px;
+  transition:background .15s;
+}
+.brouillon-close:hover{background:var(--bg);}
+.brouillon-hint{
+  font-size:.8em;color:var(--ink3);margin-bottom:12px;line-height:1.4;
+}
+.brouillon-input-wrap{
+  background:var(--blue-pale);border:2px solid var(--blue-brd);
+  border-radius:12px;padding:12px 14px;margin-bottom:12px;
+}
+.brouillon-input-wrap{
+  display:flex;align-items:center;
+}
+.brouillon-input{
+  width:100%;border:none;outline:none;background:transparent;
+  font-family:'Times New Roman',serif;font-style:italic;font-size:1.4em;font-weight:600;
+  color:var(--ink);caret-color:var(--blue);
+  padding:4px 2px;min-height:44px;
+}
+.brouillon-input::placeholder{color:var(--ink3);font-style:italic;}
+.brouillon-notes{
+  width:100%;min-height:90px;resize:vertical;
+  border:2px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-family:'Crimson Pro',serif;font-size:.97em;
+  background:var(--card2);color:var(--ink);outline:none;
+  transition:border .15s;
+}
+.brouillon-notes:focus{border-color:var(--blue);}
+.brouillon-footer{display:flex;justify-content:flex-end;margin-top:10px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:660px){
+  .two-progs{grid-template-columns:1fr}
+  .o-branch-cols{flex-direction:column;align-items:center}
+  .o-bcol{max-width:100%;width:100%}
+}
+@media(max-width:500px){
+  .main{padding:20px 14px}
+  h1{font-size:1.35em}
+  .menu-grid{grid-template-columns:1fr;max-width:340px;margin:14px auto}
+  .s-field,.s-field-B{min-width:60px;font-size:.98em}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <span class="hdr-title">📐 Programmes de Calcul</span>
+  <button class="hdr-btn" id="menuBtn" onclick="goMenu()" style="display:none">☰ Menu</button>
+  <span style="position:relative;font-size:1.25em;opacity:.85">∑</span>
+</div>
+
+<div class="main">
+
+<!-- INTRO -->
+<div class="screen active" id="S_intro">
+  <h1>Programmes de Calcul</h1>
+  <p class="sub">Dérouler, comparer et représenter des programmes de calcul<br>
+  en écriture algébrique — du niveau 5<sup>e</sup> à la 3<sup>e</sup>.</p>
+  <div style="text-align:center;margin:20px 0;font-size:2.6em">🔢</div>
+  <div class="controls">
+    <button class="btn btn-blue" onclick="show('S_menu');$('menuBtn').style.display=''">C'est parti !</button>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="S_menu">
+  <h1>Choisis ton exercice</h1>
+  <p class="sub">7 types d'activités — de la 5<sup>e</sup> à la 3<sup>e</sup></p>
+  <div class="menu-grid">
+    <div class="mc" onclick="go(1)">
+      <div class="mc-icon">🧮</div>
+      <div class="mc-t">Un programme — dérouler</div>
+      <div class="mc-d">Addition et multiplication</div>
+      <span class="mc-lvl lv5">5ème</span>
+    </div>
+    <div class="mc" onclick="go(2)">
+      <div class="mc-icon">📐</div>
+      <div class="mc-t">Un programme — dérouler</div>
+      <div class="mc-d">Carrés et factorisation simple</div>
+      <span class="mc-lvl lv4">4ème</span>
+    </div>
+    <div class="mc" onclick="go(3)">
+      <div class="mc-icon">✏️</div>
+      <div class="mc-t">Un programme — dérouler</div>
+      <div class="mc-d">Identités remarquables</div>
+      <span class="mc-lvl lv3">3ème</span>
+    </div>
+    <div class="mc" onclick="go(4)">
+      <div class="mc-icon">⚖️</div>
+      <div class="mc-t">Deux programmes — Égaux ?</div>
+      <div class="mc-d">Comparer deux résultats</div>
+      <span class="mc-lvl lv5">5ème</span>
+    </div>
+    <div class="mc" onclick="go(5)">
+      <div class="mc-icon">🔄</div>
+      <div class="mc-t">Deux programmes — Égaux ?</div>
+      <div class="mc-d">Développer et comparer</div>
+      <span class="mc-lvl lv4">4ème</span>
+    </div>
+    <div class="mc" onclick="go(6)">
+      <div class="mc-icon">🧩</div>
+      <div class="mc-t">Deux programmes — Égaux ?</div>
+      <div class="mc-d">Identités remarquables</div>
+      <span class="mc-lvl lv3">3ème</span>
+    </div>
+    <div class="mc" onclick="go(7)"
+      style="grid-column:1/-1;max-width:380px;margin:0 auto;width:100%">
+      <div class="mc-icon">🗂️</div>
+      <div class="mc-t">Organigramme</div>
+      <div class="mc-d">Remplis les cases — avec bifurcations</div>
+      <span class="mc-lvl lv4">4<sup>e</sup>–3<sup>e</sup></span>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div class="screen" id="S_ex">
+  <div class="ex-top">
+    <div class="ex-badge" id="badge">—</div>
+    <div class="ex-score" id="scLbl">0 / 0</div>
+  </div>
+  <div class="pbar"><div class="pfill" id="pfill"></div></div>
+  <div id="zone"></div>
+  <div class="fb" id="fb"></div>
+  <div class="controls">
+    <button class="btn btn-blue" id="nxt" style="display:none" onclick="nxtQ()">Suivant →</button>
+    <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+    <button class="btn btn-brouillon" onclick="toggleBrouillon()" title="Ouvrir le brouillon">✏️ Brouillon</button>
+  </div>
+</div>
+
+<!-- BROUILLON PANEL -->
+<div id="brouillon-panel" style="display:none">
+  <div class="brouillon-overlay" onclick="closeBrouillon()"></div>
+  <div class="brouillon-box">
+    <div class="brouillon-hdr">
+      <span>✏️ Brouillon</span>
+      <button class="brouillon-close" onclick="closeBrouillon()">✕</button>
+    </div>
+    <div class="brouillon-hint">Tape ton calcul ci-dessous — il s'affiche en format mathématique.</div>
+    <div class="brouillon-input-wrap">
+      <input class="brouillon-input" id="brouillon-inp" type="text"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        placeholder="Ex : 3(x+4)+2 …">
+    </div>
+    <textarea class="brouillon-notes" id="brouillon-notes"
+      placeholder="Notes libres (pas de rendu mathématique ici)…"></textarea>
+    <div class="brouillon-footer">
+      <button class="btn btn-ghost" style="font-size:.8em;padding:6px 14px" onclick="clearBrouillon()">🗑 Effacer</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="S_res">
+  <h1>Résultats</h1>
+  <div class="rc" id="rCirc">
+    <div class="rp" id="rPct">0%</div>
+    <div style="font-size:.7em;color:var(--ink3);margin-top:2px">réussite</div>
+  </div>
+  <div class="rm" id="rMsg"></div>
+  <div class="controls">
+    <button class="btn btn-blue" onclick="goMenu()">Retour au menu</button>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const rv=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b};
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function goMenu(){show('S_menu');$('menuBtn').style.display='';$('fb').className='fb'}
+function foc(id){try{const e=$(id);if(e)setTimeout(()=>e.focus(),60)}catch(e){}}
+function addEnter(ids,fn){ids.forEach(id=>{const e=$(id);if(e)e.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();fn()}})})}
+
+/* KaTeX helpers */
+function K(tex){try{return katex.renderToString(tex,{throwOnError:false,displayMode:false})}catch(e){return tex}}
+function KD(tex){try{return katex.renderToString(tex,{throwOnError:false,displayMode:true})}catch(e){return tex}}
+
+/* Kinstr: render an instruction string that mixes plain text and math.
+   Math parts are marked with |...|, e.g. "Multiplier par |3x|"
+   If no | markers, plain text is returned as-is with KaTeX only for known math tokens.
+   instrTex format: plain French text, math tokens wrapped in |...|
+   Example: "Multiplier par |3x|" or "Ajouter |x^2|"
+   For backward compat, if instrTex starts with \ it's pure LaTeX.
+*/
+function Kinstr(s){
+  // Pure LaTeX fallback (starts with backslash command like \text{...})
+  if(s.startsWith('\\')){return K(s);}
+  // Split on |math| markers
+  const parts = s.split('|');
+  let out = '';
+  parts.forEach((p,i)=>{
+    if(i%2===0){
+      // plain text — escape HTML, preserve spaces
+      out += p.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    } else {
+      // math
+      out += K(p);
+    }
+  });
+  return out;
+}
+
+/* ── Numeric expression evaluator ──────────────────────────
+   Compares algebraic expressions by evaluating at multiple x values.
+   This accepts ANY equivalent form: x*3=3x, x*x=x², (x+6)*4=4(x+6), etc.
+*/
+function prepExpr(raw){
+  let s = String(raw).replace(/\s/g,'').toLowerCase()
+    .replace(/[×\u00d7]/g,'*')
+    .replace(/[²]/g,'^2').replace(/[³]/g,'^3')
+    .replace(/[−\u2212]/g,'-')
+    .replace(/^\+/,'');
+  // Juxtaposition: 3x → 3*x
+  s = s.replace(/(\d)(x)/g,'$1*$2');
+  // x before digit (but not after ^): x2 → x*2  (except ^2 stays)
+  s = s.replace(/x(\d)(?!\^)/g,'x*$1');
+  // Close paren × open paren or alpha: (a+b)(c) → (a+b)*(c)
+  s = s.replace(/\)\s*\(/g,')*(');
+  s = s.replace(/\)([a-z\d])/g,')*$1');
+  s = s.replace(/([a-z\d])\(/g,'$1*(');
+  // ^ → ** for JS eval
+  s = s.replace(/\^/g,'**');
+  return s;
+}
+function evalAt(expr, xVal){
+  const s = prepExpr(expr).replace(/x/g,`(${xVal})`);
+  try{ return Function('"use strict";return('+s+')')(); }catch(e){ return NaN; }
+}
+function exprOk(student, acceptedList){
+  if(!student || !student.trim()) return false;
+  const xs = [2, 3, 5, 7];
+  return acceptedList.some(accepted =>
+    xs.every(xv => {
+      const sv = evalAt(student, xv);
+      const av = evalAt(accepted, xv);
+      return isFinite(sv) && isFinite(av) && Math.abs(sv - av) < 0.001;
+    })
+  );
+}
+
+/* ── State ── */
+let lv=1,sc=0,qi=0,qs=[],cq=null;
+const LVNAMES={1:'5ème — Un programme',2:'4ème — Un programme',3:'3ème — Un programme',
+  4:'5ème — Deux programmes',5:'4ème — Deux programmes',6:'3ème — Deux programmes',7:'Organigramme'};
+
+function go(l){
+  lv=l;sc=0;qi=0;
+  const G=[null,genL1,genL2,genL3,genL4,genL5,genL6,genL7];
+  qs=G[l]();
+  $('badge').textContent=LVNAMES[l];show('S_ex');$('menuBtn').style.display='';loadQ();
+}
+function loadQ(){
+  cq=qs[qi];cq._mis=false;
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=`${qi/qs.length*100}%`;
+  $('fb').className='fb';$('nxt').style.display='none';$('zone').innerHTML='';
+  [null,renderL1,renderL2,renderL3,renderL4,renderL5,renderL6,renderL7][lv](cq);
+}
+function finish(ok){
+  if(ok)sc++;
+  $('scLbl').textContent=`${sc} / ${qi+1}`;
+  const fb=$('fb');fb.className=ok?'fb ok':'fb bad';
+  fb.textContent=ok?'✅ Correct !':'❌ Une ou plusieurs réponses sont incorrectes — vérifie tes calculs.';
+  $('nxt').style.display='';
+}
+function nxtQ(){qi++;qi>=qs.length?showRes():loadQ()}
+function showRes(){
+  const tot=qs.length,pct=tot?Math.round(sc/tot*100):0;
+  const t=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className=`rc ${t}`;$('rPct').textContent=`${pct}%`;
+  $('rPct').style.color=t==='good'?'var(--green)':t==='mid'?'#c27a10':'var(--red)';
+  $('rMsg').textContent=pct===100?'Parfait ! 🎉':pct>=80?'Très bien !':pct>=60?'Continue comme ça !':'Reprends les étapes et réessaie.';
+  show('S_res');
+}
+
+/* ═══════════════════════════════════════════════
+   DATA FORMAT
+   Each step:
+     instrTex : LaTeX string for the instruction (rendered by KaTeX in programme box)
+     calc     : accepted strings for the LEFT field (l'expression avant simplification)
+     result   : accepted strings for the RIGHT field (forme développée/réduite finale)
+     needsBoth: if false, only one field (first step = just "x")
+═══════════════════════════════════════════════ */
+
+/* ── LEVEL 1 — 5ème — un programme ── */
+function genL1(){
+  const s0={instrTex:'Choisir le nombre',single:true,result:['x']};
+  const p=(t,c,r)=>({instrTex:t,calc:c,result:r});
+  const progs=[
+    {steps:[s0,p('Ajouter |4|',['x+4'],['x+4']),p('Multiplier par |3|',['3(x+4)'],['3x+12']),p('Ajouter |2|',['3x+12+2'],['3x+14'])]},
+    {steps:[s0,p('Ajouter |7|',['x+7'],['x+7']),p('Multiplier par |3|',['3(x+7)'],['3x+21']),p('Ajouter |5|',['3x+21+5'],['3x+26'])]},
+    {steps:[s0,p('Multiplier par |5|',['5x'],['5x']),p('Ajouter |10|',['5x+10'],['5x+10']),p('Multiplier par |2|',['2(5x+10)'],['10x+20'])]},
+    {steps:[s0,p('Multiplier par |4|',['4x'],['4x']),p('Ajouter |8|',['4x+8'],['4x+8']),p('Multiplier par |3|',['3(4x+8)'],['12x+24'])]},
+    {steps:[s0,p('Ajouter |3|',['x+3'],['x+3']),p('Multiplier par |2|',['2(x+3)'],['2x+6']),p('Ajouter |x|',['2x+6+x'],['3x+6'])]},
+    {steps:[s0,p('Ajouter |5|',['x+5'],['x+5']),p('Multiplier par |2|',['2(x+5)'],['2x+10']),p('Ajouter |x|',['2x+10+x'],['3x+10'])]},
+    {steps:[s0,p('Ajouter |6|',['x+6'],['x+6']),p('Multiplier par |4|',['4(x+6)'],['4x+24']),p('Ajouter |8|',['4x+24+8'],['4x+32'])]},
+    {steps:[s0,p('Ajouter |2|',['x+2'],['x+2']),p('Multiplier par |5|',['5(x+2)'],['5x+10']),p('Ajouter |7|',['5x+10+7'],['5x+17'])]},
+    {steps:[s0,p('Multiplier par |3|',['3x'],['3x']),p('Ajouter |9|',['3x+9'],['3x+9']),p('Multiplier par |2|',['2(3x+9)'],['6x+18'])]},
+    {steps:[s0,p('Multiplier par |2|',['2x'],['2x']),p('Ajouter |6|',['2x+6'],['2x+6']),p('Multiplier par |3|',['3(2x+6)'],['6x+18'])]},
+    {steps:[s0,p('Ajouter |5|',['x+5'],['x+5']),p('Multiplier par |4|',['4(x+5)'],['4x+20']),p('Ajouter |3x|',['4x+20+3x'],['7x+20'])]},
+    {steps:[s0,p('Ajouter |8|',['x+8'],['x+8']),p('Multiplier par |3|',['3(x+8)'],['3x+24']),p('Ajouter |2x|',['3x+24+2x'],['5x+24'])]},
+    {steps:[s0,p('Multiplier par |3|',['3x'],['3x']),p('Ajouter |6|',['3x+6'],['3x+6']),p('Multiplier par |4|',['4(3x+6)'],['12x+24'])]},
+    {steps:[s0,p('Ajouter |4|',['x+4'],['x+4']),p('Multiplier par |5|',['5(x+4)'],['5x+20']),p('Soustraire |5|',['5x+20-5'],['5x+15'])]},
+    {steps:[s0,p('Soustraire |3|',['x-3'],['x-3']),p('Multiplier par |4|',['4(x-3)'],['4x-12']),p('Ajouter |12|',['4x-12+12'],['4x'])]},
+    {steps:[s0,p('Ajouter |1|',['x+1'],['x+1']),p('Multiplier par |6|',['6(x+1)'],['6x+6']),p('Soustraire |6|',['6x+6-6'],['6x'])]},
+    {steps:[s0,p('Ajouter |9|',['x+9'],['x+9']),p('Multiplier par |2|',['2(x+9)'],['2x+18']),p('Soustraire |4|',['2x+18-4'],['2x+14'])]},
+    {steps:[s0,p('Multiplier par |6|',['6x'],['6x']),p('Ajouter |12|',['6x+12'],['6x+12']),p('Multiplier par |2|',['2(6x+12)'],['12x+24'])]},
+    {steps:[s0,p('Soustraire |2|',['x-2'],['x-2']),p('Multiplier par |5|',['5(x-2)'],['5x-10']),p('Ajouter |10|',['5x-10+10'],['5x'])]},
+    {steps:[s0,p('Multiplier par |4|',['4x'],['4x']),p('Soustraire |8|',['4x-8'],['4x-8']),p('Multiplier par |3|',['3(4x-8)'],['12x-24'])]},
+    {steps:[s0,p('Multiplier par |3|',['3x'],['3x']),p('Soustraire |6|',['3x-6'],['3x-6']),p('Multiplier par |4|',['4(3x-6)'],['12x-24'])]},
+    {steps:[s0,p('Ajouter |7|',['x+7'],['x+7']),p('Multiplier par |5|',['5(x+7)'],['5x+35']),p('Soustraire |5|',['5x+35-5'],['5x+30'])]},
+    {steps:[s0,p('Multiplier par |2|',['2x'],['2x']),p('Ajouter |4|',['2x+4'],['2x+4']),p('Multiplier par |5|',['5(2x+4)'],['10x+20'])]},
+    {steps:[s0,p('Ajouter |3|',['x+3'],['x+3']),p('Multiplier par |6|',['6(x+3)'],['6x+18']),p('Soustraire |3x|',['6x+18-3x'],['3x+18'])]},
+    {steps:[s0,p('Soustraire |5|',['x-5'],['x-5']),p('Multiplier par |3|',['3(x-5)'],['3x-15']),p('Ajouter |15|',['3x-15+15'],['3x'])]},
+    {steps:[s0,p('Multiplier par |5|',['5x'],['5x']),p('Ajouter |5|',['5x+5'],['5x+5']),p('Multiplier par |2|',['2(5x+5)'],['10x+10'])]},
+    {steps:[s0,p('Ajouter |6|',['x+6'],['x+6']),p('Multiplier par |3|',['3(x+6)'],['3x+18']),p('Ajouter |x|',['3x+18+x'],['4x+18'])]},
+    {steps:[s0,p('Multiplier par |4|',['4x'],['4x']),p('Ajouter |3|',['4x+3'],['4x+3']),p('Multiplier par |2|',['2(4x+3)'],['8x+6'])]},
+    {steps:[s0,p('Ajouter |2|',['x+2'],['x+2']),p('Multiplier par |7|',['7(x+2)'],['7x+14']),p('Soustraire |7|',['7x+14-7'],['7x+7'])]},
+    {steps:[s0,p('Multiplier par |2|',['2x'],['2x']),p('Soustraire |2|',['2x-2'],['2x-2']),p('Multiplier par |4|',['4(2x-2)'],['8x-8'])]},
+  ];
+  return sh(progs).slice(0,5);
+}
+
+/* ── LEVEL 2 — 4ème — un programme avec x² ── */
+function genL2(){
+  const s0={instrTex:'Choisir le nombre',single:true,result:['x']};
+  const progs=[
+    {steps:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |3x|',calc:['x^2+3x'],result:['x^2+3x']},{instrTex:'Multiplier par |2|',calc:['2(x^2+3x)'],result:['2x^2+6x']}]},
+    {steps:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |x|',calc:['x^2+x'],result:['x^2+x']},{instrTex:'Multiplier par |3|',calc:['3(x^2+x)'],result:['3x^2+3x']}]},
+    {steps:[s0,{instrTex:'Ajouter |1|',calc:['x+1'],result:['x+1']},{instrTex:'Multiplier par |x|',calc:['x(x+1)'],result:['x^2+x']},{instrTex:'Ajouter |2|',calc:['x^2+x+2'],result:['x^2+x+2']}]},
+    {steps:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Multiplier par |4|',calc:['4x^2'],result:['4x^2']},{instrTex:'Ajouter |x|',calc:['4x^2+x'],result:['4x^2+x']}]},
+    {steps:[s0,{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Ajouter |x^2|',calc:['3x+x^2'],result:['x^2+3x']},{instrTex:'Ajouter |5|',calc:['x^2+3x+5'],result:['x^2+3x+5']}]},
+    {steps:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Multiplier par |5|',calc:['5x^2'],result:['5x^2']},{instrTex:'Ajouter |2x|',calc:['5x^2+2x'],result:['5x^2+2x']}]},
+    {steps:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |2x|',calc:['x^2+2x'],result:['x^2+2x']},{instrTex:'Ajouter |3|',calc:['x^2+2x+3'],result:['x^2+2x+3']}]},
+    {steps:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Multiplier par |4|',calc:['4x^2'],result:['4x^2']},{instrTex:'Soustraire |x|',calc:['4x^2-x'],result:['4x^2-x']}]},
+    {steps:[s0,{instrTex:'Ajouter |2|',calc:['x+2'],result:['x+2']},{instrTex:'Multiplier par |x|',calc:['x(x+2)'],result:['x^2+2x']},{instrTex:'Ajouter |5|',calc:['x^2+2x+5'],result:['x^2+2x+5']}]},
+    {steps:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |3x|',calc:['x^2-3x'],result:['x^2-3x']},{instrTex:'Multiplier par |2|',calc:['2(x^2-3x)'],result:['2x^2-6x']}]},
+    {steps:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |x|',calc:['x^2+x'],result:['x^2+x']},{instrTex:'Multiplier par |5|',calc:['5(x^2+x)'],result:['5x^2+5x']}]},
+    {steps:[s0,{instrTex:'Ajouter |4|',calc:['x+4'],result:['x+4']},{instrTex:'Multiplier par |x|',calc:['x(x+4)'],result:['x^2+4x']},{instrTex:'Soustraire |4|',calc:['x^2+4x-4'],result:['x^2+4x-4']}]},
+    {steps:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |6x|',calc:['x^2+6x'],result:['x^2+6x']},{instrTex:'Multiplier par |3|',calc:['3(x^2+6x)'],result:['3x^2+18x']}]},
+    {steps:[s0,{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |x^2|',calc:['2x+x^2'],result:['x^2+2x']},{instrTex:'Multiplier par |3|',calc:['3(x^2+2x)'],result:['3x^2+6x']}]},
+    {steps:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Multiplier par |2|',calc:['2x^2'],result:['2x^2']},{instrTex:'Soustraire |2x|',calc:['2x^2-2x'],result:['2x^2-2x']}]},
+    {steps:[s0,{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},{instrTex:'Multiplier par |x|',calc:['x(x+5)'],result:['x^2+5x']},{instrTex:'Multiplier par |2|',calc:['2(x^2+5x)'],result:['2x^2+10x']}]},
+    {steps:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |x|',calc:['x^2-x'],result:['x^2-x']},{instrTex:'Multiplier par |4|',calc:['4(x^2-x)'],result:['4x^2-4x']}]},
+    {steps:[s0,{instrTex:'Soustraire |1|',calc:['x-1'],result:['x-1']},{instrTex:'Multiplier par |x|',calc:['x(x-1)'],result:['x^2-x']},{instrTex:'Ajouter |3|',calc:['x^2-x+3'],result:['x^2-x+3']}]},
+    {steps:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |4x|',calc:['x^2+4x'],result:['x^2+4x']},{instrTex:'Soustraire |4|',calc:['x^2+4x-4'],result:['x^2+4x-4']}]},
+    {steps:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |x|',calc:['x(x+3)'],result:['x^2+3x']},{instrTex:'Ajouter |1|',calc:['x^2+3x+1'],result:['x^2+3x+1']}]},
+  ];
+  return sh(progs).slice(0,5);
+}
+
+/* ── LEVEL 3 — 3ème — identités remarquables ── */
+function genL3(){
+  const s0={instrTex:'Choisir le nombre',single:true,result:['x']};
+  const progs=[
+    {litResult:'(x+3)^2 = x^2+6x+9',   steps:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},      {instrTex:'Élever au carré',calc:['(x+3)^2'],result:['x^2+6x+9']}]},
+    {litResult:'(x-2)^2 = x^2-4x+4',   steps:[s0,{instrTex:'Soustraire |2|',calc:['x-2'],result:['x-2']},   {instrTex:'Élever au carré',calc:['(x-2)^2'],result:['x^2-4x+4']}]},
+    {litResult:'(x+5)(x-5) = x^2-25',  steps:[s0,{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},      {instrTex:'Multiplier par |(x-5)|',calc:['(x+5)(x-5)'],result:['x^2-25']}]},
+    {litResult:'(x+4)^2 = x^2+8x+16',  steps:[s0,{instrTex:'Ajouter |4|',calc:['x+4'],result:['x+4']},      {instrTex:'Élever au carré',calc:['(x+4)^2'],result:['x^2+8x+16']}]},
+    {litResult:'(x-1)(x+1) = x^2-1',   steps:[s0,{instrTex:'Soustraire |1|',calc:['x-1'],result:['x-1']},   {instrTex:'Multiplier par |(x+1)|',calc:['(x-1)(x+1)'],result:['x^2-1']}]},
+    {litResult:'(x+1)^2 = x^2+2x+1',   steps:[s0,{instrTex:'Ajouter |1|',calc:['x+1'],result:['x+1']},      {instrTex:'Élever au carré',calc:['(x+1)^2'],result:['x^2+2x+1']}]},
+    {litResult:'(x+6)^2 = x^2+12x+36', steps:[s0,{instrTex:'Ajouter |6|',calc:['x+6'],result:['x+6']},      {instrTex:'Élever au carré',calc:['(x+6)^2'],result:['x^2+12x+36']}]},
+    {litResult:'(x-3)^2 = x^2-6x+9',   steps:[s0,{instrTex:'Soustraire |3|',calc:['x-3'],result:['x-3']},   {instrTex:'Élever au carré',calc:['(x-3)^2'],result:['x^2-6x+9']}]},
+    {litResult:'(x+7)(x-7) = x^2-49',  steps:[s0,{instrTex:'Ajouter |7|',calc:['x+7'],result:['x+7']},      {instrTex:'Multiplier par |(x-7)|',calc:['(x+7)(x-7)'],result:['x^2-49']}]},
+    {litResult:'(x-4)^2 = x^2-8x+16',  steps:[s0,{instrTex:'Soustraire |4|',calc:['x-4'],result:['x-4']},   {instrTex:'Élever au carré',calc:['(x-4)^2'],result:['x^2-8x+16']}]},
+    {litResult:'(x+2)(x-2) = x^2-4',   steps:[s0,{instrTex:'Ajouter |2|',calc:['x+2'],result:['x+2']},      {instrTex:'Multiplier par |(x-2)|',calc:['(x+2)(x-2)'],result:['x^2-4']}]},
+    {litResult:'(x-5)^2 = x^2-10x+25', steps:[s0,{instrTex:'Soustraire |5|',calc:['x-5'],result:['x-5']},   {instrTex:'Élever au carré',calc:['(x-5)^2'],result:['x^2-10x+25']}]},
+    {litResult:'(x+8)(x-8) = x^2-64',  steps:[s0,{instrTex:'Ajouter |8|',calc:['x+8'],result:['x+8']},      {instrTex:'Multiplier par |(x-8)|',calc:['(x+8)(x-8)'],result:['x^2-64']}]},
+    {litResult:'(x+10)^2 = x^2+20x+100',steps:[s0,{instrTex:'Ajouter |10|',calc:['x+10'],result:['x+10']},  {instrTex:'Élever au carré',calc:['(x+10)^2'],result:['x^2+20x+100']}]},
+    {litResult:'(x-6)^2 = x^2-12x+36', steps:[s0,{instrTex:'Soustraire |6|',calc:['x-6'],result:['x-6']},   {instrTex:'Élever au carré',calc:['(x-6)^2'],result:['x^2-12x+36']}]},
+    {litResult:'(x+3)(x-3) = x^2-9',   steps:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},      {instrTex:'Multiplier par |(x-3)|',calc:['(x+3)(x-3)'],result:['x^2-9']}]},
+    {litResult:'(x-7)^2 = x^2-14x+49', steps:[s0,{instrTex:'Soustraire |7|',calc:['x-7'],result:['x-7']},   {instrTex:'Élever au carré',calc:['(x-7)^2'],result:['x^2-14x+49']}]},
+    {litResult:'(x+9)(x-9) = x^2-81',  steps:[s0,{instrTex:'Ajouter |9|',calc:['x+9'],result:['x+9']},      {instrTex:'Multiplier par |(x-9)|',calc:['(x+9)(x-9)'],result:['x^2-81']}]},
+  ];
+  return sh(progs).slice(0,4);
+}
+
+/* ── LEVEL 4 — 5ème — deux programmes ── */
+function genL4(){
+  const s0={instrTex:'Choisir le nombre',single:true,result:['x']};
+  const pairs=[
+    {stepsA:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |2|',calc:['2(x+3)'],result:['2x+6']}],
+     stepsB:[s0,{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |6|',calc:['2x+6'],result:['2x+6']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},{instrTex:'Multiplier par |3|',calc:['3(x+5)'],result:['3x+15']}],
+     stepsB:[s0,{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Ajouter |5|',calc:['3x+5'],result:['3x+5']}],equal:false},
+    {stepsA:[s0,{instrTex:'Multiplier par |4|',calc:['4x'],result:['4x']},{instrTex:'Soustraire |4|',calc:['4x-4'],result:['4x-4']}],
+     stepsB:[s0,{instrTex:'Soustraire |1|',calc:['x-1'],result:['x-1']},{instrTex:'Multiplier par |4|',calc:['4(x-1)'],result:['4x-4']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |7|',calc:['x+7'],result:['x+7']},{instrTex:'Multiplier par |2|',calc:['2(x+7)'],result:['2x+14']}],
+     stepsB:[s0,{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |14|',calc:['2x+14'],result:['2x+14']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |5|',calc:['5(x+3)'],result:['5x+15']}],
+     stepsB:[s0,{instrTex:'Multiplier par |5|',calc:['5x'],result:['5x']},{instrTex:'Ajouter |3|',calc:['5x+3'],result:['5x+3']}],equal:false},
+    {stepsA:[s0,{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Ajouter |12|',calc:['3x+12'],result:['3x+12']}],
+     stepsB:[s0,{instrTex:'Ajouter |4|',calc:['x+4'],result:['x+4']},{instrTex:'Multiplier par |3|',calc:['3(x+4)'],result:['3x+12']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |9|',calc:['x+9'],result:['x+9']},{instrTex:'Multiplier par |2|',calc:['2(x+9)'],result:['2x+18']}],
+     stepsB:[s0,{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |18|',calc:['2x+18'],result:['2x+18']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},{instrTex:'Multiplier par |3|',calc:['3(x+5)'],result:['3x+15']},{instrTex:'Soustraire |6|',calc:['3x+15-6'],result:['3x+9']}],
+     stepsB:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |3|',calc:['3(x+3)'],result:['3x+9']}],equal:true},
+    {stepsA:[s0,{instrTex:'Multiplier par |5|',calc:['5x'],result:['5x']},{instrTex:'Ajouter |10|',calc:['5x+10'],result:['5x+10']}],
+     stepsB:[s0,{instrTex:'Ajouter |10|',calc:['x+10'],result:['x+10']},{instrTex:'Multiplier par |5|',calc:['5(x+10)'],result:['5x+50']}],equal:false},
+    {stepsA:[s0,{instrTex:'Ajouter |8|',calc:['x+8'],result:['x+8']},{instrTex:'Multiplier par |3|',calc:['3(x+8)'],result:['3x+24']}],
+     stepsB:[s0,{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Ajouter |24|',calc:['3x+24'],result:['3x+24']}],equal:true},
+    {stepsA:[s0,{instrTex:'Soustraire |4|',calc:['x-4'],result:['x-4']},{instrTex:'Multiplier par |6|',calc:['6(x-4)'],result:['6x-24']}],
+     stepsB:[s0,{instrTex:'Multiplier par |6|',calc:['6x'],result:['6x']},{instrTex:'Soustraire |24|',calc:['6x-24'],result:['6x-24']}],equal:true},
+  ];
+  return sh(pairs).slice(0,5);
+}
+
+/* ── LEVEL 5 — 4ème — deux programmes avec x² ── */
+function genL5(){
+  const s0={instrTex:'Choisir le nombre',single:true,result:['x']};
+  const pairs=[
+    {stepsA:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |2x|',calc:['x^2+2x'],result:['x^2+2x']},{instrTex:'Ajouter |1|',calc:['x^2+2x+1'],result:['x^2+2x+1']}],
+     stepsB:[s0,{instrTex:'Ajouter |1|',calc:['x+1'],result:['x+1']},{instrTex:'Multiplier par |(x+1)|',calc:['(x+1)(x+1)'],result:['x^2+2x+1']}],equal:true},
+    {stepsA:[s0,{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |3|',calc:['2x+3'],result:['2x+3']},{instrTex:'Multiplier par |x|',calc:['x(2x+3)'],result:['2x^2+3x']}],
+     stepsB:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Multiplier par |2|',calc:['2x^2'],result:['2x^2']},{instrTex:'Ajouter |3x|',calc:['2x^2+3x'],result:['2x^2+3x']}],equal:true},
+    {stepsA:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |4|',calc:['x^2+4'],result:['x^2+4']}],
+     stepsB:[s0,{instrTex:'Ajouter |2|',calc:['x+2'],result:['x+2']},{instrTex:'Multiplier par |(x+2)|',calc:['(x+2)(x+2)'],result:['x^2+4x+4']}],equal:false},
+    {stepsA:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |4x|',calc:['x^2+4x'],result:['x^2+4x']},{instrTex:'Ajouter |4|',calc:['x^2+4x+4'],result:['x^2+4x+4']}],
+     stepsB:[s0,{instrTex:'Ajouter |2|',calc:['x+2'],result:['x+2']},{instrTex:'Multiplier par |(x+2)|',calc:['(x+2)(x+2)'],result:['x^2+4x+4']}],equal:true},
+    {stepsA:[s0,{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Ajouter |2|',calc:['3x+2'],result:['3x+2']},{instrTex:'Multiplier par |x|',calc:['x(3x+2)'],result:['3x^2+2x']}],
+     stepsB:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Multiplier par |3|',calc:['3x^2'],result:['3x^2']},{instrTex:'Ajouter |2x|',calc:['3x^2+2x'],result:['3x^2+2x']}],equal:true},
+    {stepsA:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |2x|',calc:['x^2-2x'],result:['x^2-2x']},{instrTex:'Ajouter |1|',calc:['x^2-2x+1'],result:['x^2-2x+1']}],
+     stepsB:[s0,{instrTex:'Soustraire |1|',calc:['x-1'],result:['x-1']},{instrTex:'Multiplier par |(x-1)|',calc:['(x-1)(x-1)'],result:['x^2-2x+1']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |4|',calc:['x+4'],result:['x+4']},{instrTex:'Multiplier par |x|',calc:['x(x+4)'],result:['x^2+4x']},{instrTex:'Ajouter |4|',calc:['x^2+4x+4'],result:['x^2+4x+4']}],
+     stepsB:[s0,{instrTex:'Ajouter |2|',calc:['x+2'],result:['x+2']},{instrTex:'Multiplier par |(x+2)|',calc:['(x+2)(x+2)'],result:['x^2+4x+4']}],equal:true},
+    {stepsA:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |3|',calc:['x^2+3'],result:['x^2+3']}],
+     stepsB:[s0,{instrTex:'Ajouter |1|',calc:['x+1'],result:['x+1']},{instrTex:'Multiplier par |(x+3)|',calc:['(x+1)(x+3)'],result:['x^2+4x+3']}],equal:false},
+    {stepsA:[s0,{instrTex:'Multiplier par |x|',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |3x|',calc:['x^2+3x'],result:['x^2+3x']},{instrTex:'Multiplier par |2|',calc:['2(x^2+3x)'],result:['2x^2+6x']}],
+     stepsB:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |2x|',calc:['2x(x+3)'],result:['2x^2+6x']}],equal:true},
+  ];
+  return sh(pairs).slice(0,5);
+}
+
+/* ── LEVEL 6 — 3ème — deux programmes, identités remarquables ── */
+function genL6(){
+  const s0={instrTex:'Choisir le nombre',single:true,result:['x']};
+  const pairs=[
+    {stepsA:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Élever au carré',calc:['(x+3)^2'],result:['x^2+6x+9']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |6x|',calc:['x^2+6x'],result:['x^2+6x']},{instrTex:'Ajouter |9|',calc:['x^2+6x+9'],result:['x^2+6x+9']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |2|',calc:['x+2'],result:['x+2']},{instrTex:'Multiplier par |(x-2)|',calc:['(x+2)(x-2)'],result:['x^2-4']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |4|',calc:['x^2-4'],result:['x^2-4']}],equal:true},
+    {stepsA:[s0,{instrTex:'Soustraire |2|',calc:['x-2'],result:['x-2']},{instrTex:'Élever au carré',calc:['(x-2)^2'],result:['x^2-4x+4']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |4x|',calc:['x^2-4x'],result:['x^2-4x']},{instrTex:'Ajouter |4|',calc:['x^2-4x+4'],result:['x^2-4x+4']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |1|',calc:['x+1'],result:['x+1']},{instrTex:'Élever au carré',calc:['(x+1)^2'],result:['x^2+2x+1']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |x|',calc:['x^2+x'],result:['x^2+x']},{instrTex:'Ajouter |1|',calc:['x^2+x+1'],result:['x^2+x+1']}],equal:false},
+    {stepsA:[s0,{instrTex:'Ajouter |4|',calc:['x+4'],result:['x+4']},{instrTex:'Élever au carré',calc:['(x+4)^2'],result:['x^2+8x+16']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |8x|',calc:['x^2+8x'],result:['x^2+8x']},{instrTex:'Ajouter |16|',calc:['x^2+8x+16'],result:['x^2+8x+16']}],equal:true},
+    {stepsA:[s0,{instrTex:'Soustraire |5|',calc:['x-5'],result:['x-5']},{instrTex:'Élever au carré',calc:['(x-5)^2'],result:['x^2-10x+25']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |10x|',calc:['x^2-10x'],result:['x^2-10x']},{instrTex:'Ajouter |25|',calc:['x^2-10x+25'],result:['x^2-10x+25']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |6|',calc:['x+6'],result:['x+6']},{instrTex:'Multiplier par |(x-6)|',calc:['(x+6)(x-6)'],result:['x^2-36']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |36|',calc:['x^2-36'],result:['x^2-36']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |7|',calc:['x+7'],result:['x+7']},{instrTex:'Élever au carré',calc:['(x+7)^2'],result:['x^2+14x+49']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |14x|',calc:['x^2+14x'],result:['x^2+14x']},{instrTex:'Ajouter |49|',calc:['x^2+14x+49'],result:['x^2+14x+49']}],equal:true},
+    {stepsA:[s0,{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},{instrTex:'Élever au carré',calc:['(x+5)^2'],result:['x^2+10x+25']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |10x|',calc:['x^2+10x'],result:['x^2+10x']},{instrTex:'Ajouter |24|',calc:['x^2+10x+24'],result:['x^2+10x+24']}],equal:false},
+    {stepsA:[s0,{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |(x-3)|',calc:['(x+3)(x-3)'],result:['x^2-9']}],
+     stepsB:[s0,{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |9|',calc:['x^2-9'],result:['x^2-9']}],equal:true},
+  ];
+  return sh(pairs).slice(0,5);
+}
+
+/* ── LEVEL 7 — Organigrammes ── */
+function genL7(){
+  const orgs=[
+    {type:'linear',startLabel:'Choisir un nombre',endLabel:'Afficher le résultat',
+     actions:[{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Ajouter |6|',calc:['3x+6'],result:['3x+6']},{instrTex:'Multiplier par |2|',calc:['2(3x+6)'],result:['6x+12']}]},
+    {type:'linear',startLabel:'Choisir un nombre',endLabel:'Afficher le résultat',
+     actions:[{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},{instrTex:'Multiplier par |4|',calc:['4(x+5)'],result:['4x+20']},{instrTex:'Ajouter |x|',calc:['4x+20+x'],result:['5x+20']}]},
+    {type:'linear',startLabel:'Choisir un nombre',endLabel:'Afficher le résultat',
+     actions:[{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Ajouter |3x|',calc:['x^2+3x'],result:['x^2+3x']},{instrTex:'Multiplier par |2|',calc:['2(x^2+3x)'],result:['2x^2+6x']}]},
+    {type:'linear',startLabel:'Choisir un nombre',endLabel:'Afficher le résultat',
+     actions:[{instrTex:'Ajouter |7|',calc:['x+7'],result:['x+7']},{instrTex:'Multiplier par |3|',calc:['3(x+7)'],result:['3x+21']},{instrTex:'Soustraire |6|',calc:['3x+21-6'],result:['3x+15']}]},
+    {type:'linear',startLabel:'Choisir un nombre',endLabel:'Afficher le résultat',
+     actions:[{instrTex:'Multiplier par |4|',calc:['4x'],result:['4x']},{instrTex:'Soustraire |8|',calc:['4x-8'],result:['4x-8']},{instrTex:'Multiplier par |2|',calc:['2(4x-8)'],result:['8x-16']}]},
+    {type:'linear',startLabel:'Choisir un nombre',endLabel:'Afficher le résultat',
+     actions:[{instrTex:'Ajouter |2|',calc:['x+2'],result:['x+2']},{instrTex:'Multiplier par |x|',calc:['x(x+2)'],result:['x^2+2x']},{instrTex:'Soustraire |x|',calc:['x^2+2x-x'],result:['x^2+x']}]},
+    {type:'linear',startLabel:'Choisir un nombre',endLabel:'Afficher le résultat',
+     actions:[{instrTex:'Élever au carré',calc:['x^2'],result:['x^2']},{instrTex:'Soustraire |2x|',calc:['x^2-2x'],result:['x^2-2x']},{instrTex:'Ajouter |1|',calc:['x^2-2x+1'],result:['x^2-2x+1']}]},
+    {type:'branch',startLabel:'Choisir un nombre',endLabel:'Additionner les deux résultats',lblA:'Branche A',lblB:'Branche B',
+     branchA:[{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |3|',calc:['2x+3'],result:['2x+3']}],
+     branchB:[{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |2|',calc:['2(x+3)'],result:['2x+6']}],
+     mergeInstrTex:'Somme des deux branches :',mergeCalc:['(2x+3)+(2x+6)'],mergeResult:['4x+9']},
+    {type:'branch',startLabel:'Choisir un nombre',endLabel:'Comparer les deux résultats',lblA:'Branche A',lblB:'Branche B',
+     branchA:[{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},{instrTex:'Multiplier par |2|',calc:['2(x+5)'],result:['2x+10']}],
+     branchB:[{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |10|',calc:['2x+10'],result:['2x+10']}],
+     mergeInstrTex:'Les résultats sont-ils égaux ?',mergeCalc:['oui'],mergeResult:['oui']},
+    {type:'branch',startLabel:'Choisir un nombre',endLabel:'Additionner les deux résultats',lblA:'Branche A',lblB:'Branche B',
+     branchA:[{instrTex:'Ajouter |4|',calc:['x+4'],result:['x+4']},{instrTex:'Multiplier par |3|',calc:['3(x+4)'],result:['3x+12']}],
+     branchB:[{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Ajouter |12|',calc:['3x+12'],result:['3x+12']}],
+     mergeInstrTex:'Somme des deux branches :',mergeCalc:['(3x+12)+(3x+12)'],mergeResult:['6x+24']},
+    {type:'branch',startLabel:'Choisir un nombre',endLabel:'Comparer les deux résultats',lblA:'Branche A',lblB:'Branche B',
+     branchA:[{instrTex:'Multiplier par |4|',calc:['4x'],result:['4x']},{instrTex:'Ajouter |4|',calc:['4x+4'],result:['4x+4']}],
+     branchB:[{instrTex:'Ajouter |1|',calc:['x+1'],result:['x+1']},{instrTex:'Multiplier par |4|',calc:['4(x+1)'],result:['4x+4']}],
+     mergeInstrTex:'Les résultats sont-ils égaux ?',mergeCalc:['oui'],mergeResult:['oui']},
+    {type:'branch',startLabel:'Choisir un nombre',endLabel:'Additionner les deux résultats',lblA:'Branche A',lblB:'Branche B',
+     branchA:[{instrTex:'Multiplier par |3|',calc:['3x'],result:['3x']},{instrTex:'Soustraire |6|',calc:['3x-6'],result:['3x-6']}],
+     branchB:[{instrTex:'Soustraire |2|',calc:['x-2'],result:['x-2']},{instrTex:'Multiplier par |3|',calc:['3(x-2)'],result:['3x-6']}],
+     mergeInstrTex:'Somme des deux branches :',mergeCalc:['(3x-6)+(3x-6)'],mergeResult:['6x-12']},
+    {type:'branch',startLabel:'Choisir un nombre',endLabel:'Comparer les deux résultats',lblA:'Branche A',lblB:'Branche B',
+     branchA:[{instrTex:'Ajouter |3|',calc:['x+3'],result:['x+3']},{instrTex:'Multiplier par |5|',calc:['5(x+3)'],result:['5x+15']}],
+     branchB:[{instrTex:'Multiplier par |5|',calc:['5x'],result:['5x']},{instrTex:'Ajouter |15|',calc:['5x+15'],result:['5x+15']}],
+     mergeInstrTex:'Les résultats sont-ils égaux ?',mergeCalc:['oui'],mergeResult:['oui']},
+    {type:'branch',startLabel:'Choisir un nombre',endLabel:'Additionner les deux résultats',lblA:'Branche A',lblB:'Branche B',
+     branchA:[{instrTex:'Ajouter |5|',calc:['x+5'],result:['x+5']},{instrTex:'Multiplier par |3|',calc:['3(x+5)'],result:['3x+15']}],
+     branchB:[{instrTex:'Multiplier par |2|',calc:['2x'],result:['2x']},{instrTex:'Ajouter |10|',calc:['2x+10'],result:['2x+10']}],
+     mergeInstrTex:'Somme des deux branches :',mergeCalc:['(3x+15)+(2x+10)'],mergeResult:['5x+25']},
+  ];
+  return sh(orgs).slice(0,4);
+}
+
+
+/* ═══════════════════════════════════════════════
+   RENDER HELPERS
+═══════════════════════════════════════════════ */
+
+/* Build programme box — instructions ONLY, no answers shown */
+function buildProgBox(steps, titleHtml, style='A'){
+  const boxCls = style==='B' ? 'prog-box-B' : 'prog-box';
+  const titleCls = style==='B' ? 'prog-title-B' : 'prog-title';
+  const stepCls = style==='B' ? 'prog-step-B' : 'prog-step';
+  const numCls = style==='B' ? 'step-n-B' : 'step-n';
+  let h = `<div class="${boxCls}">`;
+  h += `<div class="${titleCls}">${titleHtml}</div>`;
+  h += `<div class="prog-steps">`;
+  steps.forEach((s,i)=>{
+    h += `<div class="${stepCls}">`;
+    h += `<div class="${numCls}">${i+1}</div>`;
+    // Instruction rendered with Kinstr (mixed text + KaTeX)
+    h += `<span class="step-instr">${Kinstr(s.instrTex)}</span>`;
+    // NO answer shown — the student fills everything themselves
+    h += `</div>`;
+  });
+  h += `</div></div>`;
+  return h;
+}
+
+/* Build student answer rows.
+   Each row has:
+   → [calc field] = [result field]   (two inputs)
+   OR for "single" steps (step 0 = just x):
+   → [single field]
+*/
+/* mkInp : champ de saisie en Times New Roman italique */
+function mkInp(cls, id, ph, styleB){
+  return `<div class="s-wrap">` +
+    `<input class="${cls}" id="${id}" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${ph}">` +
+  `</div>`;
+}
+/* initOverlays : stub (plus besoin avec Times New Roman) */
+function initOverlays(){ }
+
+function buildStudentRows(steps, prefix, style='A'){
+  const arrowCls = style==='B' ? 's-arrow-B' : 's-arrow';
+  const fieldCls = style==='B' ? 's-field-B' : 's-field';
+  let h = `<div class="student-zone">`;
+  steps.forEach((s,i)=>{
+    h += `<div class="s-row">`;
+    h += `<span class="${arrowCls}">→</span>`;
+    if(s.single){
+      h += mkInp(fieldCls, `inp_${prefix}_${i}_r`, 'x');
+    } else {
+      h += mkInp(fieldCls, `inp_${prefix}_${i}_c`, 'calcul…');
+      h += `<span class="s-eq">=</span>`;
+      h += mkInp(fieldCls, `inp_${prefix}_${i}_r`, 'forme réduite…');
+    }
+    h += `</div>`;
+  });
+  h += `</div>`;
+  return h;
+}
+
+/* setWrapState : marque l'input ok ou err */
+function setWrapState(id, ok){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('ok','err');
+  el.classList.add(ok?'ok':'err');
+}
+function checkRows(prefix, steps){
+  let allOk = true;
+  steps.forEach((s,i)=>{
+    if(s.single){
+      const r = $(`inp_${prefix}_${i}_r`);
+      if(!r) return;
+      const ok = exprOk(r.value, s.result);
+      setWrapState(`inp_${prefix}_${i}_r`, ok);
+      if(!ok) allOk=false;
+    } else {
+      const c = $(`inp_${prefix}_${i}_c`);
+      const r = $(`inp_${prefix}_${i}_r`);
+      const okC = c ? exprOk(c.value, s.calc) : true;
+      const okR = r ? exprOk(r.value, s.result) : true;
+      if(c) setWrapState(`inp_${prefix}_${i}_c`, okC);
+      if(r) setWrapState(`inp_${prefix}_${i}_r`, okR);
+      if(!okC||!okR) allOk=false;
+    }
+  });
+  return allOk;
+}
+
+/* Collect all input IDs for a set of steps */
+function stepInputIds(prefix, steps){
+  const ids=[];
+  steps.forEach((s,i)=>{
+    if(!s.single) ids.push(`inp_${prefix}_${i}_c`);
+    ids.push(`inp_${prefix}_${i}_r`);
+  });
+  return ids;
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER L1/L2/L3
+═══════════════════════════════════════════════ */
+function renderSingle(q, pfx, lvLabel, checkFn){
+  const Z=$('zone');
+  let h='';
+  h += `<div class="sec-lbl">Programme de calcul${lvLabel?` — ${lvLabel}`:''}</div>`;
+  // Programme: instructions only
+  h += buildProgBox(q.steps, `📋 Programme — ${K('x')} désigne le nombre choisi`);
+  // Hint for 3ème
+  if(q.litResult){
+    h += `<div class="hint-lit">💡 Identité remarquable : ${KD(q.litResult)}</div>`;
+  }
+  h += `<div class="sec-lbl" style="margin-top:14px">
+    Détaille chaque étape en fonction de ${K('x')} — écris le calcul puis la forme réduite :
+  </div>`;
+  h += buildStudentRows(q.steps, pfx);
+  h += `<div class="controls"><button class="btn btn-green" onclick="${checkFn}()">Valider ✓</button></div>`;
+  Z.innerHTML = h;
+  initOverlays();
+  addEnter(stepInputIds(pfx,q.steps), ()=>window[checkFn]());
+  foc(q.steps[0].single ? `inp_${pfx}_0_r` : `inp_${pfx}_0_c`);
+}
+
+function renderL1(q){renderSingle(q,'L1','',    'checkL1')}
+function renderL2(q){renderSingle(q,'L2','4ème','checkL2')}
+function renderL3(q){renderSingle(q,'L3','3ème','checkL3')}
+function checkL1(){if(checkRows('L1',cq.steps))finish(true)}
+function checkL2(){if(checkRows('L2',cq.steps))finish(true)}
+function checkL3(){if(checkRows('L3',cq.steps))finish(true)}
+
+/* ═══════════════════════════════════════════════
+   RENDER L4/L5/L6 — deux programmes
+═══════════════════════════════════════════════ */
+function renderDouble(q, prefix){
+  const Z=$('zone');
+  let h='';
+  h += `<div class="two-progs">`;
+  h += `<div>${buildProgBox(q.stepsA,'📘 Programme A','A')}</div>`;
+  h += `<div>${buildProgBox(q.stepsB,'📙 Programme B','B')}</div>`;
+  h += `</div>`;
+
+  h += `<div class="sec-lbl" style="color:var(--blue)">
+    Détaille le Programme A en fonction de ${K('x')} :
+  </div>`;
+  h += buildStudentRows(q.stepsA, prefix+'A', 'A');
+
+  h += `<div class="sec-lbl" style="color:var(--orange);margin-top:14px">
+    Détaille le Programme B en fonction de ${K('x')} :
+  </div>`;
+  h += buildStudentRows(q.stepsB, prefix+'B', 'B');
+
+  h += `<div class="eq-zone">`;
+  h += `<div class="eq-q">Ces deux programmes donnent-ils toujours le même résultat, quelle que soit la valeur de ${K('x')} ?</div>`;
+  h += `<div class="eq-radios">`;
+  h += `<label class="eq-lbl" id="${prefix}_oui"><input type="radio" name="${prefix}_eq" value="oui" onchange="selEq('${prefix}','oui')"> ✅ Oui, toujours égaux</label>`;
+  h += `<label class="eq-lbl" id="${prefix}_non"><input type="radio" name="${prefix}_eq" value="non" onchange="selEq('${prefix}','non')"> ❌ Non, peuvent différer</label>`;
+  h += `</div></div>`;
+  h += `<div class="controls"><button class="btn btn-green" onclick="checkDouble('${prefix}')">Valider ✓</button></div>`;
+
+  Z.innerHTML = h;
+  cq._eqSel=null;cq._equal=q.equal;cq._stepsA=q.stepsA;cq._stepsB=q.stepsB;cq._pref=prefix;
+  const allIds=[...stepInputIds(prefix+'A',q.stepsA),...stepInputIds(prefix+'B',q.stepsB)];
+  addEnter(allIds,()=>checkDouble(prefix));
+  const firstId=q.stepsA[0].single?`inp_${prefix}A_0_r`:`inp_${prefix}A_0_c`;
+  foc(firstId);
+}
+function selEq(prefix,val){
+  cq._eqSel=val;
+  $(`${prefix}_oui`).className='eq-lbl'+(val==='oui'?' sel-oui':'');
+  $(`${prefix}_non`).className='eq-lbl'+(val==='non'?' sel-non':'');
+}
+function checkDouble(prefix){
+  const q=cq;
+  const okA=checkRows(prefix+'A',q._stepsA);
+  const okB=checkRows(prefix+'B',q._stepsB);
+  let eqOk=false;
+  if(!q._eqSel){cq._mis=true;}
+  else{
+    eqOk=(q._equal&&q._eqSel==='oui')||(!q._equal&&q._eqSel==='non');
+    if(!eqOk)cq._mis=true;
+    else $(`${prefix}_${q._equal?'oui':'non'}`).className=`eq-lbl ${q._equal?'sel-oui':'sel-non'} locked`;
+  }
+  if(okA&&okB&&eqOk)finish(true);
+}
+function renderL4(q){renderDouble(q,'P4')}
+function renderL5(q){renderDouble(q,'P5')}
+function renderL6(q){renderDouble(q,'P6')}
+
+/* ═══════════════════════════════════════════════
+   RENDER L7 — ORGANIGRAMME
+═══════════════════════════════════════════════ */
+function renderL7(q){
+  const Z=$('zone');let h='';
+
+  if(q.type==='linear'){
+    // ── Organigramme de référence (instructions only)
+    h += `<div class="sec-lbl">Organigramme du programme</div>`;
+    h += `<div class="orga-wrap"><div class="orga">`;
+    h += `<div class="o-term">${K('x')} — ${q.startLabel}</div>`;
+    q.actions.forEach(a=>{
+      h += `<div class="o-arrow">↓</div>`;
+      h += `<div class="o-act">${Kinstr(a.instrTex)}</div>`;
+    });
+    h += `<div class="o-arrow">↓</div>`;
+    h += `<div class="o-term end">${q.endLabel}</div>`;
+    h += `</div></div>`;
+
+    // ── Cases à remplir
+    h += `<div class="sec-lbl" style="margin-top:14px">Complète l'organigramme en fonction de ${K('x')} :</div>`;
+    h += `<div class="orga-wrap"><div class="orga">`;
+    h += `<div class="o-term">${K('x')}</div>`;
+    q.actions.forEach((a,i)=>{
+      h += `<div class="o-arrow">↓</div>`;
+      h += `<div class="o-act-lbl">${Kinstr(a.instrTex)}</div>`;
+      h += `<div class="o-inp-wrap" id="ow_${i}">`;
+      h += mkInp('s-field', `oic_${i}`, 'calcul…');
+      h += `<span class="o-eq">=</span>`;
+      h += mkInp('s-field', `oir_${i}`, 'forme réduite…');
+      h += `</div>`;
+    });
+    h += `<div class="o-arrow">↓</div>`;
+    h += `<div class="o-term end">${q.endLabel}</div>`;
+    h += `</div></div>`;
+    h += `<div class="controls"><button class="btn btn-green" onclick="checkL7lin()">Valider ✓</button></div>`;
+    Z.innerHTML=h;
+    const ids=[...q.actions.flatMap((_,i)=>[`oic_${i}`,`oir_${i}`])];
+    addEnter(ids,checkL7lin);
+    foc('oic_0');
+
+  } else {
+    // ── BIFURCATION — référence
+    h += `<div class="sec-lbl">Organigramme à deux branches</div>`;
+    h += `<div class="orga-wrap" style="max-width:600px"><div class="orga">`;
+    h += `<div class="o-term">${K('x')} — ${q.startLabel}</div>`;
+    h += `<div class="o-arrow">↓</div>`;
+    h += `<div class="o-hbar"></div>`;
+    h += `<div class="o-branch-cols">`;
+    h += `<div class="o-bcol"><div class="o-arrow">↓</div><div class="o-bcol-lbl lbl-A">${q.lblA}</div>`;
+    q.branchA.forEach(a=>{h+=`<div class="o-act">${Kinstr(a.instrTex)}</div><div class="o-arrow">↓</div>`});
+    h += `</div>`;
+    h += `<div class="o-bcol"><div class="o-arrow">↓</div><div class="o-bcol-lbl lbl-B">${q.lblB}</div>`;
+    q.branchB.forEach(a=>{h+=`<div class="o-act-B">${Kinstr(a.instrTex)}</div><div class="o-arrow">↓</div>`});
+    h += `</div></div>`;
+    h += `<div class="o-hbar"></div><div class="o-arrow">↓</div>`;
+    h += `<div class="o-act">${Kinstr(q.mergeInstrTex)}</div>`;
+    h += `<div class="o-arrow">↓</div>`;
+    h += `<div class="o-term end">${q.endLabel}</div>`;
+    h += `</div></div>`;
+
+    // ── Cases à remplir
+    h += `<div class="sec-lbl" style="margin-top:14px">Complète l'organigramme en fonction de ${K('x')} :</div>`;
+    h += `<div class="orga-wrap" style="max-width:600px"><div class="orga">`;
+    h += `<div class="o-term">${K('x')}</div>`;
+    h += `<div class="o-arrow">↓</div>`;
+    h += `<div class="o-hbar"></div>`;
+    h += `<div class="o-branch-cols">`;
+    // Branch A student
+    h += `<div class="o-bcol"><div class="o-arrow">↓</div><div class="o-bcol-lbl lbl-A">${q.lblA}</div>`;
+    q.branchA.forEach((a,i)=>{
+      h += `<div class="o-act-lbl">${Kinstr(a.instrTex)}</div>`;
+      h += `<div class="o-inp-wrap" id="owA_${i}">`;
+      h += mkInp('s-field', `oAc_${i}`, 'calcul…');
+      h += `<span class="o-eq">=</span>`;
+      h += mkInp('s-field', `oAr_${i}`, 'forme réduite…');
+      h += `</div><div class="o-arrow">↓</div>`;
+    });
+    h += `</div>`;
+    // Branch B student
+    h += `<div class="o-bcol"><div class="o-arrow">↓</div><div class="o-bcol-lbl lbl-B">${q.lblB}</div>`;
+    q.branchB.forEach((a,i)=>{
+      h += `<div class="o-act-lbl">${Kinstr(a.instrTex)}</div>`;
+      h += `<div class="o-inp-wrap-B" id="owB_${i}">`;
+      h += mkInp('s-field', `oBc_${i}`, 'calcul…');
+      h += `<span class="o-eq">=</span>`;
+      h += mkInp('s-field', `oBr_${i}`, 'forme réduite…');
+      h += `</div><div class="o-arrow">↓</div>`;
+    });
+    h += `</div></div>`;
+    h += `<div class="o-hbar"></div><div class="o-arrow">↓</div>`;
+    h += `<div class="o-act-lbl">${Kinstr(q.mergeInstrTex)}</div>`;
+    h += `<div class="o-inp-wrap" id="owM">`;
+    h += mkInp('s-field', 'oMc', 'calcul…');
+    h += `<span class="o-eq">=</span>`;
+    h += mkInp('s-field', 'oMr', 'forme réduite…');
+    h += `</div>`;
+    h += `<div class="o-arrow">↓</div>`;
+    h += `<div class="o-term end">${q.endLabel}</div>`;
+    h += `</div></div>`;
+    h += `<div class="controls"><button class="btn btn-green" onclick="checkL7branch()">Valider ✓</button></div>`;
+    Z.innerHTML=h;
+    const ids=[
+      ...q.branchA.flatMap((_,i)=>[`oAc_${i}`,`oAr_${i}`]),
+      ...q.branchB.flatMap((_,i)=>[`oBc_${i}`,`oBr_${i}`]),
+      'oMc','oMr'
+    ];
+    addEnter(ids,checkL7branch);
+    foc('oAc_0');
+  }
+}
+
+function checkL7lin(){
+  const q=cq;let allOk=true;
+  q.actions.forEach((a,i)=>{
+    const wc=$(`oic_${i}`),wr=$(`oir_${i}`);
+    const okC = wc ? exprOk(wc.value, a.calc) : true;
+    const okR = wr ? exprOk(wr.value, a.result) : true;
+    setWrapState(`oic_${i}`, okC);
+    setWrapState(`oir_${i}`, okR);
+    if(!okC||!okR) allOk=false;
+  });
+  finish(allOk);
+}
+
+/* ── BROUILLON ── */
+function toggleBrouillon(){
+  const panel = document.getElementById('brouillon-panel');
+  if(panel.style.display === 'none' || !panel.style.display){
+    panel.style.display = 'block';
+    setTimeout(()=>document.getElementById('brouillon-inp').focus(), 80);
+  } else {
+    closeBrouillon();
+  }
+}
+function closeBrouillon(){
+  document.getElementById('brouillon-panel').style.display = 'none';
+}
+function clearBrouillon(){
+  document.getElementById('brouillon-inp').value = '';
+  document.getElementById('brouillon-notes').value = '';
+  brouillonUp();
+}
+function brouillonUp(){
+  const inp = document.getElementById('brouillon-inp');
+  const pv  = document.getElementById('brouillon-preview');
+  const val = inp.value;
+  if(!val || !val.trim()){
+    pv.className = 'brouillon-preview empty';
+    pv.textContent = "L\u2019aper\u00e7u s\u2019affiche ici\u2026";
+    return;
+  }
+  pv.className = 'brouillon-preview';
+  const tex = toTex(val);
+  try{
+    pv.innerHTML = katex.renderToString(tex, {throwOnError:false, displayMode:true});
+  } catch(e){
+    pv.textContent = val;
+  }
+}
+
+function checkL7branch(){
+  const q=cq;let allOk=true;
+  q.branchA.forEach((a,i)=>{
+    const okC=exprOk($(`oAc_${i}`)?.value||'',[...a.calc]);
+    const okR=exprOk($(`oAr_${i}`)?.value||'',[...a.result]);
+    setWrapState(`oAc_${i}`,okC); setWrapState(`oAr_${i}`,okR);
+    if(!okC||!okR) allOk=false;
+  });
+  q.branchB.forEach((a,i)=>{
+    const okC=exprOk($(`oBc_${i}`)?.value||'',[...a.calc]);
+    const okR=exprOk($(`oBr_${i}`)?.value||'',[...a.result]);
+    setWrapState(`oBc_${i}`,okC); setWrapState(`oBr_${i}`,okR);
+    if(!okC||!okR) allOk=false;
+  });
+  const mc=$('oMc'),mr=$('oMr');
+  const okMc=mc?exprOk(mc.value,q.mergeCalc):true;
+  const okMr=mr?exprOk(mr.value,q.mergeResult):true;
+  setWrapState('oMc', okMc); setWrapState('oMr', okMr);
+  if(!okMc||!okMr) allOk=false;
+  finish(allOk);
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

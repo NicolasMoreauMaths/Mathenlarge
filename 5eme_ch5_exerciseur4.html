@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Décomposition en facteurs premiers</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --ink: #1b3a5c;
+    --ink-light: #3a6b9f;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --green: #1e8449;
+    --green-light: #27ae60;
+    --green-pale: #d5f5e3;
+    --paper: #fdf8f0;
+    --paper-dark: #f5eed8;
+    --line-blue: #c8daea;
+    --line-red: #e8b4b4;
+    --margin-pink: #f0c0c0;
+    --pencil: #6b6b6b;
+    --shadow: rgba(27,58,92,0.1);
+}
+
+body {
+    font-family: 'Patrick Hand', cursive;
+    min-height: 100vh;
+    background: #e8e0d0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px 10px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ============ NOTEBOOK PAPER ============ */
+.notebook {
+    background: var(--paper);
+    border-radius: 4px 16px 16px 4px;
+    padding: 32px 28px 32px 48px;
+    max-width: 820px;
+    width: 100%;
+    position: relative;
+    box-shadow:
+        -4px 0 0 #c0392b,
+        -6px 0 0 #a93226,
+        4px 4px 20px rgba(0,0,0,0.15),
+        0 0 0 1px rgba(0,0,0,0.05);
+    /* Seyes lines */
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 31px, var(--line-blue) 31px, var(--line-blue) 32px),
+        repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(200,218,234,0.3) 7px, rgba(200,218,234,0.3) 8px);
+    background-size: 100% 32px, 100% 8px;
+    min-height: 90vh;
+}
+
+/* Red margin line */
+.notebook::before {
+    content: '';
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--margin-pink);
+    z-index: 1;
+}
+
+/* Spiral holes */
+.notebook::after {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 20px;
+    bottom: 20px;
+    width: 14px;
+    background-image: radial-gradient(circle 5px, #d0c8b8 90%, transparent 90%);
+    background-size: 14px 40px;
+    background-repeat: repeat-y;
+}
+
+h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.7em;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 1.1em;
+    color: var(--pencil);
+    margin-bottom: 24px;
+}
+
+/* ============ SCREENS ============ */
+.screen { display: none; animation: fadeIn 0.35s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ BUTTONS ============ */
+.btn {
+    font-family: 'Patrick Hand', cursive;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 1.05em;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    letter-spacing: 0.3px;
+    min-height: 46px;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-ink {
+    background: var(--ink);
+    color: white;
+    border-color: var(--ink);
+    box-shadow: 0 3px 10px var(--shadow);
+}
+.btn-ink:hover:not(:disabled) { background: var(--ink-light); transform: translateY(-2px); }
+
+.btn-red {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+}
+.btn-red:hover:not(:disabled) { background: var(--red-light); transform: translateY(-2px); }
+
+.btn-green {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+}
+.btn-green:hover:not(:disabled) { background: var(--green-light); transform: translateY(-2px); }
+
+.btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line-blue);
+}
+.btn-outline:hover { background: rgba(200,218,234,0.2); }
+
+.controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+/* ============ INTRO ============ */
+.intro-screen { text-align: center; padding: 16px 0; }
+
+.intro-visual {
+    font-size: 2.8em;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    color: var(--ink);
+    font-family: 'Patrick Hand', cursive;
+}
+
+.intro-desc {
+    color: var(--pencil);
+    font-size: 1.05em;
+    max-width: 500px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+}
+
+/* ============ MENU ============ */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.menu-card {
+    background: white;
+    border: 2px solid var(--line-blue);
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+.menu-card:hover {
+    border-color: var(--ink-light);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--shadow);
+}
+.menu-card .card-icon { font-size: 2em; margin-bottom: 6px; }
+.menu-card .card-title { font-size: 1.1em; color: var(--ink); font-family: 'Libre Baskerville', serif; font-weight: 700; margin-bottom: 3px; }
+.menu-card .card-desc { font-size: 0.88em; color: var(--pencil); }
+
+.section-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.15em;
+    color: var(--red);
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line-red);
+}
+
+/* ============ PRIME QUIZ ============ */
+.quiz-number {
+    font-size: 5em;
+    text-align: center;
+    color: var(--ink);
+    font-family: 'Libre Baskerville', serif;
+    font-weight: 700;
+    margin: 20px 0;
+    line-height: 1.2;
+}
+
+.quiz-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.quiz-btn {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.4em;
+    padding: 16px 36px;
+    border-radius: 14px;
+    cursor: pointer;
+    border: 3px solid;
+    transition: all 0.2s;
+    min-width: 150px;
+}
+
+.quiz-btn.prime {
+    background: white;
+    color: var(--green);
+    border-color: var(--green);
+}
+.quiz-btn.prime:hover { background: var(--green-pale); transform: scale(1.05); }
+
+.quiz-btn.not-prime {
+    background: white;
+    color: var(--red);
+    border-color: var(--red);
+}
+.quiz-btn.not-prime:hover { background: #fdedec; transform: scale(1.05); }
+
+.quiz-btn:disabled { transform: none !important; }
+
+.quiz-score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 14px;
+    background: rgba(200,218,234,0.2);
+    border-radius: 10px;
+}
+.quiz-score-bar span { font-size: 1em; color: var(--ink); }
+
+.quiz-progress {
+    width: 100%;
+    height: 6px;
+    background: var(--line-blue);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.quiz-progress-fill {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.quiz-feedback {
+    text-align: center;
+    font-size: 1.2em;
+    min-height: 40px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+
+.prime-list-spoiler {
+    background: rgba(200,218,234,0.15);
+    border: 1px dashed var(--line-blue);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 0.92em;
+    margin-top: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.prime-list-spoiler .spoiler-label {
+    color: var(--pencil);
+    display: inline;
+}
+.prime-list-spoiler .spoiler-content {
+    color: var(--red);
+    font-weight: 700;
+    filter: blur(8px);
+    transition: filter 0.2s;
+    display: inline;
+    pointer-events: none;
+}
+.prime-list-spoiler:hover .spoiler-content,
+.prime-list-spoiler:active .spoiler-content,
+.prime-list-spoiler.revealed .spoiler-content {
+    filter: blur(0);
+}
+.prime-list-spoiler:hover,
+.prime-list-spoiler:active,
+.prime-list-spoiler.revealed {
+    background: rgba(200,218,234,0.3);
+}
+
+/* ============ DECOMPOSITION TABLE ============ */
+.decomp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.decomp-badge {
+    background: var(--ink);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+.decomp-score {
+    font-size: 1em;
+    color: var(--ink);
+    background: rgba(200,218,234,0.2);
+    padding: 6px 14px;
+    border-radius: 20px;
+}
+
+.decomp-target {
+    text-align: center;
+    margin-bottom: 18px;
+    font-size: 1.05em;
+    color: var(--pencil);
+}
+.decomp-target strong {
+    font-size: 1.6em;
+    color: var(--green);
+    font-family: 'Libre Baskerville', serif;
+}
+
+.decomp-table {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.decomp-row {
+    display: flex;
+    align-items: center;
+    animation: rowAppear 0.3s ease;
+}
+
+@keyframes rowAppear {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.decomp-left {
+    min-width: 110px;
+    padding: 6px 14px 6px 10px;
+    text-align: right;
+    border-right: 3px solid var(--ink);
+    font-size: 1.7em;
+    color: var(--ink);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.decomp-right {
+    min-width: 90px;
+    padding: 6px 10px 6px 14px;
+    text-align: left;
+    font-size: 1.7em;
+    color: var(--red);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+.decomp-val { font-weight: 400; }
+.decomp-val.given { color: var(--green); font-weight: 700; }
+.decomp-val.quotient { color: var(--ink); }
+.decomp-val.prime { color: var(--red); }
+.decomp-val.final { color: var(--pencil); font-weight: 700; }
+
+.decomp-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 0.95em;
+    width: 75px;
+    text-align: center;
+    border: 2px dashed var(--line-blue);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 6px;
+    outline: none;
+    color: var(--ink);
+    transition: border-color 0.2s;
+}
+.decomp-input:focus { border-color: var(--ink-light); background: white; }
+.decomp-input.red-input { color: var(--red); }
+.decomp-input.error { border-color: var(--red); background: #fdedec; animation: shake 0.4s; }
+
+.step-validate-zone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.step-feedback {
+    text-align: center;
+    font-size: 1em;
+    min-height: 28px;
+    margin-bottom: 8px;
+}
+
+/* ============ EQUALITY ============ */
+.equality-section {
+    display: none;
+    animation: fadeIn 0.4s ease;
+    text-align: center;
+    margin-top: 20px;
+    padding: 18px;
+    background: rgba(200,218,234,0.1);
+    border: 2px dashed var(--line-blue);
+    border-radius: 14px;
+}
+.equality-section.active { display: block; }
+
+.equality-label {
+    font-size: 0.95em;
+    color: var(--pencil);
+    margin-bottom: 10px;
+}
+
+.equality-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 1.6em;
+    color: var(--ink);
+}
+
+.eq-number { color: var(--green); font-weight: 700; font-family: 'Libre Baskerville', serif; }
+.eq-sign { color: var(--pencil); font-weight: 700; }
+
+.eq-factor-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 0.9em;
+    width: 50px;
+    text-align: center;
+    border: 2px dashed var(--line-blue);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.7);
+    padding: 4px;
+    outline: none;
+    color: var(--red);
+}
+.eq-factor-input:focus { border-color: var(--red-light); background: white; }
+.eq-factor-input.locked { border-style: solid; border-color: var(--green-light); background: var(--green-pale); }
+.eq-factor-input.error { border-color: var(--red); background: #fdedec; }
+
+/* ============ FEEDBACK ============ */
+.feedback-box {
+    margin-top: 14px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 1em;
+    text-align: center;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.feedback-box.correct {
+    background: var(--green-pale);
+    color: var(--green);
+    border: 2px solid var(--green-light);
+    display: block;
+}
+.feedback-box.incorrect {
+    background: #fdedec;
+    color: var(--red);
+    border: 2px solid var(--red-light);
+    display: block;
+}
+
+/* ============ RESULTS ============ */
+.results-screen { text-align: center; padding: 16px 0; }
+.results-emoji { font-size: 3.5em; margin-bottom: 10px; }
+.results-score {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 2.6em;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+.results-label { font-size: 1em; color: var(--pencil); margin-bottom: 16px; }
+.results-bar { width: 100%; max-width: 260px; height: 8px; background: var(--line-blue); border-radius: 6px; margin: 0 auto 16px; overflow: hidden; }
+.results-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; width: 0%; }
+.results-bar-fill.good { background: var(--green); }
+.results-bar-fill.bad { background: var(--red); }
+.results-msg { font-size: 1.2em; color: var(--ink); margin-bottom: 20px; }
+
+/* ============ CALCULATOR ============ */
+.calc-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: white;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 100;
+    transition: all 0.25s;
+    display: none; /* shown via JS for lvl 2+ */
+    -webkit-tap-highlight-color: transparent;
+}
+.calc-toggle:hover { transform: scale(1.1); background: var(--ink-light); }
+.calc-toggle.open { background: var(--red); transform: rotate(45deg); }
+.calc-toggle.open:hover { background: var(--red-light); }
+
+.calc-panel {
+    position: fixed;
+    bottom: 82px;
+    right: 16px;
+    width: 260px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    z-index: 99;
+    display: none;
+    animation: calcSlideIn 0.25s ease;
+}
+.calc-panel.visible { display: block; }
+
+@keyframes calcSlideIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.calc-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.9em;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.calc-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.calc-input {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.3em;
+    width: 72px;
+    text-align: center;
+    border: 2px solid var(--line-blue);
+    border-radius: 8px;
+    padding: 6px 4px;
+    outline: none;
+    background: white;
+    color: var(--ink);
+    transition: border-color 0.2s;
+}
+.calc-input:focus { border-color: var(--ink-light); }
+
+.calc-op {
+    font-size: 1.4em;
+    color: var(--pencil);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.calc-go {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.05em;
+    padding: 8px 18px;
+    border-radius: 10px;
+    background: var(--ink);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+}
+.calc-go:hover { background: var(--ink-light); }
+
+.calc-result {
+    text-align: center;
+    font-size: 1.15em;
+    color: var(--ink);
+    min-height: 32px;
+    padding: 8px;
+    background: rgba(200,218,234,0.15);
+    border-radius: 8px;
+    margin-top: 6px;
+    line-height: 1.5;
+}
+.calc-result .cr-q { color: var(--green); font-weight: 700; }
+.calc-result .cr-r { color: var(--red); font-weight: 700; }
+
+@media (max-width: 768px) {
+    .calc-panel { right: 10px; left: 10px; bottom: 84px; width: auto; max-width: 320px; }
+    .calc-toggle { bottom: 18px; right: 18px; width: 50px; height: 50px; font-size: 1.4em; }
+}
+
+@media (max-width: 600px) {
+    .calc-panel { right: 8px; left: 8px; bottom: 80px; max-width: 300px; }
+    .calc-toggle { bottom: 16px; right: 16px; width: 48px; height: 48px; font-size: 1.35em; }
+}
+
+/* ============ ANIMATIONS ============ */
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
+@keyframes popCorrect {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    body { padding: 14px 8px; }
+    .notebook { padding: 28px 18px 28px 40px; border-radius: 4px 14px 14px 4px; }
+    .notebook::before { left: 32px; }
+    h1 { font-size: 1.55em; }
+    .subtitle { font-size: 1.05em; }
+    .intro-visual { font-size: 2em; }
+    .intro-desc { font-size: 1.02em; }
+    .btn { padding: 11px 26px; font-size: 1.02em; min-height: 44px; }
+    .controls { gap: 9px; }
+    .menu-grid { grid-template-columns: 1fr; gap: 11px; }
+    .menu-card { padding: 15px 11px; min-height: 100px; }
+    .tuto-block { padding: 18px; }
+    .quiz-number { font-size: 3.8em; }
+    .quiz-btn { font-size: 1.15em; padding: 13px 26px; min-width: 130px; min-height: 48px; }
+    .decomp-left { min-width: 85px; font-size: 1.45em; }
+    .decomp-right { min-width: 75px; font-size: 1.45em; }
+    .equality-row { font-size: 1.35em; }
+}
+
+@media (max-width: 600px) {
+    body { padding: 12px 6px; }
+    .notebook { padding: 24px 16px 24px 36px; min-height: 85vh; }
+    .notebook::before { left: 28px; }
+    .notebook::after { left: -2px; width: 12px; background-size: 12px 36px; }
+    h1 { font-size: 1.35em; }
+    .subtitle { font-size: 1em; margin-bottom: 20px; }
+    .intro-visual { font-size: 1.85em; }
+    .intro-desc { font-size: 1em; }
+    .btn { padding: 10px 24px; font-size: 1em; min-height: 42px; }
+    .controls { gap: 8px; }
+    .tuto-block { padding: 16px; }
+    .tuto-title { font-size: 1.05em; }
+    .tuto-text { font-size: 0.95em; }
+    .tuto-example { padding: 10px 13px; font-size: 0.93em; }
+    .menu-grid { grid-template-columns: 1fr; gap: 10px; }
+    .menu-card { padding: 14px 10px; min-height: 90px; }
+    .menu-card .card-icon { font-size: 1.6em; }
+    .menu-card .card-title { font-size: 1em; }
+    .menu-card .card-desc { font-size: 0.8em; }
+    .header { gap: 8px; }
+    .badge { padding: 6px 14px; font-size: 0.9em; }
+    .score { font-size: 1em; padding: 6px 14px; }
+    .quiz-number { font-size: 3.5em; }
+    .quiz-info { font-size: 1.05em; }
+    .quiz-btn { font-size: 1.1em; padding: 12px 24px; min-width: 120px; min-height: 46px; }
+    .decomp-left { min-width: 80px; font-size: 1.4em; }
+    .decomp-right { min-width: 70px; font-size: 1.4em; }
+    .decomp-input { font-size: 1.3em; min-height: 40px; }
+    .equality-row { font-size: 1.3em; }
+    .factor-chip { font-size: 1.1em; padding: 6px 13px; min-height: 36px; }
+    .feedback { padding: 10px 14px; font-size: 0.95em; }
+    .results-emoji { font-size: 3em; }
+    .results-score { font-size: 2.5em; }
+}
+
+@media (max-width: 480px) {
+    .notebook { padding: 22px 12px 22px 32px; }
+    .notebook::before { left: 24px; }
+    h1 { font-size: 1.25em; }
+    .subtitle { font-size: 0.98em; }
+    .intro-visual { font-size: 1.75em; }
+    .intro-desc { font-size: 0.98em; }
+    .btn { padding: 10px 22px; font-size: 0.98em; min-height: 40px; }
+    .tuto-block { padding: 14px; }
+    .menu-card { padding: 13px 9px; min-height: 85px; }
+    .menu-card .card-icon { font-size: 1.5em; }
+    .menu-card .card-title { font-size: 0.98em; }
+    .menu-card .card-desc { font-size: 0.78em; }
+    .quiz-number { font-size: 3.2em; }
+    .quiz-info { font-size: 1.02em; }
+    .quiz-btn { font-size: 1.08em; padding: 11px 22px; min-width: 115px; min-height: 44px; }
+    .decomp-left { min-width: 75px; font-size: 1.35em; }
+    .decomp-right { min-width: 65px; font-size: 1.35em; }
+    .decomp-input { font-size: 1.25em; min-height: 38px; }
+    .equality-row { font-size: 1.25em; }
+    .factor-chip { font-size: 1.08em; padding: 5px 12px; min-height: 34px; }
+    .feedback { padding: 9px 12px; font-size: 0.92em; }
+    .results-emoji { font-size: 2.8em; }
+    .results-score { font-size: 2.3em; }
+    .calc-panel { padding: 13px; }
+    .calc-title { font-size: 1em; }
+    .calc-input { font-size: 1.1em; padding: 7px; }
+    .calc-result { font-size: 0.95em; }
+}
+
+@media (max-width: 380px) {
+    .notebook { padding: 20px 10px 20px 28px; }
+    .notebook::before { left: 20px; }
+    h1 { font-size: 1.2em; }
+    .btn { padding: 9px 20px; font-size: 0.95em; }
+    .menu-card { padding: 12px 8px; min-height: 80px; }
+    .quiz-number { font-size: 3em; }
+    .quiz-btn { font-size: 1.05em; padding: 10px 20px; min-width: 110px; }
+    .decomp-left { min-width: 70px; font-size: 1.3em; }
+    .decomp-right { min-width: 60px; font-size: 1.3em; }
+    .decomp-input { font-size: 1.2em; }
+    .factor-chip { font-size: 1.05em; padding: 5px 11px; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="notebook">
+
+<!-- ============ INTRO ============ -->
+<div class="screen active" id="introScreen">
+    <div class="intro-screen">
+        <div class="intro-visual">132 = 2 × 2 × 3 × 11</div>
+        <h1>Décomposition en facteurs premiers</h1>
+        <p class="subtitle">Apprends à décomposer n'importe quel nombre !</p>
+        <p class="intro-desc">Chaque nombre entier peut s'écrire comme un produit de nombres premiers. Entraîne-toi d'abord à reconnaître les nombres premiers, puis apprends la méthode de décomposition pas à pas.</p>
+        <button class="btn btn-ink" onclick="show('menuScreen')">Ouvrir le cahier ✏️</button>
+    </div>
+</div>
+
+<!-- ============ TUTORIAL ============ -->
+<div class="screen" id="tutorialScreen">
+    <h1>📖 La méthode</h1>
+
+    <div style="background:rgba(200,218,234,0.12);border:1px dashed var(--line-blue);border-radius:14px;padding:20px;margin-bottom:18px;">
+        <div class="section-title">Les nombres premiers jusqu'à 30</div>
+        <p style="text-align:center;font-size:1.8em;color:var(--red);margin-bottom:10px;">2 &nbsp; 3 &nbsp; 5 &nbsp; 7 &nbsp; 11 &nbsp; 13 &nbsp; 17 &nbsp; 19 &nbsp; 23 &nbsp; 29</p>
+        <p style="text-align:center;color:var(--pencil);font-size:0.92em;">Un nombre premier ne se divise que par 1 et par lui-même.</p>
+    </div>
+
+    <div style="background:rgba(200,218,234,0.12);border:1px dashed var(--line-blue);border-radius:14px;padding:20px;margin-bottom:18px;">
+        <div class="section-title">Exemple : décomposer 132</div>
+        <div style="display:flex;flex-direction:column;align-items:center;margin:12px 0;">
+            <div style="display:flex;align-items:center;">
+                <span style="min-width:80px;text-align:right;padding-right:12px;border-right:3px solid var(--ink);font-size:1.5em;color:var(--green);font-weight:700;">132</span>
+                <span style="padding-left:12px;font-size:1.5em;color:var(--red);">2</span>
+            </div>
+            <div style="display:flex;align-items:center;">
+                <span style="min-width:80px;text-align:right;padding-right:12px;border-right:3px solid var(--ink);font-size:1.5em;color:var(--ink);">66</span>
+                <span style="padding-left:12px;font-size:1.5em;color:var(--red);">2</span>
+            </div>
+            <div style="display:flex;align-items:center;">
+                <span style="min-width:80px;text-align:right;padding-right:12px;border-right:3px solid var(--ink);font-size:1.5em;color:var(--ink);">33</span>
+                <span style="padding-left:12px;font-size:1.5em;color:var(--red);">3</span>
+            </div>
+            <div style="display:flex;align-items:center;">
+                <span style="min-width:80px;text-align:right;padding-right:12px;border-right:3px solid var(--ink);font-size:1.5em;color:var(--ink);">11</span>
+                <span style="padding-left:12px;font-size:1.5em;color:var(--red);">11</span>
+            </div>
+            <div style="display:flex;align-items:center;">
+                <span style="min-width:80px;text-align:right;padding-right:12px;border-right:3px solid var(--ink);font-size:1.5em;color:var(--pencil);font-weight:700;">1</span>
+                <span style="padding-left:12px;font-size:1.5em;"></span>
+            </div>
+        </div>
+        <p style="text-align:center;font-size:1.3em;margin-top:10px;">
+            <span style="color:var(--green);font-weight:700;">132</span>
+            <span style="color:var(--pencil);"> = </span>
+            <span style="color:var(--red);">2 × 2 × 3 × 11</span>
+        </p>
+        <p style="text-align:center;color:var(--pencil);font-size:0.9em;margin-top:8px;">On divise à chaque étape par un nombre premier, jusqu'à obtenir 1.</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-ink" onclick="show('menuScreen')">J'ai compris !</button>
+    </div>
+</div>
+
+<!-- ============ MENU ============ -->
+<div class="screen" id="menuScreen">
+    <h1>Que veux-tu travailler ?</h1>
+    <p class="subtitle">Choisis un exercice 📝</p>
+
+    <div class="section-title" style="margin-top:14px;">🧠 S'entraîner</div>
+    <div class="menu-grid">
+        <div class="menu-card" onclick="startQuiz()">
+            <div class="card-icon">🔢</div>
+            <div class="card-title">Nombres premiers</div>
+            <div class="card-desc">Apprends les nombres premiers de 1 à 30</div>
+        </div>
+    </div>
+
+    <div class="section-title">✏️ Décomposition</div>
+    <div class="menu-grid">
+        <div class="menu-card" onclick="startDecomp(1)">
+            <div class="card-icon">🌱</div>
+            <div class="card-title">Niveau 1</div>
+            <div class="card-desc">Facteurs 2, 3, 5<br>Petits nombres</div>
+        </div>
+        <div class="menu-card" onclick="startDecomp(2)">
+            <div class="card-icon">🌿</div>
+            <div class="card-title">Niveau 2</div>
+            <div class="card-desc">Facteurs jusqu'à 11<br>Nombres moyens</div>
+        </div>
+        <div class="menu-card" onclick="startDecomp(3)">
+            <div class="card-icon">🌳</div>
+            <div class="card-title">Niveau 3</div>
+            <div class="card-desc">Tous les premiers ≤ 29<br>Grands nombres</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-outline" onclick="show('tutorialScreen')">📖 Revoir la méthode</button>
+    </div>
+</div>
+
+<!-- ============ PRIME QUIZ ============ -->
+<div class="screen" id="quizScreen">
+    <h1>Premier ou pas ?</h1>
+
+    <div class="quiz-score-bar">
+        <span>Question <strong id="quizQ">1</strong> / <strong id="quizTotal">15</strong></span>
+        <span>Score : <strong id="quizScore">0</strong></span>
+    </div>
+    <div class="quiz-progress"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+
+    <div class="quiz-number" id="quizNumber">7</div>
+
+    <div class="quiz-feedback" id="quizFeedback"></div>
+
+    <div class="quiz-buttons">
+        <button class="quiz-btn prime" id="btnPrime" onclick="answerQuiz(true)">✓ Premier</button>
+        <button class="quiz-btn not-prime" id="btnNotPrime" onclick="answerQuiz(false)">✗ Pas premier</button>
+    </div>
+
+    <div class="quiz-buttons" style="display:none" id="quizNextZone">
+        <button class="btn btn-ink" onclick="nextQuizQ()">Suivant →</button>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-outline" onclick="show('menuScreen')">← Menu</button>
+    </div>
+
+    <div class="prime-list-spoiler" id="primeSpoiler" style="margin-top:24px;">
+        <span class="spoiler-label">👁️ Maintiens pour voir la liste</span>
+        <span class="spoiler-content">2, 3, 5, 7, 11, 13, 17, 19, 23, 29</span>
+    </div>
+</div>
+
+<!-- ============ DECOMPOSITION ============ -->
+<div class="screen" id="decompScreen">
+    <div class="decomp-header">
+        <div class="decomp-badge" id="decompBadge">Niveau 1</div>
+        <div class="decomp-score">Score : <span id="decompScore">0</span> / <span id="decompTotal">5</span></div>
+    </div>
+
+    <div class="decomp-target">
+        Décompose <strong id="decompNumber">132</strong> en facteurs premiers
+    </div>
+
+    <div class="decomp-table" id="decompTable"></div>
+
+    <div class="step-validate-zone" id="stepValidateZone">
+        <button class="btn btn-green" id="btnStepValidate" onclick="validateStep()">✓ Valider l'étape</button>
+    </div>
+
+    <div class="step-feedback" id="stepFeedback"></div>
+
+    <div class="equality-section" id="equalitySection">
+        <div class="equality-label">Écris l'égalité finale :</div>
+        <div class="equality-row" id="equalityRow"></div>
+        <div class="controls" style="margin-top:12px;">
+            <button class="btn btn-green" id="btnEqValidate" onclick="validateEquality()">✓ Valider l'égalité</button>
+        </div>
+    </div>
+
+    <div class="feedback-box" id="decompFeedback"></div>
+
+    <div class="controls" id="decompControls">
+        <button class="btn btn-ink" id="btnDecompNext" style="display:none" onclick="nextDecomp()">Suivant →</button>
+        <button class="btn btn-outline" id="btnDecompSkip" onclick="skipDecomp()">Passer →</button>
+        <button class="btn btn-outline" onclick="show('menuScreen')">← Menu</button>
+    </div>
+</div>
+
+<!-- ============ RESULTS ============ -->
+<div class="screen" id="resultsScreen">
+    <div class="results-screen">
+        <div class="results-emoji" id="resEmoji">📝</div>
+        <div class="results-score" id="resScore">5 / 5</div>
+        <div class="results-label">Exercices réussis</div>
+        <div class="results-bar"><div class="results-bar-fill" id="resBarFill"></div></div>
+        <div class="results-msg" id="resMsg">Parfait !</div>
+        <button class="btn btn-ink" onclick="show('menuScreen')">Retour au menu</button>
+    </div>
+</div>
+
+</div><!-- /notebook -->
+
+<!-- Calculator (floating, outside notebook) -->
+<button class="calc-toggle" id="calcToggle" onclick="toggleCalc()" title="Calculatrice">🧮</button>
+<div class="calc-panel" id="calcPanel">
+    <div class="calc-title">Calculatrice ÷</div>
+    <div class="calc-row">
+        <input type="number" class="calc-input" id="calcA" placeholder="..." aria-label="Dividende">
+        <span class="calc-op">÷</span>
+        <input type="number" class="calc-input" id="calcB" placeholder="..." aria-label="Diviseur">
+    </div>
+    <button class="calc-go" onclick="doCalc()">Calculer</button>
+    <div class="calc-result" id="calcResult"></div>
+</div>
+
+<script>
+// ============================== SPOILER TOUCH SUPPORT ==============================
+const spoiler = document.getElementById('primeSpoiler');
+spoiler.addEventListener('touchstart', e => { e.preventDefault(); spoiler.classList.add('revealed'); });
+spoiler.addEventListener('touchend', () => spoiler.classList.remove('revealed'));
+spoiler.addEventListener('touchcancel', () => spoiler.classList.remove('revealed'));
+
+// ============================== CALCULATOR ==============================
+function toggleCalc() {
+    const panel = document.getElementById('calcPanel');
+    const btn = document.getElementById('calcToggle');
+    const open = panel.classList.toggle('visible');
+    btn.classList.toggle('open', open);
+    btn.textContent = open ? '+' : '🧮';
+    if (open) {
+        document.getElementById('calcA').value = '';
+        document.getElementById('calcB').value = '';
+        document.getElementById('calcResult').innerHTML = '';
+        document.getElementById('calcA').focus();
+    }
+}
+
+function doCalc() {
+    const a = parseInt(document.getElementById('calcA').value);
+    const b = parseInt(document.getElementById('calcB').value);
+    const res = document.getElementById('calcResult');
+
+    if (isNaN(a) || isNaN(b) || b === 0) {
+        res.innerHTML = '<span style="color:var(--red)">Entrée invalide</span>';
+        return;
+    }
+
+    const q = Math.floor(a / b);
+    const r = a % b;
+
+    if (r === 0) {
+        res.innerHTML = `${a} ÷ ${b} = <span class="cr-q">${q}</span> (pile !)`;
+    } else {
+        res.innerHTML = `${a} ÷ ${b} = <span class="cr-q">${q}</span> reste <span class="cr-r">${r}</span>`;
+    }
+}
+
+// Enter key support for calculator
+document.getElementById('calcA').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('calcB').focus();
+});
+document.getElementById('calcB').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doCalc();
+});
+
+function showCalcButton(visible) {
+    document.getElementById('calcToggle').style.display = visible ? 'block' : 'none';
+    if (!visible) {
+        document.getElementById('calcPanel').classList.remove('visible');
+        document.getElementById('calcToggle').classList.remove('open');
+        document.getElementById('calcToggle').textContent = '🧮';
+    }
+}
+
+// ============================== GLOBALS ==============================
+const PRIMES_30 = [2,3,5,7,11,13,17,19,23,29];
+const TOTAL_DECOMP = 5;
+const TOTAL_QUIZ = 15;
+
+function isPrime(n) {
+    if (n < 2) return false;
+    if (n <= 3) return true;
+    if (n % 2 === 0 || n % 3 === 0) return false;
+    for (let i = 5; i * i <= n; i += 6)
+        if (n % i === 0 || n % (i+2) === 0) return false;
+    return true;
+}
+
+function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function rv(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = ri(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    // Hide calculator when leaving decomp screen
+    if (id !== 'decompScreen') showCalcButton(false);
+}
+
+// ============================== PRIME QUIZ ==============================
+let quizQuestions = [];
+let quizIdx = 0;
+let quizScore = 0;
+
+function startQuiz() {
+    quizIdx = 0;
+    quizScore = 0;
+
+    // Generate 15 questions: mix of primes and non-primes from 1-30
+    const primes = [2,3,5,7,11,13,17,19,23,29];
+    const nonPrimes = [];
+    for (let i = 1; i <= 30; i++) if (!primes.includes(i)) nonPrimes.push(i);
+
+    // Pick ~7 primes and ~8 non-primes
+    const picked = shuffle([...primes]).slice(0, 7)
+        .concat(shuffle([...nonPrimes]).slice(0, 8));
+    quizQuestions = shuffle(picked);
+
+    document.getElementById('quizTotal').textContent = TOTAL_QUIZ;
+    show('quizScreen');
+    showQuizQ();
+}
+
+function showQuizQ() {
+    document.getElementById('quizQ').textContent = quizIdx + 1;
+    document.getElementById('quizScore').textContent = quizScore;
+    document.getElementById('quizProgressFill').style.width = ((quizIdx / TOTAL_QUIZ) * 100) + '%';
+    document.getElementById('quizNumber').textContent = quizQuestions[quizIdx];
+    document.getElementById('quizFeedback').innerHTML = '';
+    document.getElementById('btnPrime').disabled = false;
+    document.getElementById('btnNotPrime').disabled = false;
+    document.getElementById('quizNextZone').style.display = 'none';
+}
+
+function answerQuiz(saidPrime) {
+    const n = quizQuestions[quizIdx];
+    const correct = isPrime(n);
+    const isRight = (saidPrime === correct);
+
+    document.getElementById('btnPrime').disabled = true;
+    document.getElementById('btnNotPrime').disabled = true;
+
+    const fb = document.getElementById('quizFeedback');
+    if (isRight) {
+        quizScore++;
+        document.getElementById('quizScore').textContent = quizScore;
+        fb.innerHTML = `<span style="color:var(--green)">✅ Correct ! ${n} ${correct ? 'est premier' : 'n\'est pas premier'}.</span>`;
+    } else {
+        fb.innerHTML = `<span style="color:var(--red)">❌ Non ! ${n} ${correct ? 'est premier' : 'n\'est pas premier'}.</span>`;
+    }
+
+    document.getElementById('quizNextZone').style.display = 'flex';
+}
+
+function nextQuizQ() {
+    quizIdx++;
+    if (quizIdx >= TOTAL_QUIZ) {
+        showQuizResults();
+    } else {
+        showQuizQ();
+    }
+}
+
+function showQuizResults() {
+    const pct = Math.round(quizScore / TOTAL_QUIZ * 100);
+    const emoji = pct === 100 ? '🏆' : pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '💪';
+    const msg = pct === 100 ? 'Tu connais tous les nombres premiers !'
+               : pct >= 80 ? 'Très bien ! Encore un petit effort.'
+               : pct >= 60 ? 'Pas mal, continue de t\'entraîner !'
+               : 'Révise la liste et réessaie !';
+
+    document.getElementById('resEmoji').textContent = emoji;
+    document.getElementById('resScore').textContent = `${quizScore} / ${TOTAL_QUIZ}`;
+    document.getElementById('resMsg').textContent = msg;
+
+    const barFill = document.getElementById('resBarFill');
+    barFill.className = 'results-bar-fill ' + (pct >= 60 ? 'good' : 'bad');
+    barFill.style.width = '0%';
+    show('resultsScreen');
+    setTimeout(() => barFill.style.width = pct + '%', 100);
+}
+
+// ============================== DECOMPOSITION ==============================
+let decompLevel = 1;
+let decompScoreVal = 0;
+let decompCount = 0;
+let decompTarget = 0;
+let decompCurrent = 0; // current number being divided
+let decompSteps = []; // {number, prime, quotient}
+let decompPhase = 'table'; // 'table' | 'equality'
+let decompCorrectFactors = []; // canonical factors in order
+
+function startDecomp(level) {
+    decompLevel = level;
+    decompScoreVal = 0;
+    decompCount = 0;
+    document.getElementById('decompBadge').textContent = 'Niveau ' + level;
+    document.getElementById('decompScore').textContent = '0';
+    document.getElementById('decompTotal').textContent = TOTAL_DECOMP;
+    showCalcButton(level >= 2);
+    show('decompScreen');
+    generateDecomp();
+}
+
+function generateDecompNumber(level) {
+    const pools = [
+        [2, 3, 5],
+        [2, 3, 5, 7, 11],
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+    ];
+    const ranges = [[12, 100], [20, 300], [50, 800]];
+    const factorCounts = [[2, 4], [2, 4], [2, 5]];
+
+    const pool = pools[level - 1];
+    const [minN, maxN] = ranges[level - 1];
+    const [minF, maxF] = factorCounts[level - 1];
+
+    for (let attempt = 0; attempt < 200; attempt++) {
+        const nf = ri(minF, maxF);
+        let n = 1;
+        for (let i = 0; i < nf; i++) n *= rv(pool);
+        if (n >= minN && n <= maxN) return n;
+    }
+    return rv(pool) * rv(pool); // fallback
+}
+
+function getCanonicalFactors(n) {
+    const factors = [];
+    let d = 2;
+    let temp = n;
+    while (temp > 1) {
+        while (temp % d === 0) {
+            factors.push(d);
+            temp /= d;
+        }
+        d++;
+    }
+    return factors;
+}
+
+function generateDecomp() {
+    decompCount++;
+    decompTarget = generateDecompNumber(decompLevel);
+    decompCurrent = decompTarget;
+    decompSteps = [];
+    decompPhase = 'table';
+    decompCorrectFactors = getCanonicalFactors(decompTarget);
+
+    document.getElementById('decompNumber').textContent = decompTarget;
+    document.getElementById('decompFeedback').className = 'feedback-box';
+    document.getElementById('btnDecompNext').style.display = 'none';
+    document.getElementById('btnDecompSkip').style.display = '';
+    document.getElementById('stepValidateZone').style.display = 'flex';
+    document.getElementById('equalitySection').className = 'equality-section';
+    document.getElementById('stepFeedback').innerHTML = '';
+
+    buildTable();
+}
+
+function buildTable() {
+    const table = document.getElementById('decompTable');
+    table.innerHTML = '';
+
+    // Render completed rows
+    decompSteps.forEach((step, i) => {
+        table.appendChild(makeRow(
+            `<span class="decomp-val ${i === 0 ? 'given' : 'quotient'}">${step.number}</span>`,
+            `<span class="decomp-val prime">${step.prime}</span>`
+        ));
+    });
+
+    if (decompPhase === 'table') {
+        // Active row: current number (locked) + prime input
+        const primeInput = document.createElement('input');
+        primeInput.type = 'number';
+        primeInput.className = 'decomp-input red-input';
+        primeInput.id = 'inputPrime';
+        primeInput.min = '2';
+        primeInput.placeholder = '?';
+
+        const isFirst = decompSteps.length === 0;
+        table.appendChild(makeRow(
+            `<span class="decomp-val ${isFirst ? 'given' : 'quotient'}">${decompCurrent}</span>`,
+            primeInput
+        ));
+
+        // Quotient input row
+        const quotientInput = document.createElement('input');
+        quotientInput.type = 'number';
+        quotientInput.className = 'decomp-input';
+        quotientInput.id = 'inputQuotient';
+        quotientInput.min = '1';
+        quotientInput.placeholder = '?';
+
+        table.appendChild(makeRow(quotientInput, ''));
+
+        // Focus prime input
+        setTimeout(() => primeInput.focus(), 50);
+
+        // Enter key handling
+        primeInput.addEventListener('keydown', e => { if (e.key === 'Enter') quotientInput.focus(); });
+        quotientInput.addEventListener('keydown', e => { if (e.key === 'Enter') validateStep(); });
+    } else {
+        // Show final "1"
+        table.appendChild(makeRow(
+            `<span class="decomp-val final">1</span>`, ''
+        ));
+    }
+}
+
+function makeRow(leftContent, rightContent) {
+    const row = document.createElement('div');
+    row.className = 'decomp-row';
+
+    const left = document.createElement('div');
+    left.className = 'decomp-left';
+    if (typeof leftContent === 'string') left.innerHTML = leftContent;
+    else left.appendChild(leftContent);
+
+    const right = document.createElement('div');
+    right.className = 'decomp-right';
+    if (typeof rightContent === 'string') right.innerHTML = rightContent;
+    else if (rightContent) right.appendChild(rightContent);
+
+    row.appendChild(left);
+    row.appendChild(right);
+    return row;
+}
+
+function validateStep() {
+    const primeEl = document.getElementById('inputPrime');
+    const quotientEl = document.getElementById('inputQuotient');
+    if (!primeEl || !quotientEl) return;
+
+    const p = parseInt(primeEl.value);
+    const q = parseInt(quotientEl.value);
+    const fb = document.getElementById('stepFeedback');
+
+    // Reset styles
+    primeEl.classList.remove('error');
+    quotientEl.classList.remove('error');
+
+    // Validate prime
+    if (isNaN(p) || p < 2) {
+        primeEl.classList.add('error');
+        fb.innerHTML = `<span style="color:var(--red)">Entre un nombre premier valide.</span>`;
+        primeEl.focus();
+        return;
+    }
+
+    if (!isPrime(p)) {
+        primeEl.classList.add('error');
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${p} n'est pas un nombre premier !</span>`;
+        primeEl.focus();
+        return;
+    }
+
+    if (decompCurrent % p !== 0) {
+        primeEl.classList.add('error');
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${decompCurrent} n'est pas divisible par ${p}.</span>`;
+        primeEl.focus();
+        return;
+    }
+
+    // Validate quotient
+    const expected = decompCurrent / p;
+    if (isNaN(q)) {
+        quotientEl.classList.add('error');
+        fb.innerHTML = `<span style="color:var(--red)">Entre le résultat de ${decompCurrent} ÷ ${p}.</span>`;
+        quotientEl.focus();
+        return;
+    }
+
+    if (q !== expected) {
+        quotientEl.classList.add('error');
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${decompCurrent} ÷ ${p} ne fait pas ${q}…</span>`;
+        quotientEl.focus();
+        return;
+    }
+
+    // Correct!
+    fb.innerHTML = `<span style="color:var(--green)">✅ ${decompCurrent} ÷ ${p} = ${q}</span>`;
+
+    decompSteps.push({ number: decompCurrent, prime: p, quotient: q });
+    decompCurrent = q;
+
+    if (q === 1) {
+        // Decomposition complete → show equality
+        decompPhase = 'equality';
+        document.getElementById('stepValidateZone').style.display = 'none';
+        setTimeout(() => {
+            fb.innerHTML = `<span style="color:var(--green)">✅ Décomposition terminée ! Écris l'égalité.</span>`;
+            buildTable();
+            showEquality();
+        }, 600);
+    } else {
+        setTimeout(() => {
+            fb.innerHTML = '';
+            buildTable();
+        }, 500);
+    }
+}
+
+// ============================== EQUALITY ==============================
+function showEquality() {
+    const section = document.getElementById('equalitySection');
+    section.className = 'equality-section active';
+
+    const row = document.getElementById('equalityRow');
+    row.innerHTML = '';
+
+    // N =
+    const numSpan = document.createElement('span');
+    numSpan.className = 'eq-number';
+    numSpan.textContent = decompTarget;
+    row.appendChild(numSpan);
+
+    const eqSign = document.createElement('span');
+    eqSign.className = 'eq-sign';
+    eqSign.textContent = ' = ';
+    row.appendChild(eqSign);
+
+    // Factor inputs
+    const numFactors = decompSteps.length;
+    for (let i = 0; i < numFactors; i++) {
+        if (i > 0) {
+            const times = document.createElement('span');
+            times.className = 'eq-sign';
+            times.textContent = ' × ';
+            row.appendChild(times);
+        }
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'eq-factor-input';
+        input.min = '2';
+        input.id = 'eqFactor' + i;
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const nextInput = document.getElementById('eqFactor' + (i + 1));
+                if (nextInput) nextInput.focus();
+                else validateEquality();
+            }
+        });
+        row.appendChild(input);
+    }
+
+    setTimeout(() => document.getElementById('eqFactor0').focus(), 100);
+}
+
+function validateEquality() {
+    const numFactors = decompSteps.length;
+    const userFactors = [];
+    let hasError = false;
+
+    for (let i = 0; i < numFactors; i++) {
+        const el = document.getElementById('eqFactor' + i);
+        const val = parseInt(el.value);
+        el.classList.remove('error', 'locked');
+        if (isNaN(val) || val < 2) {
+            el.classList.add('error');
+            hasError = true;
+        } else {
+            userFactors.push(val);
+        }
+    }
+
+    if (hasError) {
+        showDecompFeedback(false, 'Remplis tous les facteurs.');
+        return;
+    }
+
+    // Check: product matches AND all are prime AND multiset matches canonical
+    const userProduct = userFactors.reduce((a, b) => a * b, 1);
+
+    if (userProduct !== decompTarget) {
+        showDecompFeedback(false, `Le produit de tes facteurs vaut ${userProduct}, pas ${decompTarget}.`);
+        return;
+    }
+
+    for (let i = 0; i < userFactors.length; i++) {
+        if (!isPrime(userFactors[i])) {
+            document.getElementById('eqFactor' + i).classList.add('error');
+            showDecompFeedback(false, `${userFactors[i]} n'est pas un nombre premier !`);
+            return;
+        }
+    }
+
+    // Check multiset match
+    const sortedUser = [...userFactors].sort((a, b) => a - b);
+    const sortedCorrect = [...decompCorrectFactors].sort((a, b) => a - b);
+
+    if (sortedUser.length !== sortedCorrect.length || !sortedUser.every((v, i) => v === sortedCorrect[i])) {
+        showDecompFeedback(false, 'Les facteurs ne correspondent pas à la décomposition.');
+        return;
+    }
+
+    // Correct!
+    for (let i = 0; i < numFactors; i++) {
+        document.getElementById('eqFactor' + i).classList.add('locked');
+    }
+
+    decompScoreVal++;
+    document.getElementById('decompScore').textContent = decompScoreVal;
+    showDecompFeedback(true, `${decompTarget} = ${sortedCorrect.join(' × ')}`);
+    endDecompExercise();
+}
+
+function showDecompFeedback(correct, msg) {
+    const fb = document.getElementById('decompFeedback');
+    fb.className = 'feedback-box ' + (correct ? 'correct' : 'incorrect');
+    fb.innerHTML = (correct ? '✅ Bravo ! ' : '❌ ') + msg;
+}
+
+function endDecompExercise() {
+    document.getElementById('btnDecompSkip').style.display = 'none';
+    document.getElementById('btnDecompNext').style.display = '';
+    document.getElementById('stepValidateZone').style.display = 'none';
+    document.getElementById('btnEqValidate').style.display = 'none';
+}
+
+function skipDecomp() {
+    const factors = decompCorrectFactors;
+    showDecompFeedback(false, `La décomposition de ${decompTarget} est : ${decompTarget} = ${factors.join(' × ')}`);
+    decompPhase = 'done';
+    document.getElementById('stepValidateZone').style.display = 'none';
+    document.getElementById('equalitySection').className = 'equality-section';
+    endDecompExercise();
+}
+
+function nextDecomp() {
+    if (decompCount >= TOTAL_DECOMP) {
+        showDecompResults();
+    } else {
+        document.getElementById('btnEqValidate').style.display = '';
+        generateDecomp();
+    }
+}
+
+function showDecompResults() {
+    const pct = Math.round(decompScoreVal / TOTAL_DECOMP * 100);
+    const emoji = pct === 100 ? '🏆' : pct >= 80 ? '📝' : pct >= 60 ? '✏️' : '💪';
+    const msg = pct === 100 ? 'Maîtrise parfaite !'
+               : pct >= 80 ? 'Très bien !'
+               : pct >= 60 ? 'Continue de t\'entraîner !'
+               : 'Révise la méthode et réessaie !';
+
+    document.getElementById('resEmoji').textContent = emoji;
+    document.getElementById('resScore').textContent = `${decompScoreVal} / ${TOTAL_DECOMP}`;
+    document.getElementById('resMsg').textContent = msg;
+
+    const barFill = document.getElementById('resBarFill');
+    barFill.className = 'results-bar-fill ' + (pct >= 60 ? 'good' : 'bad');
+    barFill.style.width = '0%';
+    show('resultsScreen');
+    setTimeout(() => barFill.style.width = pct + '%', 100);
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
