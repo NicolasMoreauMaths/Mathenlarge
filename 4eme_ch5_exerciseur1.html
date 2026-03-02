@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcul Littéral - Simplification</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --violet: #6d28d9;
+    --violet-light: #8b5cf6;
+    --violet-glow: rgba(109,40,217,0.25);
+    --fuchsia: #a855f7;
+    --emerald: #10b981;
+    --emerald-dark: #059669;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --slate: #1e293b;
+    --slate-mid: #64748b;
+    --bg-warm: #faf5ff;
+    --card-border: #e9d5ff;
+    --radius: 20px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 8px 30px rgba(109,40,217,0.12);
+    --shadow-lg: 0 16px 50px rgba(109,40,217,0.18);
+}
+
+body {
+    font-family: 'Nunito', 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(160deg, #ede9fe 0%, #e0d4fc 25%, #d8c8f8 50%, #f3e8ff 75%, #faf5ff 100%);
+    background-attachment: fixed;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Subtle background pattern */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(139,92,246,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(168,85,247,0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(109,40,217,0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.container {
+    background: white;
+    border-radius: 28px;
+    padding: 36px 32px;
+    max-width: 860px;
+    width: 100%;
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(109,40,217,0.06);
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(233,213,255,0.6);
+}
+
+h1 {
+    font-size: 2em;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--violet), var(--fuchsia));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 1.05em;
+    color: var(--slate-mid);
+    font-weight: 700;
+    margin-bottom: 28px;
+}
+
+/* MATH TYPOGRAPHY */
+.mv {
+    font-style: italic;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 1em;
+    letter-spacing: 0.02em;
+}
+.expr-display .mv { font-size: inherit; }
+
+/* ======================== SCREENS ======================== */
+.screen { display: none; animation: fadeIn 0.4s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ======================== INTRO ======================== */
+.intro-screen { text-align: center; padding: 30px 0 10px; }
+
+.intro-fruits {
+    font-size: 4em;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.intro-fruits span {
+    display: inline-block;
+    animation: fruitBounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+.intro-fruits span:nth-child(2) { animation-delay: 0.15s; }
+.intro-fruits span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fruitBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.intro-desc {
+    color: var(--slate-mid);
+    font-size: 1em;
+    font-weight: 600;
+    max-width: 420px;
+    margin: 0 auto 30px;
+    line-height: 1.6;
+}
+
+.start-btn {
+    background: linear-gradient(135deg, var(--violet), var(--fuchsia));
+    color: white;
+    border: none;
+    padding: 18px 52px;
+    border-radius: 50px;
+    font-size: 1.25em;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Nunito', sans-serif;
+    box-shadow: 0 6px 24px var(--violet-glow);
+    letter-spacing: 0.3px;
+    min-height: 56px;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.start-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px var(--violet-glow);
+}
+.start-btn:active { transform: translateY(0); }
+
+/* ======================== TUTORIEL ======================== */
+.tuto-box {
+    background: linear-gradient(145deg, #fefce8, #fef9c3);
+    border: 2px solid #fbbf24;
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
+}
+
+.tuto-title {
+    font-size: 1.4em;
+    color: #92400e;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.tuto-section { margin-bottom: 18px; }
+.tuto-h { font-size: 1.05em; color: #78350f; font-weight: 800; margin-bottom: 10px; }
+
+.ex {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin: 10px 0;
+    border: 2px solid #fde68a;
+    box-shadow: 0 2px 6px rgba(251,191,36,0.1);
+}
+
+.ex-expr {
+    font-size: 1.5em;
+    text-align: center;
+    font-weight: 700;
+    color: var(--slate);
+    margin: 8px 0;
+}
+.ex-txt { text-align: center; color: var(--slate-mid); font-size: 0.95em; font-weight: 600; }
+.ex-rep {
+    text-align: center;
+    color: var(--emerald-dark);
+    font-weight: 700;
+    font-size: 0.95em;
+    margin-top: 6px;
+    background: #ecfdf5;
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: inline-block;
+}
+
+.continue-btn {
+    background: linear-gradient(135deg, var(--violet), var(--fuchsia));
+    color: white;
+    border: none;
+    padding: 16px 44px;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: 800;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+    font-family: 'Nunito', sans-serif;
+    box-shadow: 0 6px 20px var(--violet-glow);
+    min-height: 52px;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.continue-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 28px var(--violet-glow); }
+
+/* ======================== MENU NIVEAUX ======================== */
+.levels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.level-card {
+    background: white;
+    border: 2px solid var(--card-border);
+    border-radius: 20px;
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 140px;
+    touch-action: manipulation;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.level-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(109,40,217,0.04), rgba(168,85,247,0.04));
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+
+.level-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--violet-light);
+    box-shadow: 0 12px 32px var(--violet-glow);
+}
+.level-card:hover::before { opacity: 1; }
+
+.level-icon { font-size: 2.4em; margin-bottom: 8px; position: relative; z-index: 1; }
+.level-title { font-size: 1.05em; font-weight: 800; color: var(--slate); margin-bottom: 4px; position: relative; z-index: 1; }
+.level-desc { font-size: 0.82em; color: var(--slate-mid); font-weight: 600; position: relative; z-index: 1; }
+
+/* ======================== EXERCICE ======================== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.level-badge {
+    background: linear-gradient(135deg, var(--violet), var(--fuchsia));
+    color: white;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 0.95em;
+    letter-spacing: 0.3px;
+    box-shadow: 0 3px 12px var(--violet-glow);
+}
+
+.score-display {
+    font-size: 1.1em;
+    font-weight: 800;
+    color: var(--slate);
+    background: #f8fafc;
+    padding: 8px 18px;
+    border-radius: 50px;
+    border: 2px solid #e2e8f0;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    background: #f1f5f9;
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet), var(--fuchsia));
+    border-radius: 10px;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    width: 0%;
+}
+
+.exercise-box {
+    background: linear-gradient(145deg, #f5f0ff, #ede5ff);
+    border: 2px solid #d8b4fe;
+    border-radius: 24px;
+    padding: 32px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+    box-shadow: inset 0 2px 8px rgba(109,40,217,0.04);
+}
+
+.q-label {
+    font-size: 1em;
+    color: var(--violet);
+    font-weight: 800;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.expr-display {
+    font-size: 2.3em;
+    font-weight: 800;
+    color: var(--slate);
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    margin: 14px 0;
+    line-height: 1.4;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    border: 1px solid rgba(216,180,254,0.4);
+}
+
+.equals-sign {
+    font-size: 1.8em;
+    color: var(--violet);
+    margin: 8px 0;
+    font-weight: 800;
+}
+
+/* ZONE RÉPONSE */
+.answer-zone { margin: 14px 0; }
+
+.answer-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 3px solid var(--violet-light);
+    border-radius: 16px;
+    padding: 10px 15px;
+    min-width: 200px;
+    flex-wrap: wrap;
+    min-height: 60px;
+    cursor: text;
+    transition: all 0.25s ease;
+    justify-content: flex-start;
+    box-shadow: 0 2px 8px rgba(109,40,217,0.06);
+}
+
+.answer-field:focus-within {
+    border-color: var(--fuchsia);
+    box-shadow: 0 0 0 4px rgba(168,85,247,0.12), 0 4px 12px rgba(109,40,217,0.08);
+}
+
+.answer-field.correct {
+    background: linear-gradient(135deg, #d1fae5, #ecfdf5);
+    border-color: var(--emerald);
+    box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
+}
+
+.answer-field.incorrect {
+    background: linear-gradient(135deg, #fee2e2, #fef2f2);
+    border-color: var(--red);
+    animation: shake 0.5s;
+    box-shadow: 0 0 0 4px rgba(239,68,68,0.1);
+}
+
+.ans-number-input {
+    font-size: 1.8em;
+    font-weight: 700;
+    width: 70px;
+    min-width: 50px;
+    border: none;
+    outline: none;
+    background: transparent;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    color: var(--slate);
+}
+
+.ans-number-input.full-width {
+    width: 100%;
+    flex: 1;
+    text-align: left;
+    padding-left: 8px;
+    font-size: 1.6em;
+}
+
+.ans-token {
+    font-size: 1.8em;
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+    border: 2px solid #a7f3d0;
+    border-radius: 10px;
+    padding: 3px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: default;
+    user-select: none;
+    transition: all 0.15s;
+}
+
+.ans-token .remove-tok {
+    font-size: 0.45em;
+    cursor: pointer;
+    color: var(--red);
+    font-weight: 900;
+    line-height: 1;
+    background: #fee2e2;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.ans-token .remove-tok:hover { background: #fca5a5; color: #991b1b; }
+
+/* CORBEILLE EN BOIS */
+.basket-zone { margin-top: 16px; }
+
+.basket-label {
+    font-size: 0.9em;
+    color: var(--violet);
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: center;
+}
+
+.basket {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    background: linear-gradient(145deg, #8B5E3C, #A67B5B 40%, #8B5E3C 100%);
+    border-radius: 20px;
+    padding: 16px 14px;
+    border: 3px solid #6B4226;
+    box-shadow: inset 0 3px 10px rgba(0,0,0,0.18), 0 6px 16px rgba(90,52,32,0.2);
+    position: relative;
+}
+
+/* Wood grain texture */
+.basket::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 17px;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 20px,
+        rgba(0,0,0,0.03) 20px,
+        rgba(0,0,0,0.03) 21px
+    );
+    pointer-events: none;
+}
+
+.basket-item {
+    font-size: 1.8em;
+    cursor: pointer;
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 14px;
+    padding: 10px 16px;
+    transition: all 0.2s ease;
+    user-select: none;
+    backdrop-filter: blur(2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 1;
+    min-height: 48px;
+    min-width: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+}
+.basket-item:hover {
+    background: rgba(255,255,255,0.85);
+    border-color: var(--violet);
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgba(109,40,217,0.25);
+}
+.basket-item:active { transform: scale(0.95); }
+
+/* ======================== BOUTONS ======================== */
+.controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 13px 26px;
+    border-radius: 50px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 2px solid;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95em;
+    letter-spacing: 0.2px;
+    min-height: 46px;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+
+.btn-validate {
+    background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+    color: white;
+    border-color: var(--emerald);
+    box-shadow: 0 4px 16px rgba(16,185,129,0.25);
+}
+.btn-validate:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(16,185,129,0.35);
+}
+
+.btn-next {
+    background: linear-gradient(135deg, var(--violet), var(--fuchsia));
+    color: white;
+    border-color: var(--violet);
+    box-shadow: 0 4px 16px var(--violet-glow);
+}
+.btn-next:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px var(--violet-glow);
+}
+
+.btn-skip {
+    background: white;
+    color: var(--slate-mid);
+    border-color: #e2e8f0;
+}
+.btn-skip:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-back {
+    background: white;
+    color: var(--violet);
+    border-color: var(--violet-light);
+}
+.btn-back:hover { background: #faf5ff; }
+
+/* ======================== FEEDBACK ======================== */
+.feedback-box {
+    margin-top: 20px;
+    padding: 20px 24px;
+    border-radius: 18px;
+    font-size: 1.05em;
+    font-weight: 700;
+    text-align: center;
+    display: none;
+    animation: feedbackSlide 0.4s ease;
+}
+
+@keyframes feedbackSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.feedback-box.correct {
+    background: linear-gradient(145deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    border: 2px solid var(--emerald);
+    display: block;
+    box-shadow: 0 4px 16px rgba(16,185,129,0.15);
+}
+
+.feedback-box.incorrect {
+    background: linear-gradient(145deg, #fee2e2, #fecaca);
+    color: #991b1b;
+    border: 2px solid var(--red);
+    display: block;
+    box-shadow: 0 4px 16px rgba(239,68,68,0.12);
+}
+
+.expl {
+    margin-top: 12px;
+    padding: 14px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 12px;
+    font-size: 0.88em;
+    color: #475569;
+    line-height: 1.6;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+}
+
+/* ======================== RESULTS OVERLAY ======================== */
+.results-overlay {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+.results-overlay.active { display: block; text-align: center; padding: 20px 0; }
+
+.results-emoji { font-size: 4em; margin-bottom: 16px; }
+
+.results-score {
+    font-size: 3em;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--violet), var(--fuchsia));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+}
+
+.results-label { font-size: 1.2em; font-weight: 700; color: var(--slate-mid); margin-bottom: 24px; }
+
+.results-bar {
+    width: 100%;
+    max-width: 300px;
+    height: 12px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    margin: 0 auto 24px;
+    overflow: hidden;
+}
+
+.results-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+    width: 0%;
+}
+
+.results-bar-fill.good { background: linear-gradient(90deg, var(--emerald), #34d399); }
+.results-bar-fill.bad { background: linear-gradient(90deg, var(--red), #f87171); }
+
+.results-msg {
+    font-size: 1.3em;
+    font-weight: 800;
+    color: var(--slate);
+    margin-bottom: 24px;
+}
+
+/* ======================== CONFETTI ======================== */
+.confetti-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+}
+
+@keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ======================== ANIMATIONS ======================== */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+}
+
+@keyframes popIn {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* ======================== RESPONSIVE ======================== */
+/* ======================== RESPONSIVE ======================== */
+@media (max-width: 768px) {
+    body { padding: 20px 12px; }
+    .container { padding: 30px 24px; border-radius: 24px; }
+    h1 { font-size: 1.75em; }
+    .subtitle { font-size: 1em; }
+    .intro-fruits { font-size: 3.4em; margin-bottom: 18px; }
+    .intro-desc { font-size: 0.95em; max-width: 100%; }
+    .start-btn { padding: 16px 46px; font-size: 1.15em; min-height: 54px; }
+    .continue-btn { padding: 15px 40px; font-size: 1.05em; min-height: 50px; }
+    .levels-grid { grid-template-columns: 1fr; gap: 12px; }
+    .level-card { padding: 20px 14px; min-height: 130px; }
+    .level-icon { font-size: 2.2em; }
+    .tuto-box { padding: 24px 20px; }
+    .tuto-title { font-size: 1.3em; }
+    .ex-expr { font-size: 1.4em; }
+    .expr-display { font-size: 2em; padding: 18px; }
+    .answer-field { padding: 10px 14px; min-height: 56px; gap: 7px; }
+    .ans-number-input { font-size: 1.6em; width: 65px; }
+    .ans-token { font-size: 1.6em; padding: 3px 9px; }
+    .basket { padding: 15px 13px; }
+    .basket-item { font-size: 1.65em; padding: 9px 15px; min-height: 46px; min-width: 46px; }
+    .btn { padding: 12px 24px; font-size: 0.92em; min-height: 44px; }
+    .controls { gap: 10px; }
+}
+
+@media (max-width: 600px) {
+    body { padding: 18px 10px; }
+    .container { padding: 24px 18px; border-radius: 22px; }
+    h1 { font-size: 1.6em; }
+    .subtitle { font-size: 0.95em; }
+    .intro-fruits { font-size: 3em; margin-bottom: 16px; }
+    .intro-desc { font-size: 0.92em; line-height: 1.55; margin-bottom: 26px; }
+    .start-btn { padding: 15px 40px; font-size: 1.1em; min-height: 52px; }
+    .continue-btn { padding: 14px 36px; font-size: 1em; min-height: 48px; }
+    .level-card { padding: 18px 12px; min-height: 120px; }
+    .level-icon { font-size: 2em; margin-bottom: 6px; }
+    .level-title { font-size: 1em; }
+    .level-desc { font-size: 0.8em; }
+    .tuto-box { padding: 22px 18px; border-radius: 18px; }
+    .tuto-title { font-size: 1.2em; }
+    .tuto-h { font-size: 1em; }
+    .ex { padding: 14px 18px; }
+    .ex-expr { font-size: 1.3em; }
+    .ex-txt { font-size: 0.9em; }
+    .ex-rep { font-size: 0.9em; padding: 7px 11px; }
+    .exercise-box { padding: 28px 20px; border-radius: 22px; }
+    .q-label { font-size: 0.95em; }
+    .expr-display { font-size: 1.8em; padding: 16px; }
+    .equals-sign { font-size: 1.6em; }
+    .answer-zone { margin: 12px 0; }
+    .answer-field { padding: 9px 12px; min-height: 54px; gap: 6px; }
+    .ans-number-input { font-size: 1.5em; width: 60px; min-width: 45px; }
+    .ans-number-input.full-width { font-size: 1.4em; }
+    .ans-token { font-size: 1.5em; padding: 3px 8px; }
+    .basket-label { font-size: 0.85em; }
+    .basket { padding: 14px 12px; border-radius: 18px; }
+    .basket-item { font-size: 1.5em; padding: 8px 14px; min-height: 44px; min-width: 44px; }
+    .btn { padding: 11px 22px; font-size: 0.9em; min-height: 42px; }
+    .controls { gap: 9px; }
+    .level-badge { padding: 7px 18px; font-size: 0.9em; }
+    .score-display { padding: 7px 16px; font-size: 1.05em; }
+    .feedback-box { padding: 18px 20px; font-size: 1em; }
+    .expl { font-size: 0.85em; padding: 12px; }
+    .results-emoji { font-size: 3.5em; }
+    .results-score { font-size: 2.6em; }
+    .results-label { font-size: 1.15em; }
+}
+
+@media (max-width: 450px) {
+    body { padding: 16px 8px; }
+    .container { padding: 22px 16px; border-radius: 20px; }
+    h1 { font-size: 1.45em; }
+    .subtitle { font-size: 0.9em; }
+    .intro-fruits { font-size: 2.7em; gap: 6px; }
+    .intro-desc { font-size: 0.88em; margin-bottom: 24px; }
+    .start-btn { padding: 14px 36px; font-size: 1.05em; min-height: 50px; }
+    .continue-btn { padding: 13px 32px; font-size: 0.95em; min-height: 46px; }
+    .level-card { padding: 16px 10px; min-height: 110px; }
+    .level-icon { font-size: 1.8em; }
+    .level-title { font-size: 0.95em; }
+    .level-desc { font-size: 0.78em; }
+    .tuto-box { padding: 20px 16px; }
+    .tuto-title { font-size: 1.15em; }
+    .tuto-h { font-size: 0.98em; }
+    .ex { padding: 13px 16px; }
+    .ex-expr { font-size: 1.2em; }
+    .exercise-box { padding: 26px 18px; }
+    .expr-display { font-size: 1.6em; padding: 14px; }
+    .equals-sign { font-size: 1.5em; }
+    .answer-field { padding: 8px 11px; min-height: 52px; }
+    .ans-number-input { font-size: 1.4em; width: 55px; min-width: 42px; }
+    .ans-number-input.full-width { font-size: 1.3em; }
+    .ans-token { font-size: 1.4em; padding: 2px 7px; }
+    .basket { padding: 13px 11px; }
+    .basket-item { font-size: 1.4em; padding: 7px 13px; min-height: 42px; min-width: 42px; }
+    .btn { padding: 10px 20px; font-size: 0.88em; min-height: 40px; }
+    .controls { gap: 8px; }
+    .level-badge { padding: 6px 16px; font-size: 0.88em; }
+    .score-display { padding: 6px 14px; font-size: 1em; }
+    .header { gap: 8px; }
+    .feedback-box { padding: 16px 18px; font-size: 0.98em; }
+    .expl { font-size: 0.82em; }
+    .results-emoji { font-size: 3.2em; }
+    .results-score { font-size: 2.4em; }
+    .results-label { font-size: 1.1em; }
+}
+
+@media (max-width: 380px) {
+    .container { padding: 20px 14px; }
+    h1 { font-size: 1.35em; }
+    .intro-fruits { font-size: 2.5em; }
+    .start-btn { padding: 13px 32px; font-size: 1em; min-height: 48px; }
+    .continue-btn { padding: 12px 28px; font-size: 0.92em; }
+    .level-card { padding: 14px 8px; min-height: 100px; }
+    .level-icon { font-size: 1.6em; }
+    .level-title { font-size: 0.9em; }
+    .expr-display { font-size: 1.5em; padding: 13px; }
+    .answer-field { min-height: 50px; }
+    .ans-number-input { font-size: 1.3em; width: 50px; }
+    .ans-token { font-size: 1.3em; }
+    .basket-item { font-size: 1.3em; padding: 6px 12px; min-height: 40px; min-width: 40px; }
+    .btn { padding: 9px 18px; font-size: 0.85em; }
+    .results-emoji { font-size: 3em; }
+    .results-score { font-size: 2.2em; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- INTRO -->
+<div class="screen active" id="introScreen">
+    <div class="intro-screen">
+        <div class="intro-fruits">
+            <span>🍓</span><span>🍒</span><span>🍊</span>
+        </div>
+        <h1>Calcul Littéral</h1>
+        <p class="subtitle">Simplifie les expressions avec des fruits et des lettres !</p>
+        <p class="intro-desc">Apprends à simplifier des expressions mathématiques en commençant avec des fruits, puis en passant aux lettres comme les vrais pros !</p>
+        <button class="start-btn" onclick="show('tutorialScreen')">Commencer</button>
+    </div>
+</div>
+
+<!-- TUTORIEL -->
+<div class="screen" id="tutorialScreen">
+    <h1>📚 Comment ça marche ?</h1>
+    <div class="tuto-box">
+        <div class="tuto-title">Les fruits, c'est comme des lettres !</div>
+
+        <div class="tuto-section">
+            <div class="tuto-h">🍓 Des fruits identiques : on additionne !</div>
+            <div class="ex">
+                <div class="ex-expr">🍓🍓🍓 + 🍓🍓 = 🍓🍓🍓🍓🍓</div>
+                <div class="ex-txt">3 fraises + 2 fraises = 5 fraises</div>
+                <div class="ex-rep">✏️ Tu tapes <b>5</b> puis cliques sur 🍓 dans la corbeille</div>
+            </div>
+        </div>
+
+        <div class="tuto-section">
+            <div class="tuto-h">🍓🍊 Des fruits différents : on ne peut pas les mélanger !</div>
+            <div class="ex">
+                <div class="ex-expr">🍓🍓 + 🍊🍊🍊 = 🍓🍓 + 🍊🍊🍊</div>
+                <div class="ex-txt">2 fraises + 3 oranges restent séparés</div>
+                <div class="ex-rep">✏️ Tu tapes <b>2</b>, cliques 🍓, tapes <b>+3</b>, cliques 🍊</div>
+            </div>
+        </div>
+
+        <div class="tuto-section">
+            <div class="tuto-h">✨ Règles avec les lettres</div>
+            <div class="ex">
+                <div class="ex-expr">1<span class="mv">x</span> = <span class="mv">x</span> &nbsp;|&nbsp; 2×<span class="mv">x</span> = 2<span class="mv">x</span> &nbsp;|&nbsp; <span class="mv">x</span>×<span class="mv">x</span> = <span class="mv">x</span>² &nbsp;|&nbsp; <span class="mv">x</span>×<span class="mv">x</span>×<span class="mv">x</span> = <span class="mv">x</span>³</div>
+            </div>
+        </div>
+    </div>
+    <button class="continue-btn" onclick="show('levelMenu')">C'est parti ! 🚀</button>
+</div>
+
+<!-- MENU NIVEAUX -->
+<div class="screen" id="levelMenu">
+    <h1>Choisis ton niveau</h1>
+    <p class="subtitle">Progresse étape par étape !</p>
+    <div class="levels-grid">
+        <div class="level-card" onclick="startLevel(1)">
+            <div class="level-icon">🍓🍒</div>
+            <div class="level-title">Niveau 1</div>
+            <div class="level-desc">Additionner des fruits</div>
+        </div>
+        <div class="level-card" onclick="startLevel(2)">
+            <div class="level-icon">✖️🍊</div>
+            <div class="level-title">Niveau 2</div>
+            <div class="level-desc">Multiplier des fruits</div>
+        </div>
+        <div class="level-card" onclick="startLevel(3)">
+            <div class="level-icon">🔤</div>
+            <div class="level-title">Niveau 3</div>
+            <div class="level-desc">Lettres simples</div>
+        </div>
+        <div class="level-card" onclick="startLevel(4)">
+            <div class="level-icon">✨</div>
+            <div class="level-title">Niveau 4</div>
+            <div class="level-desc">Simplifications</div>
+        </div>
+        <div class="level-card" onclick="startLevel(5)">
+            <div class="level-icon">🎯</div>
+            <div class="level-title">Niveau 5</div>
+            <div class="level-desc">Expressions mixtes</div>
+        </div>
+    </div>
+</div>
+
+<!-- EXERCICE -->
+<div class="screen" id="exerciseScreen">
+    <div class="header">
+        <div class="level-badge" id="levelBadge">Niveau 1</div>
+        <div class="score-display">Score : <span id="score">0</span> / <span id="total">5</span></div>
+    </div>
+
+    <div class="progress-bar-wrapper">
+        <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+
+    <div class="exercise-box">
+        <div class="q-label">Simplifie l'expression :</div>
+        <div class="expr-display" id="expression"></div>
+        <div class="equals-sign">=</div>
+
+        <div class="answer-zone">
+            <div class="answer-field" id="answerField" onclick="focusTextInput()">
+                <input type="text" id="textInput" class="ans-number-input" placeholder="…" autocomplete="off">
+            </div>
+
+            <div class="basket-zone" id="basketZone" style="margin-top:16px;">
+                <div class="basket-label">Clique sur un élément pour l'ajouter 🧺</div>
+                <div class="basket" id="basket"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-validate" id="btnValidate" onclick="validateAnswer()">✓ Valider</button>
+        <button class="btn btn-next" id="btnNext" style="display:none" onclick="nextExercise()">Suivant →</button>
+        <button class="btn btn-skip" id="btnSkip" onclick="skipExercise()">Passer →</button>
+        <button class="btn btn-back" onclick="show('levelMenu')">← Menu</button>
+    </div>
+
+    <div class="feedback-box" id="feedback"></div>
+</div>
+
+<!-- RÉSULTATS -->
+<div class="screen" id="resultsScreen">
+    <div class="results-overlay active">
+        <div class="results-emoji" id="resultsEmoji">🏆</div>
+        <div class="results-score" id="resultsScore">5/5</div>
+        <div class="results-label">Exercices réussis</div>
+        <div class="results-bar">
+            <div class="results-bar-fill" id="resultsBarFill"></div>
+        </div>
+        <div class="results-msg" id="resultsMsg">Parfait !</div>
+        <button class="start-btn" onclick="show('levelMenu')">Rejouer</button>
+    </div>
+</div>
+
+</div>
+
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+let currentLevel = 1;
+let score = 0;
+let exCount = 0;
+const TOTAL = 5;
+let currentEx = null;
+let tokens = [];
+
+const FRUITS = {
+    a: { emoji: '🍓', name: 'fraise' },
+    b: { emoji: '🍒', name: 'cerise' },
+    c: { emoji: '🍊', name: 'orange' }
+};
+
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function startLevel(lvl) {
+    currentLevel = lvl;
+    score = 0; exCount = 0;
+    document.getElementById('levelBadge').textContent = 'Niveau ' + lvl;
+    document.getElementById('score').textContent = '0';
+    document.getElementById('total').textContent = TOTAL;
+    updateProgress();
+    show('exerciseScreen');
+    generateExercise();
+}
+
+function updateProgress() {
+    const pct = (exCount / TOTAL) * 100;
+    document.getElementById('progressFill').style.width = Math.min(pct, 100) + '%';
+}
+
+function generateExercise() {
+    exCount++;
+    tokens = [];
+    document.getElementById('textInput').value = '';
+    renderTokens();
+    updateProgress();
+
+    const af = document.getElementById('answerField');
+    af.className = 'answer-field';
+
+    document.getElementById('feedback').className = 'feedback-box';
+    document.getElementById('btnValidate').style.display = '';
+    document.getElementById('btnValidate').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    document.getElementById('btnSkip').style.display = '';
+    document.getElementById('btnSkip').disabled = false;
+
+    const gen = [genL1, genL2, genL3, genL4, genL5];
+    currentEx = gen[currentLevel - 1]();
+
+    document.getElementById('expression').innerHTML = currentEx.question;
+
+    const basketZone = document.getElementById('basketZone');
+    const textInput = document.getElementById('textInput');
+    if (currentLevel <= 2) {
+        basketZone.style.display = '';
+        buildBasket([
+            {type:'fruit', key:'a'},
+            {type:'fruit', key:'b'},
+            {type:'fruit', key:'c'}
+        ]);
+        textInput.placeholder = '…';
+        textInput.style.width = '70px';
+        textInput.className = 'ans-number-input';
+    } else {
+        basketZone.style.display = 'none';
+        tokens = [];
+        renderTokens();
+        textInput.placeholder = 'Tape ta réponse (ex: 5x ou 2x+3y)';
+        textInput.style.width = '';
+        textInput.className = 'ans-number-input full-width';
+    }
+
+    focusTextInput();
+}
+
+// ---- Génération des exercices ----
+
+function rv(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function mv(s) {
+    return s.replace(/([xyz])/g, '<span class="mv">$1</span>');
+}
+
+function genL1() {
+    const fk = rv(['a','b','c']);
+    const same = Math.random() > 0.3;
+    if (same) {
+        const n1 = ri(1,6), n2 = ri(1,6), s = n1 + n2;
+        const f = FRUITS[fk].emoji;
+        return {
+            question: `${n1}${f} + ${n2}${f}`,
+            answer: normalizeAns([{type:'text',value:`${s}`},{type:'fruit',value:fk}]),
+            explanation: `${n1} + ${n2} = ${s}, donc ${s}${f}`,
+            basketItems: [{type:'fruit', key:fk}],
+        };
+    } else {
+        const fk2 = rv(['a','b','c'].filter(x=>x!==fk));
+        const n1 = ri(1,6), n2 = ri(1,6);
+        const f1 = FRUITS[fk].emoji, f2 = FRUITS[fk2].emoji;
+        return {
+            question: `${n1}${f1} + ${n2}${f2}`,
+            answer: normalizeAns([{type:'text',value:`${n1}`},{type:'fruit',value:fk},{type:'text',value:`+${n2}`},{type:'fruit',value:fk2}]),
+            explanation: `On ne peut pas mélanger des fruits différents. La réponse reste ${n1}${f1} + ${n2}${f2}`,
+            basketItems: [{type:'fruit', key:fk},{type:'fruit', key:fk2}],
+        };
+    }
+}
+
+function genL2() {
+    const fk = rv(['a','b','c']);
+    const n1 = ri(2,5), n2 = ri(2,6), prod = n1 * n2;
+    const f = FRUITS[fk].emoji;
+    return {
+        question: `${n1} × ${n2}${f}`,
+        answer: normalizeAns([{type:'text',value:`${prod}`},{type:'fruit',value:fk}]),
+        explanation: `${n1} × ${n2} = ${prod}, donc ${prod}${f}`,
+        basketItems: [{type:'fruit', key:fk}],
+    };
+}
+
+function genL3() {
+    const l = rv(['x','y','z']);
+    const same = Math.random() > 0.3;
+    if (same) {
+        const n1 = ri(1,6), n2 = ri(1,6), s = n1 + n2;
+        return {
+            question: mv(`${n1}${l} + ${n2}${l}`),
+            answer: `${s}${l}`,
+            explanation: `${n1}${l} + ${n2}${l} = ${s}${l}`,
+            basketItems: [{type:'letter', key:l}],
+        };
+    } else {
+        const l2 = rv(['x','y','z'].filter(x=>x!==l));
+        const n1 = ri(1,6), n2 = ri(1,6);
+        return {
+            question: mv(`${n1}${l} + ${n2}${l2}`),
+            answer: `${n1}${l}+${n2}${l2}`,
+            explanation: `On ne peut pas additionner ${l} et ${l2}, ils sont différents !`,
+            basketItems: [{type:'letter', key:l},{type:'letter', key:l2}],
+        };
+    }
+}
+
+function genL4() {
+    const t = ri(0,3);
+    const l = rv(['x','y','z']);
+    switch(t) {
+        case 0:
+            return {
+                question: mv(`1${l}`),
+                answer: l,
+                explanation: `1×${l} = ${l} (on enlève le 1 inutile)`,
+                basketItems: [{type:'letter', key:l}],
+            };
+        case 1: {
+            const n = ri(2,6);
+            return {
+                question: mv(`${n} × ${l}`),
+                answer: `${n}${l}`,
+                explanation: `${n} × ${l} = ${n}${l} (on enlève le signe ×)`,
+                basketItems: [{type:'letter', key:l}],
+            };
+        }
+        case 2:
+            return {
+                question: mv(`${l} × ${l}`),
+                answer: `${l}²`,
+                explanation: `${l} × ${l} = ${l}² (x au carré)`,
+                basketItems: [{type:'letter', key:l},{type:'letter', key:l+'²'},{type:'letter', key:l+'³'}],
+            };
+        case 3:
+            return {
+                question: mv(`${l} × ${l} × ${l}`),
+                answer: `${l}³`,
+                explanation: `${l} × ${l} × ${l} = ${l}³ (x au cube)`,
+                basketItems: [{type:'letter', key:l},{type:'letter', key:l+'²'},{type:'letter', key:l+'³'}],
+            };
+    }
+}
+
+function genL5() {
+    const t = ri(0,2);
+    switch(t) {
+        case 0: {
+            const n1=ri(1,4),n2=ri(1,4),n3=ri(1,4),s=n1+n2;
+            return {
+                question: mv(`${n1}x + ${n2}x + ${n3}y`),
+                answer: `${s}x+${n3}y`,
+                explanation: `${n1}x + ${n2}x = ${s}x, puis on garde ${n3}y séparé`,
+                basketItems: [{type:'letter',key:'x'},{type:'letter',key:'y'}],
+            };
+        }
+        case 1: {
+            const n4=ri(1,3),n5=ri(1,4),s2=n4+1;
+            return {
+                question: mv(`${n4}x² + ${n5}x + x²`),
+                answer: `${s2}x²+${n5}x`,
+                explanation: `${n4}x² + x² = ${s2}x², on garde ${n5}x séparé`,
+                basketItems: [{type:'letter',key:'x'},{type:'letter',key:'x²'}],
+            };
+        }
+        case 2: {
+            const n6=ri(2,5),n7=ri(1,4),s3=n6+n7;
+            return {
+                question: mv(`${n6} × x + ${n7}x`),
+                answer: `${s3}x`,
+                explanation: `${n6} × x = ${n6}x, puis ${n6}x + ${n7}x = ${s3}x`,
+                basketItems: [{type:'letter',key:'x'}],
+            };
+        }
+    }
+}
+
+// ---- Gestion des tokens ----
+
+function buildBasket(items) {
+    const basket = document.getElementById('basket');
+    basket.innerHTML = '';
+    items.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'basket-item';
+        if (item.type === 'fruit') {
+            btn.textContent = FRUITS[item.key].emoji;
+            btn.title = FRUITS[item.key].name;
+        } else {
+            btn.innerHTML = renderLetterDisplay(item.key);
+        }
+        btn.onclick = () => addFruitToken(item);
+        basket.appendChild(btn);
+    });
+}
+
+function renderLetterDisplay(k) {
+    return '<span class="mv">' + k + '</span>';
+}
+
+function addFruitToken(item) {
+    const input = document.getElementById('textInput');
+    const textVal = input.value.trim();
+
+    if (textVal !== '') {
+        tokens.push({type:'text', value: textVal});
+        input.value = '';
+    }
+    tokens.push({type: item.type, value: item.key});
+    renderTokens();
+    focusTextInput();
+}
+
+function renderTokens() {
+    const field = document.getElementById('answerField');
+    field.querySelectorAll('.ans-token').forEach(el => el.remove());
+
+    const inputEl = document.getElementById('textInput');
+    tokens.forEach((tok, idx) => {
+        const span = document.createElement('span');
+        span.className = 'ans-token';
+        if (tok.type === 'fruit') {
+            span.innerHTML = FRUITS[tok.value].emoji;
+        } else {
+            span.innerHTML = '<span class="mv">' + tok.value + '</span>';
+        }
+        const x = document.createElement('span');
+        x.className = 'remove-tok';
+        x.textContent = '✕';
+        x.onclick = (e) => { e.stopPropagation(); tokens.splice(idx,1); renderTokens(); };
+        span.appendChild(x);
+        field.insertBefore(span, inputEl);
+    });
+}
+
+function focusTextInput() {
+    document.getElementById('textInput').focus();
+}
+
+// ---- Construire la réponse depuis les tokens ----
+
+function buildAnswerString() {
+    let toks = [...tokens];
+    const remaining = document.getElementById('textInput').value.trim();
+    if (remaining !== '') toks.push({type:'text', value: remaining});
+    return toks.map(t => {
+        if (t.type === 'fruit') return FRUITS[t.value].emoji;
+        return t.value;
+    }).join('');
+}
+
+function normalizeAns(tokArray) {
+    return tokArray.map(t => {
+        if (t.type === 'fruit') return FRUITS[t.value].emoji;
+        return t.value;
+    }).join('');
+}
+
+function normalizeStr(s) {
+    return s.trim()
+        .replace(/\s+/g, '')
+        .replace(/\^2/g, '²')
+        .replace(/\^3/g, '³')
+        .replace(/([a-z])2/g, '$1²')
+        .replace(/([a-z])3/g, '$1³')
+        .toLowerCase();
+}
+
+function answersEquivalent(user, correct) {
+    const u = normalizeStr(user);
+    const c = normalizeStr(correct);
+    if (u === c) return true;
+    const variants = generateVariants(c);
+    return variants.includes(u);
+}
+
+function generateVariants(s) {
+    const variants = new Set([s]);
+
+    // 1x → x (remove leading 1 before variable)
+    const withoutOne = s.replace(/1([a-z])/g, '$1');
+    variants.add(withoutOne);
+
+    // x → 1x (add leading 1 before lone variable at start or after +)
+    // Do it term by term to be safe
+    const terms = s.split('+');
+    const termsWithOne = terms.map(t => {
+        t = t.trim();
+        // If term starts with a letter (no coefficient), prepend 1
+        if (/^[a-z]/.test(t)) return '1' + t;
+        return t;
+    });
+    const termsWithoutOne = terms.map(t => {
+        t = t.trim();
+        return t.replace(/^1([a-z])/, '$1');
+    });
+
+    variants.add(termsWithOne.join('+'));
+    variants.add(termsWithoutOne.join('+'));
+
+    // Réordonner les termes (2x+3y = 3y+2x)
+    if (terms.length === 2) {
+        const swap = (arr) => [arr[1].trim(), arr[0].trim()].join('+');
+        variants.add(swap(terms));
+        variants.add(swap(termsWithOne));
+        variants.add(swap(termsWithoutOne));
+    }
+
+    return [...variants];
+}
+
+// ---- Confetti ----
+
+function launchConfetti() {
+    const container = document.getElementById('confettiContainer');
+    const emojis = ['🎉','⭐','🍓','🍊','✨','🎊','💜','🍒'];
+    let html = '';
+    for (let i = 0; i < 35; i++) {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.6;
+        const duration = 1.2 + Math.random() * 1.5;
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+        html += `<span style="position:absolute;left:${left}%;top:-20px;font-size:${20 + Math.random()*12}px;animation:confettiFall ${duration}s ease-in ${delay}s forwards">${emoji}</span>`;
+    }
+    container.innerHTML = html;
+    setTimeout(() => container.innerHTML = '', 3000);
+}
+
+// ---- Validation ----
+
+function validateAnswer() {
+    const userAnswer = buildAnswerString();
+    if (!userAnswer) return;
+
+    const correct = currentEx.answer;
+    const isCorrect = answersEquivalent(userAnswer, correct);
+
+    const field = document.getElementById('answerField');
+    field.className = 'answer-field ' + (isCorrect ? 'correct' : 'incorrect');
+
+    const fb = document.getElementById('feedback');
+    if (isCorrect) {
+        score++;
+        document.getElementById('score').textContent = score;
+        fb.className = 'feedback-box correct';
+        fb.innerHTML = `✅ Bravo ! C'est correct !
+            <div class="expl">${currentEx.explanation}</div>`;
+    } else {
+        fb.className = 'feedback-box incorrect';
+        fb.innerHTML = `❌ Pas tout à fait...
+            <div class="expl">La bonne réponse est : <strong>${correct}</strong><br>${currentEx.explanation}</div>`;
+    }
+
+    document.getElementById('btnValidate').style.display = 'none';
+    document.getElementById('btnSkip').style.display = 'none';
+    document.getElementById('btnNext').style.display = 'inline-block';
+}
+
+function skipExercise() {
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback-box incorrect';
+    fb.innerHTML = `La réponse était : <strong>${currentEx.answer}</strong>
+        <div class="expl">${currentEx.explanation}</div>`;
+    document.getElementById('btnValidate').style.display = 'none';
+    document.getElementById('btnSkip').style.display = 'none';
+    document.getElementById('btnNext').style.display = 'inline-block';
+}
+
+function nextExercise() {
+    if (exCount >= TOTAL) {
+        showResults();
+    } else {
+        generateExercise();
+    }
+}
+
+function showResults() {
+    const pct = Math.round(score / TOTAL * 100);
+    const emoji = pct === 100 ? '🏆' : pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '💪';
+    const msg = pct === 100 ? 'Parfait !'
+               : pct >= 80 ? 'Très bien !'
+               : pct >= 60 ? 'Pas mal !'
+               : 'Continue à t\'entraîner !';
+
+    document.getElementById('resultsEmoji').textContent = emoji;
+    document.getElementById('resultsScore').textContent = `${score} / ${TOTAL}`;
+    document.getElementById('resultsMsg').textContent = msg;
+
+    const barFill = document.getElementById('resultsBarFill');
+    barFill.className = 'results-bar-fill ' + (pct >= 60 ? 'good' : 'bad');
+
+    show('resultsScreen');
+
+    if (pct >= 80) launchConfetti();
+
+    setTimeout(() => {
+        barFill.style.width = pct + '%';
+    }, 100);
+}
+
+// Valider avec Entrée
+document.getElementById('textInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        const btn = document.getElementById('btnValidate');
+        if (btn.style.display !== 'none' && !btn.disabled) validateAnswer();
+    }
+});
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

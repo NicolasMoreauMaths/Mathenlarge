@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nombres relatifs — Multiplications & Divisions</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0f172a;--card:#1e293b;--card2:#334155;--border:#475569;
+--pos:#fbbf24;--pos-dim:#92700c;--neg:#60a5fa;--neg-dim:#1e5aad;
+--text:#f1f5f9;--dim:#94a3b8;--green:#4ade80;--green-bg:rgba(74,222,128,.12);
+--red:#f87171;--red-bg:rgba(248,113,113,.1);--purple:#a78bfa;
+--shadow:rgba(0,0,0,.3);
+}
+body{font-family:'Outfit',sans-serif;min-height:100vh;background:var(--bg);
+color:var(--text);display:flex;justify-content:center;padding:16px 10px 60px;
+background-image:radial-gradient(circle at 20% 80%,rgba(96,165,250,.04) 0%,transparent 40%),
+radial-gradient(circle at 80% 20%,rgba(251,191,36,.04) 0%,transparent 40%);
+-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.app{max-width:700px;width:100%}
+/* HEADER */
+.hdr{padding:16px 22px;border-radius:16px 16px 0 0;position:relative;overflow:hidden;
+display:flex;align-items:center;justify-content:space-between;
+background:linear-gradient(135deg,var(--neg-dim) 0%,var(--pos-dim) 100%)}
+.hdr::after{content:'';position:absolute;inset:0;
+background:linear-gradient(90deg,rgba(96,165,250,.15),transparent 30%,transparent 70%,rgba(251,191,36,.15));pointer-events:none}
+.hdr-t{font-size:1.08em;font-weight:700;position:relative;letter-spacing:.5px}
+.hdr-i{font-size:1.3em;position:relative}
+/* MAIN */
+.mn{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;
+padding:28px 24px;box-shadow:0 8px 32px var(--shadow);min-height:50vh}
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:1.4em;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:.9em;color:var(--dim);margin-bottom:20px;line-height:1.5}
+/* NUMBER LINE DECO */
+.nline{display:flex;align-items:center;justify-content:center;gap:0;margin:16px 0;user-select:none}
+.nline span{font-family:'JetBrains Mono',monospace;font-size:.82em;font-weight:600;
+padding:6px 10px;border:1px solid var(--border);border-right:none}
+.nline span:last-child{border-right:1px solid var(--border)}
+.nline .neg{color:var(--neg);background:rgba(96,165,250,.06)}
+.nline .zero{color:var(--dim);background:rgba(148,163,184,.06)}
+.nline .pos2{color:var(--pos);background:rgba(251,191,36,.06)}
+/* BUTTONS */
+.btn{font-family:'Outfit',sans-serif;padding:11px 24px;border-radius:10px;font-size:.92em;font-weight:600;
+cursor:pointer;transition:all .2s;border:2px solid;-webkit-tap-highlight-color:transparent;
+min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-pos{background:var(--pos);color:#0f172a;border-color:var(--pos);box-shadow:0 2px 10px rgba(251,191,36,.2)}
+.btn-pos:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+.btn-neg{background:var(--neg);color:#0f172a;border-color:var(--neg)}
+.btn-neg:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#0f172a;border-color:var(--green)}
+.btn-ghost{background:transparent;color:var(--dim);border-color:var(--border)}
+.btn-ghost:hover{background:var(--card2);border-color:var(--dim)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+/* MENU */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.mcard{background:var(--card2);border:2px solid var(--border);border-radius:14px;
+padding:20px 14px;text-align:center;cursor:pointer;transition:all .25s;
+min-height:110px;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mcard:hover{border-color:var(--pos);transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
+.mcard .mi{font-size:1.5em;margin-bottom:4px}
+.mcard .mt{font-size:.93em;font-weight:700;margin-bottom:2px}
+.mcard .md{font-size:.76em;color:var(--dim)}
+/* EX TOP */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.badge{background:rgba(167,139,250,.15);color:var(--purple);padding:5px 14px;border-radius:20px;font-size:.85em;font-weight:700}
+.sc-lbl{font-size:.88em;color:var(--dim);font-weight:600}
+.pbar{width:100%;background:var(--card2);border-radius:4px;height:4px;overflow:hidden;margin-bottom:16px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--neg),var(--pos));border-radius:4px;transition:width .4s}
+/* EXPRESSION DISPLAY */
+.expr-box{background:var(--bg);border:2px solid var(--border);border-radius:14px;
+padding:20px;margin:14px 0;text-align:center;font-family:'JetBrains Mono',monospace}
+.expr{font-size:1.5em;font-weight:700;letter-spacing:1px;line-height:1.6}
+.expr .p{color:var(--pos)}.expr .n{color:var(--neg)}.expr .op{color:var(--dim)}
+.expr .dots{color:var(--purple);letter-spacing:3px}
+.expr-note{font-family:'Outfit',sans-serif;font-size:.82em;color:var(--purple);margin-top:8px;font-weight:600}
+/* STEP ZONE */
+.sz{background:var(--bg);border:2px solid var(--border);border-radius:14px;
+padding:16px 18px;margin:14px 0;text-align:center}
+.sz-t{font-size:.76em;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+color:var(--purple);margin-bottom:10px}
+.sl{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;
+font-family:'JetBrains Mono',monospace;font-size:1.15em;font-weight:600;flex-wrap:wrap}
+.sl .t{color:var(--text)}.sl .d{color:var(--dim)}.sl .p{color:var(--pos)}.sl .n2{color:var(--neg)}
+/* INPUT */
+.ci{font-family:'JetBrains Mono',monospace;font-size:1.1em;width:68px;text-align:center;
+border:2px solid var(--border);border-radius:10px;background:var(--card2);padding:9px 4px;
+outline:none;color:var(--text);font-weight:600;transition:all .2s;
+min-height:44px;touch-action:manipulation}
+.ci:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(167,139,250,.2)}
+.ci.ok{border-color:var(--green)!important;background:var(--green-bg)!important;color:var(--green)!important}
+.ci.err{border-color:var(--red)!important;background:var(--red-bg)!important;animation:shake .35s}
+/* CHOICE BUTTONS */
+.cr{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.cb{font-family:'Outfit',sans-serif;font-size:.95em;font-weight:700;
+padding:13px 24px;border-radius:12px;cursor:pointer;border:3px solid;transition:all .2s;
+-webkit-tap-highlight-color:transparent;min-width:100px;text-align:center;
+min-height:48px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center}
+.cb.cpos{background:transparent;color:var(--pos);border-color:var(--pos)}
+.cb.cpos:hover{background:rgba(251,191,36,.1)}
+.cb.cneg{background:transparent;color:var(--neg);border-color:var(--neg)}
+.cb.cneg:hover{background:rgba(96,165,250,.1)}
+.cb.cok{color:#0f172a!important}.cb.cok.cpos{background:var(--pos)!important}.cb.cok.cneg{background:var(--neg)!important}
+.cb.cbad{opacity:.25}.cb:disabled{cursor:not-allowed;transform:none!important}
+/* PAIR/IMPAIR */
+.cb.cpair{background:transparent;color:var(--green);border-color:var(--green)}
+.cb.cpair:hover{background:var(--green-bg)}
+.cb.cimpair{background:transparent;color:var(--purple);border-color:var(--purple)}
+.cb.cimpair:hover{background:rgba(167,139,250,.1)}
+.cb.cok.cpair{background:var(--green)!important;color:#0f172a!important}
+.cb.cok.cimpair{background:var(--purple)!important;color:#fff!important}
+/* STEP-BY-STEP LINES (L4) */
+.step-lines{text-align:left;margin:10px 0}
+.step-ln{display:flex;align-items:center;gap:8px;margin:6px 0;
+font-family:'JetBrains Mono',monospace;font-size:1.1em;font-weight:600;flex-wrap:wrap}
+.step-ln .lbl{color:var(--dim);min-width:30px}
+.step-ln .val{color:var(--dim);opacity:.6}
+.step-ln .val.cur{color:var(--text);opacity:1}
+.step-ln .val.done{color:var(--green);opacity:1}
+/* FB */
+.fb{margin-top:14px;padding:12px 16px;border-radius:10px;font-size:.92em;text-align:center;
+display:none;animation:fadeIn .25s;font-weight:600;line-height:1.5}
+.fb.ok{display:block;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.fb.bad{display:block;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.15)}
+/* RESULTS */
+.rc{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:16px auto;border:5px solid}
+.rc.good{border-color:var(--green);background:var(--green-bg)}.rc.mid{border-color:var(--pos);background:rgba(251,191,36,.08)}
+.rc.bad{border-color:var(--red);background:var(--red-bg)}
+.rp{font-size:2em;font-weight:700;line-height:1}.rm{font-size:1em;text-align:center;margin:14px 0}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* ==================== RESPONSIVE ==================== */
+@media(max-width:768px){
+body{padding:14px 8px 60px}
+.hdr{padding:13px 18px}
+.hdr-t{font-size:1.04em}
+.mn{padding:24px 18px}
+h1{font-size:1.32em}
+.sub{font-size:.88em}
+.mgrid{grid-template-columns:1fr;max-width:320px;margin:16px auto;gap:10px}
+.mcard{padding:18px 12px;min-height:100px}
+.mcard .mi{font-size:1.4em}
+.mcard .mt{font-size:.92em}
+.mcard .md{font-size:.75em}
+.btn{padding:10px 22px;font-size:.9em;min-height:42px}
+.controls{gap:9px}
+.expr{font-size:1.35em}
+.sl{font-size:1.1em;gap:7px}
+.ci{width:62px;font-size:1.05em;min-height:42px}
+.cb{padding:12px 22px;font-size:.94em;min-height:46px}
+.step-ln{font-size:1.05em;gap:7px}
+.step-ln .lbl{min-width:28px}
+.nline span{font-size:.78em;padding:5px 8px}
+.rc{width:108px;height:108px;border:4px solid}
+.rp{font-size:1.9em}
+}
+
+@media(max-width:600px){
+body{padding:12px 6px 60px}
+.hdr{padding:12px 16px;border-radius:14px 14px 0 0}
+.hdr-t{font-size:1em;letter-spacing:.3px}
+.hdr-i{font-size:1.2em}
+.mn{padding:20px 14px}
+h1{font-size:1.25em}
+.sub{font-size:.87em;margin-bottom:18px}
+.mgrid{max-width:280px;margin:14px auto;gap:9px}
+.mcard{padding:16px 10px;min-height:90px}
+.mcard .mi{font-size:1.3em;margin-bottom:3px}
+.mcard .mt{font-size:.9em}
+.mcard .md{font-size:.74em}
+.btn{padding:10px 20px;font-size:.88em;min-height:40px}
+.controls{gap:8px;margin-top:16px}
+.ex-top{gap:5px;margin-bottom:9px}
+.badge{padding:4px 12px;font-size:.82em}
+.sc-lbl{font-size:.85em}
+.pbar{height:3px;margin-bottom:14px}
+.expr-box{padding:16px;margin:12px 0}
+.expr{font-size:1.2em;letter-spacing:.5px}
+.expr-note{font-size:.8em;margin-top:6px}
+.sz{padding:13px 14px;margin:12px 0}
+.sz-t{font-size:.72em;letter-spacing:1.2px}
+.sl{font-size:1em;gap:6px;margin:7px 0}
+.ci{width:58px;font-size:1em;min-height:40px;padding:7px 4px}
+.cb{padding:11px 20px;font-size:.92em;min-height:44px;min-width:90px}
+.cr{gap:9px}
+.step-lines{margin:9px 0}
+.step-ln{font-size:.95em;gap:6px;margin:5px 0}
+.step-ln .lbl{min-width:26px;font-size:.95em}
+.nline{margin:12px 0}
+.nline span{font-size:.75em;padding:5px 7px}
+.fb{padding:10px 14px;font-size:.9em}
+.rc{width:100px;height:100px}
+.rp{font-size:1.8em}
+.rm{font-size:.98em}
+}
+
+@media(max-width:480px){
+body{padding:10px 4px 60px}
+.hdr{padding:11px 14px}
+.hdr-t{font-size:.96em}
+.mn{padding:18px 12px}
+h1{font-size:1.18em}
+.sub{font-size:.85em}
+.mgrid{max-width:260px}
+.mcard{padding:14px 9px;min-height:85px}
+.mcard .mi{font-size:1.2em}
+.mcard .mt{font-size:.88em}
+.mcard .md{font-size:.72em}
+.btn{padding:9px 18px;font-size:.86em;min-height:38px}
+.controls{gap:7px}
+.expr{font-size:1.12em}
+.expr-box{padding:14px}
+.sz{padding:12px}
+.sl{font-size:.96em;gap:5px}
+.ci{width:54px;font-size:.98em;min-height:38px}
+.cb{padding:10px 18px;font-size:.9em;min-height:42px;min-width:85px}
+.step-ln{font-size:.9em;gap:5px}
+.nline span{font-size:.72em;padding:4px 6px}
+.rc{width:92px;height:92px}
+.rp{font-size:1.7em}
+}
+
+@media(max-width:380px){
+.hdr{padding:10px 12px}
+.mn{padding:16px 10px}
+h1{font-size:1.12em}
+.mgrid{max-width:240px}
+.mcard{padding:13px 8px;min-height:80px}
+.btn{padding:8px 16px;font-size:.84em}
+.expr{font-size:1.06em}
+.sl{font-size:.92em}
+.ci{width:50px;font-size:.95em}
+.cb{padding:9px 16px;font-size:.88em;min-height:40px;min-width:80px}
+.step-ln{font-size:.87em}
+.nline span{font-size:.7em;padding:4px 5px}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr"><span class="hdr-t">Nombres Relatifs — × et ÷</span><span class="hdr-i">±</span></div>
+<div class="mn">
+
+<div class="screen active" id="S_intro">
+<h1>Multiplier & Diviser<br>des nombres relatifs</h1>
+<p class="sub">Maîtrise la règle des signes !</p>
+<div class="nline">
+<span class="neg">−4</span><span class="neg">−3</span><span class="neg">−2</span><span class="neg">−1</span>
+<span class="zero">0</span>
+<span class="pos2">+1</span><span class="pos2">+2</span><span class="pos2">+3</span><span class="pos2">+4</span>
+</div>
+<div class="controls"><button class="btn btn-pos" onclick="show('S_menu')">C'est parti !</button></div>
+</div>
+
+<div class="screen" id="S_menu">
+<h1>Choisis ton exercice</h1>
+<div class="mgrid">
+<div class="mcard" onclick="go(1)"><div class="mi">🔢</div><div class="mt">Signe du résultat</div><div class="md">Compte les − et déduis le signe</div></div>
+<div class="mcard" onclick="go(2)"><div class="mi">✖️</div><div class="mt">Multiplications</div><div class="md">Guidé puis en autonomie</div></div>
+<div class="mcard" onclick="go(3)"><div class="mi">➗</div><div class="mt">Divisions</div><div class="md">Guidé puis en autonomie</div></div>
+<div class="mcard" onclick="go(4)"><div class="mi">🔀</div><div class="mt">Mélange opératoire</div><div class="md">+, −, ×, ÷ pas à pas</div></div>
+</div>
+</div>
+
+<div class="screen" id="S_ex">
+<div class="ex-top"><div class="badge" id="badge">—</div><div class="sc-lbl" id="scLbl">0 / 0</div></div>
+<div class="pbar"><div class="pfill" id="pfill"></div></div>
+<div id="zone"></div>
+<div class="fb" id="fb"></div>
+<div class="controls"><button class="btn btn-pos" id="nxt" style="display:none" onclick="nxtQ()">Suivant →</button>
+<button class="btn btn-ghost" onclick="show('S_menu')">← Menu</button></div>
+</div>
+
+<div class="screen" id="S_res">
+<h1>Résultats</h1>
+<div class="rc" id="rC"><div class="rp" id="rP">0%</div><div style="font-size:.75em;color:var(--dim);margin-top:2px">de réussite</div></div>
+<div class="rm" id="rM"></div>
+<div class="controls"><button class="btn btn-pos" onclick="show('S_menu')">Retour au menu</button></div>
+</div>
+
+</div></div>
+<script>
+// ===== UTILS =====
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const rv=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function $(id){return document.getElementById(id)}
+function fmt(n){return n>=0?String(n):String(n)}
+function pN(s){if(!s||!s.trim())return NaN;return parseFloat(s.trim().replace(',','.').replace(/\s/g,'').replace(/^\+/,''))}
+function eq(a,b){return Math.abs(a-b)<0.015}
+function foc(id){setTimeout(()=>{const e=$(id);if(e)e.focus()},60)}
+function setOk(id){const e=$(id);if(e){e.classList.remove('err');e.classList.add('ok');e.disabled=true}}
+function setErr(id){const e=$(id);if(e){e.classList.add('err');setTimeout(()=>{e.classList.remove('err');e.value='';e.focus()},400)}}
+// Format factor with parens if negative
+function fF(n){return n<0?`(${n})`:String(n)}
+// Format with color spans
+function fC(n){return n<0?`<span class="n">${n}</span>`:`<span class="p">${n}</span>`}
+function fFC(n){return n<0?`<span class="n">(${n})</span>`:`<span class="p">${n}</span>`}
+// Random nonzero signed int
+function rn(lo=2,hi=9){return(Math.random()<.5?-1:1)*ri(lo,hi)}
+// Format sum of numbers: "5 + 3 − 7"
+function fSum(nums){
+    let s=String(nums[0]);
+    for(let i=1;i<nums.length;i++){
+        if(nums[i]>=0)s+=` + ${nums[i]}`;
+        else s+=` − ${Math.abs(nums[i])}`;
+    }
+    return s;
+}
+
+// ===== STATE =====
+let lv=1,sc=0,qi=0,qs=[],cq=null;
+const LVNAMES={1:'Signe du résultat',2:'Multiplications',3:'Divisions',4:'Mélange opératoire'};
+
+// ===== L1: SIGN COUNTING =====
+function genL1(){
+const out=[];
+// Short (2-4 factors, all visible)
+for(let i=0;i<3;i++){
+    const nf=ri(2,4);
+    const factors=[];
+    for(let j=0;j<nf;j++){
+        const neg=Math.random()<0.5;
+        factors.push({val:(neg?-1:1)*ri(1,9),neg});
+    }
+    const negCount=factors.filter(f=>f.neg).length;
+    out.push({factors,negCount,allVisible:true});
+}
+// Medium (5-8 factors)
+for(let i=0;i<3;i++){
+    const nf=ri(5,8);
+    const factors=[];
+    for(let j=0;j<nf;j++){
+        const neg=Math.random()<0.5;
+        factors.push({val:(neg?-1:1)*ri(1,9),neg});
+    }
+    const negCount=factors.filter(f=>f.neg).length;
+    out.push({factors,negCount,allVisible:true});
+}
+// Long with dots (many negatives)
+for(let i=0;i<4;i++){
+    const totalNeg=rv([23,47,100,148,200,333,501]);
+    const totalPos=ri(0,3);
+    const total=totalNeg+totalPos;
+    // Show first 2 and last 2 factors
+    const showFactors=[];
+    const allIndices=sh(Array.from({length:total},(_,j)=>j));
+    const negIndices=new Set(allIndices.slice(0,totalNeg));
+    for(let j=0;j<Math.min(2,total);j++){
+        showFactors.push({val:(negIndices.has(j)?-1:1)*ri(1,9),neg:negIndices.has(j),pos:'start'});
+    }
+    for(let j=Math.max(2,total-2);j<total;j++){
+        showFactors.push({val:(negIndices.has(j)?-1:1)*ri(1,9),neg:negIndices.has(j),pos:'end'});
+    }
+    out.push({factors:showFactors,negCount:totalNeg,allVisible:false,totalFactors:total});
+}
+return sh(out);
+}
+
+function renderL1(q){
+const Z=$('zone');
+cq._step=1;cq._mis=false;
+// Build expression display
+let exprHtml='';
+if(q.allVisible){
+    exprHtml=q.factors.map(f=>fFC(f.val)).join(' <span class="op">×</span> ');
+} else {
+    const starts=q.factors.filter(f=>f.pos==='start');
+    const ends=q.factors.filter(f=>f.pos==='end');
+    exprHtml=starts.map(f=>fFC(f.val)).join(' <span class="op">×</span> ');
+    exprHtml+=` <span class="op">×</span> <span class="dots">⋯</span> <span class="op">×</span> `;
+    exprHtml+=ends.map(f=>fFC(f.val)).join(' <span class="op">×</span> ');
+}
+let h=`<div class="expr-box"><div class="expr">${exprHtml}</div>`;
+if(!q.allVisible) h+=`<div class="expr-note">${q.totalFactors} facteurs dont ${q.negCount} facteurs négatifs</div>`;
+h+=`</div>`;
+// Step 1: count negatives
+h+=`<div class="sz" id="l1s1"><div class="sz-t">Combien de signes − ?</div>`;
+if(q.allVisible){
+    h+=`<div class="sl"><span class="t">Nombre de −</span><span class="d">=</span>
+    <input class="ci" id="l1cnt" inputmode="numeric" placeholder="?"></div>
+    <div class="controls"><button class="btn btn-neg" onclick="chkL1cnt()">Valider</button></div>`;
+} else {
+    h+=`<div class="sl"><span class="t">${q.negCount} signes −</span></div>`;
+    // Auto-filled since it's given
+    cq._step=2;
+}
+h+=`</div>`;
+// Step 2: pair ou impair
+h+=`<div class="sz" id="l1s2" style="${q.allVisible?'display:none':''}"><div class="sz-t">Pair ou impair ?</div>
+<div class="cr"><button class="cb cpair" id="bPair" onclick="chkL1pi(true)">Pair</button>
+<button class="cb cimpair" id="bImp" onclick="chkL1pi(false)">Impair</button></div></div>`;
+// Step 3: sign
+h+=`<div class="sz" id="l1s3" style="display:none"><div class="sz-t">Le résultat sera…</div>
+<div class="cr"><button class="cb cpos" id="bPos" onclick="chkL1sign(true)">+ Positif</button>
+<button class="cb cneg" id="bNeg" onclick="chkL1sign(false)">− Négatif</button></div></div>`;
+Z.innerHTML=h;
+if(q.allVisible)foc('l1cnt');
+}
+
+function chkL1cnt(){
+const v=pN($('l1cnt').value);
+$('l1cnt').classList.remove('err','ok');
+if(isNaN(v)){setErr('l1cnt');return}
+if(v===cq.negCount){setOk('l1cnt');cq._step=2;$('l1s2').style.display=''}
+else{setErr('l1cnt');cq._mis=true}
+}
+
+function chkL1pi(isPair){
+$('bPair').disabled=true;$('bImp').disabled=true;
+const actual=cq.negCount%2===0;
+const ok=isPair===actual;
+if(ok)$(isPair?'bPair':'bImp').classList.add('cok');
+else{$(isPair?'bPair':'bImp').classList.add('cbad');$(actual?'bPair':'bImp').classList.add('cok');cq._mis=true}
+cq._step=3;$('l1s3').style.display='';
+}
+
+function chkL1sign(isPos){
+$('bPos').disabled=true;$('bNeg').disabled=true;
+const actualPos=cq.negCount%2===0;
+const ok=isPos===actualPos;
+if(ok)$(isPos?'bPos':'bNeg').classList.add('cok');
+else{$(isPos?'bPos':'bNeg').classList.add('cbad');$(actualPos?'bPos':'bNeg').classList.add('cok');cq._mis=true}
+const fb=$('fb');
+fb.className=ok?'fb ok':'fb bad';
+const rule=actualPos?'Nombre pair de − → résultat positif (+)':'Nombre impair de − → résultat négatif (−)';
+fb.textContent=(ok?'✅ ':'❌ ')+rule;
+if(ok&&!cq._mis)sc++;
+$('scLbl').textContent=`${sc} / ${qi+1}`;$('nxt').style.display='';
+}
+
+// ===== L2: MULTIPLICATION (guided then solo) =====
+function genL2(){
+const out=[];
+// 4 guided + 4 solo
+for(let i=0;i<8;i++){
+    const a=rn(1,9),b=rn(1,9);
+    const prod=a*b;
+    const negCnt=(a<0?1:0)+(b<0?1:0);
+    out.push({a,b,prod,negCnt,guided:i<4,op:'×'});
+}
+return out;
+}
+
+function renderL2(q){renderMulDiv(q,'×')}
+
+// ===== L3: DIVISION (guided then solo) =====
+function genL3(){
+const out=[];
+for(let i=0;i<8;i++){
+    // Generate a÷b=c where c is integer
+    const b=rn(1,9),c=rn(1,9);
+    const a=b*c;
+    const negCnt=(a<0?1:0)+(b<0?1:0);
+    out.push({a,b:b,prod:c,negCnt,guided:i<4,op:'÷'});
+}
+return out;
+}
+
+function renderL3(q){renderMulDiv(q,'÷')}
+
+function renderMulDiv(q,op){
+const Z=$('zone');
+cq._mis=false;
+const exprHtml=`${fFC(q.a)} <span class="op">${op}</span> ${fFC(q.b)}`;
+let h=`<div class="expr-box"><div class="expr">${exprHtml}</div></div>`;
+
+if(q.guided){
+    // Step 1: How many minus signs?
+    h+=`<div class="sz"><div class="sz-t">Étape 1 : Combien de signes − ?</div>
+    <div class="sl"><input class="ci" id="md_cnt" inputmode="numeric" placeholder="?" style="width:50px">
+    <span class="d">signe(s) −</span></div>
+    <div class="controls"><button class="btn btn-neg" id="md_b1" onclick="chkMD1()">Valider</button></div></div>`;
+    // Step 2: sign
+    h+=`<div class="sz" id="md_s2" style="display:none"><div class="sz-t">Étape 2 : Le résultat est…</div>
+    <div class="cr"><button class="cb cpos" id="mdPos" onclick="chkMD2(true)">+ Positif</button>
+    <button class="cb cneg" id="mdNeg" onclick="chkMD2(false)">− Négatif</button></div></div>`;
+    // Step 3: absolute value computation
+    h+=`<div class="sz" id="md_s3" style="display:none"><div class="sz-t">Étape 3 : Calcule sans les signes</div>
+    <div class="sl"><span class="t">${Math.abs(q.a)}</span><span class="d">${op}</span>
+    <span class="t">${Math.abs(q.b)}</span><span class="d">=</span>
+    <input class="ci" id="md_abs" inputmode="decimal" placeholder="?"></div>
+    <div class="controls"><button class="btn btn-neg" id="md_b3" onclick="chkMD3()">Valider</button></div></div>`;
+    // Step 4: final assembly
+    h+=`<div class="sz" id="md_s4" style="display:none"><div class="sz-t">Étape 4 : Résultat final</div>
+    <div class="sl"><span class="t">${fFC(q.a)} ${op} ${fFC(q.b)}</span><span class="d">=</span>
+    <input class="ci" id="md_fin" inputmode="decimal" placeholder="?"></div>
+    <div class="controls"><button class="btn btn-green" onclick="chkMD4()">Valider</button></div></div>`;
+} else {
+    // Solo: direct answer
+    h+=`<div class="sz"><div class="sz-t">Donne le résultat</div>
+    <div class="sl"><span class="t">${fFC(q.a)} ${op} ${fFC(q.b)}</span><span class="d">=</span>
+    <input class="ci" id="md_fin" inputmode="decimal" placeholder="?"></div>
+    <div class="controls"><button class="btn btn-green" onclick="chkMD4()">Valider</button></div></div>`;
+}
+Z.innerHTML=h;foc(q.guided?'md_cnt':'md_fin');
+}
+
+function chkMD1(){
+const v=pN($('md_cnt').value);$('md_cnt').classList.remove('err','ok');
+if(isNaN(v)){setErr('md_cnt');return}
+if(v===cq.negCnt){setOk('md_cnt');$('md_b1').disabled=true;$('md_s2').style.display=''}
+else{setErr('md_cnt');cq._mis=true}
+}
+
+function chkMD2(isPos){
+$('mdPos').disabled=true;$('mdNeg').disabled=true;
+const actualPos=cq.prod>=0;
+const ok=isPos===actualPos;
+if(ok)$(isPos?'mdPos':'mdNeg').classList.add('cok');
+else{$(isPos?'mdPos':'mdNeg').classList.add('cbad');$(actualPos?'mdPos':'mdNeg').classList.add('cok');cq._mis=true}
+$('md_s3').style.display='';foc('md_abs');
+}
+
+function chkMD3(){
+const v=pN($('md_abs').value);$('md_abs').classList.remove('err','ok');
+if(isNaN(v)){setErr('md_abs');return}
+if(eq(v,Math.abs(cq.prod))){setOk('md_abs');$('md_b3').disabled=true;$('md_s4').style.display='';foc('md_fin')}
+else{setErr('md_abs');cq._mis=true}
+}
+
+function chkMD4(){
+const v=pN($('md_fin').value);$('md_fin').classList.remove('err','ok');
+if(isNaN(v)){setErr('md_fin');return}
+if(eq(v,cq.prod)){setOk('md_fin');finish(!cq._mis,`${fF(cq.a)} ${cq.op} ${fF(cq.b)} = ${cq.prod}`)}
+else{setErr('md_fin');cq._mis=true}
+}
+
+// ===== L4: MIXED OPERATIONS STEP BY STEP =====
+function genL4(){
+const out=[];
+const makers=[mkT_aOpBxC,mkT_aOpBxC,mkT_AxBopC,mkT_AxBopCxD,mkT_aOpBdC,mkT_aOpBxCopD,mkT_AxBopCdD,mkT_complex];
+for(let i=0;i<8;i++){
+    for(let att=0;att<50;att++){
+        const q=rv(makers)();
+        if(q){out.push(q);break}
+    }
+}
+return out;
+}
+
+// Template: a ± b × c
+function mkT_aOpBxC(){
+const a=rn(),b=rn(),c=rn();
+const op=rv(['+','−']);
+const prod=b*c;
+const signMul=op==='+'?1:-1;
+const chunkVal=signMul*prod;
+const result=a+chunkVal;
+const askChunk=op==='−'?`− ${fF(b)} × ${fF(c)}`:`${fF(b)} × ${fF(c)}`;
+return{prog:[
+    {display:`${a} ${op} ${fF(b)} × ${fF(c)}`,ask:`Calcule ${askChunk} =`,ans:chunkVal},
+    {display:fSum([a,chunkVal]),ask:`Résultat =`,ans:result},
+    {display:`${result}`,final:true}
+]};
+}
+
+// Template: a × b ± c
+function mkT_AxBopC(){
+const a=rn(),b=rn(),c=rn();
+const prod=a*b;
+const op=rv(['+','−']);
+const cv=op==='+'?c:-c;
+const result=prod+cv;
+return{prog:[
+    {display:`${fF(a)} × ${fF(b)} ${op} ${Math.abs(c)===c&&c>0?c:fF(c)}`
+        .replace(/× ([^ ]+) \+ /,`× $1 + `).replace(/× ([^ ]+) − /,`× $1 − `),
+     ask:`Calcule ${fF(a)} × ${fF(b)} =`,ans:prod},
+    {display:fSum([prod,cv]),ask:`Résultat =`,ans:result},
+    {display:`${result}`,final:true}
+]};
+}
+
+// Template: a × b ± c × d
+function mkT_AxBopCxD(){
+const a=rn(1,5),b=rn(1,5),c=rn(1,5),d=rn(1,5);
+const p1=a*b,p2=c*d;
+const op=rv(['+','−']);
+const s2=op==='+'?1:-1;
+const cv2=s2*p2;
+const result=p1+cv2;
+const askC2=op==='−'?`− ${fF(c)} × ${fF(d)}`:`${fF(c)} × ${fF(d)}`;
+return{prog:[
+    {display:`${fF(a)} × ${fF(b)} ${op} ${fF(c)} × ${fF(d)}`,ask:`Calcule ${fF(a)} × ${fF(b)} =`,ans:p1},
+    {display:`${p1} ${op} ${fF(c)} × ${fF(d)}`,ask:`Calcule ${askC2} =`,ans:cv2},
+    {display:fSum([p1,cv2]),ask:`Résultat =`,ans:result},
+    {display:`${result}`,final:true}
+]};
+}
+
+// Template: a ± b ÷ c
+function mkT_aOpBdC(){
+const c2=rn(1,9),quot=rn(1,5);
+const b2=c2*quot;
+const a=rn();
+const op=rv(['+','−']);
+const s=op==='+'?1:-1;
+const chunkVal=s*quot;
+const result=a+chunkVal;
+const askChunk=op==='−'?`− ${fF(b2)} ÷ ${fF(c2)}`:`${fF(b2)} ÷ ${fF(c2)}`;
+return{prog:[
+    {display:`${a} ${op} ${fF(b2)} ÷ ${fF(c2)}`,ask:`Calcule ${askChunk} =`,ans:chunkVal},
+    {display:fSum([a,chunkVal]),ask:`Résultat =`,ans:result},
+    {display:`${result}`,final:true}
+]};
+}
+
+// Template: a ± b × c ± d
+function mkT_aOpBxCopD(){
+const a=rn(),b=rn(1,5),c=rn(1,5),d=rn();
+const op1=rv(['+','−']),op2=rv(['+','−']);
+const prod=b*c;
+const s1=op1==='+'?1:-1;
+const cv1=s1*prod;
+const s2=op2==='+'?1:-1;
+const cv2=s2*Math.abs(d);
+const mid=a+cv1;
+const result=mid+cv2;
+const askChunk=op1==='−'?`− ${fF(b)} × ${fF(c)}`:`${fF(b)} × ${fF(c)}`;
+const dd=d<0?d:d; // just the value
+return{prog:[
+    {display:`${a} ${op1} ${fF(b)} × ${fF(c)} ${op2} ${Math.abs(d)}`,ask:`Calcule ${askChunk} =`,ans:cv1},
+    {display:fSum([a,cv1])+(cv2>=0?` + ${Math.abs(cv2)}`:` − ${Math.abs(cv2)}`),ask:`Résultat =`,ans:result},
+    {display:`${result}`,final:true}
+]};
+}
+
+// Template: a × b ± c ÷ d
+function mkT_AxBopCdD(){
+const a=rn(1,5),b=rn(1,5);
+const d2=rn(1,5),quot=rn(1,5),c2=d2*quot;
+const p1=a*b;
+const op=rv(['+','−']);
+const s=op==='+'?1:-1;
+const cv2=s*quot;
+const result=p1+cv2;
+const askC2=op==='−'?`− ${fF(c2)} ÷ ${fF(d2)}`:`${fF(c2)} ÷ ${fF(d2)}`;
+return{prog:[
+    {display:`${fF(a)} × ${fF(b)} ${op} ${fF(c2)} ÷ ${fF(d2)}`,ask:`Calcule ${fF(a)} × ${fF(b)} =`,ans:p1},
+    {display:`${p1} ${op} ${fF(c2)} ÷ ${fF(d2)}`,ask:`Calcule ${askC2} =`,ans:cv2},
+    {display:fSum([p1,cv2]),ask:`Résultat =`,ans:result},
+    {display:`${result}`,final:true}
+]};
+}
+
+// Complex template with 3 terms
+function mkT_complex(){
+const a=rn(),b=rn(1,4),c=rn(1,4),d=rn(),e=rn(1,4);
+const prod=b*c;
+const op1=rv(['+','−']),op2='+';
+const s1=op1==='+'?1:-1;
+const cv1=s1*prod;
+const mid=a+cv1+d;
+const result=mid;
+const askChunk=op1==='−'?`− ${fF(b)} × ${fF(c)}`:`${fF(b)} × ${fF(c)}`;
+return{prog:[
+    {display:`${a} ${op1} ${fF(b)} × ${fF(c)} ${d>=0?'+ '+d:'− '+Math.abs(d)}`,ask:`Calcule ${askChunk} =`,ans:cv1},
+    {display:fSum([a,cv1,d]),ask:`Résultat =`,ans:result},
+    {display:`${result}`,final:true}
+]};
+}
+
+function renderL4(q){
+const Z=$('zone');
+cq._stepIdx=0;cq._mis=false;cq._history=[];
+doL4Step();
+}
+
+function doL4Step(){
+const Z=$('zone'),q=cq,idx=q._stepIdx;
+const prog=q.prog;
+if(idx>=prog.length||prog[idx].final){
+    // Done — show final
+    let h=`<div class="expr-box"><div class="step-lines">`;
+    q._history.forEach((ln,i)=>{
+        h+=`<div class="step-ln"><span class="lbl">A =</span><span class="val done">${ln}</span></div>`;
+    });
+    const finalVal=prog[prog.length-1].display;
+    h+=`<div class="step-ln"><span class="lbl">A =</span><span class="val done" style="color:var(--green);font-size:1.2em">${finalVal}</span></div>`;
+    h+=`</div></div>`;
+    Z.innerHTML=h;
+    finish(!q._mis,`A = ${finalVal}`);
+    return;
+}
+
+const step=prog[idx];
+let h=`<div class="expr-box"><div class="step-lines">`;
+// Show history
+q._history.forEach((ln,i)=>{
+    h+=`<div class="step-ln"><span class="lbl">A =</span><span class="val">${ln}</span></div>`;
+});
+// Current line
+h+=`<div class="step-ln"><span class="lbl">A =</span><span class="val cur">${step.display}</span></div>`;
+h+=`</div></div>`;
+// Ask
+h+=`<div class="sz"><div class="sz-t">${step.ask}</div>
+<div class="sl"><input class="ci" id="l4ans" inputmode="decimal" placeholder="?" style="width:80px"></div>
+<div class="controls"><button class="btn btn-green" onclick="chkL4()">Valider</button></div></div>`;
+Z.innerHTML=h;
+foc('l4ans');
+$('l4ans').addEventListener('keydown',e=>{if(e.key==='Enter')chkL4()});
+}
+
+function chkL4(){
+const q=cq,step=q.prog[q._stepIdx];
+const v=pN($('l4ans').value);
+$('l4ans').classList.remove('err','ok');
+if(isNaN(v)){setErr('l4ans');return}
+if(eq(v,step.ans)){
+    setOk('l4ans');
+    q._history.push(step.display);
+    q._stepIdx++;
+    setTimeout(doL4Step,400);
+} else {setErr('l4ans');q._mis=true}
+}
+
+// ===== FLOW =====
+function go(l){
+lv=l;sc=0;qi=0;
+if(l===1)qs=genL1();else if(l===2)qs=genL2();
+else if(l===3)qs=genL3();else qs=genL4();
+$('badge').textContent=LVNAMES[l];show('S_ex');loadQ();
+}
+
+function loadQ(){
+cq=qs[qi];cq._mis=false;
+$('scLbl').textContent=`${sc} / ${qi}`;
+$('pfill').style.width=(qi/qs.length*100)+'%';
+$('fb').className='fb';$('nxt').style.display='none';$('zone').innerHTML='';
+if(lv===1)renderL1(cq);else if(lv===2)renderL2(cq);
+else if(lv===3)renderL3(cq);else renderL4(cq);
+}
+
+function finish(ok,msg){
+if(ok)sc++;
+$('scLbl').textContent=`${sc} / ${qi+1}`;
+const fb=$('fb');fb.className=ok?'fb ok':'fb bad';
+fb.textContent=ok?'✅ Correct !':`❌ ${msg||'Incorrect.'}`;
+$('nxt').style.display='';
+}
+
+function nxtQ(){qi++;if(qi>=qs.length)showRes();else loadQ()}
+
+function showRes(){
+const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+const tier=pct>=80?'good':pct>=50?'mid':'bad';
+$('rC').className=`rc ${tier}`;
+const rp=$('rP');rp.textContent=`${pct}%`;
+rp.style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--pos)':'var(--red)';
+$('rM').textContent=pct===100?'Parfait !':pct>=80?'Très bien !':pct>=60?'Continue tes efforts !':'Reprends la règle des signes et réessaie.';
+show('S_res');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

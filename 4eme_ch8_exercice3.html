@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feuille de révisions – Théorème de Thalès | Mathématiques</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:       #2563eb;
+            --primary-dark:  #1e40af;
+            --primary-light: #dbeafe;
+            --secondary:     #f59e0b;
+            --success:       #059669;
+            --success-light: #d1fae5;
+            --bonus:         #7c3aed;
+            --bonus-light:   #ede9fe;
+            --bg-card:       #fffbeb;
+            --border:        #fbbf24;
+            --text-dark:     #1f2937;
+            --text-medium:   #4b5563;
+            --shadow:        rgba(251, 191, 36, 0.15);
+            --red-triangle:  #dc2626;
+            --green-triangle:#10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        header {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            margin-bottom: 1.5rem;
+            border: 3px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--success));
+        }
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+        .subtitle { font-size: 1.1rem; color: var(--text-medium); }
+
+        /* ── PROGRESS WIDGET ── */
+        .progress-wrapper {
+            background: white;
+            border: 2px solid var(--primary-light);
+            border-radius: 16px;
+            padding: 1.25rem 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(37,99,235,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .progress-label { font-size: 0.95rem; font-weight: 600; color: var(--text-medium); white-space: nowrap; }
+        .progress-bar-track {
+            flex: 1; min-width: 120px; height: 12px;
+            background: var(--primary-light); border-radius: 99px; overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--bonus));
+            border-radius: 99px;
+            transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+        .progress-counter { font-size: 0.95rem; font-weight: 700; color: var(--primary); white-space: nowrap; }
+        .progress-dots { display: flex; gap: 0.4rem; }
+        .progress-dot {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid var(--primary-light); background: white;
+            transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .progress-dot.done { background: var(--success); border-color: var(--success); transform: scale(1.2); }
+
+        /* ── SCORE CARD ── */
+        .score-card {
+            background: white; border: 2px solid var(--primary-light);
+            border-radius: 20px; padding: 2rem 2.5rem; margin-bottom: 2rem;
+            box-shadow: 0 8px 30px rgba(37,99,235,0.1); text-align: center;
+            display: none; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative; overflow: hidden;
+        }
+        .score-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--success), #10b981, var(--bonus));
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.85) translateY(-10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .score-card.visible { display: block; }
+        .score-emoji  { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+        .score-title  { font-family: 'Crimson Pro', serif; font-size: 1.8rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+        .score-stars  { font-size: 1.8rem; letter-spacing: 0.2rem; margin: 0.5rem 0 1rem; }
+        .score-message { font-size: 1.05rem; color: var(--text-medium); max-width: 500px; margin: 0 auto; }
+        .score-breakdown { display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+        .score-badge { padding: 0.4rem 1rem; border-radius: 99px; font-size: 0.85rem; font-weight: 700; }
+        .score-badge.green  { background: #dcfce7; color: #166534; }
+        .score-badge.blue   { background: var(--primary-light); color: var(--primary-dark); }
+        .score-badge.yellow { background: #fef9c3; color: #854d0e; }
+
+        /* ── EXERCISE CARD ── */
+        .exercise {
+            background: var(--bg-card);
+            border: 3px solid var(--border);
+            border-left: 6px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.4s ease;
+            position: relative;
+        }
+        .exercise:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--shadow); }
+        .exercise.seen { border-left-color: var(--success); }
+
+        .exercise-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border);
+        }
+        .exercise-title {
+            font-family: 'Crimson Pro', serif; font-size: 1.8rem;
+            font-weight: 700; color: var(--primary-dark);
+        }
+        .reveal-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; border: none; padding: 0.75rem 1.5rem;
+            border-radius: 50px; font-family: 'DM Sans', sans-serif;
+            font-weight: 600; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            min-height: 48px; touch-action: manipulation;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .reveal-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4); }
+        .reveal-btn.active { background: linear-gradient(135deg, var(--success), #059669); }
+
+        .seen-badge {
+            display: none; align-items: center; gap: 0.4rem;
+            font-size: 0.8rem; font-weight: 700; color: var(--success);
+            background: #dcfce7; border: 1.5px solid #86efac;
+            border-radius: 99px; padding: 0.2rem 0.85rem; white-space: nowrap;
+        }
+        .seen-badge.visible { display: flex; }
+
+        .exercise-content { font-size: 1.05rem; line-height: 2; }
+
+        .correction {
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); margin-top: 0;
+        }
+        .correction.show {
+            max-height: 10000px; opacity: 1; margin-top: 1.5rem;
+            animation: slideIn 0.5s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-10px); }
+            to { transform: translateY(0); }
+        }
+
+        .correction-box {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 3px solid var(--success); border-radius: 12px;
+            padding: 2rem 1.5rem 1.5rem 1.5rem; position: relative; margin-top: 1rem;
+        }
+        .correction-box::before {
+            content: '✓ Correction'; position: absolute; top: 0; left: 0;
+            background: var(--success); color: white; padding: 0.5rem 1.5rem;
+            border-radius: 12px 0 12px 0; font-size: 0.9rem; font-weight: 600;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        .correction-content { margin-top: 1rem; line-height: 2; }
+
+        .thales-method {
+            background: white; padding: 1.5rem; border-radius: 10px;
+            margin: 1rem 0; border-left: 4px solid var(--primary);
+        }
+        .thales-step { margin: 1rem 0; font-family: 'Times New Roman', serif; font-size: 1.1rem; }
+        .thales-step strong { color: var(--primary); font-size: 1.2rem; }
+
+        .fraction-display {
+            display: inline-flex; flex-direction: column;
+            align-items: center; vertical-align: middle; margin: 0 0.3rem;
+        }
+        .fraction-numerator { border-bottom: 2px solid #000; padding: 0 0.5rem; font-family: 'Times New Roman', serif; }
+        .fraction-denominator { padding: 0 0.5rem; font-family: 'Times New Roman', serif; }
+        .red-text   { color: var(--red-triangle);   font-weight: 600; }
+        .green-text { color: var(--green-triangle);  font-weight: 600; }
+
+        .figure-container {
+            text-align: center; margin: 2rem 0;
+            background: white; padding: 2rem; border-radius: 10px;
+        }
+        .calculation {
+            background: #f0f9ff; padding: 1rem; border-radius: 8px;
+            margin: 0.5rem 0; border-left: 4px solid var(--primary);
+            font-family: 'Times New Roman', serif; font-size: 1.1rem;
+        }
+        .two-column {
+            display: grid; grid-template-columns: 1fr auto 1fr;
+            gap: 1.5rem; align-items: start; margin: 1rem 0;
+            background: #f0f9ff; padding: 1.5rem; border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        .column-left, .column-right { font-family: 'Times New Roman', serif; font-size: 1.1rem; }
+        .column-divider { width: 2px; background: var(--primary); height: 100%; min-height: 60px; }
+
+        footer { text-align: center; margin-top: 3rem; padding: 2rem; color: var(--text-medium); font-style: italic; }
+
+        /* ── HINTS ── */
+        .hint-zone { margin: 1rem 0 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+        .hint-btn {
+            background: var(--bonus-light); color: var(--bonus);
+            border: 2px solid var(--bonus); padding: 0.5rem 1.1rem;
+            border-radius: 99px; font-family: 'DM Sans', sans-serif;
+            font-weight: 600; font-size: 0.88rem; cursor: pointer;
+            transition: all 0.25s ease; min-height: 40px; touch-action: manipulation;
+        }
+        .hint-btn:hover { background: var(--bonus); color: white; }
+        .hint-box { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .hint-item {
+            background: var(--bonus-light); border-left: 4px solid var(--bonus);
+            border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.95rem;
+            animation: fadeSlideIn 0.3s ease; display: none;
+        }
+        .hint-item.visible { display: block; }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hint-count { font-size: 0.8rem; color: var(--bonus); margin-left: 0.5rem; }
+        .hint-btn-ind {
+            background: var(--bonus-light); color: var(--bonus);
+            border: 2px solid var(--bonus); padding: 0.5rem 1rem;
+            border-radius: 10px; font-family: 'DM Sans', sans-serif;
+            font-weight: 600; font-size: 0.88rem; cursor: pointer;
+            transition: all 0.25s ease; min-height: 40px; touch-action: manipulation;
+            display: block; width: 100%; text-align: left; margin-bottom: 0.4rem;
+            white-space: normal;
+        }
+        .hint-btn-ind:hover, .hint-btn-ind.active { background: var(--bonus); color: white; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            body { padding: 1.5rem 0.75rem; }
+            header { padding: 2rem; border-radius: 16px; }
+            h1 { font-size: 2rem; }
+            .exercise { padding: 1.5rem; border-radius: 14px; }
+            .exercise-header { flex-direction: column; gap: 0.75rem; align-items: flex-start; margin-bottom: 1.25rem; }
+            .exercise-title { font-size: 1.6rem; }
+            .reveal-btn { padding: 0.7rem 1.3rem; font-size: 0.93rem; min-height: 44px; }
+            .thales-method { padding: 1.25rem; }
+            .figure-container { padding: 1.5rem; }
+            .calculation { padding: 0.85rem; font-size: 1.05rem; }
+            .correction-box { padding: 1.75rem 1.25rem 1.25rem; }
+            footer { padding: 1.5rem; margin-top: 2rem; }
+            .two-column { grid-template-columns: 1fr; }
+            .column-divider { display: none; }
+        }
+        @media (max-width: 600px) {
+            body { padding: 1.25rem 0.6rem; }
+            header { padding: 1.5rem 1.25rem; }
+            h1 { font-size: 1.75rem; }
+            .exercise { padding: 1.25rem; margin-bottom: 1.5rem; }
+            .exercise-title { font-size: 1.45rem; }
+            .reveal-btn { padding: 0.65rem 1.2rem; font-size: 0.9rem; }
+            .exercise-content { font-size: 1rem; }
+            .thales-method { padding: 1rem; }
+            .figure-container { padding: 1.25rem; }
+            .calculation { padding: 0.8rem; font-size: 1rem; }
+            .correction-box { padding: 1.5rem 1rem 1rem; }
+            footer { font-size: 0.95rem; }
+            ul { margin-left: 1.2rem !important; }
+        }
+        @media (max-width: 380px) {
+            h1 { font-size: 1.25rem; }
+            .exercise-title { font-size: 1.1rem; }
+            .thales-step, .calculation { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📐 Feuille de révisions</h1>
+            <p class="subtitle">Théorème de Thalès – Correction interactive</p>
+        </header>
+
+        <!-- Widget de progression -->
+        <div class="progress-wrapper">
+            <span class="progress-label">📊 Progression</span>
+            <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBar"></div></div>
+            <span class="progress-counter" id="progressCounter">0 / 4</span>
+            <div class="progress-dots" id="progressDots">
+                <div class="progress-dot" id="dot-ex1"></div>
+                <div class="progress-dot" id="dot-ex2"></div>
+                <div class="progress-dot" id="dot-ex3"></div>
+                <div class="progress-dot" id="dot-ex4"></div>
+            </div>
+        </div>
+
+<!-- Exercice 1 -->
+        <div class="exercise" id="card-ex1">
+            <div class="exercise-header">
+                <h2 class="exercise-title">Exercice 1</h2>
+                <button class="reveal-btn" id="btn-ex1" onclick="toggleCorrection('ex1')">Voir la correction</button>
+                <span class="seen-badge" id="seen-ex1">✓ Vu</span>
+            </div>
+            <div class="exercise-content">
+                <p>Les droites (AD) et (CE) sont sécantes et les droites (AC) et (ED) sont parallèles.</p>
+                <p>Calculer BC et BD.</p>
+                
+                <div class="figure-container">
+                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #f59e0b;">
+                        <strong>📝 Instructions :</strong> Colorier le <strong style="color: #dc2626;">grand triangle EBD en rouge</strong> et le <strong style="color: #10b981;">petit triangle ABC en vert</strong>.
+                    </div>
+                    <img src="data:image/png;base64,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" alt="Figure exercice 1" style="max-width: 100%; height: auto;">
+                </div>
+                <div class="hint-zone">
+                    <button class="hint-btn-ind" data-hint-id="hint-ex1-1">💡 Indice 1 – Lire la figure</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex1-2">💡 Indice 2 – Identifier les longueurs utiles</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex1-3">💡 Indice 3 – Mettre en place l'égalité</button>
+                    <div class="hint-box" id="hints-ex1">
+                        <div class="hint-item" id="hint-ex1-1">🔎 Avant tout, vérifie que tu as bien identifié les deux droites sécantes et les deux droites parallèles. Quel point est le « centre » de la configuration ?</div>
+                        <div class="hint-item" id="hint-ex1-2">✏️ Le théorème de Thalès donne une égalité de trois rapports. Lesquels des six segments du dessin vont dans chaque rapport ? Quels sont ceux qu'on cherche ?</div>
+                        <div class="hint-item" id="hint-ex1-3">🔢 Tu as une égalité de fractions où une seule inconnue apparaît. Quelle opération permets de « faire passer » les termes pour isoler l'inconnue ?</div>
+                    </div>
+                </div>
+            </div>
+            <div class="correction" id="ex1">
+                <div class="correction-box">
+                    <div class="correction-content">
+                        <div class="thales-method">
+                            <div class="thales-step">
+                                <strong>On a :</strong> A, B, D alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C, B, E alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(AC) et (ED) sont parallèles
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Or :</strong> d'après le théorème de Thalès
+                            </div>
+                            
+                            <div style="text-align: center; margin: 1.5rem 0; font-size: 1.2rem;">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">AB</span>
+                                    <span class="fraction-denominator green-text">BD</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">CB</span>
+                                    <span class="fraction-denominator green-text">BE</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">AC</span>
+                                    <span class="fraction-denominator green-text">ED</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">3</span>
+                                    <span class="fraction-denominator">BD</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">2</span>
+                                    <span class="fraction-denominator">2,4</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                BD = 3 × 2,4 ÷ 2 = 3,6
+                            </div>
+                            
+                            <div class="calculation">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">CB</span>
+                                    <span class="fraction-denominator">4,8</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">2</span>
+                                    <span class="fraction-denominator">2,4</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                CB = 2 × 4,8 ÷ 2,4 = 4
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Donc :</strong> BC = 4 et BD = 3,6
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercice 2 -->
+        <div class="exercise" id="card-ex2">
+            <div class="exercise-header">
+                <h2 class="exercise-title">Exercice 2</h2>
+                <button class="reveal-btn" id="btn-ex2" onclick="toggleCorrection('ex2')">Voir la correction</button>
+                <span class="seen-badge" id="seen-ex2">✓ Vu</span>
+            </div>
+            <div class="exercise-content">
+                <p>On considère le triangle ABC suivant.</p>
+                
+                <div class="figure-container">
+                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #f59e0b;">
+                        <strong>📝 Instructions :</strong> Colorier le <strong style="color: #dc2626;">grand triangle ABC en rouge</strong> et le <strong style="color: #10b981;">petit triangle DEC en vert</strong>.
+                    </div>
+                    <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAFZAYsDASIAAhEBAxEB/8QAHQABAQEBAQADAQEAAAAAAAAAAAYHBQMCBAgBCf/EAEQQAAEDAwEDBgwEAwgCAwAAAAABAgMEBQYRBxIhCDY3c3SRFBciMUFRUlZhsbLRExUycSRCwRYjM1NUgaHwYnIYNJL/xAAbAQEAAgMBAQAAAAAAAAAAAAAAAwQBAgUGB//EADERAQACAQEFCAEDBAMBAAAAAAABAwIRBBITIXExNEFRU5Gh0QUUIrEyM1JhBkJDgf/aAAwDAQACEQMRAD8A/ZYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJ7PsutuF2NbvdIKuaBHo3dpmNc/Vfg5yJ/ydPH7pT3uyUl2pGSsgq4kljbKiI5EX1oiqmv+5mvKm6NHde0sdlPRxYexMApwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAq6IqgAZ/T7QrjW1FUy24jVVcVPM+FZG1KIiq1dF4bvwKDD8pp8hSeJaSairKZ27PTyrq5i/v6S9d+O2mnGcs8eUdvOJ06xE6w1jOJUAAKLYAAAAAAAAAAAAAAAAAAAAAAABk/Km6NHde0sdlPRxYexMI7lTdGjuvaWOyno4sPYmAU4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB/HfpX9j+n8dxaqfADHsAqMyjS7tsNJa5ab8xn41G/va766+ZTs7NJqiPMLzBfoUhvkzkkkSNdY1Zpw3fT5vWeOO0meY5JcKejslBVQT1ckzHvqVaujnKvm0+J2sQsF5dktVk+QrTx1kzEjjgg1VsbU+K+dT1W23VzF0zOOmUcpif3TPLt5+6DGJ5LUAHlU4AAAAAAAAAAAAAAAAAAAAAAADJ+VN0aO69pY7Kejiw9iYR3Km6NHde0sdlPRxYexMApwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC+YD867cNtF6pchq8Xwx8VLJQyLFV10jd9d9PO1rfNwXhqpJYJtyzHHrxAmV1sd4s0j0ZNIsaRywoq/qTTgqIS+1az1mNbTshhuUb44q2vlq6adyeTIyR6uTj6010I2+VDJ6N1FSolRPP5DWs8rTX0rp5kPo2yfhPxWf4b9RZP7t3WcteyfJVnOybd2H+htJPFVU0VTA9HxSsR7HJ6UVNUPQmNmVdQVOGWuCjq0nWnpY4n6r5SKjURdUKc+cY5RlGsLeWM4zpMcwAGWAAAAAAAAAAAAAAAAAAAZPypujR3XtLHZT0cWHsTCO5U3Ro7r2ljsp6OLD2JgFOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlNqdhs97w24tutvgqvw6d7mK9vFqonnRTNtheHY1DiP47bRTOmke9rpHN1cqby8NVNczfmhdeyv8AkQOxLmXH1r/qUqW55caMdeWkuhTjH6bLLx1hy7xjF4xWvdecUnesKLvSUq/94ltgef27Io0p6hEo7g3g+J66ar8DrqiKmi8UIrMsGguUn5jaZPAbg3ykczgjl+JFuZ0zvVdnl9JOJXtEbt3b4T9tSBlGHbQa22VbbFl0LoZGLuMqfQ79zVKeaKohbNDI2SNyatc1dUVC3VdjbGuKlfs+dE6Ze75gAlQAAAAAAAAAAAAAAAAMn5U3Ro7r2ljsp6OLD2JhHcqbo0d17Sx2U9HFh7EwCnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcfN+aF17K/wCRA7EuZcfWv+pS+zfmhdeyv+RA7EuZcfWv+pSlb3jHpLo090y6wuQATqzj5PjltyCkWGsiRH/yyN/U0h6C55Js6rUp6tH3Cyq7yXelqf0NQPGspaesp3U9TE2WNyaK1yEFlO9O9jOmSzVtG7G5nGuPl9Pv45frbf6FlXbp2yNcnFuvlN+CodQxW8YxecVr3XnFJ3rAi70lKv8AT1lvgefW7Io0p6hPA7g3g+J6+dfgbVbRrO5Zyn+Wl2yaY8SqdcfmOqzABbUQAAAAAAAAAAAABk/Km6NHde0sdlPRxYexMI7lTdGjuvaWOyno4sPYmAU4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADj5vzQuvZX/IgdiXMuPrX/UpfZvzQuvZX/IgdiXMuPrX/UpSt7xj0l0ae6ZdYXIAJ1YAABURU0XihFZlg0FxkW42mXwG4N8pFZwRylqCOyvGyNMklVudWW9jKFw7aDWWyrbYsuhdDKxdxlT6HfuapTzRVELZoJGyRuTVrmrqioRuT45bcgpFhrItH/yyN/U1SHoLnkmzquSnq0fcLMrvJf6Wp/Qixtzo5Z88fPy6p8qa9p518svLz6NtBy8cv1tv9Cyrt07ZGuTi3Xymr6lQ6hexyjKNYc7LGcZ0mOYADLUAAAAAAABk/Km6NHde0sdlPRxYexMI7lTdGjuvaWOyno4sPYmAU4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADj5vzQuvZX/IgdiXMuPrX/AFKX2b80Lr2V/wAiB2Jcy4+tf9SlK3vGPSXRp7pl1hcgAnVgAAAAAPGspaesp3U9TE2WNyaK1yHsDExqzE6c4ZleMYvOKV7rxik7lgRd6SmX/vEt8Dz63ZFGlPUJ4HcG8HxPXzr8DrKiKmipqhFZlg0NxkW42mXwG4N8pFZwRylbczpneq7PL6W+JXtEbt3KfCftqQMow7aDWW2rbYsuhdDKzyGVHod+5qlPNFUQtmgkbJG5NWuauqKhapuxtjXFSv2fOmdMvd8wATIAAAAABk/Km6NHde0sdlPRxYexMI7lTdGjuvaWOyno4sPYmAU4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADj5vzQuvZX/IgdiXMuPrX/UpfZvzQuvZX/IgdiXMuPrX/UpSt7xj0l0ae6ZdYXIAJ1YAAAAAAAAAAHHyfHLbkFIsNZEiPRPJkb+ppD0FzyTZ1XJT1iPuFmV3kvTztT+hqB41tLT1lO6nqYmyxuTRWuQgsp3p3sZ0yWato3Y3M41x8vp9/HL9bb/QMq7dUNka5OLdfKavqVDqGK3jGbzile68YrM51Oi70lMv/P7lvgefW7Iokp6j+DuDOD4nrpqvwNqtp1ncs5T/AC0v2TTHiVTrj8x1WYALaiAADJ+VN0aO69pY7Kejiw9iYR3Km6NHde0sdlPRxYexMApwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHzfmhdeyv8AkQOxLmXH1r/qUvs35oXXsr/kQOxLmXH1r/qUpW94x6S6NPdMusLkAE6sAAAAAAAAAAAAACoipoqaoRWZYNDcZfzG0SeBXBnFFbwRylqCOyvGyNMklVudWW9jKFw7aDWW2rbYsuhdDKzyWVHod+5qlPNFUQtmgkbJG9NWuauqKRuT45bsgpFhrIkR6fpkanlNIegueSbO65Kesa+vsyu8l6edqf0Isbc6OWfPHz+0+VNe086+WXl59G2g5eOX623+gZV26obI1ycW/wAzV9SodQvY5RlGsOdljOM6THNk/Km6NHde07+I3dli2NWy7SQumZTW9r1Y1dFdwOBypujR3XtPsP1/+OsOnn/K2/Iy1ett2lX640MNbSYBcZIJm70bvCWcU7i0xW61t3tvhVdaJrXLvKn4Mr0cunr1QzbZ/WbTm4Zam0Fssj6VKdv4TpJXo5W/Hgahjz7tJaon3uKnirV1/EbAqqxP21A6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4+b80Lr2V/wAiB2Jcy4+tf9Sl9m/NC69lf8iB2Jcy4+tf9SlK3vGPSXRp7pl1hcgAnVgAAAAAAAAAAAAAAAA8a2lp6yndT1MTZY3JorXIewMTGrMTpzhmV4xm84pXuvGKzOdTou9JTKv/AHUt8Dz63ZFElPP/AAlwZwfE9dNV+B1lRFTRU1QisyweG4SLcrRJ4FXs8rVvBHKVtzOmd6rs8vpb4le0Ru3cp8J+3jypujR3XtOpaLbVXfYTRW6ia11RPbWtjRy6Iq6es/L213atlt+ZUYU5tPHBbpvwpqh2qvke3z/7IaxyVtrlVd3RYHkEEbaymh/gqiL9MsaehU9CoXsMt7GJc3PHcynHXXRcYxUbT7JYKK1NxW3SpSxJGj/DdN7T0/pLvEqu/wBXQvfkFtgoKhHaNZFL+Iip69dEO0DZqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADj5vzQuvZX/IgdiXMuPrX/UpfZvzQuvZX/IgdiXMuPrX/AFKUre8Y9JdGnumXWFyACdWAAAAAAAAAAAAAAAAAAACpqip6wAPxXt5we+Ydml1vEtI+pstxqVqIaiLirFdxVrk+C6n39hNrv2PZbQZ7c7PNFaUjVsCu/U5F87tPQhufKbRF2cu1RF/vmlRs8pKes2a2WnqYmyROo2IrVT4GM5ynHTGdJK4wjPXONYWeOX623+gZV26obI1ycW/zNX1Kh1DFbxjN5xS4OvGKzOdT670lMq/91LfA8+t2RRJTz/wlezg+J66ar8COradZ3LOWX8pbtk0x4lU64/MdVmAC2pAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOPm/NC69lf8iB2Jcy4+tf9Sl9m/NC69lf8iB2Jcy4+tf8AUpSt7xj0l0ae6ZdYXIAJ1YAAAAAAAAAAAAAAAAAAAAAZdymujl3XNK3Zf0e2PsbCS5TXRy7rmlbsv6PbH2Ng8GPFSKiKmipqhFZlg0Vwl/MrRJ4FcGcUVvBHKWoI7K8bI0yS1W51Zb2MobDdoNXbattiy6F0EzF3WVCpwd+5qdPNFUQtmhkbJG5NWuauqKRmUY3bsgpFiq40SRP0SNTymkRb7pkezuuSmrWvr7MrvJenFWoRY250cs+ePn9p8qa9p/dXyy8vPo20HMxy/W2/0DKy3VDZGqnFv8zV9SodMvY5RlGsOdljOM6THMABlqAAAAAAAAAAAAAAAAAAAAAAAAAADj5vzQuvZX/IgdiXMuPrX/UpfZvzQuvZX/IgdiXMuPrX/UpSt7xj0l0ae6ZdYXIAJ1YAAAAAAAAAAAAAAAAAAAAAZdymujl3XNK3Zf0e2PsbCS5TXRy7rmlbsv6PbH2Ng8GPFSAAMh41tJT1tO6nqomyxuTRWuQ9gYmNWYnTnDMrvjN5xOvdeMVmc6m13pKZV/7qXGB57bsiiSnn/hLgzg+KThqvwOqqIqaKmqEVmODRXCX8ys8ngVwZxRW8EepW3M6Z3quzy+lviYbRG7dynwn7akDKcN2g1duq22LLoXwTMXdZUKnB37mp080VRC2aGRskbk1a5q6opbquxtjXFSv2fOmdMvd8wASoAAAAAAAAAAAAAAAAAAAAAAAAHHzfmhdeyv8AkQOxLmXH1r/qUvs35oXXsr/kQOxLmXH1r/qUpW94x6S6NPdMusLkAE6sAAAAAAAAAAAAAAAAAAAAAMu5TXRy7rmlbsv6PbH2NhJcpro6d1zSt2X9Htj7GweDHipAAGQAAAABxsoxu3ZBSLDVxokifokanlNIi33TI9ndclNXNfX2ZXeTInFWoageNbSU9bTup6qJssbk0VrkILKd6d7GdMlmraN2NzONcfL6dDHb7bb9QNq7dUNkavnb/M1fUqHTMVu+NXrE6914xaZz6ZF3pKZVLjA89tuRRJTzL4JXs4Phk4ar8DaradZ3LOWX8o79k0x4lU64/MdVkAC2pAAAAAAAAAAAAAAAAAAAAADj5vzQuvZX/IgdiXMuPrX/AFKX2b80Lr2V/wAiB2Jcy4+tf9SlK3vGPSXRp7pl1hcgAnVgAAAAAAAAAAAAAAAAAAAABl3Ka6OXdc0rdl/R7Y+xsJLlNdHLuuaVuy/o9sfY2DwY8VIAAyAAAAAAAAKiKmipqikTmWDRXCX8ys8ngVwZxRW8EepbAjsrxsjTJJVblVlvYyhsN2g1Vuq0sWXQvgmYu6yoVODv3NTgminhbNDI2SNyatc1dUUjMoxu3ZBSLFVxokifokanlNIi33XI9ndclNXNfXWZzvJkbxVqEWNudHKznj5/afKmvaedfLLy8+jbQczHb7bb9QNrLdUNkYvnb/M1fUqHTL2OUZRrDnZYzjOkxzAAZagAAAAAAAAAAAAAAAOPm/NG69lf8iB2Jcy4+tf9SlztBkWLB7zKiaq2jkVP/wAn502bX7O/7ON/JaWOSl/Edoq+vVdTnbRZGG0Y6+UrcXRVseUzGvOOzo/RYMb/AD7al/oYh+fbUv8AQxG36mPKfZz/ANdj/jPs2QGIXPMdolpgSpuFNDFDvImq+k2OyVT620UlXIiI+aFr3InrVDeu6M50hLTtONszERMTHm+4ACZYAAAAAAAAAAAAPG5VlLbaB9dXPcyBi6KrW6r3G2GGVmUY4xrMsTMRGsvYHGTK7GqIqurI2r/O+mcje87Eb45YWTwyNliemrXtXgqEt2y3UxrZjMMY545dksv5TXRy7rmlbsv6PbH2NhCcrOrfSbL3yRoiuWdqJqTuAX7aR/Yu0+BUcb6bwZv4a+tCpZbGEc4Q2341TziZ6P0CDG/z7al/oYh+fbUv9DERfqY8p9kX67H/ABn2bIDGKXNc2oL/AEFJeqeJkdTIjd30qhs7V1ai+tCSu2LNdE1O0Y3a6eAACVOAAAAAB41tJT1tM6nqomyxuTRWuQ9gYmNWYnTnDMrvjV6xKvdeMWlc+m13pKbX+npLjA89tuRRJTzL4JXs4Phk4ar8DqqiKmipqikTmWDx18v5lZ5PArgzim7wR6lbczpneq7PL6W+JhtEbt3KfCftqYMpwzaDVW6rbYsuhfTzMXdZUKnB37mpwTRTwtmhkbJG5NWuauqKW6rsbY1xUr9nzpnTL3fMAEqAAAAE5db/AFTrq602WkSqqmIjpXPdusj19a+s86a/3KjusNBfqOOHwj/BmhdvMVfUvqLUbFbOOv8ArXTXnp0a70KcAFVsE1tJu8lpxid1M5Uq51SGDTz77uCFKZdtCmu96zygtNjggqHW1EqJmzP3Wby+ZFU6P4uiLtoje/px5zr2cvueTTOdIdXZXX18Lq7HbxUvnrqGRdHv872LxRe5S8MfrZ8nsef27Ib9R0lNTVapSyrTyK5PUirwQ2Bqo5qKi6ovFCX8vTu2Y3RppnGvLs18ez/bFc8tE/tI5g3zsMv0qZHyfOj6HrpPqU1zaRzBvnYZfpUyPk+dH0PXSfUp5i/vWPSV/Du2XWGiAAmVkLtq5rs65DQsT5tW7szPpQz3bVzXZ1yGhYnzat3ZmfShHX/dnor094y6Q6YALK8AAAAAAAAAAAcXaFzPk61vzO0crN6apq8UlhpIHzypI1dxiaqpd/GzEbVXM+cI7f6JdqnjgloIKaSCNzHwNRdWp6iewTWOmulBrrFSVb2RcfMnn0/5PlHkNw8Ejhgxu4+EJGjEV7Ua1F001VdT7mM22W1Wl7atzXVlTI6abdXVEVV8xbswyposi2f6pjSNdf8A6ix0nKNGS8sLorXtDSi2QdGOPdhYTvLC6K17Q0otkHRjj3YWHDy7Wcv7kqsAGGzONp3PLHv/AHT6lNhj/wANv7IY9tO55Y9/7p9Smwx/4bf2Qjp/ryQbN/ds6x/D+gAsroAAAAAAAAAAONlGN27IKRYauNEkT9EjU8ppEW+65Hs7rkpq9j66zOd5Micd1DUDxrqSnraZ1PVRNljcmitchBZTvTvYzpks1bRuxuZxrj5fToY7fbbfqBtZbqhsjF87fS1fUqHTMVu+N3rEq9bxi0rn0yLvS02v9PSXGB57bcji8HmXwSvZwfDJw1X4G9W06zuWcp/lHfsmmPEqnXH5jqsg79K6efQAtKSN2f8AC9X9Jf8AH8K46+fd04FNc3W5qwur1hRd/wDulf7XwORdseqluy3WzVjaSqe1Gyteiqx6J69Dxgxy41lyhrb9XxTpTrrFDCio1F9a6nTtmq7PjTnpy7PHWI00aRrHLRUppomnmABzG4cy3WO30F0rLlBG7wmrdvSvcuuv7HTBvjZljExE9vaaOdkFloL7QLRXGJZIt5HJouioqelFPvQRthhZEzXdY1Gpr8D5hfMJsynGMJnlDGj8/wDKE2vvoprjg2N0TKusWJYqypkdpFCrk4t9auQyzZNtKuWGNprJf6SGa2SzaeFwO4xK5fO5F9HE5u0qjqrPtTyekuaOZNPcpqmJz00/Eje9XNVPXwVCXvTXVlN+V0zPxqysVIaeFvFznrwQ95sv/F/xl/4n9XnP792Z3teyfLRBO0WRluR2P2jHUQSRtkZKxzXIioqOTih8vxY/8xneZbZth2dR2mkZLmMTHthajmqr/JXTzeY+34kc299Ye9/2Pls2X6/2594dKKa/84+X3dtD2OxdiNe1f75PMpoeJub/AGat3lJ/9Znp/wDFDKqnYRl9SxI6nL6eVmuujt9f6FJSbLMqp6aOBmVsRrGo1ERXej/Y1wyujOcprn4Yq2WqLZzm2OceUtE3m+0neN5vtJ3kB4sss96297vsPFllnvW3vd9ibi2+nPwtcGj1Y9pX+832k7xvN9pO8gPFllnvW3vd9h4sss96297vsOLb6c/BwaPVj2lf7zfaTvG832k7yA8WWWe9be932Hiyyz3rb3u+w4tvpz8HBo9WPaV/vN9pO8bzfaTvIDxZZZ71t73fYeLLLPetve77Di2+nPwcGj1Y9pX+832k7xvN9pO8gPFllnvW3vd9h4sss96297vsOLb6c/BwaPVj2lf7zfaTvPkyXc/S/T/cz7xZZZ71t73fYeLLLPetve77GeLb6c/DHBo9WPaWhrUPXzy/8nlJKxrHPe9ERqaqqqQPiyyz3rb3u+x9W7bLswltlTHHlSK90TkRNXcV0/YcW2f+k/BwaI/9I9pZZtwye67SGVWOWOngp7RTzq3w2dy6zObwVWoiLw19J3tjOZVlrjocLyWnhhdFCkdHVxO1jmRPQuvFHEVimtHbktFX/dV1A90FTE/g5Hoq69/nP7cLVVZZfrbjdkn3Li+ZJfxm6qkDU86qqeY93tP4PYsPxnHxn92muuvbPk40WZTbzfpb8WP/ADGd4/Fj/wAxneZv4kM299Ye9/2P74kc299Ye9/2Pn3Ev9OfeHS4NfqR8v7tNe1cxx7RyL5aeZf/ACU2CNzfw2+UnmT0mNt2E5W+shqKnLaeVYl1aq76qn7cCnTZjliIif2rbw+LvsKsrsZmZrnn0Yo2SrHLLKbY5/6lf7zfaTvG832k7yA8WWWe9be932Hiyyz3rb3u+xLxbfTn4WeDR6se0r/eb7Sd43m+0neQHiyyz3rb3u+w8WWWe9be932HFt9Ofg4NHqx7Sv8Aeb7Sd43m+0neQHiyyz3rb3u+w8WWWe9be932HFt9Ofg4NHqx7Sv95vtJ3jeb7Sd5AeLLLPetve77DxZZZ71t73fYcW305+Dg0erHtK/3m+0neN5vtJ3kB4sss96297vsPFllnvW3vd9hxbfTn4ODR6se0r/eb7Sd43m+0neQHiyyz3rb3u+w8WWWe9be932HFt9Ofg4NHqx7Sv1VipoqtVFInMsJhr5fzKzTNoq9nFN1dEep9bxZZZ71t73fYeLLLPetve77Glm/ZGmVc/CSqK6st7G2PaUdcttGV2OodicNlZWXqFqK+eR+7HG30K5fPr+x52nbXmVkr4psot1HXWt7kSaSjcu/Br6dHImqEVkFmr8O2mXS3ZBUfjTV7I56WrdruytRNFair6UX0Hjk9bS01nmbM5Humb+HHGnFz3LwREQ97+J/CbJb+Ni23Kd7SeevY421Xa3zuxy/0/Ylrrqa526nuFHKktPURpJG9PSin2SQ2M2+ttezCxUVwRzaiOmRXNd526qqoncpXnlZbAAMAAAAAAlM/wBnuLZxAyO/29JZI00ZMxd2Rv8AucfBtjmD4hXtuNvt7561v6Zql++rfinqNDBvFmcY7uvLyNAAGgAAAAAAAAAAAAAAAAAAAAAME5VmGWJ2OOyWCB9LdFka108Dt1Xp8fWWmwXDrDYMIttxoKT+NraZsk9RIu896r8fUc7lTdGjuvaWOyno4sPYmG2/lOO7ryNFOADUAAAAAAAAAAAAAAAAAAAAAE9m2GY9mNC2kv1A2oRn+HInB7P2X0EziuxfCMfubLjDSVFZURrrEtVLvoz9k0NHBtGeURpE8gRERNETREABqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyflTdGjuvaWOyno4sPYmEdypujR3XtLHZT0cWHsTAKcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGT8qbo0d17Sx2U9HFh7EwjuVN0aO69pY7Kejiw9iYBTgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//Z" alt="Figure exercice 2" style="max-width: 100%; height: auto;">
+                </div>
+                
+                <p><strong>1.</strong> Soit D ∈ [AC] tel que DC = 12 cm et AD = 10 cm. Par ce point D, on trace la perpendiculaire à la droite (AC). Elle coupe la droite (BC) en E tel que EC = 13 cm. Calculer ED.</p>
+                <p><strong>2.</strong> Expliquer pourquoi les droites (AB) et (DE) sont parallèles.</p>
+                <p><strong>3.</strong> Calculer AB. Arrondir le résultat au dixième.</p>
+                <div class="hint-zone">
+                    <button class="hint-btn-ind" data-hint-id="hint-ex2-1">💡 Indice 1 – Question 1 : repérer le triangle rectangle</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex2-2">💡 Indice 2 – Question 2 : justifier le parallélisme</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex2-3">💡 Indice 3 – Question 3 : mettre en place l'égalité de rapports</button>
+                    <div class="hint-box" id="hints-ex2">
+                        <div class="hint-item" id="hint-ex2-1">🔎 Question 1 : quel angle de DEC est droit ? Quelle est l'hypoténuse ? Quel théorème utiliser dans un triangle rectangle quand on connaît deux côtés ?</div>
+                        <div class="hint-item" id="hint-ex2-2">✏️ Question 2 : pense à la relation entre une droite perpendiculaire à une autre et ce que ça implique pour deux droites qui partagent cette propriété.</div>
+                        <div class="hint-item" id="hint-ex2-3">🔢 Question 3 : commence par calculer AC en entier. Maintenant que tu sais que (AB) ∥ (DE), quelle configuration de Thalès peux-tu identifier ?</div>
+                    </div>
+                </div>
+            </div>
+            <div class="correction" id="ex2">
+                <div class="correction-box">
+                    <div class="correction-content">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">Question 1 : Calculer ED</h3>
+                        
+                        <div class="thales-method">
+                            <div class="thales-step">
+                                <strong>On a :</strong> Le triangle DEC est rectangle en D<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DC = 12 cm<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EC = 13 cm<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hypoténuse : EC
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Or :</strong> d'après le théorème de Pythagore
+                            </div>
+                            
+                            <div class="calculation">
+                                EC² = ED² + DC²
+                            </div>
+                            
+                            <div class="calculation">
+                                13² = ED² + 12²
+                            </div>
+                            
+                            <div class="calculation">
+                                169 = ED² + 144
+                            </div>
+                            
+                            <div class="calculation">
+                                ED² = 169 - 144 = 25
+                            </div>
+                            
+                            <div class="calculation">
+                                ED = √25 = 5 cm
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Donc :</strong> ED mesure 5 cm
+                            </div>
+                        </div>
+                        
+                        <h3 style="color: var(--primary); margin: 2rem 0 1rem 0;">Question 2 : Justification</h3>
+                        
+                        <div class="thales-method">
+                            <p>Les droites (DE) et (AB) sont toutes les deux perpendiculaires à la droite (AC).</p>
+                            <p>Or, si deux droites sont perpendiculaires à une même droite, alors elles sont parallèles entre elles.</p>
+                            <p><strong>Donc :</strong> les droites (AB) et (DE) sont parallèles.</p>
+                        </div>
+                        
+                        <h3 style="color: var(--primary); margin: 2rem 0 1rem 0;">Question 3 : Calculer AB</h3>
+                        
+                        <div class="thales-method">
+                            <div class="calculation">
+                                AC = AD + DC = 10 + 12 = 22 cm
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>On a :</strong> D, C, A alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;E, C, B alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(DE) et (AB) sont parallèles
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Or :</strong> d'après le théorème de Thalès
+                            </div>
+                            
+                            <div style="text-align: center; margin: 1.5rem 0; font-size: 1.2rem;">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">AC</span>
+                                    <span class="fraction-denominator green-text">DC</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">BC</span>
+                                    <span class="fraction-denominator green-text">EC</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">AB</span>
+                                    <span class="fraction-denominator green-text">ED</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">22</span>
+                                    <span class="fraction-denominator">12</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">BC</span>
+                                    <span class="fraction-denominator">13</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                BC = 22 × 13 ÷ 12 ≈ 23,8 cm
+                            </div>
+                            
+                            <div class="calculation">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">22</span>
+                                    <span class="fraction-denominator">12</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">AB</span>
+                                    <span class="fraction-denominator">5</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                AB = 22 × 5 ÷ 12 ≈ 9,2 cm
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Donc :</strong> AB mesure environ 9,2 cm
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercice 3 -->
+        <div class="exercise" id="card-ex3">
+            <div class="exercise-header">
+                <h2 class="exercise-title">Exercice 3</h2>
+                <button class="reveal-btn" id="btn-ex3" onclick="toggleCorrection('ex3')">Voir la correction</button>
+                <span class="seen-badge" id="seen-ex3">✓ Vu</span>
+            </div>
+            <div class="exercise-content">
+                <p><strong>Données :</strong></p>
+                <ul style="margin-left: 2rem;">
+                    <li>Le triangle ABC est tel que AB = 6 cm, AC = 8 cm et BC = 10 cm.</li>
+                    <li>Un point D est placé sur le segment [BC] de sorte que DC = 4 cm.</li>
+                    <li>La droite (DE) est parallèle à (AC), et elle coupe [AB] en E.</li>
+                </ul>
+                
+                <div class="figure-container">
+                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #f59e0b;">
+                        <strong>📝 Instructions :</strong> Colorier le <strong style="color: #dc2626;">grand triangle ABC en rouge</strong> et le <strong style="color: #10b981;">petit triangle BED en vert</strong>.
+                    </div>
+                    <img src="data:image/png;base64,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" alt="Figure exercice 3" style="max-width: 100%; height: auto;">
+                </div>
+                
+                <p><strong>1.</strong> Montrer que le triangle ABC est rectangle en A</p>
+                <p><strong>2.</strong> Calculer la longueur DE.</p>
+                <div class="hint-zone">
+                    <button class="hint-btn-ind" data-hint-id="hint-ex3-1">💡 Indice 1 – Question 1 : quelle propriété tester ?</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex3-2">💡 Indice 2 – Question 2 : quelles conditions vérifier ?</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex3-3">💡 Indice 3 – Question 2 : mettre en place l'égalité</button>
+                    <div class="hint-box" id="hints-ex3">
+                        <div class="hint-item" id="hint-ex3-1">🔎 Question 1 : comment démontrer qu'un triangle est rectangle ? Quel théorème compare les carrés des côtés ? Lequel des côtés serait l'hypoténuse si le triangle était rectangle ?</div>
+                        <div class="hint-item" id="hint-ex3-2">✏️ Question 2 : pour utiliser Thalès, il faut deux droites sécantes et deux droites parallèles. Est-ce que B, D, C sont bien alignés ? Et B, E, A ?</div>
+                        <div class="hint-item" id="hint-ex3-3">🔢 Tu as une proportion avec trois valeurs connues et une inconnue. Comment isoler l'inconnue quand elle est au dénominateur d'une fraction ?</div>
+                    </div>
+                </div>
+            </div>
+            <div class="correction" id="ex3">
+                <div class="correction-box">
+                    <div class="correction-content">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">Question 1 : Montrer que ABC est rectangle en A</h3>
+                        
+                        <div class="thales-method">
+                            <div class="thales-step">
+                                <strong>On a :</strong>
+                            </div>
+                            
+                            <div class="two-column">
+                                <div class="column-left">
+                                    <strong>Gauche :</strong><br>
+                                    BC² = 10² = 100
+                                </div>
+                                <div class="column-divider"></div>
+                                <div class="column-right">
+                                    <strong>Droite :</strong><br>
+                                    AB² + AC² = 6² + 8²<br>
+                                    = 36 + 64 = 100
+                                </div>
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Or :</strong> Gauche = Droite, donc BC² = AB² + AC²
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Donc :</strong> d'après la réciproque du théorème de Pythagore, le triangle ABC est rectangle en A
+                            </div>
+                        </div>
+                        
+                        <h3 style="color: var(--primary); margin: 2rem 0 1rem 0;">Question 2 : Calculer DE</h3>
+                        
+                        <div class="thales-method">
+                            <div class="calculation">
+                                BD = BC - DC = 10 - 4 = 6 cm
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>On a :</strong> B, D, C alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;B, E, A alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(DE) et (AC) sont parallèles
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Or :</strong> d'après le théorème de Thalès
+                            </div>
+                            
+                            <div style="text-align: center; margin: 1.5rem 0; font-size: 1.2rem;">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">BC</span>
+                                    <span class="fraction-denominator green-text">BD</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator" style="text-decoration: line-through;">BA</span>
+                                    <span class="fraction-denominator" style="text-decoration: line-through;">BE</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">AC</span>
+                                    <span class="fraction-denominator green-text">DE</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">10</span>
+                                    <span class="fraction-denominator">6</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">8</span>
+                                    <span class="fraction-denominator">DE</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                DE = 8 × 6 ÷ 10 = 4,8 cm
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Donc :</strong> DE mesure 4,8 cm
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercice 4 -->
+        <div class="exercise" id="card-ex4">
+            <div class="exercise-header">
+                <h2 class="exercise-title">Exercice 4</h2>
+                <button class="reveal-btn" id="btn-ex4" onclick="toggleCorrection('ex4')">Voir la correction</button>
+                <span class="seen-badge" id="seen-ex4">✓ Vu</span>
+            </div>
+            <div class="exercise-content">
+                <p><strong>Voici les données de la figure :</strong></p>
+                <ul style="margin-left: 2rem;">
+                    <li>CD mesure 39 m</li>
+                    <li>BC mesure 52 m</li>
+                    <li>AB mesure 76 m</li>
+                    <li>Le triangle ABE est rectangle en A</li>
+                    <li>Le triangle BCD est rectangle en C</li>
+                </ul>
+                
+                <div class="figure-container">
+                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 2px solid #f59e0b;">
+                        <strong>📝 Instructions :</strong> Colorier le <strong style="color: #dc2626;">grand triangle ABE en rouge</strong> et le <strong style="color: #10b981;">petit triangle BCD en vert</strong>.
+                    </div>
+                    <img src="data:image/png;base64,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" alt="Figure exercice 4" style="max-width: 100%; height: auto;">
+                </div>
+                
+                <p><strong>1.</strong> Expliquer pourquoi les droites (AE) et (DC) sont parallèles</p>
+                <p><strong>2.</strong> Calculer la longueur AE</p>
+                <p><strong>3.</strong> Calculer la longueur BD</p>
+                <div class="hint-zone">
+                    <button class="hint-btn-ind" data-hint-id="hint-ex4-1">💡 Indice 1 – Question 1 : identifier les droites parallèles</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex4-2">💡 Indice 2 – Question 2 : mettre en place l'égalité de rapports</button>
+                    <button class="hint-btn-ind" data-hint-id="hint-ex4-3">💡 Indice 3 – Question 3 : repérer le triangle rectangle</button>
+                    <div class="hint-box" id="hints-ex4">
+                        <div class="hint-item" id="hint-ex4-1">🔎 Question 1 : (AE) et (DC) sont toutes deux perpendiculaires à la même droite. Que peut-on en conclure ?</div>
+                        <div class="hint-item" id="hint-ex4-2">✏️ Question 2 : maintenant que tu sais que (AE) ∥ (DC), identifie le sommet commun des deux droites sécantes. Quels rapports peux-tu écrire avec Thalès ?</div>
+                        <div class="hint-item" id="hint-ex4-3">🔢 Question 3 : dans le triangle BCD, quel angle semble droit d'après la figure ? Quel est le côté le plus long (hypoténuse) ? Quel théorème s'applique ?</div>
+                    </div>
+                </div>
+            </div>
+            <div class="correction" id="ex4">
+                <div class="correction-box">
+                    <div class="correction-content">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">Question 1 : Justification</h3>
+                        
+                        <div class="thales-method">
+                            <p>Les droites (AE) et (DC) sont toutes les deux perpendiculaires à la droite (AB).</p>
+                            <p>En effet, le triangle ABE est rectangle en A, donc (AE) est perpendiculaire à (AB).</p>
+                            <p>De même, le triangle BCD est rectangle en C, donc (DC) est perpendiculaire à (BC), et comme (BC) est sur (AB), alors (DC) est perpendiculaire à (AB).</p>
+                            <p>Or, si deux droites sont perpendiculaires à une même droite, alors elles sont parallèles entre elles.</p>
+                            <p><strong>Donc :</strong> les droites (AE) et (DC) sont parallèles.</p>
+                        </div>
+                        
+                        <h3 style="color: var(--primary); margin: 2rem 0 1rem 0;">Question 2 : Calculer AE</h3>
+                        
+                        <div class="thales-method">
+                            <div class="thales-step">
+                                <strong>On a :</strong> E, B, D alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A, B, C alignés<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(AE) et (DC) sont parallèles
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Or :</strong> d'après le théorème de Thalès
+                            </div>
+                            
+                            <div style="text-align: center; margin: 1.5rem 0; font-size: 1.2rem;">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator" style="text-decoration: line-through;">EB</span>
+                                    <span class="fraction-denominator" style="text-decoration: line-through;">DB</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">AB</span>
+                                    <span class="fraction-denominator green-text">CB</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator red-text">AE</span>
+                                    <span class="fraction-denominator green-text">DC</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">76</span>
+                                    <span class="fraction-denominator">52</span>
+                                </span>
+                                =
+                                <span class="fraction-display">
+                                    <span class="fraction-numerator">AE</span>
+                                    <span class="fraction-denominator">39</span>
+                                </span>
+                            </div>
+                            
+                            <div class="calculation">
+                                AE = 76 × 39 ÷ 52 = 57 m
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Donc :</strong> AE mesure 57 m
+                            </div>
+                        </div>
+                        
+                        <h3 style="color: var(--primary); margin: 2rem 0 1rem 0;">Question 3 : Calculer BD</h3>
+                        
+                        <div class="thales-method">
+                            <div class="thales-step">
+                                <strong>On a :</strong> Le triangle BCD est rectangle en C<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BC = 52 m<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CD = 39 m<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hypoténuse : BD
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Or :</strong> d'après le théorème de Pythagore
+                            </div>
+                            
+                            <div class="calculation">
+                                BD² = BC² + CD²
+                            </div>
+                            
+                            <div class="calculation">
+                                BD² = 52² + 39²
+                            </div>
+                            
+                            <div class="calculation">
+                                BD² = 2704 + 1521 = 4225
+                            </div>
+                            
+                            <div class="calculation">
+                                BD = √4225 = 65 m
+                            </div>
+                            
+                            <div class="thales-step">
+                                <strong>Donc :</strong> BD mesure 65 m
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <footer>
+            🎓 Bonne révision ! N'hésite pas à refaire les exercices pour bien maîtriser le théorème de Thalès.
+        </footer>
+
+        <!-- Score card -->
+        <div class="score-card" id="scoreCard">
+            <span class="score-emoji">🏆</span>
+            <div class="score-title">Bravo, tu as tout vu !</div>
+            <div class="score-stars">⭐⭐⭐</div>
+            <p class="score-message">Tu as consulté toutes les corrections. Refais les exercices seul(e) pour vraiment maîtriser le théorème de Thalès !</p>
+            <div class="score-breakdown">
+                <span class="score-badge green">✓ 4 exercices</span>
+                <span class="score-badge blue">📐 Thalès maîtrisé</span>
+                <span class="score-badge yellow">📏 Pythagore revu</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const totalExercices = 4;
+        const seen = { ex1: false, ex2: false, ex3: false, ex4: false };
+        const hintIndex = { ex1: 0, ex2: 0, ex3: 0, ex4: 0 };
+        const hintMax   = { ex1: 3, ex2: 3, ex3: 3, ex4: 3 };
+
+        function toggleCorrection(id) {
+            const correction = document.getElementById(id);
+            const btn  = document.getElementById('btn-' + id);
+            const card = document.getElementById('card-' + id);
+
+            if (correction.classList.contains('show')) {
+                correction.classList.remove('show');
+                btn.classList.remove('active');
+                btn.textContent = 'Voir la correction';
+            } else {
+                correction.classList.add('show');
+                btn.classList.add('active');
+                btn.textContent = 'Masquer la correction';
+                if (!seen[id]) {
+                    seen[id] = true;
+                    card.classList.add('seen');
+                    document.getElementById('dot-' + id).classList.add('done');
+                    document.getElementById('seen-' + id).classList.add('visible');
+                    updateProgress();
+                }
+            }
+        }
+
+        document.querySelectorAll('.hint-btn-ind').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const hintId = this.dataset.hintId;
+                const hintEl = document.getElementById(hintId);
+                const isVisible = hintEl.classList.contains('visible');
+                if (isVisible) {
+                    hintEl.classList.remove('visible');
+                    this.classList.remove('active');
+                } else {
+                    hintEl.classList.add('visible');
+                    this.classList.add('active');
+                }
+            });
+        });
+        function showHint(id) {} // kept for compatibility
+
+        function updateProgress() {
+            const count = Object.values(seen).filter(Boolean).length;
+            const pct   = (count / totalExercices) * 100;
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressCounter').textContent = count + ' / ' + totalExercices;
+            if (count === totalExercices) {
+                setTimeout(() => {
+                    document.getElementById('scoreCard').classList.add('visible');
+                }, 600);
+            }
+        }
+    </script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

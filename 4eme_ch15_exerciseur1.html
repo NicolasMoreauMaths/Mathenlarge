@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fractions — Exerciseur 4ème</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+    --ink:#1b3a5c;--ink-light:#3a6b9f;--red:#c0392b;--red-light:#e74c3c;--red-pale:#fdedec;
+    --green:#1e8449;--green-light:#27ae60;--green-pale:#d5f5e3;--amber:#b45309;--amber-pale:#fef3c7;
+    --paper:#fdf8f0;--line-blue:#c8daea;--margin-pink:#f0c0c0;--pencil:#6b6b6b;--shadow:rgba(27,58,92,0.12);
+}
+body{font-family:'Patrick Hand',cursive;min-height:100vh;background:#e8e0d0;display:flex;
+align-items:flex-start;justify-content:center;padding:16px 10px 90px;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;}
+.notebook{background:var(--paper);border-radius:4px 16px 16px 4px;padding:32px 28px 40px 56px;
+max-width:900px;width:100%;position:relative;
+box-shadow:-4px 0 0 #c0392b,-6px 0 0 #a93226,4px 4px 20px rgba(0,0,0,.15),0 0 0 1px rgba(0,0,0,.05);
+background-image:repeating-linear-gradient(0deg,transparent,transparent 31px,var(--line-blue) 31px,var(--line-blue) 32px);
+background-size:100% 32px;min-height:90vh;}
+.notebook::before{content:'';position:absolute;left:44px;top:0;bottom:0;width:2px;background:var(--margin-pink);z-index:1;}
+.notebook::after{content:'';position:absolute;left:-2px;top:20px;bottom:20px;width:14px;
+background-image:radial-gradient(circle 5px,#d0c8b8 90%,transparent 90%);background-size:14px 40px;background-repeat:repeat-y;}
+h1{font-family:'Libre Baskerville',serif;font-size:1.7em;color:var(--ink);text-align:center;margin-bottom:6px;line-height:1.3;}
+.subtitle{text-align:center;font-size:1.05em;color:var(--pencil);margin-bottom:22px;}
+.section-title{font-family:'Libre Baskerville',serif;font-size:1.1em;color:var(--red);
+margin-bottom:12px;padding-bottom:4px;border-bottom:1px solid rgba(192,57,43,.25);}
+.screen{display:none;animation:fadeIn .35s ease;}.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.btn{font-family:'Patrick Hand',cursive;padding:12px 28px;border-radius:12px;font-size:1.05em;cursor:pointer;
+transition:all .2s;border:2px solid;min-height:46px;touch-action:manipulation;display:inline-flex;
+align-items:center;justify-content:center;gap:6px;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-ink{background:var(--ink);color:#fff;border-color:var(--ink);box-shadow:0 3px 10px var(--shadow);}
+.btn-ink:hover:not(:disabled){background:var(--ink-light);transform:translateY(-2px);}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red);}
+.btn-red:hover:not(:disabled){background:var(--red-light);transform:translateY(-2px);}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-green:hover:not(:disabled){background:var(--green-light);transform:translateY(-2px);}
+.btn-outline{background:transparent;color:var(--ink);border-color:var(--line-blue);}
+.btn-outline:hover{background:rgba(200,218,234,.25);}
+.btn-sm{padding:7px 16px;font-size:.9em;min-height:36px;}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:16px 0;}
+.menu-card{background:white;border:2px solid var(--line-blue);border-radius:14px;padding:18px 14px;
+text-align:center;cursor:pointer;transition:all .25s;touch-action:manipulation;}
+.menu-card:hover{border-color:var(--ink-light);transform:translateY(-4px);box-shadow:0 8px 24px var(--shadow);}
+.card-icon{font-size:2em;margin-bottom:6px;}.card-title{font-family:'Libre Baskerville',serif;font-size:1em;
+color:var(--ink);font-weight:700;margin-bottom:3px;}.card-desc{font-size:.82em;color:var(--pencil);line-height:1.4;}
+.ex-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.ex-badge{background:var(--ink);color:white;padding:5px 16px;border-radius:20px;font-size:.9em;}
+.ex-score{font-size:.92em;color:var(--ink);background:rgba(200,218,234,.25);padding:5px 14px;border-radius:20px;}
+.progress-bar{width:100%;height:5px;background:var(--line-blue);border-radius:4px;overflow:hidden;margin-bottom:18px;}
+.progress-fill{height:100%;background:var(--ink);border-radius:4px;transition:width .5s ease;}
+.phase-ind{display:flex;gap:6px;justify-content:center;align-items:center;margin-bottom:14px;flex-wrap:wrap;
+font-size:.82em;color:var(--pencil);}
+.phase-dot{width:10px;height:10px;border-radius:50%;background:var(--line-blue);transition:all .3s;display:inline-block;}
+.phase-dot.done{background:var(--green);}.phase-dot.active{background:var(--ink);transform:scale(1.3);}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+font-family:'Libre Baskerville',serif;margin:0 4px;line-height:1;}
+.frac .num,.frac .den{padding:2px 8px;text-align:center;min-width:20px;}
+.frac .bar{width:100%;min-width:20px;height:2.5px;background:var(--ink);border-radius:2px;}
+.frac.lg .num,.frac.lg .den{font-size:1.4em;padding:3px 12px;}
+.frac.xl .num,.frac.xl .den{font-size:1.7em;padding:4px 14px;}
+.frac.c-red .bar{background:var(--red);}.frac.c-red .num,.frac.c-red .den{color:var(--red);}
+.frac.c-green .bar{background:var(--green);}.frac.c-green .num,.frac.c-green .den{color:var(--green);}
+.math-line{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;padding:12px 6px;
+font-family:'Libre Baskerville',serif;font-size:1.4em;color:var(--ink);}
+.math-op{color:var(--pencil);padding:0 2px;}.math-eq{color:var(--ink);font-weight:700;padding:0 2px;}
+.math-line.med{font-size:1.2em;}.math-line.sm{font-size:1em;}
+.frac-inp{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;gap:2px;}
+.finp{width:58px;text-align:center;border:2.5px dashed var(--line-blue);border-radius:8px;
+background:rgba(255,255,255,.9);padding:5px 3px;font-family:'Patrick Hand',cursive;font-size:.82em;
+color:var(--ink);outline:none;min-height:36px;transition:all .2s;touch-action:manipulation;font-weight:700;}
+.finp:focus{border-color:var(--ink-light);box-shadow:0 0 0 3px rgba(58,107,159,.12);background:white;border-style:solid;}
+.finp.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;border-style:solid!important;}
+.finp.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .4s;}
+.finp:disabled{cursor:default;}.fbar{width:100%;min-width:58px;height:2.5px;background:var(--ink);border-radius:2px;}
+.sinp{width:76px;text-align:center;border:2.5px dashed var(--line-blue);border-radius:10px;
+background:rgba(255,255,255,.9);padding:7px 4px;font-family:'Patrick Hand',cursive;font-size:1em;
+color:var(--ink);outline:none;min-height:44px;transition:all .2s;touch-action:manipulation;font-weight:700;display:inline-block;vertical-align:middle;}
+.sinp:focus{border-color:var(--ink-light);box-shadow:0 0 0 3px rgba(58,107,159,.15);background:white;border-style:solid;}
+.sinp.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;border-style:solid!important;}
+.sinp.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .4s;}
+.sinp:disabled{cursor:default;}.sinp.sm{width:58px;font-size:.88em;min-height:38px;}
+.q-box{background:rgba(200,218,234,.1);border:2px dashed var(--line-blue);border-radius:14px;
+padding:18px 20px;margin-bottom:14px;}
+.q-text{font-family:'Libre Baskerville',serif;font-size:1em;color:var(--ink);margin-bottom:10px;line-height:1.6;}
+.q-text strong{color:var(--red);}
+.step-box{background:rgba(255,255,255,.55);border:1.5px solid rgba(200,218,234,.7);border-radius:12px;
+padding:16px 18px;margin:12px 0;animation:fadeIn .4s ease;}
+.step-label{font-size:.9em;color:var(--pencil);margin-bottom:10px;font-family:'Libre Baskerville',serif;
+font-style:italic;line-height:1.5;}
+.step-label strong{color:var(--ink);font-style:normal;}
+.feedback-box{margin-top:12px;padding:12px 16px;border-radius:12px;font-size:.97em;text-align:center;
+display:none;animation:fadeIn .3s ease;line-height:1.5;}
+.feedback-box.correct{display:block;background:var(--green-pale);color:var(--green);border:2px solid var(--green-light);}
+.feedback-box.incorrect{display:block;background:var(--red-pale);color:var(--red);border:2px solid var(--red-light);}
+.feedback-box.info{display:block;background:var(--amber-pale);color:var(--amber);border:2px solid rgba(180,83,9,.3);}
+.factor-chip{display:inline-flex;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;
+font-size:1.3em;font-weight:700;padding:6px 14px;border-radius:8px;border:2.5px solid var(--line-blue);
+background:white;color:var(--ink);cursor:pointer;transition:all .2s;user-select:none;
+-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:42px;min-width:42px;}
+.factor-chip:hover{border-color:var(--ink-light);transform:scale(1.05);}
+.factor-chip.hilit{border-color:var(--red)!important;background:var(--red-pale)!important;
+color:var(--red)!important;box-shadow:0 0 0 3px rgba(192,57,43,.2);text-decoration:line-through;}
+.factor-chip.locked{cursor:default!important;transform:none!important;}
+.factor-sep{color:var(--pencil);font-family:'Libre Baskerville',serif;font-size:1.05em;font-weight:700;}
+.decomp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.decomp-card{background:rgba(255,255,255,.75);border:2px dashed var(--line-blue);
+border-radius:12px;padding:14px 10px;text-align:center;}
+.decomp-card.done-card{border-style:solid;border-color:var(--green-light);background:rgba(213,245,227,.3);}
+.decomp-card-num{font-family:'Libre Baskerville',serif;font-size:1.9em;font-weight:700;color:var(--green);margin-bottom:6px;}
+.decomp-card-label{font-size:.8em;color:var(--pencil);margin-bottom:8px;}
+.fi-small{width:46px;text-align:center;border:2px dashed var(--line-blue);border-radius:7px;
+background:rgba(255,255,255,.9);padding:4px 2px;font-family:'Patrick Hand',cursive;font-size:1em;
+color:var(--ink);outline:none;min-height:34px;transition:all .2s;touch-action:manipulation;font-weight:700;}
+.fi-small:focus{border-color:var(--ink-light);background:white;border-style:solid;}
+.fi-small.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;border-style:solid!important;}
+.fi-small.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .4s;}
+.fi-small:disabled{cursor:default;}
+.factor-inps-row{display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.results-screen{text-align:center;padding:20px 0;}
+.result-emoji{font-size:3.5em;margin-bottom:10px;}
+.result-score{font-family:'Libre Baskerville',serif;font-size:2.6em;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.result-label{font-size:1em;color:var(--pencil);margin-bottom:16px;}
+.result-bar{width:100%;max-width:280px;height:10px;background:var(--line-blue);border-radius:6px;margin:0 auto 16px;overflow:hidden;}
+.result-bar-fill{height:100%;border-radius:6px;transition:width 1s ease;width:0%;}
+.result-bar-fill.good{background:linear-gradient(90deg,var(--green),var(--green-light));}
+.result-bar-fill.bad{background:linear-gradient(90deg,var(--red),var(--red-light));}
+.result-msg{font-family:'Libre Baskerville',serif;font-size:1.2em;color:var(--ink);margin-bottom:22px;}
+.calc-toggle{position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;
+background:var(--ink);color:white;border:none;font-size:1.5em;cursor:pointer;
+box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:100;transition:all .25s;-webkit-tap-highlight-color:transparent;}
+.calc-toggle:hover{transform:scale(1.1);background:var(--ink-light);}
+.calc-toggle.open{background:var(--red);transform:rotate(45deg);}
+.calc-panel{position:fixed;bottom:82px;right:16px;width:260px;background:var(--paper);
+border:2px solid var(--ink);border-radius:16px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.2);
+z-index:99;display:none;animation:calcIn .25s ease;}
+.calc-panel.visible{display:block;}
+@keyframes calcIn{from{opacity:0;transform:translateY(10px) scale(.95);}to{opacity:1;transform:none;}}
+.calc-title{font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);text-align:center;margin-bottom:12px;}
+.calc-row{display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:8px;}
+.calc-input{font-family:'Patrick Hand',cursive;font-size:1.3em;width:72px;text-align:center;
+border:2px solid var(--line-blue);border-radius:8px;padding:6px 4px;outline:none;background:white;
+color:var(--ink);transition:border-color .2s;}
+.calc-input:focus{border-color:var(--ink-light);}
+.calc-op{font-size:1.4em;color:var(--pencil);font-weight:700;}
+.calc-go{font-family:'Patrick Hand',cursive;font-size:1.05em;padding:8px 18px;border-radius:10px;
+background:var(--ink);color:white;border:none;cursor:pointer;transition:background .2s;width:100%;}
+.calc-go:hover{background:var(--ink-light);}
+.calc-result{text-align:center;font-size:1.05em;color:var(--ink);min-height:28px;padding:8px;
+background:rgba(200,218,234,.15);border-radius:8px;margin-top:6px;line-height:1.5;}
+.calc-result .cq{color:var(--green);font-weight:700;}.calc-result .cr{color:var(--red);font-weight:700;}
+.hint-box{background:var(--amber-pale);border:1px solid rgba(180,83,9,.25);border-radius:10px;
+padding:10px 14px;font-size:.87em;color:var(--amber);line-height:1.6;margin:10px 0;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+@keyframes rowAppear{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:none;}}
+/* Decomp table (module 4) */
+.decomp-table{display:flex;flex-direction:column;align-items:center;margin-bottom:6px;}
+.decomp-row{display:flex;align-items:stretch;animation:rowAppear .3s ease;}
+.decomp-left{min-width:80px;padding:4px 10px 4px 6px;text-align:right;border-right:3px solid var(--ink);
+font-family:'Libre Baskerville',serif;font-size:1.5em;color:var(--ink);min-height:42px;
+display:flex;align-items:center;justify-content:flex-end;}
+.decomp-right{min-width:70px;padding:4px 8px 4px 10px;font-family:'Libre Baskerville',serif;
+font-size:1.5em;color:var(--red);min-height:42px;display:flex;align-items:center;}
+.dv-given{color:var(--green);font-weight:700;}.dv-quotient{color:var(--ink);}.dv-prime{color:var(--red);}
+.dv-final{color:var(--pencil);font-weight:700;}
+.decomp-inp{font-family:'Patrick Hand',cursive;font-size:.88em;width:62px;text-align:center;
+border:2px dashed var(--line-blue);border-radius:8px;background:rgba(255,255,255,.8);padding:4px;
+outline:none;color:var(--ink);transition:border-color .2s;min-height:34px;touch-action:manipulation;}
+.decomp-inp.red-inp{color:var(--red);}
+.decomp-inp:focus{border-color:var(--ink-light);background:white;}
+.decomp-inp.ok{border-color:var(--green);background:var(--green-pale);color:var(--green);}
+.decomp-inp.error{border-color:var(--red);background:var(--red-pale);animation:shake .4s;}
+.dual-decomp{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px;}
+.decomp-panel{display:flex;flex-direction:column;align-items:center;}
+.dp-label{font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--pencil);margin-bottom:6px;text-align:center;}
+.dp-num{font-family:'Libre Baskerville',serif;font-size:1.9em;font-weight:700;color:var(--green);margin-bottom:8px;}
+.eq-section{display:none;text-align:center;margin-top:8px;padding:12px;background:rgba(200,218,234,.12);
+border:2px dashed var(--line-blue);border-radius:12px;width:100%;animation:fadeIn .4s ease;}
+.eq-section.active{display:block;}
+.eq-label{font-size:.85em;color:var(--pencil);margin-bottom:8px;}
+.eq-row{display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;
+font-family:'Libre Baskerville',serif;font-size:1.35em;color:var(--ink);}
+.eq-num-span{color:var(--green);font-weight:700;}
+.eq-sign{color:var(--pencil);}
+.eq-inp{font-family:'Patrick Hand',cursive;font-size:.8em;width:42px;text-align:center;
+border:2px dashed var(--line-blue);border-radius:8px;background:rgba(255,255,255,.8);padding:3px;
+outline:none;color:var(--red);transition:all .2s;}
+.eq-inp:focus{border-color:var(--red-light);background:white;}
+.eq-inp.locked{border-style:solid;border-color:var(--green-light);background:var(--green-pale);color:var(--green);}
+.eq-inp.error{border-color:var(--red);background:var(--red-pale);}
+@media(max-width:768px){
+    body{padding:14px 8px 84px;}
+    .notebook{padding:28px 18px 36px 46px;}
+    .notebook::before{left:36px;}
+    h1{font-size:1.5em;}
+    .math-line{font-size:1.2em;gap:5px;}
+    .decomp-grid{gap:12px;}
+    .factor-chip{font-size:1.15em;padding:5px 12px;}
+    .dual-decomp{gap:12px;}
+}
+@media(max-width:600px){
+    body{padding:12px 6px 78px;}
+    .notebook{padding:24px 14px 30px 38px;}
+    .notebook::before{left:28px;}
+    .notebook::after{width:12px;background-size:12px 36px;}
+    h1{font-size:1.35em;}
+    .btn{padding:10px 20px;font-size:1em;min-height:42px;}
+    .math-line{font-size:1.05em;gap:4px;padding:10px 4px;}
+    .finp{width:50px;min-height:32px;}
+    .fbar{min-width:50px;}
+    .decomp-grid{grid-template-columns:1fr;}
+    .dual-decomp{grid-template-columns:1fr;}
+    .sinp{width:68px;}
+    .factor-chip{font-size:1.1em;padding:5px 10px;min-height:38px;}
+    .frac.lg .num,.frac.lg .den{font-size:1.2em;}
+}
+@media(max-width:480px){
+    .notebook{padding:20px 12px 26px 32px;}
+    .notebook::before{left:22px;}
+    h1{font-size:1.2em;}
+    .math-line{font-size:.92em;}
+    .finp{width:44px;font-size:.75em;}
+    .fbar{min-width:44px;}
+}
+</style>
+</head>
+<body>
+<div class="notebook">
+<!-- ══ INTRO ══ -->
+<div class="screen active" id="S_intro">
+<div style="text-align:center;padding:12px 0;">
+<div style="font-family:'Libre Baskerville',serif;font-size:1.5em;color:var(--ink);margin-bottom:18px;line-height:2.5;">
+    <span class="frac lg"><span class="num">3</span><span class="bar"></span><span class="den">4</span></span>
+    <span style="color:var(--pencil);margin:0 6px;">×</span>
+    <span class="frac lg"><span class="num">8</span><span class="bar"></span><span class="den">9</span></span>
+    <span style="color:var(--pencil);margin:0 6px;">=</span>
+    <span class="frac c-green lg"><span class="num">2</span><span class="bar" style="background:var(--green);"></span><span class="den">3</span></span>
+</div>
+<h1>Fractions — 4<sup style="font-size:.55em;vertical-align:super;">ème</sup></h1>
+<p class="subtitle">Maîtrise les fractions pas à pas ✏️</p>
+<p style="color:var(--pencil);font-size:.97em;max-width:500px;margin:0 auto 26px;line-height:1.75;text-align:center;">
+5 modules progressifs : inverses, multiplications, divisions,<br>simplifications par décomposition et calculs mélangés.
+</p>
+<button class="btn btn-ink" onclick="show('S_menu')">Ouvrir le cahier 📖</button>
+</div>
+</div>
+
+<!-- ══ MENU ══ -->
+<div class="screen" id="S_menu">
+<h1>Choisir un module</h1>
+<p class="subtitle">Sélectionne ton exercice 📐</p>
+<div class="menu-grid">
+<div class="menu-card" onclick="startModule(1)">
+    <div class="card-icon">🔄</div>
+    <div class="card-title">Inverses</div>
+    <div class="card-desc">Trouver l'inverse d'une fraction, d'un entier ou d'un décimal</div>
+</div>
+<div class="menu-card" onclick="startModule(2)">
+    <div class="card-icon">✖️</div>
+    <div class="card-title">Multiplication</div>
+    <div class="card-desc">Multiplier des fractions, toutes les étapes détaillées</div>
+</div>
+<div class="menu-card" onclick="startModule(3)">
+    <div class="card-icon">➗</div>
+    <div class="card-title">Division</div>
+    <div class="card-desc">Diviser des fractions étape par étape</div>
+</div>
+<div class="menu-card" onclick="startModule(4)">
+    <div class="card-icon">✂️</div>
+    <div class="card-title">Simplification</div>
+    <div class="card-desc">Simplifier par décomposition en facteurs premiers</div>
+</div>
+<div class="menu-card" onclick="startModule(5)">
+    <div class="card-icon">🔀</div>
+    <div class="card-title">Calculs mélangés</div>
+    <div class="card-desc">+, −, ×, ÷ avec toutes les étapes</div>
+</div>
+</div>
+<div class="controls" style="margin-top:16px;">
+<button class="btn btn-outline" onclick="show('S_intro')">← Accueil</button>
+</div>
+</div>
+
+<!-- ══ EXERCISE ══ -->
+<div class="screen" id="S_ex">
+<div class="ex-header">
+    <div class="ex-badge" id="exBadge">Module</div>
+    <div class="ex-score">Q <span id="exIdx">1</span>/<span id="exTotal">5</span> &ensp;·&ensp; ✅ <span id="exScoreShow">0</span></div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+<div class="phase-ind" id="phaseInd"></div>
+<div id="exContent"></div>
+<div class="feedback-box" id="exFeedback"></div>
+<div class="controls" id="exControls">
+    <button class="btn btn-ink" id="btnNext" style="display:none" onclick="nextRound()">Suivant →</button>
+    <button class="btn btn-outline" onclick="goMenu()">☰ Menu</button>
+</div>
+</div>
+
+<!-- ══ RÉSULTATS ══ -->
+<div class="screen" id="S_res">
+<div class="results-screen">
+<div class="result-emoji" id="resEmoji">🏆</div>
+<div class="result-score" id="resScore">5/5</div>
+<div class="result-label">bonnes réponses</div>
+<div class="result-bar"><div class="result-bar-fill" id="resBarFill"></div></div>
+<div class="result-msg" id="resMsg">Parfait !</div>
+<div class="controls">
+    <button class="btn btn-ink" onclick="startModule(curModule)">Recommencer 🔄</button>
+    <button class="btn btn-outline" onclick="goMenu()">☰ Menu</button>
+</div>
+</div>
+</div>
+
+</div><!-- /notebook -->
+
+<button class="calc-toggle" id="calcToggle" onclick="toggleCalc()">🧮</button>
+<div class="calc-panel" id="calcPanel">
+<div class="calc-title">Calculatrice</div>
+<div class="calc-row">
+    <input type="number" class="calc-input" id="cA" placeholder="…" inputmode="numeric">
+    <span class="calc-op">÷</span>
+    <input type="number" class="calc-input" id="cB" placeholder="…" inputmode="numeric">
+</div>
+<button class="calc-go" onclick="doCalc()">Calculer</button>
+<div class="calc-result" id="calcRes"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+const g=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));g(id).classList.add('active');window.scrollTo(0,0);}
+function foc(id,delay=80){setTimeout(()=>{const e=g(id);if(e&&!e.disabled){e.focus();try{e.select();}catch(_){}}},delay);}
+function isPrime(n){if(n<2)return false;for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true;}
+function primeFactors(n){const f=[];let d=2;while(d*d<=n){while(n%d===0){f.push(d);n/=d;}d++;}if(n>1)f.push(n);return f;}
+function gcd(a,b){while(b){[a,b]=[b,a%b];}return a;}
+function lcm(a,b){return a/gcd(a,b)*b;}
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rv(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function msIntersect(a,b){const pool=[...b],res=[];for(const x of a){const i=pool.indexOf(x);if(i!==-1){res.push(x);pool.splice(i,1);}}return res;}
+function msSubtract(a,sub){const pool=[...sub];return a.filter(x=>{const i=pool.indexOf(x);if(i!==-1){pool.splice(i,1);return false;}return true;});}
+
+// HTML helpers
+function fH(n,d,cls=''){return `<span class="frac ${cls}"><span class="num">${n}</span><span class="bar"></span><span class="den">${d}</span></span>`;}
+function fiH(idN,idD){return `<span class="frac-inp"><input id="${idN}" type="number" class="finp" placeholder="?" inputmode="numeric"><span class="fbar"></span><input id="${idD}" type="number" class="finp" placeholder="?" inputmode="numeric"></span>`;}
+function opH(op){return `<span class="math-op">${op}</span>`;}
+function sH(id,sm=''){return `<input id="${id}" type="number" class="${sm?'sinp sm':'sinp'}" placeholder="?" inputmode="numeric">`;}
+function xSep(){return `<span class="factor-sep"> × </span>`;}
+
+// ═══════════════════════════════════════
+// GLOBAL STATE
+// ═══════════════════════════════════════
+let curModule=0,exIdx=0,exScore=0,curEx=null;
+const TOTAL=5;
+const MOD_NAMES={1:'🔄 Inverses',2:'✖️ Multiplication',3:'➗ Division',4:'✂️ Simplification',5:'🔀 Mélangés'};
+
+function goMenu(){show('S_menu');hideCalc();}
+function showFb(type,msg){const f=g('exFeedback');f.className='feedback-box '+type;f.innerHTML=msg;}
+function clearFb(){const f=g('exFeedback');f.className='feedback-box';f.innerHTML='';}
+function showNext(label='Suivant →'){const b=g('btnNext');b.style.display='';b.textContent=label;}
+function hideNext(){g('btnNext').style.display='none';}
+function setFbEl(id,type,msg){const f=g(id);if(!f)return;f.className='feedback-box '+type;f.innerHTML=msg;}
+function iOk(id){const e=g(id);if(!e)return;e.classList.remove('err','error');e.classList.add('ok');e.disabled=true;}
+function iErr(id){const e=g(id);if(!e)return;e.classList.remove('ok');e.classList.add('err');setTimeout(()=>{e.classList.remove('err');e.value='';if(!e.disabled)e.focus();},500);}
+function iFiOk(id){const e=g(id);if(!e)return;e.classList.remove('err');e.classList.add('ok');e.disabled=true;}
+function iFiErr(id,refocus=false){const e=g(id);if(!e)return;e.classList.remove('ok');e.classList.add('err');setTimeout(()=>{e.classList.remove('err');e.value='';if(refocus&&!e.disabled)e.focus();},500);}
+
+function setPhaseInd(phases,active){
+    g('phaseInd').innerHTML=phases.map((n,i)=>{
+        const cls=i+1<active?'done':i+1===active?'active':'';
+        const col=i+1===active?'var(--ink)':i+1<active?'var(--green)':'var(--pencil)';
+        return `<span class="phase-dot ${cls}"></span><span style="color:${col};font-size:.82em;margin-right:${i<phases.length-1?'8px':'0'}">${n}</span>`;
+    }).join('');
+}
+
+function startModule(mod){
+    curModule=mod;exIdx=0;exScore=0;
+    g('exBadge').textContent=MOD_NAMES[mod];
+    g('exTotal').textContent=TOTAL;
+    show('S_ex');
+    loadRound();
+}
+function loadRound(){
+    exIdx++;
+    g('exIdx').textContent=exIdx;
+    g('exScoreShow').textContent=exScore;
+    g('progFill').style.width=((exIdx-1)/TOTAL*100)+'%';
+    clearFb();hideNext();
+    g('phaseInd').innerHTML='';
+    const gens=[null,genM1,genM2,genM3,genM4,genM5];
+    const renders=[null,renderM1,renderM2,renderM3,renderM4,renderM5];
+    curEx=gens[curModule]();
+    renders[curModule]();
+}
+function nextRound(){hideNext();clearFb();if(exIdx>=TOTAL)showResults();else loadRound();}
+function showResults(){
+    const pct=Math.round(exScore/TOTAL*100);
+    const emoji=pct===100?'🏆':pct>=80?'⭐':pct>=60?'📝':'💪';
+    const msg=pct===100?'Parfait ! Maîtrise totale !':pct>=80?'Très bien !':pct>=60?'Bon travail !':'Révise et réessaie !';
+    g('resEmoji').textContent=emoji;g('resScore').textContent=exScore+' / '+TOTAL;g('resMsg').textContent=msg;
+    const fill=g('resBarFill');fill.className='result-bar-fill '+(pct>=60?'good':'bad');fill.style.width='0%';
+    show('S_res');setTimeout(()=>fill.style.width=pct+'%',120);hideCalc();
+}
+function scored(){exScore++;g('exScoreShow').textContent=exScore;setTimeout(()=>showNext(exIdx>=TOTAL?'🏆 Résultats':'Suivant →'),700);}
+
+// Calc
+function toggleCalc(){const p=g('calcPanel'),b=g('calcToggle');const open=p.classList.toggle('visible');b.classList.toggle('open',open);b.textContent=open?'+':'🧮';if(open){g('cA').value='';g('cB').value='';g('calcRes').innerHTML='';g('cA').focus();}}
+function hideCalc(){g('calcPanel').classList.remove('visible');g('calcToggle').classList.remove('open');g('calcToggle').textContent='🧮';}
+function doCalc(){const a=parseInt(g('cA').value),b=parseInt(g('cB').value);const res=g('calcRes');if(isNaN(a)||isNaN(b)||b===0){res.innerHTML='<span style="color:var(--red)">Entrée invalide</span>';return;}const q=Math.floor(a/b),r=a%b;res.innerHTML=r===0?`${a} ÷ ${b} = <span class="cq">${q}</span>`:`${a} ÷ ${b} = <span class="cq">${q}</span> reste <span class="cr">${r}</span>`;}
+g('cA').addEventListener('keydown',e=>{if(e.key==='Enter')g('cB').focus();});
+g('cB').addEventListener('keydown',e=>{if(e.key==='Enter')doCalc();});
+
+// ═══════════════════════════════════════
+// MODULE 1 — INVERSE
+// ═══════════════════════════════════════
+function genM1(){
+    const type=rv(['frac','frac','frac','int','int','dec']);
+    if(type==='frac'){
+        let a,b;do{a=ri(2,12);b=ri(2,12);}while(a===b||gcd(a,b)!==1);
+        return{type:'frac',a,b,invN:b,invD:a};
+    }else if(type==='int'){
+        const n=ri(2,12);
+        return{type:'int',n,invN:1,invD:n};
+    }else{
+        const dec=rv([0.25,0.5]);
+        return{type:'dec',dec,invN:dec===0.25?4:2,invD:1};
+    }
+}
+function renderM1(){
+    const ex=curEx;
+    let dispHtml='',hintHtml='';
+    if(ex.type==='frac'){
+        dispHtml=`la fraction ${fH(ex.a,ex.b,'lg')}`;
+        hintHtml=`Pour inverser ${fH(ex.a,ex.b)}, on échange numérateur et dénominateur.`;
+    }else if(ex.type==='int'){
+        dispHtml=`l'entier <strong style="font-family:'Libre Baskerville',serif;font-size:1.4em;">${ex.n}</strong>`;
+        hintHtml=`L'entier ${ex.n} s'écrit ${fH(ex.n,1)}. Son inverse est ${fH(1,ex.n)}.`;
+    }else{
+        dispHtml=`le décimal <strong style="font-family:'Libre Baskerville',serif;font-size:1.4em;">${ex.dec}</strong>`;
+        hintHtml=`${ex.dec} = ${fH(1,ex.invN)}. Son inverse est l'entier ${ex.invN}.`;
+    }
+    const ansHtml=ex.invD===1
+        ?`${sH('m1n')} <span style="font-size:0.7em;color:var(--pencil);font-family:'Patrick Hand',cursive;">(entier)</span>`
+        :fiH('m1n','m1d');
+    g('exContent').innerHTML=`
+<div class="section-title">🔄 Trouver l'inverse</div>
+<div class="q-box">
+    <div class="q-text">Quel est l'<strong>inverse</strong> de ${dispHtml} ?</div>
+    <div class="math-line">
+        <span style="font-size:0.65em;color:var(--pencil);">inverse =</span>
+        ${ansHtml}
+    </div>
+    <div class="hint-box">${hintHtml}</div>
+</div>
+<div class="controls" style="margin-top:10px;">
+    <button class="btn btn-green" onclick="valM1()">✓ Valider</button>
+</div>`;
+    if(ex.invD!==1){
+        g('m1n').addEventListener('keydown',e=>{if(e.key==='Enter')g('m1d').focus();});
+        g('m1d').addEventListener('keydown',e=>{if(e.key==='Enter')valM1();});
+    }else{
+        g('m1n').addEventListener('keydown',e=>{if(e.key==='Enter')valM1();});
+    }
+    foc('m1n',100);
+}
+function valM1(){
+    const ex=curEx;
+    const n=parseInt(g('m1n')?.value);
+    const d=ex.invD===1?1:parseInt(g('m1d')?.value);
+    if(isNaN(n)||(ex.invD!==1&&isNaN(d))){showFb('incorrect','❌ Remplis toutes les cases !');return;}
+    const ok=n>0&&d>0&&n*ex.invD===d*ex.invN;
+    if(!ok){
+        let cor='';
+        if(ex.type==='frac')cor=`L'inverse de ${fH(ex.a,ex.b)} est ${fH(ex.invN,ex.invD)}.`;
+        else if(ex.type==='int')cor=`L'inverse de ${ex.n} est ${fH(1,ex.n)}.`;
+        else cor=`L'inverse de ${ex.dec} est <strong>${ex.invN}</strong>.`;
+        showFb('incorrect','❌ Pas tout à fait… '+cor);
+        if(ex.invD===1)iErr('m1n');else{iFiErr('m1n');iFiErr('m1d');}
+        return;
+    }
+    if(ex.invD===1)iOk('m1n');else{iFiOk('m1n');iFiOk('m1d');}
+    let msg='';
+    if(ex.type==='frac')msg=`✅ Bravo ! L'inverse de ${fH(ex.a,ex.b)} est ${fH(ex.invN,ex.invD)}.`;
+    else if(ex.type==='int')msg=`✅ Bravo ! L'inverse de ${ex.n} est ${fH(1,ex.n)}.`;
+    else msg=`✅ Bravo ! L'inverse de ${ex.dec} est <strong>${ex.invN}</strong>.`;
+    showFb('correct',msg);
+    scored();
+}
+
+// ═══════════════════════════════════════
+// MODULE 2 — MULTIPLICATION
+// ═══════════════════════════════════════
+function genM2(){
+    let a,b,c,d;
+    do{a=ri(2,9);b=ri(2,9);c=ri(2,9);d=ri(2,9);}
+    while(a===b||c===d||a===c||b===d||a*c>80||b*d>80);
+    return{a,b,c,d,rn:a*c,rd:b*d};
+}
+function renderM2(){
+    const ex=curEx;
+    g('exContent').innerHTML=`
+<div class="section-title">✖️ Multiplication de fractions</div>
+<div class="q-box">
+    <div class="q-text">Calcule en détaillant <strong>toutes les étapes</strong> :</div>
+    <div class="math-line">${fH(ex.a,ex.b,'lg')} ${opH('×')} ${fH(ex.c,ex.d,'lg')}</div>
+</div>
+<div class="step-box" id="m2s1">
+    <div class="step-label">① Recopie les numérateurs et dénominateurs séparément :</div>
+    <div class="math-line med">
+        ${fH(ex.a,ex.b)} ${opH('×')} ${fH(ex.c,ex.d)} <span class="math-eq">=</span>
+        <span class="frac-inp">
+            <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;">
+                ${sH('m2n1','sm')} ${xSep()} ${sH('m2n2','sm')}
+            </span>
+            <span class="fbar"></span>
+            <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;">
+                ${sH('m2d1','sm')} ${xSep()} ${sH('m2d2','sm')}
+            </span>
+        </span>
+    </div>
+    <div class="feedback-box" id="fb2s1"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM2s1()">✓ Valider</button></div>
+</div>
+<div class="step-box" id="m2s2" style="display:none;">
+    <div class="step-label">② Calcule chaque produit <strong>(num × num en haut, den × den en bas)</strong> :</div>
+    <div class="math-line med">
+        <span class="frac"><span class="num">${ex.a} × ${ex.c}</span><span class="bar"></span><span class="den">${ex.b} × ${ex.d}</span></span>
+        <span class="math-eq">=</span>
+        ${fiH('m2rn','m2rd')}
+    </div>
+    <div class="feedback-box" id="fb2s2"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM2s2()">✓ Valider</button></div>
+</div>`;
+    const chain=['m2n1','m2n2','m2d1','m2d2'];
+    chain.forEach((id,i)=>g(id).addEventListener('keydown',e=>{if(e.key==='Enter'){chain[i+1]?g(chain[i+1]).focus():valM2s1();}}));
+    foc('m2n1',100);
+}
+function valM2s1(){
+    const ex=curEx;
+    const n1=parseInt(g('m2n1').value),n2=parseInt(g('m2n2').value);
+    const d1=parseInt(g('m2d1').value),d2=parseInt(g('m2d2').value);
+    const numOk=(n1===ex.a&&n2===ex.c)||(n1===ex.c&&n2===ex.a);
+    const denOk=(d1===ex.b&&d2===ex.d)||(d1===ex.d&&d2===ex.b);
+    const fb=g('fb2s1');
+    if(!numOk||!denOk){
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ Recopie : numérateurs <em>${ex.a}</em> et <em>${ex.c}</em>, dénominateurs <em>${ex.b}</em> et <em>${ex.d}</em>.`;
+        if(!numOk){iFiErr('m2n1');iFiErr('m2n2');}
+        if(!denOk){iFiErr('m2d1');iFiErr('m2d2');}
+        return;
+    }
+    ['m2n1','m2n2','m2d1','m2d2'].forEach(id=>{const e=g(id);if(e){e.classList.add('ok');e.disabled=true;}});
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ Parfait ! ${fH(ex.a,ex.b)} × ${fH(ex.c,ex.d)} = ${fH(`${ex.a}×${ex.c}`,`${ex.b}×${ex.d}`)}`;
+    setTimeout(()=>{
+        g('m2s2').style.display='';
+        g('m2rn').addEventListener('keydown',e=>{if(e.key==='Enter')g('m2rd').focus();});
+        g('m2rd').addEventListener('keydown',e=>{if(e.key==='Enter')valM2s2();});
+        foc('m2rn',200);
+    },500);
+}
+function valM2s2(){
+    const ex=curEx;
+    const rn=parseInt(g('m2rn').value),rd=parseInt(g('m2rd').value);
+    const fb=g('fb2s2');
+    if(isNaN(rn)||isNaN(rd)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    const ok=rn>0&&rd>0&&rn*ex.rd===rd*ex.rn;
+    if(!ok){
+        iFiErr('m2rn');iFiErr('m2rd');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ ${ex.a}×${ex.c} = <strong>${ex.rn}</strong> et ${ex.b}×${ex.d} = <strong>${ex.rd}</strong>. Résultat : ${fH(ex.rn,ex.rd)}.`;
+        return;
+    }
+    iFiOk('m2rn');iFiOk('m2rd');
+    const g2=gcd(ex.rn,ex.rd);
+    const simpStr=g2>1?` = ${fH(ex.rn/g2,ex.rd/g2,'c-green')} (forme simplifiée)`:'';
+    fb.className='feedback-box correct';
+    showFb('correct',`✅ Bravo ! ${fH(ex.a,ex.b)} × ${fH(ex.c,ex.d)} = ${fH(ex.rn,ex.rd)}${simpStr}`);
+    scored();
+}
+
+// ═══════════════════════════════════════
+// MODULE 3 — DIVISION
+// ═══════════════════════════════════════
+function genM3(){
+    let a,b,c,d;
+    do{a=ri(2,8);b=ri(2,8);c=ri(2,8);d=ri(2,8);}
+    while(a===b||c===d||a*d>72||b*c>72||a===d||b===c);
+    return{a,b,c,d,rn:a*d,rd:b*c};
+}
+function renderM3(){
+    const ex=curEx;
+    g('exContent').innerHTML=`
+<div class="section-title">➗ Division de fractions</div>
+<div class="q-box">
+    <div class="q-text">Calcule en détaillant <strong>toutes les étapes</strong> :</div>
+    <div class="math-line">${fH(ex.a,ex.b,'lg')} ${opH('÷')} ${fH(ex.c,ex.d,'lg')}</div>
+</div>
+<div class="step-box" id="m3s1">
+    <div class="step-label">① Diviser par une fraction = multiplier par son <strong>inverse</strong>. Retourne la 2ème fraction :</div>
+    <div class="math-line med">
+        ${fH(ex.a,ex.b)} ${opH('÷')} ${fH(ex.c,ex.d)}
+        <span class="math-eq">=</span>
+        ${fH(ex.a,ex.b)} ${opH('×')} ${fiH('m3in','m3id')}
+    </div>
+    <div class="hint-box">L'inverse de ${fH(ex.c,ex.d)} = ?</div>
+    <div class="feedback-box" id="fb3s1"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM3s1()">✓ Valider</button></div>
+</div>
+<div class="step-box" id="m3s2" style="display:none;">
+    <div class="step-label">② Développe comme une multiplication (numérateurs ensemble, dénominateurs ensemble) :</div>
+    <div class="math-line med">
+        ${fH(ex.a,ex.b)} ${opH('×')} ${fH(ex.d,ex.c)}
+        <span class="math-eq">=</span>
+        <span class="frac-inp">
+            <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;">
+                ${sH('m3n1','sm')} ${xSep()} ${sH('m3n2','sm')}
+            </span>
+            <span class="fbar"></span>
+            <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;">
+                ${sH('m3d1','sm')} ${xSep()} ${sH('m3d2','sm')}
+            </span>
+        </span>
+    </div>
+    <div class="feedback-box" id="fb3s2"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM3s2()">✓ Valider</button></div>
+</div>
+<div class="step-box" id="m3s3" style="display:none;">
+    <div class="step-label">③ Calcule le produit (${ex.a}×${ex.d} en haut, ${ex.b}×${ex.c} en bas) :</div>
+    <div class="math-line med">
+        <span class="frac"><span class="num">${ex.a} × ${ex.d}</span><span class="bar"></span><span class="den">${ex.b} × ${ex.c}</span></span>
+        <span class="math-eq">=</span>
+        ${fiH('m3rn','m3rd')}
+    </div>
+    <div class="feedback-box" id="fb3s3"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM3s3()">✓ Valider</button></div>
+</div>`;
+    g('m3in').addEventListener('keydown',e=>{if(e.key==='Enter')g('m3id').focus();});
+    g('m3id').addEventListener('keydown',e=>{if(e.key==='Enter')valM3s1();});
+    foc('m3in',100);
+}
+function valM3s1(){
+    const ex=curEx;
+    const inn=parseInt(g('m3in').value),ind=parseInt(g('m3id').value);
+    const fb=g('fb3s1');
+    if(isNaN(inn)||isNaN(ind)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    if(inn!==ex.d||ind!==ex.c){
+        iFiErr('m3in');iFiErr('m3id');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ L'inverse de ${fH(ex.c,ex.d)} est ${fH(ex.d,ex.c)} : on échange numérateur et dénominateur !`;
+        return;
+    }
+    iFiOk('m3in');iFiOk('m3id');
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ L'inverse de ${fH(ex.c,ex.d)} est bien ${fH(ex.d,ex.c)} !`;
+    setTimeout(()=>{
+        g('m3s2').style.display='';
+        const ch=['m3n1','m3n2','m3d1','m3d2'];
+        ch.forEach((id,i)=>g(id).addEventListener('keydown',e=>{if(e.key==='Enter'){ch[i+1]?g(ch[i+1]).focus():valM3s2();}}));
+        foc('m3n1',200);
+    },500);
+}
+function valM3s2(){
+    const ex=curEx;
+    const n1=parseInt(g('m3n1').value),n2=parseInt(g('m3n2').value);
+    const d1=parseInt(g('m3d1').value),d2=parseInt(g('m3d2').value);
+    const numOk=(n1===ex.a&&n2===ex.d)||(n1===ex.d&&n2===ex.a);
+    const denOk=(d1===ex.b&&d2===ex.c)||(d1===ex.c&&d2===ex.b);
+    const fb=g('fb3s2');
+    if(!numOk||!denOk){
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ Numérateurs : <em>${ex.a} × ${ex.d}</em> — Dénominateurs : <em>${ex.b} × ${ex.c}</em>`;
+        if(!numOk){iFiErr('m3n1');iFiErr('m3n2');}
+        if(!denOk){iFiErr('m3d1');iFiErr('m3d2');}
+        return;
+    }
+    ['m3n1','m3n2','m3d1','m3d2'].forEach(id=>{const e=g(id);if(e){e.classList.add('ok');e.disabled=true;}});
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ Parfait ! ${fH(`${ex.a}×${ex.d}`,`${ex.b}×${ex.c}`)}`;
+    setTimeout(()=>{
+        g('m3s3').style.display='';
+        g('m3rn').addEventListener('keydown',e=>{if(e.key==='Enter')g('m3rd').focus();});
+        g('m3rd').addEventListener('keydown',e=>{if(e.key==='Enter')valM3s3();});
+        foc('m3rn',200);
+    },500);
+}
+function valM3s3(){
+    const ex=curEx;
+    const rn=parseInt(g('m3rn').value),rd=parseInt(g('m3rd').value);
+    const fb=g('fb3s3');
+    if(isNaN(rn)||isNaN(rd)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    const ok=rn>0&&rd>0&&rn*ex.rd===rd*ex.rn;
+    if(!ok){
+        iFiErr('m3rn');iFiErr('m3rd');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ ${ex.a}×${ex.d} = <strong>${ex.rn}</strong> et ${ex.b}×${ex.c} = <strong>${ex.rd}</strong>. Réponse : ${fH(ex.rn,ex.rd)}.`;
+        return;
+    }
+    iFiOk('m3rn');iFiOk('m3rd');
+    const g2=gcd(ex.rn,ex.rd);
+    const simpStr=g2>1?` = ${fH(ex.rn/g2,ex.rd/g2,'c-green')}`:'';
+    fb.className='feedback-box correct';
+    showFb('correct',`✅ Excellent ! ${fH(ex.a,ex.b)} ÷ ${fH(ex.c,ex.d)} = ${fH(ex.rn,ex.rd)}${simpStr}`);
+    scored();
+}
+
+// ═══════════════════════════════════════
+// MODULE 4 — SIMPLIFICATION BY DECOMP
+// ═══════════════════════════════════════
+// Only small primes (≤7). We do a×c/b×d and simplify by prime factorization.
+const SMALL_NUMS=[4,6,9,10,12,14,15,18,21,25,35,6,10,15];
+function genM4(){
+    for(let t=0;t<500;t++){
+        const a=rv([2,3,4,6,9,10,15]);
+        const b=rv([2,3,4,6,9,10,15]);
+        const c=rv([2,3,4,6,9,10,15]);
+        const d=rv([2,3,4,6,9,10,15]);
+        const fa=primeFactors(a),fb=primeFactors(b),fc=primeFactors(c),fd=primeFactors(d);
+        if([...fa,...fb,...fc,...fd].some(p=>p>7))continue;
+        const numFacs=[...fa,...fc],denFacs=[...fb,...fd];
+        const common=msIntersect(numFacs,denFacs);
+        if(common.length===0)continue;
+        const remN=msSubtract(numFacs,common).reduce((x,y)=>x*y,1);
+        const remD=msSubtract(denFacs,common).reduce((x,y)=>x*y,1);
+        if(remN===1&&remD===1)continue;
+        if(a*c>160||b*d>160)continue;
+        return{a,b,c,d,fa,fb,fc,fd,numFacs,denFacs,common,sn:remN,sd:remD};
+    }
+    return{a:6,b:10,c:15,d:9,fa:[2,3],fb:[2,5],fc:[3,5],fd:[3,3],
+           numFacs:[2,3,3,5],denFacs:[2,5,3,3],common:[2,5,3,3],sn:3,sd:3};
+}
+
+// Phase tracking
+let M4={cardsDone:0,decompDone:false,rewriteDone:false,simplDone:false};
+
+function renderM4(){
+    const ex=curEx;
+    M4={cardsDone:0,decompDone:false,rewriteDone:false,simplDone:false};
+    setPhaseInd(['① Décompositions','② Réécriture','③ Simplification','④ Résultat'],1);
+
+    function cardHtml(num,factors,prefix,label){
+        if(factors.length===1&&isPrime(num)){
+            // Already prime — auto-done
+            return `<div class="decomp-card done-card" id="card_${prefix}">
+                <div class="decomp-card-label">${label}</div>
+                <div class="decomp-card-num">${num}</div>
+                <div style="font-size:.88em;color:var(--green);">Nombre premier ✓</div>
+            </div>`;
+        }
+        const inps=factors.map((_,i)=>`<input id="${prefix}_${i}" type="number" class="fi-small" placeholder="?" inputmode="numeric">`).join(xSep());
+        return `<div class="decomp-card" id="card_${prefix}">
+            <div class="decomp-card-label">${label}</div>
+            <div class="decomp-card-num">${num}</div>
+            <div class="factor-inps-row">${inps}</div>
+            <div class="feedback-box" id="fb_${prefix}" style="padding:6px 10px;font-size:.85em;margin-top:6px;"></div>
+            <button class="btn btn-green" style="margin-top:8px;padding:6px 14px;font-size:.85em;min-height:34px;"
+                id="btn_${prefix}" onclick="valM4card('${prefix}',${JSON.stringify(factors)})">✓</button>
+        </div>`;
+    }
+
+    // Ensure auto-counted primes
+    const autoPrime=[];
+    ['da','db','dc','dd'].forEach((p,i)=>{
+        const facs=[ex.fa,ex.fb,ex.fc,ex.fd][i];
+        const num=[ex.a,ex.b,ex.c,ex.d][i];
+        if(facs.length===1&&isPrime(num))autoPrime.push(p);
+    });
+
+    g('exContent').innerHTML=`
+<div class="section-title">✂️ Simplification par décomposition</div>
+<div class="q-box">
+    <div class="q-text">Calcule et <strong>simplifie</strong> :</div>
+    <div class="math-line">${fH(ex.a,ex.b,'lg')} ${opH('×')} ${fH(ex.c,ex.d,'lg')}</div>
+</div>
+<div class="step-box">
+    <div class="step-label">① Décompose chaque nombre en <strong>facteurs premiers</strong> :</div>
+    <div class="decomp-grid">
+        ${cardHtml(ex.a,ex.fa,'da','Numérateur ①')}
+        ${cardHtml(ex.b,ex.fb,'db','Dénominateur ①')}
+        ${cardHtml(ex.c,ex.fc,'dc','Numérateur ②')}
+        ${cardHtml(ex.d,ex.fd,'dd','Dénominateur ②')}
+    </div>
+    <div class="feedback-box" id="fb_m4_all"></div>
+</div>
+<div id="m4_s2" style="display:none;">
+    <div class="step-box" id="m4_rewrite">
+        <div class="step-label">② Réécris le calcul en remplaçant chaque nombre par sa décomposition :</div>
+        <div id="m4_rewrite_zone"></div>
+        <div class="feedback-box" id="fb_m4_rw"></div>
+        <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM4rewrite()">✓ Valider</button></div>
+    </div>
+</div>
+<div id="m4_s3" style="display:none;">
+    <div class="step-box">
+        <div class="step-label">③ Surligne en rouge les <strong>facteurs communs</strong> (numérateur et dénominateur) qui vont se simplifier. Clique pour surligner :</div>
+        <div id="m4_chips_zone"></div>
+        <div class="feedback-box" id="fb_m4_chips"></div>
+        <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM4chips()">✓ Valider</button></div>
+    </div>
+</div>
+<div id="m4_s4" style="display:none;">
+    <div class="step-box">
+        <div class="step-label">④ Écris la fraction simplifiée :</div>
+        <div class="math-line med">${fiH('m4sn','m4sd')}</div>
+        <div class="feedback-box" id="fb_m4_simp"></div>
+        <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM4simp()">✓ Valider</button></div>
+    </div>
+</div>`;
+
+    // Auto-count prime cards and set first focus
+    M4.cardsDone=autoPrime.length;
+    // Set up enter on first non-prime
+    let firstFocusSet=false;
+    ['da','db','dc','dd'].forEach((p,i)=>{
+        const facs=[ex.fa,ex.fb,ex.fc,ex.fd][i];
+        const num=[ex.a,ex.b,ex.c,ex.d][i];
+        if(facs.length===1&&isPrime(num))return;
+        facs.forEach((_,j)=>{
+            const el=g(`${p}_${j}`);
+            if(!el)return;
+            el.addEventListener('keydown',e=>{
+                if(e.key==='Enter'){
+                    if(j<facs.length-1)g(`${p}_${j+1}`)?.focus();
+                    else g(`btn_${p}`)?.click();
+                }
+            });
+        });
+        if(!firstFocusSet){foc(`${p}_0`,150);firstFocusSet=true;}
+    });
+}
+
+function valM4card(prefix,factors){
+    const n=g(`card_${prefix}`)?parseInt(document.querySelector(`#card_${prefix} .decomp-card-num`)?.textContent||'0'):0;
+    const vals=factors.map((_,i)=>{const e=g(`${prefix}_${i}`);return e?parseInt(e.value):NaN;});
+    const sorted=v=>[...v].sort((a,b)=>a-b);
+    const ok=!vals.some(v=>isNaN(v))&&JSON.stringify(sorted(vals))===JSON.stringify(sorted(factors));
+    const fb=g(`fb_${prefix}`);
+    if(!ok){
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ ${n} = ${factors.join(' × ')}`;
+        factors.forEach((_,i)=>g(`${prefix}_${i}`)?.classList.add('err'));
+        setTimeout(()=>{factors.forEach((_,i)=>{const e=g(`${prefix}_${i}`);if(e){e.classList.remove('err');e.value='';}});foc(`${prefix}_0`);},600);
+        return;
+    }
+    factors.forEach((_,i)=>{const e=g(`${prefix}_${i}`);if(e){e.classList.add('ok');e.disabled=true;}});
+    const btn=g(`btn_${prefix}`);if(btn)btn.disabled=true;
+    g(`card_${prefix}`)?.classList.add('done-card');
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ ${n} = ${factors.join(' × ')}`;
+    M4.cardsDone++;
+    if(M4.cardsDone>=4) setTimeout(buildM4Rewrite,600);
+}
+
+function buildM4Rewrite(){
+    const ex=curEx;
+    const fb=g('fb_m4_all');
+    if(fb){fb.className='feedback-box correct';fb.innerHTML='✅ Toutes les décompositions sont correctes !';}
+    setPhaseInd(['① Décompositions','② Réécriture','③ Simplification','④ Résultat'],2);
+    g('m4_s2').style.display='';
+
+    // Build rewrite zone: (fa × fc) / (fb × fd) with inputs
+    const numFacs=curEx.numFacs; // [fa..., fc...]
+    const denFacs=curEx.denFacs;
+    function buildInputRow(facs,prefix){
+        return facs.map((v,i)=>{
+            return `<input id="rw_${prefix}_${i}" type="number" class="fi-small" placeholder="?" inputmode="numeric">`;
+        }).join(xSep());
+    }
+    const zone=g('m4_rewrite_zone');
+    zone.innerHTML=`
+<div class="math-line med" style="flex-direction:column;gap:10px;">
+    <div style="font-size:.85em;color:var(--pencil);font-family:'Patrick Hand',cursive;">Remplace chaque nombre par sa décomposition :</div>
+    <div>
+        ${fH(ex.a,ex.b)} ${opH('×')} ${fH(ex.c,ex.d)}
+        <span class="math-eq">=</span>
+        <span class="frac-inp">
+            <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;">${buildInputRow(numFacs,'n')}</span>
+            <span class="fbar"></span>
+            <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;">${buildInputRow(denFacs,'d')}</span>
+        </span>
+    </div>
+</div>`;
+    // Chain enter
+    const allInps=[...numFacs.map((_,i)=>`rw_n_${i}`),...denFacs.map((_,i)=>`rw_d_${i}`)];
+    allInps.forEach((id,i)=>g(id)?.addEventListener('keydown',e=>{if(e.key==='Enter'){allInps[i+1]?g(allInps[i+1]).focus():valM4rewrite();}}));
+    foc('rw_n_0',150);
+}
+
+function valM4rewrite(){
+    const ex=curEx;
+    const numFacs=ex.numFacs,denFacs=ex.denFacs;
+    const sort=v=>[...v].sort((a,b)=>a-b);
+    const uN=numFacs.map((_,i)=>parseInt(g(`rw_n_${i}`)?.value));
+    const uD=denFacs.map((_,i)=>parseInt(g(`rw_d_${i}`)?.value));
+    const nOk=!uN.some(v=>isNaN(v))&&JSON.stringify(sort(uN))===JSON.stringify(sort(numFacs));
+    const dOk=!uD.some(v=>isNaN(v))&&JSON.stringify(sort(uD))===JSON.stringify(sort(denFacs));
+    const fb=g('fb_m4_rw');
+    if(!nOk||!dOk){
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ Numérateur : ${numFacs.join(' × ')} — Dénominateur : ${denFacs.join(' × ')}`;
+        if(!nOk)numFacs.forEach((_,i)=>iFiErr(`rw_n_${i}`));
+        if(!dOk)denFacs.forEach((_,i)=>iFiErr(`rw_d_${i}`));
+        return;
+    }
+    numFacs.forEach((_,i)=>iFiOk(`rw_n_${i}`));
+    denFacs.forEach((_,i)=>iFiOk(`rw_d_${i}`));
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ C'est ça !`;
+    setPhaseInd(['① Décompositions','② Réécriture','③ Simplification','④ Résultat'],3);
+    setTimeout(buildM4Chips,600);
+}
+
+function buildM4Chips(){
+    g('m4_s3').style.display='';
+    const ex=curEx;
+    const zone=g('m4_chips_zone');
+    function chipRow(facs,prefix){
+        return facs.map((v,i)=>`<span class="factor-chip" id="chip_${prefix}_${i}" onclick="toggleChip('${prefix}',${i})">${v}</span>`).join(`<span class="factor-sep"> × </span>`);
+    }
+    zone.innerHTML=`
+<div style="display:flex;flex-direction:column;align-items:center;margin:10px 0;">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px 0;">${chipRow(ex.numFacs,'n')}</div>
+    <div style="width:82%;max-width:380px;height:3px;background:var(--ink);border-radius:2px;margin:2px auto;"></div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px 0;">${chipRow(ex.denFacs,'d')}</div>
+</div>`;
+}
+function toggleChip(prefix,idx){
+    const chip=g(`chip_${prefix}_${idx}`);
+    if(!chip||chip.classList.contains('locked'))return;
+    chip.classList.toggle('hilit');
+}
+function valM4chips(){
+    const ex=curEx;
+    const common=ex.common;
+    // Get what user selected in num and den
+    const selN=ex.numFacs.filter((_,i)=>g(`chip_n_${i}`)?.classList.contains('hilit'));
+    const selD=ex.denFacs.filter((_,i)=>g(`chip_d_${i}`)?.classList.contains('hilit'));
+    const sort=v=>[...v].sort((a,b)=>a-b);
+    const okN=JSON.stringify(sort(selN))===JSON.stringify(sort(common));
+    const okD=JSON.stringify(sort(selD))===JSON.stringify(sort(common));
+    const fb=g('fb_m4_chips');
+    if(!okN||!okD){
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ Les facteurs communs (à surligner) sont : <strong>${common.join(' × ')}</strong> — ils doivent être surlignés dans le numérateur ET le dénominateur.`;
+        return;
+    }
+    ex.numFacs.forEach((_,i)=>g(`chip_n_${i}`)?.classList.add('locked'));
+    ex.denFacs.forEach((_,i)=>g(`chip_d_${i}`)?.classList.add('locked'));
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ Parfait ! Les facteurs communs ${common.join(' × ')} se simplifient !`;
+    setPhaseInd(['① Décompositions','② Réécriture','③ Simplification','④ Résultat'],4);
+    setTimeout(()=>{g('m4_s4').style.display='';
+        g('m4sn').addEventListener('keydown',e=>{if(e.key==='Enter')g('m4sd').focus();});
+        g('m4sd').addEventListener('keydown',e=>{if(e.key==='Enter')valM4simp();});
+        foc('m4sn',150);
+    },500);
+}
+function valM4simp(){
+    const ex=curEx;
+    const sn=parseInt(g('m4sn').value),sd=parseInt(g('m4sd').value);
+    const fb=g('fb_m4_simp');
+    if(isNaN(sn)||isNaN(sd)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    const ok=sn>0&&sd>0&&sn*ex.sd===sd*ex.sn;
+    if(!ok){
+        iFiErr('m4sn');iFiErr('m4sd');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ Après simplification : ${fH(ex.sn,ex.sd,'c-green')}. (Il reste ${ex.sn} au numérateur et ${ex.sd} au dénominateur.)`;
+        return;
+    }
+    iFiOk('m4sn');iFiOk('m4sd');
+    fb.className='feedback-box correct';
+    showFb('correct',`✅ Excellent ! ${fH(ex.a,ex.b)} × ${fH(ex.c,ex.d)} = ${fH(ex.sn,ex.sd,'c-green')}`);
+    scored();
+}
+
+// ═══════════════════════════════════════
+// MODULE 5 — CALCULS MÉLANGÉS (+,-,×,÷)
+// ═══════════════════════════════════════
+// Operations: mul, div, add, sub
+// For add/sub we detail: LCD, convert, compute
+// For mul/div we detail: multiply / invert+multiply
+function genM5(){
+    const ops=['mul','div','add','sub','add','sub','mul','div'];
+    const op=rv(ops);
+    if(op==='mul'||op==='div'){
+        let a,b,c,d;
+        do{a=ri(2,7);b=ri(2,7);c=ri(2,7);d=ri(2,7);}
+        while(a===b||c===d||a*c>48||b*(op==='div'?c:d)>48);
+        const rn=op==='mul'?a*c:a*d;
+        const rd=op==='mul'?b*d:b*c;
+        return{op,a,b,c,d,rn,rd};
+    }else{
+        // add or sub
+        let a,b,c,d;
+        do{a=ri(1,7);b=ri(2,7);c=ri(1,7);d=ri(2,7);}
+        while(b===d||(op==='sub'&&a*d<=c*b));
+        const L=lcm(b,d);
+        const na=a*(L/b), nc=c*(L/d);
+        const rn=op==='add'?na+nc:na-nc;
+        const rd=L;
+        return{op,a,b,c,d,L,na,nc,rn,rd};
+    }
+}
+
+// Display helpers
+function opSymbol(op){return op==='mul'?'×':op==='div'?'÷':op==='add'?'+':'−';}
+
+function renderM5(){
+    const ex=curEx;
+    const sym=opSymbol(ex.op);
+    const opLabel={'mul':'Multiplication','div':'Division','add':'Addition','sub':'Soustraction'}[ex.op];
+    const icons={'mul':'✖️','div':'➗','add':'➕','sub':'➖'};
+    setPhaseInd(ex.op==='add'||ex.op==='sub'?['① LCD','② Convertir','③ Calculer']:['① Étape 1','② Résultat'],1);
+
+    let html=`
+<div class="section-title">${icons[ex.op]} ${opLabel} de fractions</div>
+<div class="q-box">
+    <div class="q-text">Calcule en détaillant <strong>toutes les étapes</strong> :</div>
+    <div class="math-line">${fH(ex.a,ex.b,'lg')} ${opH(sym)} ${fH(ex.c,ex.d,'lg')}</div>
+</div>`;
+
+    if(ex.op==='mul'){
+        html+=`
+<div class="step-box" id="m5s1">
+    <div class="step-label">① Multiplie numérateur par numérateur, dénominateur par dénominateur :</div>
+    <div class="math-line med">
+        ${fH(ex.a,ex.b)} ${opH('×')} ${fH(ex.c,ex.d)}
+        <span class="math-eq">=</span>
+        <span class="frac"><span class="num">${ex.a} × ${ex.c}</span><span class="bar"></span><span class="den">${ex.b} × ${ex.d}</span></span>
+        <span class="math-eq">=</span>
+        ${fiH('m5rn','m5rd')}
+    </div>
+    <div class="feedback-box" id="fb5s1"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM5mul()">✓ Valider</button></div>
+</div>`;
+    }else if(ex.op==='div'){
+        html+=`
+<div class="step-box" id="m5s1">
+    <div class="step-label">① Diviser = multiplier par l'<strong>inverse</strong>. Donne la nouvelle opération :</div>
+    <div class="math-line med">
+        ${fH(ex.a,ex.b)} ${opH('÷')} ${fH(ex.c,ex.d)}
+        <span class="math-eq">=</span>
+        ${fH(ex.a,ex.b)} ${opH('×')} ${fiH('m5in','m5id')}
+    </div>
+    <div class="feedback-box" id="fb5s1a"></div>
+</div>
+<div class="step-box" id="m5s1b" style="display:none;">
+    <div class="step-label">② Calcule le résultat :</div>
+    <div class="math-line med">
+        ${fH(ex.a,ex.b)} ${opH('×')} ${fH(ex.d,ex.c)}
+        <span class="math-eq">=</span>
+        ${fiH('m5rn','m5rd')}
+    </div>
+    <div class="feedback-box" id="fb5s1b"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM5div2()">✓ Valider</button></div>
+</div>`;
+    }else{
+        // add or sub
+        const sym2=ex.op==='add'?'+':'−';
+        html+=`
+<div class="step-box" id="m5s1">
+    <div class="step-label">① Trouve le <strong>plus petit multiple commun</strong> de ${ex.b} et ${ex.d} pour obtenir le dénominateur commun :</div>
+    <div class="math-line med">
+        <span style="font-family:'Libre Baskerville',serif;font-size:.75em;">Plus petit multiple commun (${ex.b} et ${ex.d}) =</span>
+        ${sH('m5lcd')}
+    </div>
+    <div class="feedback-box" id="fb5s1"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM5lcd()">✓ Valider</button></div>
+</div>
+<div class="step-box" id="m5s2" style="display:none;">
+    <div class="step-label">② Convertis chaque fraction au dénominateur ${ex.L} :</div>
+    <div class="math-line med" style="flex-direction:column;gap:10px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;">
+            ${fH(ex.a,ex.b)} <span class="math-eq">=</span> ${fiH('m5cn1','m5lcd1')}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;">
+            ${fH(ex.c,ex.d)} <span class="math-eq">=</span> ${fiH('m5cn2','m5lcd2')}
+        </div>
+    </div>
+    <div class="feedback-box" id="fb5s2"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM5convert()">✓ Valider</button></div>
+</div>
+<div class="step-box" id="m5s3" style="display:none;">
+    <div class="step-label">③ Effectue le calcul :</div>
+    <div class="math-line med">
+        ${fH(ex.na,ex.L)} ${opH(sym2)} ${fH(ex.nc,ex.L)}
+        <span class="math-eq">=</span>
+        ${fiH('m5rn','m5rd')}
+    </div>
+    <div class="feedback-box" id="fb5s3"></div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green btn-sm" onclick="valM5addres()">✓ Valider</button></div>
+</div>`;
+    }
+
+    g('exContent').innerHTML=html;
+
+    if(ex.op==='mul'){
+        g('m5rn')?.addEventListener('keydown',e=>{if(e.key==='Enter')g('m5rd')?.focus();});
+        g('m5rd')?.addEventListener('keydown',e=>{if(e.key==='Enter')valM5mul();});
+        foc('m5rn',100);
+    }else if(ex.op==='div'){
+        g('m5in')?.addEventListener('keydown',e=>{if(e.key==='Enter')g('m5id')?.focus();});
+        g('m5id')?.addEventListener('keydown',e=>{if(e.key==='Enter')valM5div1();});
+        // add button for step 1
+        const s1=g('m5s1');
+        const ctrl=document.createElement('div');ctrl.className='controls';ctrl.style.marginTop='8px';
+        ctrl.innerHTML='<button class="btn btn-green btn-sm" onclick="valM5div1()">✓ Valider</button>';
+        s1.appendChild(ctrl);
+        foc('m5in',100);
+    }else{
+        g('m5lcd')?.addEventListener('keydown',e=>{if(e.key==='Enter')valM5lcd();});
+        foc('m5lcd',100);
+    }
+}
+
+function valM5mul(){
+    const ex=curEx;
+    const rn=parseInt(g('m5rn').value),rd=parseInt(g('m5rd').value);
+    const fb=g('fb5s1');
+    if(isNaN(rn)||isNaN(rd)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    const ok=rn>0&&rd>0&&rn*ex.rd===rd*ex.rn;
+    if(!ok){
+        iFiErr('m5rn');iFiErr('m5rd');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ ${ex.a}×${ex.c} = <strong>${ex.rn}</strong> et ${ex.b}×${ex.d} = <strong>${ex.rd}</strong>. Résultat : ${fH(ex.rn,ex.rd)}.`;
+        return;
+    }
+    iFiOk('m5rn');iFiOk('m5rd');
+    const g2=gcd(ex.rn,ex.rd);
+    const simpStr=g2>1?` = ${fH(ex.rn/g2,ex.rd/g2,'c-green')}`:'';
+    fb.className='feedback-box correct';
+    showFb('correct',`✅ ${fH(ex.a,ex.b)} × ${fH(ex.c,ex.d)} = ${fH(ex.rn,ex.rd)}${simpStr}`);
+    scored();
+}
+function valM5div1(){
+    const ex=curEx;
+    const inn=parseInt(g('m5in').value),ind=parseInt(g('m5id').value);
+    const fb=g('fb5s1a');
+    if(isNaN(inn)||isNaN(ind)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    if(inn!==ex.d||ind!==ex.c){
+        iFiErr('m5in');iFiErr('m5id');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ L'inverse de ${fH(ex.c,ex.d)} est ${fH(ex.d,ex.c)}.`;
+        return;
+    }
+    iFiOk('m5in');iFiOk('m5id');
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ Correct !`;
+    setPhaseInd(['① Étape 1','② Résultat'],2);
+    setTimeout(()=>{
+        g('m5s1b').style.display='';
+        g('m5rn').addEventListener('keydown',e=>{if(e.key==='Enter')g('m5rd').focus();});
+        g('m5rd').addEventListener('keydown',e=>{if(e.key==='Enter')valM5div2();});
+        foc('m5rn',150);
+    },500);
+}
+function valM5div2(){
+    const ex=curEx;
+    const rn=parseInt(g('m5rn').value),rd=parseInt(g('m5rd').value);
+    const fb=g('fb5s1b');
+    if(isNaN(rn)||isNaN(rd)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    const ok=rn>0&&rd>0&&rn*ex.rd===rd*ex.rn;
+    if(!ok){
+        iFiErr('m5rn');iFiErr('m5rd');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ ${ex.a}×${ex.d} = ${ex.rn} et ${ex.b}×${ex.c} = ${ex.rd}. Résultat : ${fH(ex.rn,ex.rd)}.`;
+        return;
+    }
+    iFiOk('m5rn');iFiOk('m5rd');
+    const g2=gcd(ex.rn,ex.rd);
+    const simpStr=g2>1?` = ${fH(ex.rn/g2,ex.rd/g2,'c-green')}`:'';
+    fb.className='feedback-box correct';
+    showFb('correct',`✅ ${fH(ex.a,ex.b)} ÷ ${fH(ex.c,ex.d)} = ${fH(ex.rn,ex.rd)}${simpStr}`);
+    scored();
+}
+function valM5lcd(){
+    const ex=curEx;
+    const v=parseInt(g('m5lcd').value);
+    const fb=g('fb5s1');
+    if(isNaN(v)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Entrez un nombre !';return;}
+    if(v!==ex.L){
+        iErr('m5lcd');
+        fb.className='feedback-box incorrect';
+        fb.innerHTML=`❌ Le plus petit multiple commun de ${ex.b} et ${ex.d} est ${ex.L}. (Astuce : liste les multiples de ${Math.max(ex.b,ex.d)})`;
+        return;
+    }
+    iOk('m5lcd');
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ Le plus petit multiple commun de ${ex.b} et ${ex.d} est bien ${ex.L} !`;
+    setPhaseInd(['① Multiple commun','② Convertir','③ Calculer'],2);
+    setTimeout(()=>{
+        g('m5s2').style.display='';
+        // Set LCD value display in denominators
+        [g('m5lcd1'),g('m5lcd2')].forEach(e=>{if(e){e.value=ex.L;e.classList.add('ok');e.disabled=true;}});
+        g('m5cn1').addEventListener('keydown',e=>{if(e.key==='Enter')g('m5cn2').focus();});
+        g('m5cn2').addEventListener('keydown',e=>{if(e.key==='Enter')valM5convert();});
+        foc('m5cn1',200);
+    },500);
+}
+function valM5convert(){
+    const ex=curEx;
+    const cn1=parseInt(g('m5cn1').value),cn2=parseInt(g('m5cn2').value);
+    const fb=g('fb5s2');
+    const ok1=cn1===ex.na,ok2=cn2===ex.nc;
+    if(!ok1||!ok2){
+        fb.className='feedback-box incorrect';
+        let msg='❌ ';
+        if(!ok1)msg+=`${fH(ex.a,ex.b)} = ${fH(ex.na,ex.L)} (multiplie par ${ex.L/ex.b}). `;
+        if(!ok2)msg+=`${fH(ex.c,ex.d)} = ${fH(ex.nc,ex.L)} (multiplie par ${ex.L/ex.d}).`;
+        fb.innerHTML=msg;
+        if(!ok1)iFiErr('m5cn1');
+        if(!ok2)iFiErr('m5cn2');
+        return;
+    }
+    iFiOk('m5cn1');iFiOk('m5cn2');
+    fb.className='feedback-box correct';
+    fb.innerHTML=`✅ ${fH(ex.a,ex.b)} = ${fH(ex.na,ex.L)} et ${fH(ex.c,ex.d)} = ${fH(ex.nc,ex.L)}`;
+    setPhaseInd(['① Multiple commun','② Convertir','③ Calculer'],3);
+    setTimeout(()=>{
+        g('m5s3').style.display='';
+        g('m5rn').addEventListener('keydown',e=>{if(e.key==='Enter')g('m5rd').focus();});
+        g('m5rd').addEventListener('keydown',e=>{if(e.key==='Enter')valM5addres();});
+        foc('m5rn',150);
+    },500);
+}
+function valM5addres(){
+    const ex=curEx;
+    const rn=parseInt(g('m5rn').value),rd=parseInt(g('m5rd').value);
+    const fb=g('fb5s3');
+    if(isNaN(rn)||isNaN(rd)){fb.className='feedback-box incorrect';fb.innerHTML='❌ Remplis les deux cases !';return;}
+    const ok=rn>0&&rd>0&&rn*ex.rd===rd*ex.rn;
+    if(!ok){
+        iFiErr('m5rn');iFiErr('m5rd');
+        fb.className='feedback-box incorrect';
+        const sym2=ex.op==='add'?'+':'−';
+        fb.innerHTML=`❌ ${ex.na} ${sym2} ${ex.nc} = ${ex.rn}. Résultat : ${fH(ex.rn,ex.rd)}.`;
+        return;
+    }
+    iFiOk('m5rn');iFiOk('m5rd');
+    const g2=gcd(ex.rn,ex.rd);
+    const sym2=ex.op==='add'?'+':'−';
+    const simpStr=g2>1?` = ${fH(ex.rn/g2,ex.rd/g2,'c-green')}`:'';
+    fb.className='feedback-box correct';
+    showFb('correct',`✅ ${fH(ex.a,ex.b)} ${opSymbol(ex.op)} ${fH(ex.c,ex.d)} = ${fH(ex.rn,ex.rd)}${simpStr}`);
+    scored();
+}
+
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
