@@ -837,9 +837,7 @@
         }
         .btn-action:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
         .btn-signal { background: #fff5f5; color: #c53030; border-color: #ffd0d0; }
-        .btn-dl { background: #f0ecff; color: var(--primary); border-color: #d8d0f5; }
         [data-theme="dark"] .btn-signal { background: rgba(197,48,48,0.1); color: #f87171; border-color: rgba(248,113,113,0.2); }
-        [data-theme="dark"] .btn-dl { background: rgba(124,92,191,0.12); color: var(--primary-light); border-color: rgba(160,125,214,0.2); }
 
         /* ======= SYSTÈME DE PROGRESSION ======= */
 
@@ -1533,8 +1531,7 @@
     <!-- ===== FLOATING ACTION BUTTON ===== -->
     <div class="fab-wrap" id="fabWrap">
         <div class="fab-menu">
-            <a href="#" class="btn-action btn-signal">⚠️ Signaler un bug</a>
-            <a href="archive_exercices.zip" class="btn-action btn-dl">📥 Pack Offline</a>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSfmKs8PtDphqjCgEE74fulujFT9mDr_QmvsSJz7gXQdSrstjg/viewform?usp=dialog" target="_blank" rel="noopener" class="btn-action btn-signal">⚠️ Signaler un bug</a>
         </div>
         <button class="fab-toggle" id="fabToggle" aria-label="Actions" aria-expanded="false">+</button>
     </div>
@@ -2540,15 +2537,16 @@
                 fillList('exerciseurs', content.exerciseurs, key);
                 toggleSubList('exerciseurs');
             } else {
+                const types = [
+                    { id: 'lecon',      icon: '📖', label: 'Leçon' },
+                    { id: 'exercices',  icon: '📝', label: 'Exercices' },
+                    { id: 'exerciseurs',icon: '⚙️', label: 'Exerciseurs' }
+                ].filter(t => content[t.id]?.length > 0);
+
                 modalOptions.innerHTML = progressHtml +
-                    buildOptionGroup('lecon', '📖', 'Leçon') +
-                    buildOptionGroup('exercices', '📝', 'Exercices') +
-                    buildOptionGroup('exerciseurs', '⚙️', 'Exerciseurs');
-                fillList('lecon', content.lecon, key);
-                fillList('exercices', content.exercices, key);
-                fillList('exerciseurs', content.exerciseurs, key);
-                const first = ['lecon','exercices','exerciseurs'].find(c => content[c]?.length > 0);
-                if (first) toggleSubList(first);
+                    types.map(t => buildOptionGroup(t.id, t.icon, t.label)).join('');
+                types.forEach(t => fillList(t.id, content[t.id], key));
+                if (types.length > 0) toggleSubList(types[0].id);
             }
 
             ['lecon','exercices','exerciseurs'].forEach(cat => {
@@ -2784,7 +2782,7 @@
     }
 
     function checkScrollBtn() {
-        scrollTopBtn.classList.toggle('visible', getScrollY() > 400);
+        scrollTopBtn.classList.toggle('visible', getScrollY() > 400 && !axiomeOpen);
     }
 
     // Listen everywhere possible
@@ -2892,6 +2890,7 @@ ${buildCatalogueSummary()}`;
         axiomeOpen = true;
         axiomePanel.classList.add('open');
         axiomeBtn.setAttribute('aria-expanded', 'true');
+        scrollTopBtn.classList.remove('visible');
         if (axiomeMessages.children.length === 0) {
             setTimeout(() => addAxiomeMessage('bot', '👋 Salut ! Moi c\'est Axiome. T\'es en quelle classe, et c\'est quoi le truc qui te bloque en ce moment ?'), 300);
             setTimeout(() => showChips(['6ème', '5ème', '4ème', '3ème']), 900);
@@ -2903,6 +2902,7 @@ ${buildCatalogueSummary()}`;
         axiomeOpen = false;
         axiomePanel.classList.remove('open');
         axiomeBtn.setAttribute('aria-expanded', 'false');
+        scrollTopBtn.classList.toggle('visible', getScrollY() > 400);
     }
 
     axiomeBtn.addEventListener('click', () => axiomeOpen ? closeAxiome() : openAxiome());
@@ -2963,6 +2963,7 @@ ${buildCatalogueSummary()}`;
                 const niv = btn.dataset.niv;
 
                 closeAxiome();
+                closeSidebar();
 
                 const entry = searchIndex.find(x => x.chap === chapName && x.niv === niv);
 
@@ -3122,7 +3123,6 @@ ${buildCatalogueSummary()}`;
     </div>
 
     <script>
-    // Enregistrement du Service Worker (PWA hors ligne)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
