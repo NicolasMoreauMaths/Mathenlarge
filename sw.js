@@ -1,4 +1,4 @@
-const CACHE_NAME = "mathenlarge-v3";
+const CACHE_NAME = "mathenlarge-v4";
 const URLS_TO_CACHE = [
   "./",
   "./index.html",
@@ -381,7 +381,11 @@ const URLS_TO_CACHE = [
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(URLS_TO_CACHE);
+      return Promise.allSettled(
+        URLS_TO_CACHE.map(url =>
+          cache.add(url).catch(err => console.warn("Cache miss:", url, err))
+        )
+      );
     })
   );
   self.skipWaiting();
