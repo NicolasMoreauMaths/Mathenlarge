@@ -302,7 +302,7 @@ function segsToRails(segs){
 }
 function closestAngle(cur,cands){return cands.reduce((b,c)=>{const d=angDiff(cur,c);return d<b.da?{a:(c+360)%360,da:d}:b},{a:(cands[0]+360)%360,da:angDiff(cur,cands[0])});}
 
-function tryRailSnap(instr,segs,zoom,isSq){
+function tryRailSnap(instr,segs,zoom,isSq,oPts){
   const mm=RAIL_PX/zoom;
   const rails=segsToRails(segs);
   let best=null,bestScore=Infinity;
@@ -320,6 +320,19 @@ function tryRailSnap(instr,segs,zoom,isSq){
       const dB=Math.min(dRay(g.bot[0],rail.pt,rail.dir),dRay(g.bot[1],rail.pt,rail.dir));
       const d=Math.min(dT,dB);
       if(d<mm&&d<bestScore){bestScore=d;best={rail,lockedAngle:lc.a,edge:dT<dB?'top':'bot'};}
+    }
+  }
+  if(!isSq&&oPts&&oPts.length>0){
+    const g=rulerG(instr);
+    const omm=ORAIL_PX/zoom;
+    for(const O of oPts){
+      const Opt=V(O.x,O.y);
+      const dT=dRay(Opt,g.cL,g.dir), dB=dRay(Opt,g.bot[0],g.dir);
+      const d=Math.min(dT,dB);
+      if(d<omm&&d<bestScore){
+        bestScore=d;
+        best={rail:{pt:Opt,dir:g.dir,segId:'O-rail'},lockedAngle:instr.angle,edge:dT<=dB?'top':'bot',isORail:true};
+      }
     }
   }
   return best;
@@ -446,6 +459,7 @@ function ProtractorSVG({prot,zoom,isPen,onBodyDown,onHandleDown,snapped,flatSnap
   const SEP=R*.72,RON=R*.80,RIN=SEP*.67;
   const fszOuter=R*0.075;
   const fszInner=R*0.044;
+  const toME=e=>({clientX:e.touches[0]?.clientX??e.changedTouches[0]?.clientX,clientY:e.touches[0]?.clientY??e.changedTouches[0]?.clientY,button:0,target:e.target,stopPropagation:()=>e.stopPropagation(),preventDefault:()=>e.preventDefault()});
   const els=[];
   for(let deg=0;deg<=180;deg++){
     const maj=deg%10===0,med=!maj&&deg%5===0;
@@ -466,13 +480,13 @@ function ProtractorSVG({prot,zoom,isPen,onBodyDown,onHandleDown,snapped,flatSnap
   return<g data-i="1">
     <path d={arcPath} fill="rgba(219,234,254,.14)" stroke="#3b82f6" strokeWidth={2/zoom}
       onMouseDown={isPen?undefined:onBodyDown}
-      onTouchStart={isPen?undefined:e=>{e.preventDefault();onBodyDown(e.touches[0]||e.changedTouches[0]);}}
+      onTouchStart={isPen?undefined:e=>{e.preventDefault();onBodyDown(toME(e));}}
       style={{cursor:isPen?'default':'move'}}/>
     <line x1={flatL.x} y1={flatL.y} x2={flatR.x} y2={flatR.y} stroke="#0f172a" strokeWidth={2.5/zoom} style={{pointerEvents:'none'}}/>
     {/* Hitbox bord plat */}
     <line x1={flatL.x} y1={flatL.y} x2={flatR.x} y2={flatR.y} stroke="transparent" strokeWidth={12/zoom} data-i="1"
       onMouseDown={isPen?undefined:onBodyDown}
-      onTouchStart={isPen?undefined:e=>{e.preventDefault();onBodyDown(e.touches[0]||e.changedTouches[0]);}}
+      onTouchStart={isPen?undefined:e=>{e.preventDefault();onBodyDown(toME(e));}}
       style={{cursor:isPen?'default':'move'}}/>
     {els}
     {/* Croix centre */}
@@ -485,10 +499,10 @@ function ProtractorSVG({prot,zoom,isPen,onBodyDown,onHandleDown,snapped,flatSnap
     {!isPen&&<g data-i="1">
       {/* Poignée rotation+resize */}
       <circle cx={hdl.x} cy={hdl.y} r={hR*1.2} fill="#7c3aed" stroke="white" strokeWidth={Math.max(.5,2/zoom)}
-        onMouseDown={onHandleDown} onTouchStart={e=>{e.preventDefault();onHandleDown(e.touches[0]||e.changedTouches[0]);}}
+        onMouseDown={onHandleDown} onTouchStart={e=>{e.preventDefault();onHandleDown(toME(e));}}
         style={{cursor:'grab'}}/>
       <circle cx={hdl.x} cy={hdl.y} r={TOUCH_HDL/zoom} fill="transparent" data-i="1"
-        onMouseDown={onHandleDown} onTouchStart={e=>{e.preventDefault();onHandleDown(e.touches[0]||e.changedTouches[0]);}}
+        onMouseDown={onHandleDown} onTouchStart={e=>{e.preventDefault();onHandleDown(toME(e));}}
         style={{cursor:'grab'}}/>
       <text x={hdl.x} y={hdl.y} fontSize={hR*1.0} fill="white" textAnchor="middle" dominantBaseline="middle"
         style={{pointerEvents:'none'}}>↔↻</text>
@@ -716,181 +730,236 @@ function App(){
   }
   function onWheel(e){e.preventDefault();setZoom(z=>Math.max(.1,Math.min(30,z*(e.deltaY>0?.92:1.09))));}
 
+  function getOCenters(){
+    if(!chR.current||!chR.current.O)return[];
+    return[chR.current.O];
+  }
+
   // ── Drag instruments ──────────────────────────────────────────
   function instrDrag(e,type,get,set,isSq,lockRef,setSnap){
     if(penMode)return;e.stopPropagation();e.preventDefault();
     const origC=s2c(e.clientX,e.clientY),init=get();
     let lock=lockRef.current;
-    const O_ctr=chR.current?.O||null;
-
-    if(type==='startR'||type==='endR'){
-      if(lock&&!lock.isORail){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);}
-    }
-
-    function mv(me){
-      const cur=s2c(me.clientX,me.clientY);
-      if(type==='move'){
-        const dx=cur.x-origC.x,dy=cur.y-origC.y,raw={...init,x:init.x+dx,y:init.y+dy};
-        if(!isSq){
-          // Glisse sur droite puis accroche aux points — identique à l'équerre, sans O-Rail
-          if(lock){
-            const gT=rulerG(raw);
-            const tPts=[gT.cL,gT.cR,gT.O,gT.E];
-            if(Math.min(...tPts.map(p=>dRay(p,lock.rail.pt,lock.rail.dir)))*zR.current>DETACH_PX){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));setVtxInfo(null);return;}
-            const t_raw=tRay(cur,lock.rail.pt,lock.rail.dir)+lock.t_offset;
-            const cran=findCran(t_raw,lock.rail,getPool(),crMM());
-            const pos=railPos(lock,cran?cran.t:t_raw,false);set(s=>({...s,...pos}));
-            if(cran){const ig=rulerG(pos);const perpPt=projRay(V(cran.pt.x,cran.pt.y),ig.top[0],ig.dir);setCranInfo({pt:cran.pt,perpPt,kind:cran.kind});}else setCranInfo(null);
-            setVtxInfo(null);return;
+    const oCenters=getOCenters();
+if(type==='startR'||type==='endR'){
+  if(lock&&!lock.isORail){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);}
+}
+if(type==='move'&&!lock&&(segsR.current.length>0||oCenters.length>0)){
+  const snap=tryRailSnap(init,segsR.current,zR.current,isSq,oCenters);
+  if(snap){const tOff=calcTOff(origC,snap,init,isSq);lock={...snap,t_offset:tOff};lockRef.current=lock;setSnap(lock);}
+}
+function mv(me){
+  const cur=s2c(me.clientX,me.clientY);
+  if(type==='move'){
+    const dx=cur.x-origC.x,dy=cur.y-origC.y,raw={...init,x:init.x+dx,y:init.y+dy};
+    if(!isSq){
+      const pool=getPool(),aM=ANCHOR_PX/zR.current;
+      const as=rulerAnchorSnap(raw,pool,aM);
+      if(as){
+        const anchored={...raw,x:raw.x+as.dx,y:raw.y+as.dy};
+        const ga=rulerG(anchored);
+        const omm2=ORAIL_PX/zR.current;
+        let oFired=false;
+        for(const Oc of oCenters){
+          const Opt=V(Oc.x,Oc.y);
+          const anchorPt=as.anchorLabel==='RULER_START'?ga.cL:ga.cR;
+          if(vdst(anchorPt,Opt)<1)continue;
+          const dT=dRay(Opt,ga.cL,ga.dir), dB=dRay(Opt,ga.bot[0],ga.dir);
+          const d=Math.min(dT,dB);
+          if(d<omm2){
+            const rawSnapDir=as.anchorLabel==='RULER_START'?vunit(vsub(Opt,anchorPt)):vunit(vsub(anchorPt,Opt));
+            const currentDir=V(Math.cos(D2R(raw.angle)),Math.sin(D2R(raw.angle)));
+            const snapDir=vdot(rawSnapDir,currentDir)>=0?rawSnapDir:vscl(rawSnapDir,-1);
+            const snapNor=V(snapDir.y,-snapDir.x);
+            const snapAngle=R2D(Math.atan2(snapDir.y,snapDir.x));
+            const snapLen=Math.max(15,vdst(anchorPt,Opt)*1.2,ga.length);
+            const edge=dT<=dB?'top':'bot';
+            const h=edge==='top'?RH/2:-RH/2;
+            let snapX,snapY;
+            if(as.anchorLabel==='RULER_START'){
+              snapX=anchorPt.x-snapNor.x*h; snapY=anchorPt.y-snapNor.y*h;
+            }else{
+              const E=vsub(anchorPt,vscl(snapNor,h));
+              const orig=vsub(E,vscl(snapDir,snapLen));
+              snapX=orig.x; snapY=orig.y;
+            }
+            lock={rail:{pt:Opt,dir:snapDir,segId:'O-rail'},lockedAngle:snapAngle,edge,isORail:true};
+            lockRef.current=lock;setSnap({...lock});
+            set(s=>({...s,x:snapX,y:snapY,length:snapLen,angle:snapAngle}));
+            setVtxInfo({snapPt:anchorPt,cornerLabel:as.anchorLabel,kind:as.snapKind});
+            oFired=true;break;
           }
-          const snap=tryRailSnap(raw,segsR.current,zR.current,false);
-          if(snap){const tOff=calcTOff(cur,snap,raw,false);lock={...snap,t_offset:tOff};lockRef.current=lock;setSnap(lock);set(s=>({...s,...railPos(lock,tRay(cur,lock.rail.pt,lock.rail.dir)+tOff,false)}));setVtxInfo(null);return;}
-          const vs=vtxSnap(raw,getPool(),zR.current,false);
-          if(vs){set(s=>({...s,x:vs.newState.x,y:vs.newState.y}));setVtxInfo({snapPt:vs.snapPt,cornerLabel:vs.cornerLabel,kind:vs.snapKind});}
-          else{setVtxInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));}
-          return;
         }
-        // Équerre
-        if(lock){
-          const gT=squareG(raw);
-          const tPts=[gT.O,gT.A,gT.B];
-          if(Math.min(...tPts.map(p=>dRay(p,lock.rail.pt,lock.rail.dir)))*zR.current>DETACH_PX){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));setVtxInfo(null);return;}
-          const t_raw=tRay(cur,lock.rail.pt,lock.rail.dir)+lock.t_offset;
-          const cran=findCran(t_raw,lock.rail,getPool(),crMM());
-          const pos=railPos(lock,cran?cran.t:t_raw,true);set(s=>({...s,...pos}));
-          if(cran){const ig=squareG(pos);const pe=lock.leg==='leg1'?ig.leg2:ig.leg1;const perpPt=projRay(V(cran.pt.x,cran.pt.y),pe[0],vunit(vsub(pe[1],pe[0])));setCranInfo({pt:cran.pt,perpPt,kind:cran.kind});}else setCranInfo(null);
-          setVtxInfo(null);return;
+        if(!oFired){
+          if(lock){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);}
+          set(s=>({...s,x:raw.x+as.dx,y:raw.y+as.dy}));
+          setVtxInfo({snapPt:as.snapPt,cornerLabel:as.anchorLabel,kind:as.snapKind});
         }
-        // O-snap pour le coin de l'équerre
-        if(O_ctr){
-          const oV=V(O_ctr.x,O_ctr.y);
-          const gChk=squareG(raw);
-          if(vdst(gChk.O,oV)*zR.current<ORAIL_PX){
-            set(s=>({...s,x:raw.x+(oV.x-gChk.O.x),y:raw.y+(oV.y-gChk.O.y)}));
-            setVtxInfo({snapPt:oV,cornerLabel:'O_sq',kind:'named'});setSnap(null);setCranInfo(null);return;
-          }
-        }
-        const snap=tryRailSnap(raw,segsR.current,zR.current,true);
-        if(snap){const tOff=calcTOff(cur,snap,raw,true);lock={...snap,t_offset:tOff};lockRef.current=lock;setSnap(lock);set(s=>({...s,...railPos(lock,tRay(cur,lock.rail.pt,lock.rail.dir)+tOff,true)}));setVtxInfo(null);return;}
-        const vs=vtxSnap(raw,getPool(),zR.current,true);
-        if(vs){set(s=>({...s,x:vs.newState.x,y:vs.newState.y}));setVtxInfo({snapPt:vs.snapPt,cornerLabel:vs.cornerLabel,kind:vs.snapKind});return;}
-        setVtxInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));return;
+        return;
       }
-      // ═══ SOMMETS RÈGLE avec snap droite+point (comme l'équerre) ═══
-      if(type==='startR'){
-        // Garde E (bout droit) fixe, déplace O (bout gauche)
-        const E=rulerG(init).E;
-        const rails=segsToRails(segsR.current);
-        let bestLine=null,bestLineDist=RAIL_PX/zR.current;
-        for(const rail of rails){const d=dRay(cur,rail.pt,rail.dir);if(d<bestLineDist){bestLineDist=d;bestLine=rail;}}
-        let tgt;
-        if(bestLine){tgt=projRay(cur,bestLine.pt,bestLine.dir);setSnapD({pt:tgt,kind:'edge'});}
-        else{const ne=nearestPt(cur,getPool(),ptMM());tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);}
-        const d=vdst(tgt,E);if(d<1)return;
-        set(s=>({...s,x:tgt.x,y:tgt.y,length:Math.max(15,d),angle:R2D(Math.atan2(E.y-tgt.y,E.x-tgt.x))}));
-        setVtxInfo({snapPt:tgt,cornerLabel:'O',kind:bestLine?'edge':'named'});return;
-      }
-      if(type==='endR'){
-        // Garde O (bout gauche) fixe, déplace E (bout droit)
-        const O=rulerG(init).O;
-        const rails=segsToRails(segsR.current);
-        let bestLine=null,bestLineDist=RAIL_PX/zR.current;
-        for(const rail of rails){const d=dRay(cur,rail.pt,rail.dir);if(d<bestLineDist){bestLineDist=d;bestLine=rail;}}
-        let tgt;
-        if(bestLine){tgt=projRay(cur,bestLine.pt,bestLine.dir);setSnapD({pt:tgt,kind:'edge'});}
-        else{const ne=nearestPt(cur,getPool(),ptMM());tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);}
-        const d=vdst(tgt,O);if(d<1)return;
-        set(s=>({...s,length:Math.max(15,d),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))}));
-        setVtxInfo({snapPt:tgt,cornerLabel:'E',kind:bestLine?'edge':'named'});return;
-      }
-      // ═══ SOMMETS ÉQUERRE avec snap droite+point ═══
-      if(type==='vtxO'){
-        const snapMM=RAIL_PX/zR.current;
-        const rails=segsToRails(segsR.current);
-        let bestLine=null,bestLineDist=snapMM;
-        for(const rail of rails){const d=dRay(cur,rail.pt,rail.dir);if(d<bestLineDist){bestLineDist=d;bestLine=rail;}}
-        if(bestLine){
-          const onLine=projRay(cur,bestLine.pt,bestLine.dir);
-          set(s=>({...s,x:onLine.x,y:onLine.y}));
-          setSnapD({pt:onLine,kind:'edge'});setVtxInfo({snapPt:onLine,cornerLabel:'O',kind:'edge'});return;
-        }
-        const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
-        if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
-        set(s=>({...s,x:tgt.x,y:tgt.y}));
-        if(ne)setVtxInfo({snapPt:tgt,cornerLabel:'O',kind:ne.kind});else setVtxInfo(null);return;
-      }
-      if(type==='vtxA'){
-        const O=V(init.x,init.y);
-        const snapMM=RAIL_PX/zR.current;
-        const rails=segsToRails(segsR.current);
-        let bestLine=null,bestLineDist=snapMM;
-        for(const rail of rails){const d=dRay(cur,rail.pt,rail.dir);if(d<bestLineDist){bestLineDist=d;bestLine=rail;}}
-        let tgt;
-        if(bestLine){tgt=projRay(cur,bestLine.pt,bestLine.dir);setSnapD({pt:tgt,kind:'edge'});}
-        else{const ne=nearestPt(cur,getPool(),ptMM());tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);}
-        const d=vdst(tgt,O);if(d<1)return;
-        set(s=>({...s,size:Math.max(15,d),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))}));
-        setVtxInfo({snapPt:tgt,cornerLabel:'A',kind:bestLine?'edge':'named'});return;
-      }
-      if(type==='vtxB'){
-        const O=V(init.x,init.y);
-        const snapMM=RAIL_PX/zR.current;
-        const rails=segsToRails(segsR.current);
-        let bestLine=null,bestLineDist=snapMM;
-        for(const rail of rails){const d=dRay(cur,rail.pt,rail.dir);if(d<bestLineDist){bestLineDist=d;bestLine=rail;}}
-        let tgt;
-        if(bestLine){tgt=projRay(cur,bestLine.pt,bestLine.dir);setSnapD({pt:tgt,kind:'edge'});}
-        else{const ne=nearestPt(cur,getPool(),ptMM());tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);}
-        const d=vdst(tgt,O);if(d<1)return;
-        set(s=>({...s,size:Math.max(15,d),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))-90}));
-        setVtxInfo({snapPt:tgt,cornerLabel:'B',kind:bestLine?'edge':'named'});return;
-      }
-      if(type==='cmpR'){const a=R2D(Math.atan2(cur.y-init.cy,cur.x-init.cx));const r=Math.max(4,vdst(cur,V(init.cx,init.cy)));const ne=nearestPt(V(init.cx+r*Math.cos(D2R(a)),init.cy+r*Math.sin(D2R(a))),getPool(false,false),ptMM());if(ne){set(s=>({...s,radius:vdst(V(ne.x,ne.y),V(init.cx,init.cy)),pencilAngle:R2D(Math.atan2(ne.y-init.cy,ne.x-init.cx))}));setSnapD({pt:V(ne.x,ne.y),kind:ne.kind});}else{set(s=>({...s,radius:r,pencilAngle:a}));setSnapD(null);}return;}
     }
-    function up(){
-      dragRef.current=null;
-      window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);
+    if(lock){
+      const gT=isSq?squareG(raw):rulerG(raw);
+      const tPts=isSq?[gT.O,gT.A,gT.B]:[gT.top[0],gT.top[1],gT.bot[0],gT.bot[1]];
+      const isORail=lock.isORail;
+      let detach=false;
+      if(isORail){
+        const g2=rulerG({...raw,angle:lock.lockedAngle});
+        const d2=lock.edge==='top'?dRay(lock.rail.pt,g2.cL,g2.dir):dRay(lock.rail.pt,g2.bot[0],g2.dir);
+        if(d2*zR.current>DETACH_ORAIL)detach=true;
+      }else{
+        if(Math.min(...tPts.map(p=>dRay(p,lock.rail.pt,lock.rail.dir)))*zR.current>DETACH_PX)detach=true;
+      }
+      if(detach){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));setVtxInfo(null);return;}
+      const t_raw=tRay(cur,lock.rail.pt,lock.rail.dir)+lock.t_offset;
+      const cran=isORail?null:findCran(t_raw,lock.rail,getPool(),crMM());
+      const pos=railPos(lock,cran?cran.t:t_raw,isSq);set(s=>({...s,...pos}));
+      if(!isORail&&cran){const ig=isSq?squareG(pos):rulerG(pos);let perpPt;if(isSq){const pe=lock.leg==='leg1'?ig.leg2:ig.leg1;perpPt=projRay(V(cran.pt.x,cran.pt.y),pe[0],vunit(vsub(pe[1],pe[0])));}else{perpPt=projRay(V(cran.pt.x,cran.pt.y),ig.top[0],ig.dir);}setCranInfo({pt:cran.pt,perpPt,kind:cran.kind});}else setCranInfo(null);
+      setVtxInfo(null);return;
     }
-    function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}
-    dragRef.current={t:'instr'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});
+    const snap=tryRailSnap(raw,segsR.current,zR.current,isSq,oCenters);
+    if(snap){const tOff=calcTOff(cur,snap,raw,isSq);lock={...snap,t_offset:tOff};lockRef.current=lock;setSnap(lock);set(s=>({...s,...railPos(lock,tRay(cur,lock.rail.pt,lock.rail.dir)+tOff,isSq)}));setVtxInfo(null);return;}
+    if(isSq){const vs=vtxSnap(raw,getPool(),zR.current,isSq);if(vs){set(s=>({...s,x:vs.newState.x,y:vs.newState.y}));setVtxInfo({snapPt:vs.snapPt,cornerLabel:vs.cornerLabel,kind:vs.snapKind});return;}}
+    setVtxInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));return;
   }
-
-  function anchorDrag(e,anchorId){
-    if(penMode)return;e.stopPropagation();e.preventDefault();
-    const initR={...rulerR.current},iG=rulerG(initR);
-    const iAnchor=anchorId==='RULER_START'?iG.cL:iG.cR;
-    function mv(me){
-      const cur=s2c(me.clientX,me.clientY);
-      const snapMM=RAIL_PX/zR.current,ptSnapMM=ANCHOR_PX/zR.current;
-      // 1. Aimantation sur droite (coin glisse le long du segment, règle s'aligne)
-      const rails=segsToRails(segsR.current);
-      let bestLine=null,bestLineDist=snapMM;
-      for(const rail of rails){const d=dRay(cur,rail.pt,rail.dir);if(d<bestLineDist){bestLineDist=d;bestLine=rail;}}
-      if(bestLine){
-        const onLine=projRay(cur,bestLine.pt,bestLine.dir);
-        const lineAngle=R2D(Math.atan2(bestLine.dir.y,bestLine.dir.x));
-        const lDir=bestLine.dir,lNor=V(lDir.y,-lDir.x),h=RH/2;
-        let newX,newY;
-        if(anchorId==='RULER_START'){
-          newX=onLine.x-lNor.x*h;newY=onLine.y-lNor.y*h;
-        }else{
-          const len=rulerR.current.length;
-          newX=onLine.x-lDir.x*len-lNor.x*h;newY=onLine.y-lDir.y*len-lNor.y*h;
-        }
-        setRuler(r=>({...r,x:newX,y:newY,angle:lineAngle}));
-        setSnapD({pt:onLine,kind:'edge'});setVtxInfo(null);return;
-      }
-      // 2. Aimantation sur point
-      const ne=nearestPt(cur,getPool(),ptSnapMM);
-      const tgt=ne?V(ne.x,ne.y):cur;
+  if(type==='endR'){
+    if(lock?.isORail){
+      const Opt=lock.rail.pt;
+      const g0=rulerG(init);
+      const t_O=tRay(Opt,g0.cL,g0.dir);
+      const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
       if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
-      setRuler(r=>({...r,x:initR.x+(tgt.x-iAnchor.x),y:initR.y+(tgt.y-iAnchor.y)}));
-      if(ne)setVtxInfo({snapPt:tgt,cornerLabel:anchorId,kind:ne.kind});else setVtxInfo(null);
+      const rawDir=vsub(tgt,Opt);
+      if(vlen(rawDir)<1)return;
+      const nd=vdot(vunit(rawDir),lock.rail.dir)>=0?vunit(rawDir):vscl(vunit(rawDir),-1);
+      const newNor=V(nd.y,-nd.x);
+      const h=lock.edge==='top'?RH/2:-RH/2;
+      const newCL=vsub(Opt,vscl(nd,t_O));
+      const newX=newCL.x-newNor.x*h, newY=newCL.y-newNor.y*h;
+      const newLength=Math.max(15,t_O+vdst(tgt,Opt));
+      const newAngle=R2D(Math.atan2(nd.y,nd.x));
+      lock={...lock,rail:{...lock.rail,dir:nd},lockedAngle:newAngle};
+      lockRef.current=lock;setSnap({...lock});
+      set(s=>({...s,x:newX,y:newY,length:newLength,angle:newAngle}));
+      return;
     }
-    function up(){dragRef.current=null;setSnapD(null);setVtxInfo(null);window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}
-    function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}
-    dragRef.current={t:'anchor'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});
+    const initDirE=V(Math.cos(D2R(init.angle)),Math.sin(D2R(init.angle)));
+    const initNorE=V(initDirE.y,-initDirE.x);
+    const cLf=vadd(V(init.x,init.y),vscl(initNorE,RH/2));
+    const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+    if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+    if(vdst(tgt,cLf)<2)return;
+    const ndE=vunit(vsub(tgt,cLf)), newNorE=V(ndE.y,-ndE.x);
+    const omm=ORAIL_PX/zR.current;
+    for(const Oc of oCenters){
+      const Opt=V(Oc.x,Oc.y);
+      if(dRay(Opt,cLf,ndE)<omm&&vdst(Opt,cLf)>2){
+        const rawDir=vunit(vsub(Opt,cLf));
+        const snapDir=vdot(rawDir,ndE)>=0?rawDir:vscl(rawDir,-1);
+        const snapNor=V(snapDir.y,-snapDir.x);
+        const snapAngle=R2D(Math.atan2(snapDir.y,snapDir.x));
+        const snapLen=Math.max(15,vdst(tgt,cLf));
+        const snapX=cLf.x-snapNor.x*RH/2, snapY=cLf.y-snapNor.y*RH/2;
+        lock={rail:{pt:Opt,dir:snapDir,segId:'O-rail'},lockedAngle:snapAngle,edge:'top',isORail:true};
+        lockRef.current=lock;setSnap({...lock});
+        set(s=>({...s,x:snapX,y:snapY,length:snapLen,angle:snapAngle}));
+        return;
+      }
+    }
+    set(s=>({...s,x:vsub(cLf,vscl(newNorE,RH/2)).x,y:vsub(cLf,vscl(newNorE,RH/2)).y,length:Math.max(15,vdst(tgt,cLf)),angle:R2D(Math.atan2(ndE.y,ndE.x))}));return;
   }
+  if(type==='startR'){
+    if(lock?.isORail){
+      const Opt=lock.rail.pt;
+      const g0=rulerG(init);
+      const t_O=tRay(Opt,g0.cL,g0.dir);
+      const t_rest=init.length-t_O;
+      const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+      if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+      const rawDir=vsub(Opt,tgt);
+      if(vlen(rawDir)<1)return;
+      const nd=vdot(vunit(rawDir),lock.rail.dir)>=0?vunit(rawDir):vscl(vunit(rawDir),-1);
+      const newNor=V(nd.y,-nd.x);
+      const h=lock.edge==='top'?RH/2:-RH/2;
+      const distTgtO=vdst(tgt,Opt);
+      const newX=tgt.x-newNor.x*h, newY=tgt.y-newNor.y*h;
+      const newLength=Math.max(15,distTgtO+t_rest);
+      const newAngle=R2D(Math.atan2(nd.y,nd.x));
+      lock={...lock,rail:{...lock.rail,dir:nd},lockedAngle:newAngle};
+      lockRef.current=lock;setSnap({...lock});
+      set(s=>({...s,x:newX,y:newY,length:newLength,angle:newAngle}));
+      return;
+    }
+    const initDirS=V(Math.cos(D2R(init.angle)),Math.sin(D2R(init.angle)));
+    const initNorS=V(initDirS.y,-initDirS.x);
+    const EiS=vadd(V(init.x,init.y),vscl(initDirS,init.length));
+    const cRf=vadd(EiS,vscl(initNorS,RH/2));
+    const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+    if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+    if(vdst(tgt,cRf)<2)return;
+    const ndS=vunit(vsub(cRf,tgt)), newNorS=V(ndS.y,-ndS.x);
+    const omm=ORAIL_PX/zR.current;
+    for(const Oc of oCenters){
+      const Opt=V(Oc.x,Oc.y);
+      if(dRay(Opt,tgt,ndS)<omm&&vdst(Opt,cRf)>2){
+        const rawDir=vunit(vsub(cRf,Opt));
+        const snapDir=vdot(rawDir,ndS)>=0?rawDir:vscl(rawDir,-1);
+        const snapNor=V(snapDir.y,-snapDir.x);
+        const snapAngle=R2D(Math.atan2(snapDir.y,snapDir.x));
+        const snapLen=Math.max(15,vdst(tgt,cRf));
+        const newCL=vsub(tgt,vscl(snapNor,RH/2));
+        lock={rail:{pt:Opt,dir:snapDir,segId:'O-rail'},lockedAngle:snapAngle,edge:'top',isORail:true};
+        lockRef.current=lock;setSnap({...lock});
+        set(s=>({...s,x:newCL.x,y:newCL.y,length:snapLen,angle:snapAngle}));
+        return;
+      }
+    }
+    set(s=>({...s,x:vsub(tgt,vscl(newNorS,RH/2)).x,y:vsub(tgt,vscl(newNorS,RH/2)).y,length:Math.max(15,vdst(tgt,cRf)),angle:R2D(Math.atan2(ndS.y,ndS.x))}));return;
+  }
+  if(type==='vtxO'){const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);set(s=>({...s,x:tgt.x,y:tgt.y}));if(ne)setVtxInfo({snapPt:tgt,cornerLabel:'O',kind:ne.kind});else setVtxInfo(null);return;}
+  if(type==='vtxA'){const O=V(init.x,init.y);const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);set(s=>({...s,size:Math.max(15,vdst(tgt,O)),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))}));if(ne)setVtxInfo({snapPt:tgt,cornerLabel:'A',kind:ne.kind});else setVtxInfo(null);return;}
+  if(type==='vtxB'){const O=V(init.x,init.y);const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);set(s=>({...s,size:Math.max(15,vdst(tgt,O)),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))-90}));if(ne)setVtxInfo({snapPt:tgt,cornerLabel:'B',kind:ne.kind});else setVtxInfo(null);return;}
+  if(type==='cmpR'){const a=R2D(Math.atan2(cur.y-init.cy,cur.x-init.cx));const r=Math.max(4,vdst(cur,V(init.cx,init.cy)));const ne=nearestPt(V(init.cx+r*Math.cos(D2R(a)),init.cy+r*Math.sin(D2R(a))),getPool(false,false),ptMM());if(ne){set(s=>({...s,radius:vdst(V(ne.x,ne.y),V(init.cx,init.cy)),pencilAngle:R2D(Math.atan2(ne.y-init.cy,ne.x-init.cx))}));setSnapD({pt:V(ne.x,ne.y),kind:ne.kind});}else{set(s=>({...s,radius:r,pencilAngle:a}));setSnapD(null);}return;}
+}
+function up(){dragRef.current=null;window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}
+function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}
+dragRef.current={t:'instr'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});
+}
+
+function anchorDrag(e,anchorId){
+if(penMode)return;e.stopPropagation();e.preventDefault();
+const initR={...rulerR.current},iG=rulerG(initR);
+const iAnchor=anchorId==='RULER_START'?iG.cL:iG.cR;
+function mv(me){
+const cur=s2c(me.clientX,me.clientY);
+const snapMM=RAIL_PX/zR.current,ptSnapMM=ANCHOR_PX/zR.current;
+const rails=segsToRails(segsR.current);
+let bestLine=null,bestLineDist=snapMM;
+for(const rail of rails){const d=dRay(cur,rail.pt,rail.dir);if(d<bestLineDist){bestLineDist=d;bestLine=rail;}}
+if(bestLine){
+const onLine=projRay(cur,bestLine.pt,bestLine.dir);
+const lineAngle=R2D(Math.atan2(bestLine.dir.y,bestLine.dir.x));
+const lDir=bestLine.dir,lNor=V(lDir.y,-lDir.x),h=RH/2;
+let newX,newY;
+if(anchorId==='RULER_START'){
+newX=onLine.x-lNor.x*h;newY=onLine.y-lNor.y*h;
+}else{
+const len=rulerR.current.length;
+newX=onLine.x-lDir.x*len-lNor.x*h;newY=onLine.y-lDir.y*len-lNor.y*h;
+}
+setRuler(r=>({...r,x:newX,y:newY,angle:lineAngle}));
+setSnapD({pt:onLine,kind:'edge'});setVtxInfo(null);return;
+}
+const ne=nearestPt(cur,getPool(),ptSnapMM);
+const tgt=ne?V(ne.x,ne.y):cur;
+if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+setRuler(r=>({...r,x:initR.x+(tgt.x-iAnchor.x),y:initR.y+(tgt.y-iAnchor.y)}));
+if(ne)setVtxInfo({snapPt:tgt,cornerLabel:anchorId,kind:ne.kind});else setVtxInfo(null);
+}
+function up(){dragRef.current=null;setSnapD(null);setVtxInfo(null);window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}
+function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}
+dragRef.current={t:'anchor'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});
+}
 
   // Poignée unique rapporteur : rotation + resize simultanés, snap angulaire sur points nommés
   function protHandle(e){
@@ -1099,7 +1168,6 @@ function App(){
               {/* ══ RÈGLE ══════════════════════════════════════ */}
               {showR&&rG&&(()=>{
                 const op=instrOp,z=zoom;
-                const mm=n=>`${n/z}`;
                 const gradId='rulerGrad';
                 const tickInterval=10;
                 const nTicks=Math.floor(ruler.length/tickInterval)+1;
@@ -1107,49 +1175,61 @@ function App(){
                 for(let i=0;i<nTicks;i++){
                   const xmm=i*tickInterval,isMaj=i%5===0,isMed=!isMaj&&i%2===0;
                   const th=isMaj?RH*.45:isMed?RH*.30:RH*.18;
-                  const tx=vadd(rG.O,vscl(rG.dir,xmm)),ty1=vadd(tx,vscl(rG.nor,-RH/2+1/z)),ty2=vadd(tx,vscl(rG.nor,-RH/2+th));
+                  const tx=vadd(rG.cL,vscl(rG.dir,xmm)),ty1=vadd(tx,vscl(rG.nor,-RH/2+1/z)),ty2=vadd(tx,vscl(rG.nor,-RH/2+th));
                   ticks.push(<line key={i} x1={tx.x} y1={ty1.y} x2={ty2.x} y2={ty2.y} stroke="#7c6a54" strokeWidth={(isMaj?1.5:isMed?.9:.5)/z} style={{pointerEvents:'none'}}/>);
-                  if(isMaj){const lp=vadd(tx,vscl(rG.nor,-RH/2+th+5/z));ticks.push(<text key={`t${i}`} x={lp.x} y={lp.y} fontSize={9/z} fill="#8c7860" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${ruler.angle} ${lp.x} ${lp.y})`} style={{pointerEvents:'none',fontFamily:'Arial,sans-serif'}}>{xmm}</text>);}
+                  if(isMaj&&xmm>0){const lp=vadd(tx,vscl(rG.nor,-RH/2+th+5/z));ticks.push(<text key={`t${i}`} x={lp.x} y={lp.y} fontSize={9/z} fill="#8c7860" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${ruler.angle} ${lp.x} ${lp.y})`} style={{pointerEvents:'none',fontFamily:'Arial,sans-serif'}}>{xmm/10}</text>);}
                 }
-                const oRailOn=oRailSnap;
-                const pts=[rG.corners[0],rG.corners[1],rG.corners[2],rG.corners[3]];
-                const polyPts=pts.map(p=>`${p.x},${p.y}`).join(' ');
+                const oRailOn=rSnap?.isORail;
+                const pts=rG.corners.map(p=>`${p.x},${p.y}`).join(' ');
+                const ancL=vtxInfo?.cornerLabel==='RULER_START', ancR=vtxInfo?.cornerLabel==='RULER_END';
                 return<g data-i="1" opacity={op}>
                   <defs>
                     <linearGradient id={gradId} x1={rG.O.x} y1={rG.O.y} x2={rG.O.x+rG.nor.x*RH} y2={rG.O.y+rG.nor.y*RH} gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="rgba(254,243,200,.90)"/>
-                      <stop offset="100%" stopColor="rgba(251,235,168,.90)"/>
+                      <stop offset="0%" stopColor={ancL||ancR?'rgba(254,252,232,.90)':'rgba(254,243,200,.90)'}/>
+                      <stop offset="100%" stopColor={ancL||ancR?'rgba(254,249,195,.90)':'rgba(251,235,168,.90)'}/>
                     </linearGradient>
                   </defs>
-                  <polygon points={polyPts} fill={`url(#${gradId})`} stroke={oRailOn?"#dc2626":"#b45309"} strokeWidth={(oRailOn?2.5:1.5)/z}/>
-                  {/* Halo O-rail */}
+                  <polygon points={pts} fill={`url(#${gradId})`} stroke={ancL||ancR?'#f59e0b':oRailOn?"#dc2626":"#b45309"} strokeWidth={(ancL||ancR?3:oRailOn?2.5:1.5)/z}/>
                   {oRailOn&&ch?.O&&<circle cx={ch.O.x} cy={ch.O.y} r={10/z} fill="none" stroke="#dc2626" strokeWidth={2.5/z} strokeDasharray={`${3/z},${2/z}`} style={{pointerEvents:'none'}}/>}
+                  <line x1={rG.cL.x} y1={rG.cL.y} x2={rG.cR.x} y2={rG.cR.y} stroke={ancL||ancR?'#f59e0b':oRailOn?"#dc2626":"#b45309"} strokeWidth={(ancL||ancR?3:1.5)/z} strokeLinecap="round" style={{pointerEvents:'none'}}/>
                   {ticks}
-                  {/* Corps draggable */}
-                  <polygon points={polyPts} fill="transparent" data-i="1"
-                    onMouseDown={e=>instrDrag(e,'move',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
-                    onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'move',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
-                    style={{cursor:'move'}}/>
-                  {/* Sommet O (bout gauche) — en mode stylo : tracé depuis ce coin */}
-                  <circle cx={rG.O.x} cy={rG.O.y} r={hR} fill={penMode?"#059669":vtxInfo?.cornerLabel==='O'?"#f59e0b":"#b45309"} stroke="white" strokeWidth={Math.max(.5,2/z)}
-                    onMouseDown={penMode?e=>startDrawFromPt(e,rG.O,rG.top):e=>instrDrag(e,'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
-                    onTouchStart={penMode?e=>{e.preventDefault();startDrawFromPt(toME(e),rG.O,rG.top);}:e=>{e.preventDefault();instrDrag(toME(e),'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
-                    style={{cursor:penMode?'crosshair':'nesw-resize'}} data-i="1"/>
-                  <circle cx={rG.O.x} cy={rG.O.y} r={thR} fill="transparent" data-i="1"
-                    onMouseDown={penMode?e=>startDrawFromPt(e,rG.O,rG.top):e=>instrDrag(e,'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
-                    onTouchStart={penMode?e=>{e.preventDefault();startDrawFromPt(toME(e),rG.O,rG.top);}:e=>{e.preventDefault();instrDrag(toME(e),'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
-                    style={{cursor:penMode?'crosshair':'nesw-resize'}}/>
-                  {/* Sommet E (bout droit) — en mode stylo : tracé depuis ce coin */}
-                  <circle cx={rG.E.x} cy={rG.E.y} r={hR} fill={penMode?"#059669":vtxInfo?.cornerLabel==='E'?"#f59e0b":"#b45309"} stroke="white" strokeWidth={Math.max(.5,2/z)}
-                    onMouseDown={penMode?e=>startDrawFromPt(e,rG.E,rG.top):e=>instrDrag(e,'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
-                    onTouchStart={penMode?e=>{e.preventDefault();startDrawFromPt(toME(e),rG.E,rG.top);}:e=>{e.preventDefault();instrDrag(toME(e),'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
-                    style={{cursor:penMode?'crosshair':'nesw-resize'}} data-i="1"/>
-                  <circle cx={rG.E.x} cy={rG.E.y} r={thR} fill="transparent" data-i="1"
-                    onMouseDown={penMode?e=>startDrawFromPt(e,rG.E,rG.top):e=>instrDrag(e,'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
-                    onTouchStart={penMode?e=>{e.preventDefault();startDrawFromPt(toME(e),rG.E,rG.top);}:e=>{e.preventDefault();instrDrag(toME(e),'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
-                    style={{cursor:penMode?'crosshair':'nesw-resize'}}/>
-                  {/* Indicateur O-rail */}
-                  {oRailOn&&<text x={(rG.O.x+rG.E.x)/2} y={(rG.O.y+rG.E.y)/2} fontSize={11/z} fill="#dc2626" fontWeight="800" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${ruler.angle} ${(rG.O.x+rG.E.x)/2} ${(rG.O.y+rG.E.y)/2})`} style={{pointerEvents:'none'}}>⊕ O-rail</text>}
+                  {oRailOn&&<text x={(rG.cL.x+rG.cR.x)/2} y={(rG.cL.y+rG.cR.y)/2} fontSize={7/z} fill="#dc2626" fontWeight="800" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${ruler.angle} ${(rG.cL.x+rG.cR.x)/2} ${(rG.cL.y+rG.cR.y)/2})`} style={{pointerEvents:'none',fontFamily:'monospace'}}>⟵ O-rail ↻ ⟶</text>}
+                  
+                  <polygon points={pts} fill="transparent" data-i="1"
+                    onMouseDown={penMode?undefined:e=>instrDrag(e,'move',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                    onTouchStart={penMode?undefined:e=>{e.preventDefault();instrDrag(toME(e),'move',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                    style={{cursor:penMode?'default':'move'}}/>
+                  
+                  <circle cx={rG.cL.x} cy={rG.cL.y} r={gR_sz} fill={ancL?'rgba(253,230,138,.3)':'transparent'} data-i="1"
+                    onMouseDown={e=>penMode?startDrawFromPt(e,rG.cL,rG.top):anchorDrag(e,'RULER_START')}
+                    onTouchStart={e=>{e.preventDefault();penMode?startDrawFromPt(toME(e),rG.cL,rG.top):anchorDrag(toME(e),'RULER_START');}}
+                    style={{cursor:penMode?'crosshair':'crosshair'}}/>
+                  {ancL&&<text x={rG.cL.x} y={rG.cL.y-gR_sz-5/z} fontSize={7.5/z} fill="#d97706" fontWeight="800" textAnchor="middle" fontFamily="monospace" style={{pointerEvents:'none'}}>⚓ 0mm</text>}
+                  <circle cx={rG.cR.x} cy={rG.cR.y} r={gR_sz} fill={ancR?'rgba(253,230,138,.3)':'transparent'} data-i="1"
+                    onMouseDown={e=>penMode?startDrawFromPt(e,rG.cR,rG.top):anchorDrag(e,'RULER_END')}
+                    onTouchStart={e=>{e.preventDefault();penMode?startDrawFromPt(toME(e),rG.cR,rG.top):anchorDrag(toME(e),'RULER_END');}}
+                    style={{cursor:penMode?'crosshair':'crosshair'}}/>
+                  {ancR&&<text x={rG.cR.x} y={rG.cR.y-gR_sz-5/z} fontSize={7.5/z} fill="#d97706" fontWeight="800" textAnchor="middle" fontFamily="monospace" style={{pointerEvents:'none'}}>⚓ max</text>}
+                  
+                  {!penMode&&<>
+                    <circle cx={rG.cL.x} cy={rG.cL.y} r={hR} fill={ancL?"#f59e0b":oRailOn?"#9a3412":"#b45309"} stroke="white" strokeWidth={Math.max(.5,2/z)} data-i="1"
+                      onMouseDown={e=>instrDrag(e,'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                    <circle cx={rG.cL.x} cy={rG.cL.y} r={thR} fill="transparent" data-i="1"
+                      onMouseDown={e=>instrDrag(e,'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                    
+                    <circle cx={rG.cR.x} cy={rG.cR.y} r={hR} fill={ancR?"#f59e0b":"#d97706"} stroke="white" strokeWidth={Math.max(.5,2/z)} data-i="1"
+                      onMouseDown={e=>instrDrag(e,'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                    <circle cx={rG.cR.x} cy={rG.cR.y} r={thR} fill="transparent" data-i="1"
+                      onMouseDown={e=>instrDrag(e,'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                  </>}
                 </g>;
               })()}
 
