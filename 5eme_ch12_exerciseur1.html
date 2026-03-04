@@ -798,6 +798,7 @@ let dragState=null;
 
 function startRulerDrag(e,type){
   if(tool!=='pan')return;
+  const touchTgt=e.target;
   const origC=s2c(e.clientX,e.clientY),init={...rulerState};
   const snapR=SNAP_R*2/zoom;
   function mv(me){
@@ -842,10 +843,11 @@ function startRulerDrag(e,type){
     }
     render();
   }
-  function up(){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);hideHUD();}
+  function up(){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);hideHUD();}
   function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
   window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
-  window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
 }
 
 // State pour le snap fixé de l'équerre
@@ -859,6 +861,7 @@ function getSqVertices(s){
 
 function startSqDrag(e,type){
   if(tool!=='pan')return;
+  const touchTgt=e.target;
   const origC=s2c(e.clientX,e.clientY),init={...sqState};
   const snapR=SNAP_R*2.5/zoom;
 
@@ -996,15 +999,17 @@ function startSqDrag(e,type){
     }
     sqFixedVtx=found||null;
     window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);
-    window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);
+    touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);
   }
   function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
   window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
-  window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
 }
 
 function startCmpDrag(e,type){
   // Center always draggable (it's the compass pivot), radius handle always draggable
+  const touchTgt=e.target;
   const origC=s2c(e.clientX,e.clientY),init={...cmpState};
   function mv(me){
     const cur=s2c(me.clientX||me.touches?.[0]?.clientX,me.clientY||me.touches?.[0]?.clientY);
@@ -1035,14 +1040,16 @@ function startCmpDrag(e,type){
     }
     render();
   }
-  function up(){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);hideHUD();}
+  function up(){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);hideHUD();}
   function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
   window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
-  window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
 }
 
 function startProtDrag(e,type){
   if(tool!=='pan'&&type==='body')return;
+  const touchTgt=e.target;
   const origC=s2c(e.clientX,e.clientY),init={...protState};
   const pool=buildPool();
   const snapR=SNAP_R*2/zoom;
@@ -1122,7 +1129,7 @@ function startProtDrag(e,type){
     // Mémoriser quel côté est ancré sur un point
     if(type==='body'){
       window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);
-      window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);return;
+      touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);return;
     }
     if(type==='side_L'||type==='side_R'){
       const ends=getEndpts(protState);
@@ -1134,11 +1141,12 @@ function startProtDrag(e,type){
       else if(protFixedEnd?.side===side) protFixedEnd=null;
     }
     window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);
-    window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);
+    touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);
   }
   function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
   window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
-  window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
 }
 
 // ═══ CANVAS EVENTS ═══════════════════════════════════════════
@@ -1160,27 +1168,36 @@ svgEl.addEventListener('touchstart',e=>{
       canvasMid:s2c((t1.clientX+t2.clientX)/2,(t1.clientY+t2.clientY)/2)};
     return;
   }
-  if(e.touches.length===1){e.preventDefault();pinch=null;onDown(e.touches[0]);}
-},{passive:false});
-
-svgEl.addEventListener('touchmove',e=>{
-  if(e.touches.length===2&&pinch){
-    e.preventDefault();
-    const[t1,t2]=[e.touches[0],e.touches[1]];
-    const nd=Math.hypot(t1.clientX-t2.clientX,t1.clientY-t2.clientY);
-    const newZ=Math.max(0.1,Math.min(30,pinch.z0*(nd/pinch.d0)));
-    const mx=(t1.clientX+t2.clientX)/2,my=(t1.clientY+t2.clientY)/2;
-    const r=svgEl.getBoundingClientRect();
-    panX=(mx-r.left-getW()/2)-pinch.canvasMid.x*newZ;
-    panY=(my-r.top-getH()/2)-pinch.canvasMid.y*newZ;
-    setZoom(newZ);return;
+  if(e.touches.length===1){
+    e.preventDefault();pinch=null;
+    const activeTarget=e.touches[0].target;
+    onDown(e.touches[0]);
+    function mvT(te){
+      if(te.touches.length===2&&pinch){
+        te.preventDefault();
+        const[t1,t2]=[te.touches[0],te.touches[1]];
+        const nd=Math.hypot(t1.clientX-t2.clientX,t1.clientY-t2.clientY);
+        const newZ=Math.max(0.1,Math.min(30,pinch.z0*(nd/pinch.d0)));
+        const mx=(t1.clientX+t2.clientX)/2,my=(t1.clientY+t2.clientY)/2;
+        const r=svgEl.getBoundingClientRect();
+        panX=(mx-r.left-getW()/2)-pinch.canvasMid.x*newZ;
+        panY=(my-r.top-getH()/2)-pinch.canvasMid.y*newZ;
+        setZoom(newZ);return;
+      }
+      if(te.touches.length===1&&!pinch){te.preventDefault();onMove(te.touches[0]);}
+    }
+    function upT(te){
+      te.preventDefault();
+      if(te.touches.length<2)pinch=null;
+      if(te.touches.length===0){
+        onUp();
+        activeTarget.removeEventListener('touchmove',mvT);
+        activeTarget.removeEventListener('touchend',upT);
+      }
+    }
+    activeTarget.addEventListener('touchmove',mvT,{passive:false});
+    activeTarget.addEventListener('touchend',upT,{passive:false});
   }
-  if(e.touches.length===1&&!pinch){e.preventDefault();onMove(e.touches[0]);}
-},{passive:false});
-
-svgEl.addEventListener('touchend',e=>{
-  if(e.touches.length<2)pinch=null;
-  if(e.touches.length===0){e.preventDefault();onUp();}
 },{passive:false});
 
 // ═══ EDGE LOCK — projection orthogonale sur un bord d'instrument ═══

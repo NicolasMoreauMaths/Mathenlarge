@@ -52,8 +52,8 @@
   .corr-btn:hover{background:#fdf2c5;transform:translateY(-1px);}
   .corr-btn .chev{display:inline-block;font-size:.6rem;transition:transform .3s ease;}
   .corr-btn.open .chev{transform:rotate(90deg);}
-  .corr-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),opacity .35s ease,padding .35s ease;opacity:0;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:0 1.1rem;}
-  .corr-body.show{max-height:4000px;opacity:1;padding:1.1rem;}
+    .corr-body{display:none;opacity:0;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:1.1rem;transition:opacity .35s ease;}
+  .corr-body.show{display:block;opacity:1;}
 
   /* INLINE FILL-IN TABLES */
   .simp-table{width:100%;border-collapse:collapse;margin:.8rem 0;}
@@ -119,7 +119,7 @@
   @media(max-width:768px){body{font-size:16px;}.container{padding:1.5rem 1rem 3rem;}.header{padding:2.2rem 1.2rem 1.8rem;}.controls-bar{padding:.6rem 1rem;gap:.5rem;}}
   @media(max-width:600px){body{font-size:15px;}.container{padding:1.2rem .8rem 3rem;}.header{padding:2rem 1rem 1.5rem;}.block,.ex-block,.exo-block{padding:1rem 1.1rem;}.membres-grid{grid-template-columns:1fr;}.ex-duo{grid-template-columns:1fr;}.controls-bar{padding:.55rem .7rem;gap:.4rem;}.btn-ctrl{font-size:.75rem;padding:.38rem .8rem;}table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}}
   @media(max-width:380px){body{font-size:14px;}.container{padding:1rem .6rem 2.5rem;}.header{padding:1.5rem .8rem 1.2rem;}.btn-ctrl{font-size:.7rem;padding:.32rem .65rem;}}
-  @media print{.controls-bar{display:none;}.corr-body{max-height:none!important;opacity:1!important;padding:1rem!important;}.corr-btn{display:none;}.dots-filler{display:none!important;}.revealed-ans{display:inline!important;}.red-table .q-plain{display:none!important;}.red-table .q-color{display:table-cell!important;}}
+  @media print{.controls-bar{display:none;}.corr-body{display:block!important;opacity:1!important;padding:1rem!important;}.corr-btn{display:none;}.dots-filler{display:none!important;}.revealed-ans{display:inline!important;}.red-table .q-plain{display:none!important;}.red-table .q-color{display:table-cell!important;}}
 </style>
 </head>
 <body>
@@ -533,43 +533,45 @@ const katexOpts = {
   throwOnError:false
 };
 
-function toggle(btn){
-  const body=btn.nextElementSibling;
-  const open=body.classList.contains('show');
-  body.classList.toggle('show');
-  btn.classList.toggle('open',!open);
-  btn.innerHTML='<span class="chev">▶</span> '+(open?'Voir la correction':'Masquer la correction');
-  if(!open){renderMathInElement(body,katexOpts);}
+function openBody(body){
+  body.style.display = 'block';
+  body.style.opacity = '0';
+  void body.offsetHeight;
+  body.style.opacity = '1';
+}
+function closeBody(body){
+  body.style.opacity = '0';
+  body.addEventListener('transitionend', () => {
+    body.style.display = 'none';
+    body.style.opacity = '';
+    body.classList.remove('show');
+  }, {once:true});
 }
 
-document.querySelectorAll('.inline-btn').forEach(btn=>{
-  btn.addEventListener('click',function(){
-    const id=this.dataset.target;
-    const block=document.getElementById(id);
-    const open=block.classList.contains('show-answers');
-    block.classList.toggle('show-answers');
-    this.classList.toggle('open',!open);
-    this.innerHTML='<span class="chev">▶</span> '+(open?'Voir la correction':'Masquer la correction');
-    if(!open){renderMathInElement(block,katexOpts);}
-  });
-});
+function toggle(btn){
+  const body = btn.nextElementSibling;
+  const open = body.style.display === 'block';
+  if(!open){ renderMathInElement(body, katexOpts); openBody(body); }
+  else { closeBody(body); }
+  btn.classList.toggle('open', !open);
+  btn.innerHTML = '<span class="chev">▶</span> ' + (!open ? 'Masquer la correction' : 'Voir la correction');
+}
 
 function showAll(){
-  document.querySelectorAll('.corr-body').forEach(b=>{b.classList.add('show');renderMathInElement(b,katexOpts);});
-  document.querySelectorAll('.corr-btn:not(.inline-btn)').forEach(b=>{b.classList.add('open');b.innerHTML='<span class="chev">▶</span> Masquer la correction';});
-  ['simp-ex','simp-exo','red-ex','red-exo'].forEach(id=>{
-    const block=document.getElementById(id);
-    if(block){block.classList.add('show-answers');renderMathInElement(block,katexOpts);}
+  document.querySelectorAll('.corr-body').forEach(b => { renderMathInElement(b, katexOpts); openBody(b); });
+  document.querySelectorAll('.corr-btn').forEach(b => {
+    b.classList.add('open');
+    b.innerHTML = '<span class="chev">▶</span> Masquer la correction';
   });
-  document.querySelectorAll('.inline-btn').forEach(b=>{b.classList.add('open');b.innerHTML='<span class="chev">▶</span> Masquer la correction';});
-}
-function hideAll(){
-  document.querySelectorAll('.corr-body').forEach(b=>b.classList.remove('show'));
-  document.querySelectorAll('.corr-btn:not(.inline-btn)').forEach(b=>{b.classList.remove('open');b.innerHTML='<span class="chev">▶</span> Voir la correction';});
-  ['simp-ex','simp-exo','red-ex','red-exo'].forEach(id=>{const block=document.getElementById(id);if(block)block.classList.remove('show-answers');});
-  document.querySelectorAll('.inline-btn').forEach(b=>{b.classList.remove('open');b.innerHTML='<span class="chev">▶</span> Voir la correction';});
 }
 
+function hideAll(){
+  document.querySelectorAll('.corr-body').forEach(b => closeBody(b));
+  document.querySelectorAll('.corr-btn').forEach(b => {
+    b.classList.remove('open');
+    b.innerHTML = '<span class="chev">▶</span> Voir la correction';
+  });
+}
 document.addEventListener('DOMContentLoaded',function(){
   renderMathInElement(document.body,katexOpts);
 });

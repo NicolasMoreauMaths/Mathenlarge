@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exerciseur de Factorisation</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+    <!-- jQuery + MathQuill pour saisie mathématique interactive -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -110,12 +116,17 @@
             font-weight: 400;
         }
 
+        .menu-btn .subtitle .katex {
+            color: white;
+        }
+
         .recall-sheet {
             background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
             border-radius: 15px;
             padding: 30px;
             margin-bottom: 30px;
             border-left: 5px solid var(--primary-color);
+            overflow-x: hidden;
         }
 
         .recall-sheet h2 {
@@ -137,6 +148,7 @@
             margin: 15px 0;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow-x: hidden;
         }
 
         .recall-item h3 {
@@ -151,6 +163,8 @@
             border-radius: 8px;
             margin: 10px 0;
             border-left: 3px solid var(--warning-color);
+            overflow-x: auto;
+            max-width: 100%;
         }
 
         .exercise-area {
@@ -180,40 +194,65 @@
             margin-bottom: 15px;
         }
 
-        .math-input {
+        .math-input-wrapper {
+            margin: 15px 0;
+        }
+
+        /* Conteneur MathQuill */
+        .mq-field {
             width: 100%;
-            padding: 15px 20px;
-            font-size: 1.2em;
+            min-height: 65px;
+            padding: 10px 20px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
-            margin: 15px 0;
-            transition: all 0.3s ease;
-            font-family: 'Courier New', monospace;
-        }
-
-        .math-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .math-display-answer {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            min-height: 60px;
-            border: 2px solid var(--primary-color);
-            font-size: 1.5em;
+            font-size: 1.4em;
             text-align: center;
             color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: text;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
         }
 
-        .input-helper {
-            font-size: 0.9em;
-            color: #718096;
-            margin-top: -10px;
-            margin-bottom: 15px;
+        /* MathQuill override pour centrer et colorier */
+        .mq-field .mq-editable-field {
+            border: none !important;
+            box-shadow: none !important;
+            min-width: 80px;
+            color: var(--primary-color);
+            font-size: 1em;
+        }
+
+        .mq-field .mq-editable-field.mq-focused {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .mq-field:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .mq-field .mq-cursor {
+            border-color: var(--primary-color) !important;
+        }
+
+        .mq-placeholder {
+            color: #cbd5e0;
+            font-size: 0.7em;
+            font-family: 'Segoe UI', sans-serif;
+            pointer-events: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .mq-field {
+            position: relative;
         }
 
         .btn {
@@ -412,7 +451,7 @@
                         <div class="example-box">
                             <p><strong>Exemple :</strong></p>
                             <p>$$5x + 15 = 5(x + 3)$$</p>
-                            <p style="margin-top: 10px;">On passe de <strong>5x + 15</strong> (somme) à <strong>5(x+3)</strong> (produit)</p>
+                            <p style="margin-top: 10px;">On passe de $5x + 15$ (somme) à $5(x+3)$ (produit)</p>
                         </div>
                     </div>
 
@@ -424,7 +463,7 @@
                         <div class="example-box">
                             <p><strong>Exemple détaillé :</strong></p>
                             <p>$$6x + 9$$</p>
-                            <p>→ Facteur commun : <strong>3</strong> (car 6 = 3×2 et 9 = 3×3)</p>
+                            <p>→ Facteur commun : <strong>3</strong> (car $6 = 3 \times 2$ et $9 = 3 \times 3$)</p>
                             <p>→ Factorisation : $$3(2x + 3)$$</p>
                         </div>
                     </div>
@@ -451,15 +490,15 @@
                     </button>
                     <button class="menu-btn" onclick="startLevel(2)">
                         <span class="number">2</span> Factoriser avec des nombres
-                        <span class="subtitle">Ex: 5x + 15 = 5(x + 3)</span>
+                        <span class="subtitle">Ex : $5x + 15 = 5(x + 3)$</span>
                     </button>
                     <button class="menu-btn" onclick="startLevel(3)">
                         <span class="number">3</span> Factoriser avec la lettre x
-                        <span class="subtitle">Ex: x² + 5x = x(x + 5)</span>
+                        <span class="subtitle">Ex : $x^2 + 5x = x(x + 5)$</span>
                     </button>
                     <button class="menu-btn" onclick="startLevel(4)">
                         <span class="number">4</span> Le mélange (nombres et lettres)
-                        <span class="subtitle">Ex: 6x² + 4x = 2x(3x + 2)</span>
+                        <span class="subtitle">Ex : $6x^2 + 4x = 2x(3x + 2)$</span>
                     </button>
                 </div>
             </div>
@@ -668,23 +707,23 @@
                     </div>
                 `;
             } else {
-                // Niveaux 2, 3, 4 : Saisie libre
+                // Niveaux 2, 3, 4 : Saisie libre avec KaTeX live
                 content.innerHTML = `
                     <div class="instruction-box">
                         <h3>✍️ Factorise l'expression suivante</h3>
                         <p>Écris ta réponse sous la forme : <span class="key-indicator">a(b+c)</span> ou <span class="key-indicator">ax(bx+c)</span></p>
-                        <p style="margin-top: 8px; font-size: 0.9em;">💡 Utilise <strong>x^2</strong> pour x² ou écris simplement <strong>xx</strong></p>
+                        <p style="margin-top: 8px; font-size: 0.9em;">💡 Utilise <strong>x^2</strong> pour x²</p>
                     </div>
                     <div class="exercise-card">
                         <span class="exercise-number">Exercice ${currentExercise + 1}/${exercises.length}</span>
                         <div style="font-size: 1.8em; text-align: center; margin: 30px 0; color: var(--primary-color);">
-                            $$${exercise.expression} = $$
+                            <span id="exprDisplay"></span>
                         </div>
-                        <input type="text" id="answerInput" class="math-input" placeholder="Entre ta réponse ici..." 
-                               oninput="updateMathDisplay()"
-                               onkeypress="if(event.key==='Enter') checkAnswer()">
-                        <div class="input-helper">Ta réponse s'affichera en format mathématique ci-dessous :</div>
-                        <div id="mathDisplay" class="math-display-answer"><span style="color: #cbd5e0;">Tape ta réponse...</span></div>
+                        <div class="math-input-wrapper">
+                            <div class="mq-field" id="mqFieldWrapper">
+                                <span id="mqAnswer"></span>
+                            </div>
+                        </div>
                         <div style="text-align: center; margin: 20px 0;">
                             <button class="btn btn-primary" onclick="checkAnswer()">✓ Vérifier</button>
                             <button class="hint-btn" onclick="showHint()">💡 Indice</button>
@@ -695,39 +734,79 @@
                         <div id="feedback" class="feedback"></div>
                     </div>
                 `;
-                document.getElementById('answerInput').focus();
+                // Render the expression with KaTeX
+                katex.render(exercise.expression + ' =', document.getElementById('exprDisplay'), {throwOnError: false, displayMode: true});
+                // Init MathQuill
+                initMathQuillField();
             }
             
-            // Recharger MathJax pour afficher les formules
-            if (window.MathJax) {
-                MathJax.typesetPromise();
+            // Render math in exercise content with KaTeX
+            if (window.renderMathInElement) {
+                renderMathInElement(document.getElementById('exerciseContent'), {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
             }
         }
 
-        function updateMathDisplay() {
-            const input = document.getElementById('answerInput');
-            const display = document.getElementById('mathDisplay');
-            
-            if (!input || !display) return;
-            
-            let value = input.value.trim();
-            
-            if (value === '') {
-                display.innerHTML = '<span style="color: #cbd5e0;">Tape ta réponse...</span>';
+        let mqField = null; // MathQuill instance
+
+        function initMathQuillField() {
+            if (typeof MathQuill === 'undefined') {
+                // MathQuill not loaded yet, retry
+                setTimeout(initMathQuillField, 100);
                 return;
             }
-            
-            // Convertir en format LaTeX pour MathJax
-            let latex = value
-                .replace(/\*/g, '')
-                .replace(/xx/g, 'x^2');
-            
-            display.innerHTML = `$$${latex}$$`;
-            
-            if (window.MathJax) {
-                MathJax.typesetPromise([display]).catch((err) => console.log(err));
+            const MQ = MathQuill.getInterface(2);
+            const span = document.getElementById('mqAnswer');
+            if (!span) return;
+
+            mqField = MQ.MathField(span, {
+                spaceBehavesLikeTab: false,
+                handlers: {
+                    enter: function() { checkAnswer(); }
+                }
+            });
+
+            // Show placeholder when empty
+            updatePlaceholder();
+            span.addEventListener('input', updatePlaceholder);
+
+            // Focus the field
+            setTimeout(() => mqField.focus(), 100);
+        }
+
+        function updatePlaceholder() {
+            const wrapper = document.getElementById('mqFieldWrapper');
+            if (!wrapper || !mqField) return;
+            const latex = mqField.latex();
+            let ph = wrapper.querySelector('.mq-placeholder');
+            if (latex === '') {
+                if (!ph) {
+                    ph = document.createElement('span');
+                    ph.className = 'mq-placeholder';
+                    ph.textContent = 'Ex : 5(x+3)';
+                    wrapper.appendChild(ph);
+                }
+            } else {
+                if (ph) ph.remove();
             }
         }
+
+        function getMQLatex() {
+            if (!mqField) return '';
+            // Convert MathQuill latex to something checkable
+            return mqField.latex()
+                .replace(/\\cdot/g, '*')
+                .replace(/\s+/g, '');
+        }
+
+        function updateLiveKatex() { /* no-op, MathQuill handles rendering */ }
+        function updateMathDisplay() { /* no-op */ }
+        function switchToKatex() { /* no-op */ }
+        function switchToInput() { /* no-op */ }
 
         // Fonction pour développer une expression factorisée
         function expandExpression(expr) {
@@ -920,8 +999,16 @@
         }
 
         function checkAnswer() {
-            const input = document.getElementById('answerInput');
-            const userAnswer = input.value.trim();
+            // Lire la réponse depuis MathQuill
+            const rawLatex = mqField ? mqField.latex() : '';
+            // Convertir le latex MathQuill en expression lisible
+            let userAnswer = rawLatex
+                .replace(/\\left\(/g, '(')
+                .replace(/\\right\)/g, ')')
+                .replace(/\\cdot /g, '*')
+                .replace(/\^{([^}]+)}/g, '^$1')
+                .replace(/\s+/g, '');
+
             const exercise = exercises[currentExercise];
             const feedback = document.getElementById('feedback');
             
@@ -954,39 +1041,42 @@
                 score++;
                 updateScore();
                 
-                // Afficher la réponse de l'utilisateur en format mathématique
                 let userLatex = userAnswer.replace(/\*/g, '').replace(/xx/g, 'x^2');
                 
-                // Vérifier si c'est la forme la plus simple
                 const userNormalized = userAnswer.toLowerCase().replace(/\s+/g, '').replace(/\*/g, '');
                 const bestNormalized = exercise.answer.toLowerCase().replace(/\s+/g, '').replace(/\*/g, '');
                 const isBestForm = userNormalized === bestNormalized;
                 
                 feedback.className = 'feedback success';
                 feedback.style.display = 'block';
-                feedback.innerHTML = `
-                    ✓ Bravo ! Ta factorisation est correcte : $$${userLatex}$$
-                    ${!isBestForm ? 
-                      '<p style="margin-top: 10px; font-size: 0.9em;">💡 Note : La forme la plus factorisée serait $$' + exercise.answer + '$$</p>' : ''}
+                
+                let userRendered = document.createElement('span');
+                try { katex.render(userLatex, userRendered, {throwOnError:false}); } catch(e) { userRendered.textContent = userLatex; }
+                
+                let noteHTML = '';
+                if (!isBestForm) {
+                    let bestRendered = document.createElement('span');
+                    try { katex.render(exercise.answer, bestRendered, {throwOnError:false}); } catch(e) { bestRendered.textContent = exercise.answer; }
+                    noteHTML = `<p style="margin-top: 10px; font-size: 0.9em;">💡 Note : La forme la plus factorisée serait ${bestRendered.outerHTML}</p>`;
+                }
+                
+                feedback.innerHTML = `✓ Bravo ! Ta factorisation est correcte : ${userRendered.outerHTML}${noteHTML}
                     <div style="margin-top: 15px;">
                         <button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button>
-                    </div>
-                `;
-                input.disabled = true;
+                    </div>`;
+                if (mqField) mqField.blur();
             } else {
                 feedback.className = 'feedback error';
                 feedback.style.display = 'block';
-                feedback.innerHTML = `
-                    ✗ Ce n'est pas correct. Vérifie ta factorisation en la développant.
-                    <p style="margin-top: 10px;">💡 La bonne réponse est : $$${exercise.answer}$$</p>
+                
+                let ansRendered = document.createElement('span');
+                try { katex.render(exercise.answer, ansRendered, {throwOnError:false}); } catch(e) { ansRendered.textContent = exercise.answer; }
+                
+                feedback.innerHTML = `✗ Ce n'est pas correct. Vérifie ta factorisation en la développant.
+                    <p style="margin-top: 10px;">💡 La bonne réponse est : ${ansRendered.outerHTML}</p>
                     <div style="margin-top: 15px;">
                         <button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button>
-                    </div>
-                `;
-            }
-            
-            if (window.MathJax) {
-                MathJax.typesetPromise();
+                    </div>`;
             }
         }
 
@@ -1059,16 +1149,19 @@
             score = 0;
         }
 
-        // Configuration MathJax
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            },
-            svg: {
-                fontCache: 'global'
-            }
-        };
+        // Render static math in the page after KaTeX loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (window.renderMathInElement) {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                }
+            }, 200);
+        });
     </script>
 <a href="index.html" class="btn-retour-flottant">
     <span>🏠</span> Menu

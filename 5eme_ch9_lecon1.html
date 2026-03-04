@@ -71,8 +71,8 @@
   .corr-btn:hover{background:#fdf2c5;transform:translateY(-1px);}
   .corr-btn .chev{display:inline-block;font-size:.6rem;transition:transform .3s ease;}
   .corr-btn.open .chev{transform:rotate(90deg);}
-  .corr-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),opacity .35s ease,padding .35s ease;opacity:0;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:0 1.1rem;}
-  .corr-body.show{max-height:4000px;opacity:1;padding:1.1rem;}
+  .corr-body{display:none;opacity:0;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:1.1rem;transition:opacity .35s ease;}
+  .corr-body.show{display:block;opacity:1;}
 
   /* NOMBRES EN COULEUR */
   .pos{color:var(--pos);font-weight:700;}
@@ -402,17 +402,32 @@ const katexOpts = {
   throwOnError:false
 };
 
+function openBody(body){
+  body.style.display = 'block';
+  body.style.opacity = '0';
+  void body.offsetHeight; // force reflow
+  body.style.opacity = '1';
+}
+function closeBody(body){
+  body.style.opacity = '0';
+  body.addEventListener('transitionend', () => {
+    body.style.display = 'none';
+    body.style.opacity = '';
+    body.classList.remove('show');
+  }, {once:true});
+}
+
 function toggle(btn){
   const body = btn.nextElementSibling;
-  const open = body.classList.contains('show');
-  body.classList.toggle('show');
-  btn.classList.toggle('open');
-  btn.innerHTML = '<span class="chev">▶</span> ' + (open ? 'Voir la correction' : 'Masquer la correction');
-  if(!open){ renderMathInElement(body, katexOpts); }
+  const open = body.style.display === 'block';
+  if(!open){ renderMathInElement(body, katexOpts); openBody(body); }
+  else { closeBody(body); }
+  btn.classList.toggle('open', !open);
+  btn.innerHTML = '<span class="chev">▶</span> ' + (!open ? 'Masquer la correction' : 'Voir la correction');
 }
 
 function showAll(){
-  document.querySelectorAll('.corr-body').forEach(b => { b.classList.add('show'); renderMathInElement(b, katexOpts); });
+  document.querySelectorAll('.corr-body').forEach(b => { renderMathInElement(b, katexOpts); openBody(b); });
   document.querySelectorAll('.corr-btn').forEach(b => {
     b.classList.add('open');
     b.innerHTML = '<span class="chev">▶</span> Masquer la correction';
@@ -420,7 +435,7 @@ function showAll(){
 }
 
 function hideAll(){
-  document.querySelectorAll('.corr-body').forEach(b => b.classList.remove('show'));
+  document.querySelectorAll('.corr-body').forEach(b => closeBody(b));
   document.querySelectorAll('.corr-btn').forEach(b => {
     b.classList.remove('open');
     b.innerHTML = '<span class="chev">▶</span> Voir la correction';
