@@ -34,6 +34,7 @@
             gap: 14px;
             padding: 0 16px;
             z-index: 10;
+            overflow: visible;
         }
 
         .header-logo {
@@ -62,6 +63,7 @@
         #chap-selector {
             flex: 1; min-width: 0;
             position: relative;
+            overflow: visible;
         }
         #chap-input {
             width: 100%; box-sizing: border-box;
@@ -75,49 +77,55 @@
         }
         #chap-input::placeholder { color: rgba(255,255,255,0.3); font-weight: 600; }
         #chap-dropdown {
-            position: fixed;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px;
             background: linear-gradient(160deg, #1e1e30, #16162a);
             border: 1px solid rgba(124,92,191,0.25);
             border-radius: 14px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.55);
-            z-index: 9999;
             max-height: 340px;
             overflow-y: auto;
-            display: none;
-            flex-direction: column;
-            padding: 8px;
-            gap: 2px;
+            overflow-x: hidden;
+            z-index: 9999;
         }
+        #chap-dropdown.open { display: flex; }
         #chap-dropdown::-webkit-scrollbar { width: 4px; }
         #chap-dropdown::-webkit-scrollbar-thumb { background: rgba(124,92,191,0.3); border-radius: 10px; }
-        #chap-dropdown.open { display: flex; }
         .chap-opt-group {
             padding: 8px 8px 2px;
             font-size: 0.65rem; font-weight: 900; text-transform: uppercase;
             letter-spacing: 2px; color: rgba(255,255,255,0.22);
+            flex-shrink: 0;
         }
         .chap-opt {
             padding: 8px 12px;
             border-radius: 9px;
             font-family: 'Nunito', sans-serif;
             font-size: 0.84rem; font-weight: 700;
+            line-height: 1.4;
             color: rgba(255,255,255,0.65);
             cursor: pointer;
-            transition: all 0.12s;
+            transition: background 0.12s, color 0.12s, padding-left 0.12s;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            flex-shrink: 0;
         }
         .chap-opt:hover, .chap-opt.focused {
             background: rgba(124,92,191,0.2);
             color: white;
             padding-left: 16px;
         }
-        .chap-opt.selected {
-            color: #c4a8f5; font-weight: 800;
-        }
+        .chap-opt.selected { color: #c4a8f5; font-weight: 800; }
         .chap-opt.hidden { display: none; }
         .chap-opt-no-result {
             padding: 12px; text-align: center;
             color: rgba(255,255,255,0.25); font-size: 0.82rem; font-style: italic;
+            flex-shrink: 0;
         }
 
         /* XP mini */
@@ -383,16 +391,6 @@
             color: rgba(255,255,255,0.25); font-size: 0.85rem; font-style: italic;
         }
 
-        /* ─── IFRAME SHIELD (bloque la transparence des iframes sous le dropdown) ─── */
-        .iframe-shield {
-            display: none;
-            position: absolute;
-            inset: 0;
-            z-index: 10;
-            background: transparent;
-        }
-        .iframe-shield.active { display: block; }
-
         /* ─── RESIZER ─── */
         #resizer {
             flex-shrink: 0;
@@ -448,6 +446,7 @@
         <span class="chap-label">Chapitre :</span>
         <div id="chap-selector">
             <input type="text" id="chap-input" placeholder="Rechercher un chapitre…" autocomplete="off" spellcheck="false">
+            <div id="chap-dropdown"></div>
         </div>
     </div>
     <div id="header-xp" title="XP total accumulé">⚡ <span id="header-xp-val">0</span> XP</div>
@@ -471,7 +470,6 @@
                 <span class="add-icon">+</span> Charger la leçon
             </button>
         </div>
-        <div class="iframe-shield" id="shield-gauche"></div>
         <iframe class="zone-iframe" id="iframe-gauche" src="about:blank" style="display:none"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             title="Leçon"></iframe>
@@ -494,7 +492,6 @@
                 <span class="add-icon">+</span> Choisir un exercice
             </button>
         </div>
-        <div class="iframe-shield" id="shield-droite"></div>
         <iframe class="zone-iframe" id="iframe-droite" src="about:blank" style="display:none"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             title="Exercice"></iframe>
@@ -518,8 +515,8 @@
     </div>
 </div>
 
-<!-- DROPDOWN CHAPITRE — hors de tout contexte de stacking -->
-<div id="chap-dropdown"></div>
+<!-- DROPDOWN CHAPITRE — dialog natif (top layer, au-dessus des iframes) -->
+
 
 <!-- TOAST XP -->
 <div id="xp-toast">
@@ -602,25 +599,13 @@ document.addEventListener('DOMContentLoaded', () => {
         closeDropdown();
     }
 
-    function positionDropdown() {
-        const rect = chapInput.getBoundingClientRect();
-        chapDropdown.style.top    = (rect.bottom + 6) + 'px';
-        chapDropdown.style.left   = rect.left + 'px';
-        chapDropdown.style.width  = Math.max(rect.width, 260) + 'px';
-    }
-
     function openDropdown() {
         filterOpts('');
-        positionDropdown();
         chapDropdown.classList.add('open');
-        document.getElementById('shield-gauche').classList.add('active');
-        document.getElementById('shield-droite').classList.add('active');
     }
 
     function closeDropdown() {
         chapDropdown.classList.remove('open');
-        document.getElementById('shield-gauche').classList.remove('active');
-        document.getElementById('shield-droite').classList.remove('active');
         // Remettre le vrai nom si l'input a été modifié sans sélection
         const name = chapKey.includes(':') ? chapKey.split(':').slice(1).join(':') : chapKey;
         chapInput.value = name;
@@ -647,8 +632,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chapInput.addEventListener('focus', () => openDropdown());
     chapInput.addEventListener('input', () => filterOpts(chapInput.value));
-    chapInput.addEventListener('blur',  () => setTimeout(closeDropdown, 150));
-    window.addEventListener('resize',  () => { if (chapDropdown.classList.contains('open')) positionDropdown(); });
+
+    // Fermer uniquement si le clic est en dehors du dropdown ET de l'input
+    document.addEventListener('mousedown', (e) => {
+        if (chapDropdown.classList.contains('open') &&
+            !chapDropdown.contains(e.target) &&
+            e.target !== chapInput) {
+            closeDropdown();
+        }
+    });
+
 
     // Init : afficher le nom du chapitre courant
     updateChapKey(chapKey || (allChapOpts[0]?.key || ''));
