@@ -195,18 +195,29 @@
         }
         .btn-add .add-icon { font-size: 1.2rem; }
 
-        /* ─── PICKER EXERCICE (dropdown/panel) ─── */
-        #exo-picker {
-            position: absolute; inset: 40px 0 0 0;
-            background: #1a1a28;
-            z-index: 50;
+        /* ─── PICKER UNIVERSEL (modal centré) ─── */
+        #bureau-picker-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 200;
             display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #bureau-picker-overlay.open { display: flex; }
+        #bureau-picker {
+            background: #1a1a28;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            width: min(480px, 92vw);
+            max-height: 75vh;
+            display: flex;
             flex-direction: column;
             padding: 20px;
             gap: 12px;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
-        #exo-picker.open { display: flex; }
         .picker-header {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 4px;
@@ -351,16 +362,19 @@
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             title="Exercice"></iframe>
 
-        <!-- PICKER exercice (panel dans la zone droite) -->
-        <div id="exo-picker">
-            <div class="picker-header">
-                <span class="picker-title">Choisir un exercice</span>
-                <button class="picker-close" id="picker-close">✕ Fermer</button>
-            </div>
-            <div id="picker-list"></div>
-        </div>
     </div>
 
+</div>
+
+<!-- PICKER UNIVERSEL (overlay centré) -->
+<div id="bureau-picker-overlay">
+    <div id="bureau-picker">
+        <div class="picker-header">
+            <span class="picker-title" id="picker-title">Choisir un fichier</span>
+            <button class="picker-close" id="picker-close">✕ Fermer</button>
+        </div>
+        <div id="picker-list"></div>
+    </div>
 </div>
 
 <!-- TOAST XP -->
@@ -551,12 +565,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }`;
                 (doc.head || doc.documentElement).appendChild(style);
 
-                // Intercepter les clics sur les liens vers index.html :
-                // les ouvrir dans la fenêtre parente (top) plutôt que dans l'iframe
+                // Intercepter les clics sur le bouton Menu :
+                // ouvre le picker du bureau dans la zone correspondante
+                // (gauche si l'iframe est à gauche, droite sinon)
                 doc.querySelectorAll(selectors.join(', ')).forEach(function(el) {
                     el.addEventListener('click', function(e) {
                         e.preventDefault();
-                        window.top.location.href = el.href || 'index.html';
+                        try {
+                            // Déterminer dans quelle zone se trouve cette iframe
+                            const iframeEl = iframe; // closure sur l'iframe courante
+                            const side = iframeEl.id === 'iframe-gauche' ? 'gauche' : 'droite';
+                            if (typeof window.parent.ouvrirPickerBureau === 'function') {
+                                window.parent.ouvrirPickerBureau(side);
+                            }
+                        } catch(err) {}
                     });
                 });
 
@@ -605,74 +627,85 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ════════════════════════════════════════════════════
-    //   BOUTON + GAUCHE → charger la leçon du chapitre
+    //   PICKER UNIVERSEL — ouvre un sélecteur pour gauche ou droite
     // ════════════════════════════════════════════════════
-    document.getElementById('btn-add-gauche').addEventListener('click', () => {
-        const lecons = chapData.lecon || [];
-        if (!lecons.length) {
-            showXPToast(0, 'Aucune leçon disponible pour ce chapitre.');
-            return;
-        }
-        // Charger la première leçon disponible (ou la seule)
-        const item = lecons[0];
-        loadInZone('gauche', item.url, item.n, 'lecon');
-    });
+    const pickerOverlay = document.getElementById('bureau-picker-overlay');
+    const pickerList    = document.getElementById('picker-list');
+    const pickerTitle   = document.getElementById('picker-title');
+    let   pickerTargetSide = 'droite'; // zone cible courante
 
-    // ════════════════════════════════════════════════════
-    //   BOUTON + DROITE → ouvrir le picker d'exercices
-    // ════════════════════════════════════════════════════
-    const picker     = document.getElementById('exo-picker');
-    const pickerList = document.getElementById('picker-list');
-
-    function buildPickerList() {
+    function ouvrirPicker(side) {
+        pickerTargetSide = side;
         pickerList.innerHTML = '';
         const visited = getVisited(chapKey);
 
-        const sections = [
-            { cat: 'exercices',   label: '📝 Exercices',   icon: '📝' },
-            { cat: 'exerciseurs', label: '⚙️ Exerciseurs', icon: '⚙️' },
-        ];
-
-        let hasAny = false;
-
-        sections.forEach(({ cat, label, icon }) => {
-            const items = chapData[cat] || [];
-            if (!items.length) return;
-            hasAny = true;
-
-            const titleEl = document.createElement('div');
-            titleEl.className = 'picker-group-title';
-            titleEl.textContent = label;
-            pickerList.appendChild(titleEl);
-
-            const seen = (visited[cat] || []).map(normalizeUrl);
-
-            items.forEach(item => {
-                const isVis = seen.includes(normalizeUrl(item.url));
-                const el = document.createElement('div');
-                el.className = 'picker-item' + (isVis ? ' visited' : '');
-                el.innerHTML = `<span class="picker-item-icon">${icon}</span><span>${item.n}</span>`;
-                el.addEventListener('click', () => {
-                    loadInZone('droite', item.url, item.n, cat);
-                    picker.classList.remove('open');
+        if (side === 'gauche') {
+            // Picker gauche : leçons uniquement
+            pickerTitle.textContent = '📖 Choisir une leçon';
+            const items = chapData.lecon || [];
+            if (!items.length) {
+                pickerList.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:.85rem;padding:10px 0;">Aucune leçon disponible.</p>';
+            } else {
+                const seen = (visited['lecon'] || []).map(normalizeUrl);
+                items.forEach(item => {
+                    const isVis = seen.includes(normalizeUrl(item.url));
+                    const el = document.createElement('div');
+                    el.className = 'picker-item' + (isVis ? ' visited' : '');
+                    el.innerHTML = `<span class="picker-item-icon">📖</span><span>${item.n}</span>`;
+                    el.addEventListener('click', () => {
+                        loadInZone('gauche', item.url, item.n, 'lecon');
+                        pickerOverlay.classList.remove('open');
+                    });
+                    pickerList.appendChild(el);
                 });
-                pickerList.appendChild(el);
+            }
+        } else {
+            // Picker droite : exercices + exerciseurs
+            pickerTitle.textContent = '📝 Choisir un exercice';
+            const sections = [
+                { cat: 'exercices',   label: '📝 Exercices',   icon: '📝' },
+                { cat: 'exerciseurs', label: '⚙️ Exerciseurs', icon: '⚙️' },
+            ];
+            let hasAny = false;
+            sections.forEach(({ cat, label, icon }) => {
+                const items = chapData[cat] || [];
+                if (!items.length) return;
+                hasAny = true;
+                const titleEl = document.createElement('div');
+                titleEl.className = 'picker-group-title';
+                titleEl.textContent = label;
+                pickerList.appendChild(titleEl);
+                const seen = (visited[cat] || []).map(normalizeUrl);
+                items.forEach(item => {
+                    const isVis = seen.includes(normalizeUrl(item.url));
+                    const el = document.createElement('div');
+                    el.className = 'picker-item' + (isVis ? ' visited' : '');
+                    el.innerHTML = `<span class="picker-item-icon">${icon}</span><span>${item.n}</span>`;
+                    el.addEventListener('click', () => {
+                        loadInZone('droite', item.url, item.n, cat);
+                        pickerOverlay.classList.remove('open');
+                    });
+                    pickerList.appendChild(el);
+                });
             });
-        });
-
-        if (!hasAny) {
-            pickerList.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:.85rem;padding:10px 0;">Aucun exercice disponible pour ce chapitre.</p>';
+            if (!hasAny) {
+                pickerList.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:.85rem;padding:10px 0;">Aucun exercice disponible.</p>';
+            }
         }
+
+        pickerOverlay.classList.add('open');
     }
 
-    document.getElementById('btn-add-droite').addEventListener('click', () => {
-        buildPickerList();
-        picker.classList.add('open');
-    });
+    // Exposé globalement pour que les iframes puissent l'appeler via window.parent
+    window.ouvrirPickerBureau = ouvrirPicker;
 
-    document.getElementById('picker-close').addEventListener('click', () => {
-        picker.classList.remove('open');
-    });
+    // Boutons + des zones vides
+    document.getElementById('btn-add-gauche').addEventListener('click', () => ouvrirPicker('gauche'));
+    document.getElementById('btn-add-droite').addEventListener('click', () => ouvrirPicker('droite'));
+
+    // Fermeture picker
+    document.getElementById('picker-close').addEventListener('click', () => pickerOverlay.classList.remove('open'));
+    pickerOverlay.addEventListener('click', (e) => { if (e.target === pickerOverlay) pickerOverlay.classList.remove('open'); });
 
     // ════════════════════════════════════════════════════
     //   RESIZER — redimensionnement horizontal
