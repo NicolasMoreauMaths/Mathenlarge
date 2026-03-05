@@ -57,28 +57,67 @@
             min-width: 0;
         }
         #header-chap .chap-label { color: rgba(255,255,255,0.35); font-weight: 600; font-size: 0.78rem; flex-shrink: 0; }
-        #chap-select {
-            flex: 1;
+
+        /* ── Sélecteur de chapitre custom ── */
+        #chap-selector {
+            flex: 1; min-width: 0;
+            position: relative;
+        }
+        #chap-input {
+            width: 100%; box-sizing: border-box;
             background: transparent;
-            border: none;
-            outline: none;
+            border: none; outline: none;
             color: #e8e6f0;
             font-family: 'Nunito', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 800;
+            font-size: 0.88rem; font-weight: 800;
             cursor: pointer;
-            min-width: 0;
+            caret-color: #a07dd6;
         }
-        #chap-select option {
-            background: #1c1c28;
-            color: #e8e6f0;
-            font-weight: 600;
+        #chap-input::placeholder { color: rgba(255,255,255,0.3); font-weight: 600; }
+        #chap-dropdown {
+            position: fixed;
+            background: linear-gradient(160deg, #1e1e30, #16162a);
+            border: 1px solid rgba(124,92,191,0.25);
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+            z-index: 500;
+            max-height: 340px;
+            overflow-y: auto;
+            display: none;
+            flex-direction: column;
+            padding: 8px;
+            gap: 2px;
         }
-        #chap-select optgroup {
-            background: #12121a;
-            color: rgba(255,255,255,0.4);
-            font-weight: 700;
-            font-size: 0.75rem;
+        #chap-dropdown::-webkit-scrollbar { width: 4px; }
+        #chap-dropdown::-webkit-scrollbar-thumb { background: rgba(124,92,191,0.3); border-radius: 10px; }
+        #chap-dropdown.open { display: flex; }
+        .chap-opt-group {
+            padding: 8px 8px 2px;
+            font-size: 0.65rem; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 2px; color: rgba(255,255,255,0.22);
+        }
+        .chap-opt {
+            padding: 8px 12px;
+            border-radius: 9px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.84rem; font-weight: 700;
+            color: rgba(255,255,255,0.65);
+            cursor: pointer;
+            transition: all 0.12s;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .chap-opt:hover, .chap-opt.focused {
+            background: rgba(124,92,191,0.2);
+            color: white;
+            padding-left: 16px;
+        }
+        .chap-opt.selected {
+            color: #c4a8f5; font-weight: 800;
+        }
+        .chap-opt.hidden { display: none; }
+        .chap-opt-no-result {
+            padding: 12px; text-align: center;
+            color: rgba(255,255,255,0.25); font-size: 0.82rem; font-style: italic;
         }
 
         /* XP mini */
@@ -397,7 +436,10 @@
     <div class="header-logo">✦ Mathenlarge <span>/ Bureau</span></div>
     <div id="header-chap">
         <span class="chap-label">Chapitre :</span>
-        <select id="chap-select" title="Changer de chapitre"></select>
+        <div id="chap-selector">
+            <input type="text" id="chap-input" placeholder="Rechercher un chapitre…" autocomplete="off" spellcheck="false">
+            <div id="chap-dropdown"></div>
+        </div>
     </div>
     <div id="header-xp" title="XP total accumulé">⚡ <span id="header-xp-val">0</span> XP</div>
     <button class="btn-quit" id="btn-quit" title="Retourner à l'index">← Quitter</button>
@@ -496,40 +538,104 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileUrl   = params.get('file') || '';   // ex: '4eme_ch3_lecon1.html'
     let   chapData  = {};  // sera initialisé par updateChapKey()
 
-    // ── Construction du <select> avec tous les chapitres groupés par niveau ──
-    const chapSelect = document.getElementById('chap-select');
-    const nivOrder   = ['6eme', '5eme', '4eme', '3eme'];
-    const nivLabels  = { '6eme': '6ème', '5eme': '5ème', '4eme': '4ème', '3eme': '3ème' };
+    // ── Sélecteur de chapitre custom avec recherche ──
+    const chapInput    = document.getElementById('chap-input');
+    const chapDropdown = document.getElementById('chap-dropdown');
+    const nivOrder     = ['6eme', '5eme', '4eme', '3eme'];
+    const nivLabels    = { '6eme': '6ème', '5eme': '5ème', '4eme': '4ème', '3eme': '3ème' };
 
+    // Construire la liste de toutes les options
+    const allChapOpts = []; // { key, label, niv }
     nivOrder.forEach(niv => {
         const nivData = (window.niveaux || {})[niv];
         if (!nivData) return;
-        const group = document.createElement('optgroup');
-        group.label = nivLabels[niv] + ' — ' + nivData.label.split('—')[1]?.trim();
+        const groupEl = document.createElement('div');
+        groupEl.className = 'chap-opt-group';
+        groupEl.textContent = nivLabels[niv];
+        chapDropdown.appendChild(groupEl);
         nivData.chaps.forEach(chap => {
             const key = niv + ':' + chap;
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.textContent = chap;
-            if (key === chapKey) opt.selected = true;
-            group.appendChild(opt);
+            const el = document.createElement('div');
+            el.className = 'chap-opt' + (key === chapKey ? ' selected' : '');
+            el.textContent = chap;
+            el.dataset.key = key;
+            el.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                selectChap(key, chap);
+            });
+            chapDropdown.appendChild(el);
+            allChapOpts.push({ key, label: chap, el, groupEl });
         });
-        chapSelect.appendChild(group);
     });
+
+    const noResultEl = document.createElement('div');
+    noResultEl.className = 'chap-opt-no-result';
+    noResultEl.textContent = 'Aucun chapitre trouvé.';
+    noResultEl.style.display = 'none';
+    chapDropdown.appendChild(noResultEl);
 
     function updateChapKey(newKey) {
         chapKey  = newKey;
         chapData = dataChapitres[chapKey] || {};
-        const name = chapKey.includes(':') ? chapKey.split(':').slice(1).join(':') : chapKey;
+        const name = newKey.includes(':') ? newKey.split(':').slice(1).join(':') : newKey;
         document.title = name + ' — Bureau Mathenlarge';
     }
 
-    chapSelect.addEventListener('change', () => {
-        updateChapKey(chapSelect.value);
-    });
+    function selectChap(key, label) {
+        updateChapKey(key);
+        chapInput.value = label;
+        allChapOpts.forEach(o => o.el.classList.toggle('selected', o.key === key));
+        closeDropdown();
+    }
 
-    // Init title
-    updateChapKey(chapKey || (chapSelect.options[0]?.value || ''));
+    function positionDropdown() {
+        const rect = chapInput.getBoundingClientRect();
+        chapDropdown.style.top    = (rect.bottom + 6) + 'px';
+        chapDropdown.style.left   = rect.left + 'px';
+        chapDropdown.style.width  = Math.max(rect.width, 260) + 'px';
+    }
+
+    function openDropdown() {
+        filterOpts('');
+        positionDropdown();
+        chapDropdown.classList.add('open');
+    }
+
+    function closeDropdown() {
+        chapDropdown.classList.remove('open');
+        // Remettre le vrai nom si l'input a été modifié sans sélection
+        const name = chapKey.includes(':') ? chapKey.split(':').slice(1).join(':') : chapKey;
+        chapInput.value = name;
+    }
+
+    function filterOpts(q) {
+        const ql = q.toLowerCase();
+        let anyVisible = false;
+        let lastGroup = null;
+        let groupHasVisible = false;
+        allChapOpts.forEach(({ label, el, groupEl }) => {
+            const match = label.toLowerCase().includes(ql);
+            el.classList.toggle('hidden', !match);
+            if (groupEl !== lastGroup) {
+                if (lastGroup) lastGroup.style.display = groupHasVisible ? '' : 'none';
+                lastGroup = groupEl;
+                groupHasVisible = false;
+            }
+            if (match) { anyVisible = true; groupHasVisible = true; }
+        });
+        if (lastGroup) lastGroup.style.display = groupHasVisible ? '' : 'none';
+        noResultEl.style.display = anyVisible ? 'none' : '';
+    }
+
+    chapInput.addEventListener('focus', () => openDropdown());
+    chapInput.addEventListener('input', () => filterOpts(chapInput.value));
+    chapInput.addEventListener('blur',  () => setTimeout(closeDropdown, 150));
+    window.addEventListener('resize',  () => { if (chapDropdown.classList.contains('open')) positionDropdown(); });
+
+    // Init : afficher le nom du chapitre courant
+    updateChapKey(chapKey || (allChapOpts[0]?.key || ''));
+    const initName = chapKey.includes(':') ? chapKey.split(':').slice(1).join(':') : '';
+    chapInput.value = initName;
 
     // ════════════════════════════════════════════════════
     //   NAVIGATION — Quitter
