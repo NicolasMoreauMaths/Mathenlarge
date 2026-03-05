@@ -3561,7 +3561,30 @@ ${buildCatalogueSummary()}`;
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    // Détection d'une nouvelle version du SW
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'activated' &&
+                                navigator.serviceWorker.controller) {
+                                // Nouveau SW activé : on recharge la page
+                                window.location.reload();
+                            }
+                        });
+                    });
+                })
                 .catch(err => console.warn('SW non enregistré :', err));
+
+            // Rechargement si le SW contrôleur change (ex. après skipWaiting)
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
         });
     }
     </script>

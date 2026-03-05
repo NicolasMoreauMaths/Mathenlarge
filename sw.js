@@ -1,4 +1,4 @@
-const CACHE_NAME = "mathenlarge-v21";
+const CACHE_NAME = 'mathenlarge-v5';
 const URLS_TO_CACHE = [
   "./",
   "./index.html",
@@ -374,16 +374,22 @@ const URLS_TO_CACHE = [
   "5eme_ch9_exerciseur2.html",
   "5eme_ch9_exerciseur3.html",
   "5eme_ch9_exerciseur4.html",
-  "5eme_ch9_lecon1.html"
+  "5eme_ch9_lecon1.html",
+  "data.js"
 ];
 
-// Installation : on met tout en cache
-self.addEventListener("install", event => {
+// Fichiers nécessitant une stratégie Network First
+function isNetworkFirst(url) {
+  return url.endsWith('.html') || url.endsWith('.js');
+}
+
+// Installation : mise en cache initiale
+self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return Promise.allSettled(
         URLS_TO_CACHE.map(url =>
-          cache.add(url).catch(err => console.warn("Cache miss:", url, err))
+          cache.add(url).catch(err => console.warn('Cache miss:', url, err))
         )
       );
     })
@@ -391,30 +397,54 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
-// Activation : on supprime les anciens caches
-self.addEventListener("activate", event => {
+// Activation : suppression automatique des anciens caches
+self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        keys.filter(k => k !== CACHE_NAME).map(k => {
+          console.log('Suppression ancien cache :', k);
+          return caches.delete(k);
+        })
       )
     )
   );
   self.clients.claim();
 });
 
-// Fetch : cache en priorité, réseau en fallback
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).then(response => {
-        // On met en cache les nouvelles ressources rencontrées
-        if (response && response.status === 200 && response.type === "basic") {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-    }).catch(() => caches.match("./index.html"))
-  );
+// Fetch : Network First pour .html et .js, Cache First pour le reste
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  if (isNetworkFirst(url.pathname)) {
+    // Network First : réseau en priorité, cache en fallback
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.match(event.request)
+            .then(cached => cached || caches.match('./index.html'))
+        )
+    );
+  } else {
+    // Cache First : cache en priorité, réseau en fallback
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      }).catch(() => caches.match('./index.html'))
+    );
+  }
 });
