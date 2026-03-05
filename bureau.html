@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bureau — Mathenlarge</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <!-- Données partagées -->
+    <script src="data.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #12121a;
+            color: #e8e6f0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* ─── HEADER ─── */
+        #bureau-header {
+            flex-shrink: 0;
+            height: 52px;
+            background: #1c1c28;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 16px;
+            z-index: 10;
+        }
+
+        .header-logo {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            color: #a07dd6;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .header-logo span { color: rgba(255,255,255,0.3); font-size: 0.85rem; }
+
+        #header-chap {
+            flex: 1;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #e8e6f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 8px;
+            padding: 5px 12px;
+        }
+        #header-chap .chap-label { color: rgba(255,255,255,0.35); font-weight: 600; margin-right: 6px; font-size: 0.78rem; }
+
+        /* XP mini */
+        #header-xp {
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(124,92,191,0.12);
+            border: 1px solid rgba(124,92,191,0.2);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.78rem; font-weight: 800;
+            color: #c4a8f5;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #header-xp .xp-anim {
+            position: absolute;
+            font-size: 0.75rem; font-weight: 800; color: #22c55e;
+            pointer-events: none; animation: xp-float 1.4s ease-out forwards;
+        }
+        @keyframes xp-float {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-28px); }
+        }
+
+        .btn-quit {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem; font-weight: 800;
+            color: rgba(255,255,255,0.65);
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .btn-quit:hover { background: rgba(232,115,74,0.15); border-color: rgba(232,115,74,0.3); color: #f9a880; }
+
+        /* ─── SPLIT SCREEN ─── */
+        #bureau-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            gap: 0;
+        }
+
+        .bureau-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            position: relative;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .bureau-zone:last-child { border-right: none; }
+
+        /* Zone bar (titre + actions) */
+        .zone-bar {
+            flex-shrink: 0;
+            height: 40px;
+            background: #1a1a26;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 14px;
+        }
+        .zone-label {
+            font-size: 0.72rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.35);
+            flex-shrink: 0;
+        }
+        .zone-title {
+            flex: 1;
+            font-size: 0.8rem; font-weight: 700;
+            color: rgba(255,255,255,0.7);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .zone-visited-badge {
+            font-size: 0.65rem; font-weight: 800;
+            background: rgba(34,197,94,0.15);
+            border: 1px solid rgba(34,197,94,0.25);
+            color: #4ade80;
+            padding: 2px 8px; border-radius: 10px;
+            display: none;
+        }
+        .zone-visited-badge.show { display: block; }
+
+        /* Iframe */
+        .zone-iframe {
+            flex: 1;
+            border: none;
+            display: block;
+            background: #fff;
+        }
+
+        /* Empty state */
+        .zone-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: #12121a;
+            padding: 32px;
+        }
+        .zone-empty-icon { font-size: 2.8rem; opacity: 0.3; }
+        .zone-empty-text {
+            font-size: 0.88rem; color: rgba(255,255,255,0.3);
+            text-align: center; line-height: 1.6; max-width: 280px;
+        }
+
+        /* Bouton + */
+        .btn-add {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(124,92,191,0.12);
+            border: 1.5px dashed rgba(124,92,191,0.3);
+            border-radius: 14px;
+            padding: 12px 22px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem; font-weight: 800;
+            color: #a07dd6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-add:hover {
+            background: rgba(124,92,191,0.22);
+            border-color: rgba(124,92,191,0.5);
+            color: #c4a8f5;
+            transform: scale(1.03);
+        }
+        .btn-add .add-icon { font-size: 1.2rem; }
+
+        /* ─── PICKER EXERCICE (dropdown/panel) ─── */
+        #exo-picker {
+            position: absolute; inset: 40px 0 0 0;
+            background: #1a1a28;
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            gap: 12px;
+            overflow-y: auto;
+        }
+        #exo-picker.open { display: flex; }
+        .picker-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .picker-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.05rem; color: #c4a8f5;
+        }
+        .picker-close {
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; padding: 4px 10px; cursor: pointer;
+            font-size: 0.8rem; color: rgba(255,255,255,0.5); font-family: 'Nunito', sans-serif; font-weight: 700;
+            transition: all 0.15s;
+        }
+        .picker-close:hover { background: rgba(255,60,60,0.15); color: #f97171; border-color: rgba(255,60,60,0.25); }
+
+        .picker-group-title {
+            font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1.5px; color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+        }
+        .picker-item {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 0.85rem; font-weight: 700;
+            color: rgba(255,255,255,0.75);
+            transition: all 0.15s;
+            position: relative;
+        }
+        .picker-item:hover { background: rgba(124,92,191,0.18); border-color: rgba(124,92,191,0.3); color: white; }
+        .picker-item.visited { color: rgba(255,255,255,0.4); }
+        .picker-item.visited::after {
+            content: '✓';
+            position: absolute; right: 12px;
+            font-size: 0.8rem; color: #4ade80;
+        }
+        .picker-item-icon { font-size: 1rem; flex-shrink: 0; }
+
+        /* ─── RESIZER ─── */
+        #resizer {
+            flex-shrink: 0;
+            width: 6px;
+            background: rgba(255,255,255,0.04);
+            cursor: col-resize;
+            transition: background 0.2s;
+            position: relative;
+            z-index: 5;
+        }
+        #resizer:hover, #resizer.dragging { background: rgba(124,92,191,0.35); }
+        #resizer::before {
+            content: '⋮';
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            color: rgba(255,255,255,0.15);
+            font-size: 1rem; letter-spacing: -2px;
+        }
+
+        /* ─── TOAST XP ─── */
+        #xp-toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: #22222e;
+            border: 1px solid rgba(124,92,191,0.3);
+            border-radius: 14px;
+            padding: 12px 18px;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.85rem; font-weight: 700;
+            color: #e8e6f0;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            z-index: 100;
+            pointer-events: none;
+        }
+        #xp-toast.show { transform: translateY(0); opacity: 1; }
+        #xp-toast .toast-xp { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: #a07dd6; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            #bureau-body { flex-direction: column; }
+            #resizer { width: 100%; height: 6px; cursor: row-resize; }
+            #resizer::before { content: '···'; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header id="bureau-header">
+    <div class="header-logo">✦ Mathenlarge <span>/ Bureau</span></div>
+    <div id="header-chap">
+        <span class="chap-label">Chapitre :</span>
+        <span id="header-chap-name">Chargement…</span>
+    </div>
+    <div id="header-xp" title="XP total accumulé">⚡ <span id="header-xp-val">0</span> XP</div>
+    <button class="btn-quit" id="btn-quit" title="Retourner à l'index">← Quitter</button>
+</header>
+
+<!-- ═══ SPLIT SCREEN ═══ -->
+<div id="bureau-body">
+
+    <!-- ZONE GAUCHE (Leçon) -->
+    <div class="bureau-zone" id="zone-gauche">
+        <div class="zone-bar">
+            <span class="zone-label">📖 Leçon</span>
+            <span class="zone-title" id="title-gauche">—</span>
+            <span class="zone-visited-badge" id="badge-gauche">✓ Vu</span>
+        </div>
+        <div class="zone-empty" id="empty-gauche">
+            <div class="zone-empty-icon">📖</div>
+            <p class="zone-empty-text">Aucune leçon chargée.<br>Cliquez sur <strong>+ Charger la leçon</strong> pour démarrer.</p>
+            <button class="btn-add" id="btn-add-gauche">
+                <span class="add-icon">+</span> Charger la leçon
+            </button>
+        </div>
+        <iframe class="zone-iframe" id="iframe-gauche" src="about:blank" style="display:none"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            title="Leçon"></iframe>
+    </div>
+
+    <!-- RESIZER -->
+    <div id="resizer" role="separator" aria-label="Redimensionner les zones"></div>
+
+    <!-- ZONE DROITE (Exercice) -->
+    <div class="bureau-zone" id="zone-droite">
+        <div class="zone-bar">
+            <span class="zone-label">📝 Exercice</span>
+            <span class="zone-title" id="title-droite">—</span>
+            <span class="zone-visited-badge" id="badge-droite">✓ Vu</span>
+        </div>
+        <div class="zone-empty" id="empty-droite">
+            <div class="zone-empty-icon">📝</div>
+            <p class="zone-empty-text">Aucun exercice chargé.<br>Cliquez sur <strong>+ Choisir un exercice</strong> pour en sélectionner un.</p>
+            <button class="btn-add" id="btn-add-droite">
+                <span class="add-icon">+</span> Choisir un exercice
+            </button>
+        </div>
+        <iframe class="zone-iframe" id="iframe-droite" src="about:blank" style="display:none"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            title="Exercice"></iframe>
+
+        <!-- PICKER exercice (panel dans la zone droite) -->
+        <div id="exo-picker">
+            <div class="picker-header">
+                <span class="picker-title">Choisir un exercice</span>
+                <button class="picker-close" id="picker-close">✕ Fermer</button>
+            </div>
+            <div id="picker-list"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- TOAST XP -->
+<div id="xp-toast">
+    <span class="toast-xp" id="toast-xp-val">+10</span>
+    <span id="toast-msg">XP gagnés !</span>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//   BUREAU.HTML — Script principal
+// ════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ── Guard data.js ──
+    if (typeof window.dataChapitres === 'undefined' || typeof window.niveaux === 'undefined') {
+        document.getElementById('header-chap-name').textContent = '⚠️ data.js non chargé — vérifier le chemin';
+        console.error('[Bureau] data.js manquant.');
+        return;
+    }
+
+    const dataChapitres = window.dataChapitres;
+
+    // ════════════════════════════════════════════════════
+    //   LECTURE DES PARAMÈTRES URL
+    // ════════════════════════════════════════════════════
+    const params  = new URLSearchParams(location.search);
+    const typeParam = params.get('type') || '';   // 'lecon' ou 'exo'
+    const chapKey   = params.get('chap') || '';   // ex: '4eme:Théorème de Pythagore'
+    const fileUrl   = params.get('file') || '';   // ex: '4eme_ch3_lecon1.html'
+
+    // Nom lisible du chapitre
+    const chapName = chapKey.includes(':') ? chapKey.split(':').slice(1).join(':') : chapKey;
+    const chapNiv  = chapKey.includes(':') ? chapKey.split(':')[0] : '';
+
+    document.title = chapName ? chapName + ' — Bureau Mathenlarge' : 'Bureau Mathenlarge';
+    document.getElementById('header-chap-name').textContent = chapName || 'Aucun chapitre sélectionné';
+
+    // ════════════════════════════════════════════════════
+    //   NAVIGATION — Quitter
+    // ════════════════════════════════════════════════════
+    document.getElementById('btn-quit').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+    // ════════════════════════════════════════════════════
+    //   SYSTÈME PROGRESSION & XP (copie fidèle de l'index)
+    // ════════════════════════════════════════════════════
+    const PROGRESS_KEY     = 'mathenlarge_progress';
+    const XP_TOTAL_KEY     = 'mathenlarge_xp_total';
+    const XP_PENDING_KEY   = 'mathenlarge_xp_pending';
+    const XP_REWARDED_KEY  = 'mathenlarge_xp_rewarded';
+
+    const XP_ITEM     = 10;
+    const XP_CATEGORY = 50;
+    const XP_CHAPTER  = 100;
+
+    function loadProgress() {
+        try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch { return {}; }
+    }
+    function saveProgress(d) {
+        try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(d)); } catch {}
+    }
+    function loadXP() {
+        try { return parseInt(localStorage.getItem(XP_TOTAL_KEY)) || 0; } catch { return 0; }
+    }
+    function saveXP(v) {
+        try { localStorage.setItem(XP_TOTAL_KEY, String(v)); } catch {}
+    }
+    function addPendingXP(n) {
+        try {
+            const cur = parseInt(localStorage.getItem(XP_PENDING_KEY)) || 0;
+            localStorage.setItem(XP_PENDING_KEY, String(cur + n));
+        } catch {}
+    }
+    function loadRewarded() {
+        try { return JSON.parse(localStorage.getItem(XP_REWARDED_KEY)) || {}; } catch { return {}; }
+    }
+    function saveRewarded(d) {
+        try { localStorage.setItem(XP_REWARDED_KEY, JSON.stringify(d)); } catch {}
+    }
+    function normalizeUrl(url) { return url.replace(/^\.\//, '').toLowerCase().trim(); }
+
+    function getVisited(key) {
+        const p = loadProgress();
+        return p[key] || { lecon: [], exercices: [], exerciseurs: [] };
+    }
+
+    function markItemVisited(key, cat, url) {
+        const norm = normalizeUrl(url);
+        const p = loadProgress();
+        if (!p[key]) p[key] = { lecon: [], exercices: [], exerciseurs: [] };
+        if (!p[key][cat]) p[key][cat] = [];
+        if (!p[key][cat].includes(norm)) p[key][cat].push(norm);
+        saveProgress(p);
+    }
+
+    function isCatComplete(key, cat) {
+        const expected = (dataChapitres[key] || {})[cat] || [];
+        if (!expected.length) return false;
+        const seen = (getVisited(key)[cat] || []).map(normalizeUrl);
+        return expected.every(i => seen.includes(normalizeUrl(i.url)));
+    }
+
+    function isChapComplete(key) {
+        const data = dataChapitres[key] || {};
+        const cats = ['lecon','exercices','exerciseurs'].filter(c => (data[c] || []).length > 0);
+        return cats.length > 0 && cats.every(c => isCatComplete(key, c));
+    }
+
+    function gainXP(amount) {
+        const old = loadXP();
+        saveXP(old + amount);
+        addPendingXP(amount);
+        showXPToast(amount);
+        document.getElementById('header-xp-val').textContent = old + amount;
+    }
+
+    function checkAndRewardBonuses(key) {
+        const r = loadRewarded();
+        let bonus = 0;
+        ['lecon','exercices','exerciseurs'].forEach(cat => {
+            const k = key + ':cat:' + cat;
+            if (!r[k] && isCatComplete(key, cat)) { r[k] = 1; bonus += XP_CATEGORY; }
+        });
+        const kc = key + ':chap';
+        if (!r[kc] && isChapComplete(key)) { r[kc] = 1; bonus += XP_CHAPTER; }
+        if (bonus > 0) { saveRewarded(r); gainXP(bonus); }
+    }
+
+    // Init XP header
+    document.getElementById('header-xp-val').textContent = loadXP();
+
+    // ════════════════════════════════════════════════════
+    //   TOAST XP
+    // ════════════════════════════════════════════════════
+    let toastTimer = null;
+    function showXPToast(amount, msg) {
+        const toast = document.getElementById('xp-toast');
+        document.getElementById('toast-xp-val').textContent = '+' + amount;
+        document.getElementById('toast-msg').textContent = msg || 'XP gagnés !';
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+
+    // ════════════════════════════════════════════════════
+    //   CHARGEMENT DANS UNE IFRAME
+    // ════════════════════════════════════════════════════
+    function loadInZone(side, url, label, cat) {
+        const iframeId = 'iframe-' + side;
+        const emptyId  = 'empty-' + side;
+        const titleId  = 'title-' + side;
+        const badgeId  = 'badge-' + side;
+
+        const iframe = document.getElementById(iframeId);
+        const empty  = document.getElementById(emptyId);
+
+        // Afficher l'iframe, cacher l'empty
+        empty.style.display  = 'none';
+        iframe.style.display = 'block';
+
+        // Cacher le bouton retour dans l'iframe (same-origin)
+        iframe.onload = function() {
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!doc || !doc.body) return;
+
+                // 1. Ciblage direct des éléments connus — le plus fiable
+                const selectors = [
+                    '.btn-retour-flottant',
+                    'a[href="index.html"]',
+                    'a[href*="index.html"]',
+                    '.btn-retour', '.back-btn', '.btn-back',
+                    '.btn-home', '.nav-home', '.retour',
+                    '#btn-retour', '#back-btn', '#btnRetour', '#backBtn'
+                ];
+                selectors.forEach(sel => {
+                    doc.querySelectorAll(sel).forEach(el => {
+                        el.style.setProperty('display', 'none', 'important');
+                    });
+                });
+
+                // 2. Injection CSS en fallback (couvre les éléments ajoutés dynamiquement)
+                const style = doc.createElement('style');
+                style.textContent = selectors.join(', ') + ' { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }';
+                (doc.head || doc.documentElement).appendChild(style);
+
+            } catch(e) {
+                // Cross-origin — silencieux
+            }
+        };
+
+        iframe.src = url;
+
+        // Titre dans la barre
+        document.getElementById(titleId).textContent = label || url;
+
+        // Vérifier si déjà vu
+        const isNew = chapKey && cat && !getVisited(chapKey)[cat]?.includes(normalizeUrl(url));
+
+        if (chapKey && cat) {
+            markItemVisited(chapKey, cat, url);
+            const badge = document.getElementById(badgeId);
+            badge.classList.add('show');
+
+            if (isNew) {
+                gainXP(XP_ITEM);
+                checkAndRewardBonuses(chapKey);
+            }
+        }
+    }
+
+    // ════════════════════════════════════════════════════
+    //   CHARGEMENT INITIAL SELON LES PARAMS URL
+    // ════════════════════════════════════════════════════
+    const chapData = chapKey ? (dataChapitres[chapKey] || {}) : {};
+
+    if (typeParam === 'lecon' && fileUrl) {
+        // Trouver le nom de la leçon
+        const leconItem = (chapData.lecon || []).find(i => i.url === fileUrl);
+        loadInZone('gauche', fileUrl, leconItem ? leconItem.n : fileUrl, 'lecon');
+    } else if (typeParam === 'exo' && fileUrl) {
+        // Trouver le nom de l'exercice
+        const exoItem = [
+            ...(chapData.exercices || []),
+            ...(chapData.exerciseurs || [])
+        ].find(i => i.url === fileUrl);
+        loadInZone('droite', fileUrl, exoItem ? exoItem.n : fileUrl,
+            (chapData.exerciseurs || []).some(i => i.url === fileUrl) ? 'exerciseurs' : 'exercices');
+    }
+
+    // ════════════════════════════════════════════════════
+    //   BOUTON + GAUCHE → charger la leçon du chapitre
+    // ════════════════════════════════════════════════════
+    document.getElementById('btn-add-gauche').addEventListener('click', () => {
+        const lecons = chapData.lecon || [];
+        if (!lecons.length) {
+            showXPToast(0, 'Aucune leçon disponible pour ce chapitre.');
+            return;
+        }
+        // Charger la première leçon disponible (ou la seule)
+        const item = lecons[0];
+        loadInZone('gauche', item.url, item.n, 'lecon');
+    });
+
+    // ════════════════════════════════════════════════════
+    //   BOUTON + DROITE → ouvrir le picker d'exercices
+    // ════════════════════════════════════════════════════
+    const picker     = document.getElementById('exo-picker');
+    const pickerList = document.getElementById('picker-list');
+
+    function buildPickerList() {
+        pickerList.innerHTML = '';
+        const visited = getVisited(chapKey);
+
+        const sections = [
+            { cat: 'exercices',   label: '📝 Exercices',   icon: '📝' },
+            { cat: 'exerciseurs', label: '⚙️ Exerciseurs', icon: '⚙️' },
+        ];
+
+        let hasAny = false;
+
+        sections.forEach(({ cat, label, icon }) => {
+            const items = chapData[cat] || [];
+            if (!items.length) return;
+            hasAny = true;
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'picker-group-title';
+            titleEl.textContent = label;
+            pickerList.appendChild(titleEl);
+
+            const seen = (visited[cat] || []).map(normalizeUrl);
+
+            items.forEach(item => {
+                const isVis = seen.includes(normalizeUrl(item.url));
+                const el = document.createElement('div');
+                el.className = 'picker-item' + (isVis ? ' visited' : '');
+                el.innerHTML = `<span class="picker-item-icon">${icon}</span><span>${item.n}</span>`;
+                el.addEventListener('click', () => {
+                    loadInZone('droite', item.url, item.n, cat);
+                    picker.classList.remove('open');
+                });
+                pickerList.appendChild(el);
+            });
+        });
+
+        if (!hasAny) {
+            pickerList.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:.85rem;padding:10px 0;">Aucun exercice disponible pour ce chapitre.</p>';
+        }
+    }
+
+    document.getElementById('btn-add-droite').addEventListener('click', () => {
+        buildPickerList();
+        picker.classList.add('open');
+    });
+
+    document.getElementById('picker-close').addEventListener('click', () => {
+        picker.classList.remove('open');
+    });
+
+    // ════════════════════════════════════════════════════
+    //   RESIZER — redimensionnement horizontal
+    // ════════════════════════════════════════════════════
+    const resizer   = document.getElementById('resizer');
+    const zoneLeft  = document.getElementById('zone-gauche');
+    const zoneRight = document.getElementById('zone-droite');
+    const body      = document.getElementById('bureau-body');
+
+    let isDragging = false;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        resizer.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        // Couvrir les iframes pendant le drag pour ne pas perdre les events
+        document.querySelectorAll('.zone-iframe').forEach(f => f.style.pointerEvents = 'none');
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const bodyRect = body.getBoundingClientRect();
+        const leftPct  = Math.max(15, Math.min(85, (e.clientX - bodyRect.left) / bodyRect.width * 100));
+        zoneLeft.style.flex  = 'none';
+        zoneRight.style.flex = 'none';
+        zoneLeft.style.width  = leftPct + '%';
+        zoneRight.style.width = (100 - leftPct) + '%';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.querySelectorAll('.zone-iframe').forEach(f => f.style.pointerEvents = '');
+    });
+
+    // Touch support pour mobile
+    resizer.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const bodyRect = body.getBoundingClientRect();
+        const leftPct  = Math.max(15, Math.min(85, (touch.clientX - bodyRect.left) / bodyRect.width * 100));
+        zoneLeft.style.flex  = 'none';
+        zoneRight.style.flex = 'none';
+        zoneLeft.style.width  = leftPct + '%';
+        zoneRight.style.width = (100 - leftPct) + '%';
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => { isDragging = false; });
+
+}); // fin DOMContentLoaded
+</script>
+</body>
+</html>
