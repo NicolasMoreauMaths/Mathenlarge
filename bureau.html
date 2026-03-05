@@ -47,18 +47,39 @@
 
         #header-chap {
             flex: 1;
-            font-size: 0.88rem;
-            font-weight: 800;
-            color: #e8e6f0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 8px;
             padding: 5px 12px;
+            min-width: 0;
         }
-        #header-chap .chap-label { color: rgba(255,255,255,0.35); font-weight: 600; margin-right: 6px; font-size: 0.78rem; }
+        #header-chap .chap-label { color: rgba(255,255,255,0.35); font-weight: 600; font-size: 0.78rem; flex-shrink: 0; }
+        #chap-select {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e8e6f0;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            min-width: 0;
+        }
+        #chap-select option {
+            background: #1c1c28;
+            color: #e8e6f0;
+            font-weight: 600;
+        }
+        #chap-select optgroup {
+            background: #12121a;
+            color: rgba(255,255,255,0.4);
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
 
         /* XP mini */
         #header-xp {
@@ -313,7 +334,7 @@
     <div class="header-logo">✦ Mathenlarge <span>/ Bureau</span></div>
     <div id="header-chap">
         <span class="chap-label">Chapitre :</span>
-        <span id="header-chap-name">Chargement…</span>
+        <select id="chap-select" title="Changer de chapitre"></select>
     </div>
     <div id="header-xp" title="XP total accumulé">⚡ <span id="header-xp-val">0</span> XP</div>
     <button class="btn-quit" id="btn-quit" title="Retourner à l'index">← Quitter</button>
@@ -404,15 +425,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // ════════════════════════════════════════════════════
     const params  = new URLSearchParams(location.search);
     const typeParam = params.get('type') || '';   // 'lecon' ou 'exo'
-    const chapKey   = params.get('chap') || '';   // ex: '4eme:Théorème de Pythagore'
+    let   chapKey   = params.get('chap') || '';   // ex: '4eme:Théorème de Pythagore'
     const fileUrl   = params.get('file') || '';   // ex: '4eme_ch3_lecon1.html'
 
-    // Nom lisible du chapitre
-    const chapName = chapKey.includes(':') ? chapKey.split(':').slice(1).join(':') : chapKey;
-    const chapNiv  = chapKey.includes(':') ? chapKey.split(':')[0] : '';
+    // ── Construction du <select> avec tous les chapitres groupés par niveau ──
+    const chapSelect = document.getElementById('chap-select');
+    const nivOrder   = ['6eme', '5eme', '4eme', '3eme'];
+    const nivLabels  = { '6eme': '6ème', '5eme': '5ème', '4eme': '4ème', '3eme': '3ème' };
 
-    document.title = chapName ? chapName + ' — Bureau Mathenlarge' : 'Bureau Mathenlarge';
-    document.getElementById('header-chap-name').textContent = chapName || 'Aucun chapitre sélectionné';
+    nivOrder.forEach(niv => {
+        const nivData = (window.niveaux || {})[niv];
+        if (!nivData) return;
+        const group = document.createElement('optgroup');
+        group.label = nivLabels[niv] + ' — ' + nivData.label.split('—')[1]?.trim();
+        nivData.chaps.forEach(chap => {
+            const key = niv + ':' + chap;
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = chap;
+            if (key === chapKey) opt.selected = true;
+            group.appendChild(opt);
+        });
+        chapSelect.appendChild(group);
+    });
+
+    function updateChapKey(newKey) {
+        chapKey  = newKey;
+        chapData = dataChapitres[chapKey] || {};
+        const name = chapKey.includes(':') ? chapKey.split(':').slice(1).join(':') : chapKey;
+        document.title = name + ' — Bureau Mathenlarge';
+    }
+
+    chapSelect.addEventListener('change', () => {
+        updateChapKey(chapSelect.value);
+    });
+
+    // Init title
+    updateChapKey(chapKey || (chapSelect.options[0]?.value || ''));
 
     // ════════════════════════════════════════════════════
     //   NAVIGATION — Quitter
@@ -610,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ════════════════════════════════════════════════════
     //   CHARGEMENT INITIAL SELON LES PARAMS URL
     // ════════════════════════════════════════════════════
-    const chapData = chapKey ? (dataChapitres[chapKey] || {}) : {};
+    let   chapData = chapKey ? (dataChapitres[chapKey] || {}) : {};
 
     if (typeParam === 'lecon' && fileUrl) {
         // Trouver le nom de la leçon
