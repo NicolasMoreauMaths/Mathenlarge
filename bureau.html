@@ -778,6 +778,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const doc = iframe.contentDocument || iframe.contentWindow.document;
                 if (!doc || !doc.body) return;
 
+                // Rendre le body focusable pour que le scroll fonctionne au survol
+                doc.body.setAttribute('tabindex', '-1');
+                doc.body.style.outline = 'none';
+
                 // Réduire le bouton retour — visible mais discret en mode bureau
                 const selectors = [
                     '.btn-retour-flottant',
@@ -1009,12 +1013,23 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
         document.querySelectorAll('.zone-iframe').forEach(f => f.style.pointerEvents = '');
+
     }
 
-    // Refocaliser l'iframe au survol pour restaurer le scroll après un resize
+    // Restaurer le scroll des iframes après resize
+    // en simulant un mousemove synthétique dans le document interne
+    // Gérer le focus des iframes : seule l'iframe survolée est active
+    // L'autre est mise en pointer-events:none pour éviter les conflits de hit-test
     document.querySelectorAll('.zone-iframe').forEach(iframe => {
         iframe.addEventListener('mouseenter', () => {
-            if (iframe.style.display !== 'none') iframe.focus();
+            document.querySelectorAll('.zone-iframe').forEach(f => {
+                f.style.pointerEvents = (f === iframe) ? '' : 'none';
+            });
+        });
+        iframe.addEventListener('mouseleave', () => {
+            document.querySelectorAll('.zone-iframe').forEach(f => {
+                f.style.pointerEvents = '';
+            });
         });
     });
 
