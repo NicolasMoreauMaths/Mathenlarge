@@ -1006,6 +1006,18 @@ document.addEventListener('DOMContentLoaded', () => {
         zoneRight.style.width = (100 - leftPct) + '%';
     });
 
+    function rebuildIframeLayer(iframe) {
+        if (!iframe || iframe.getAttribute('src') === 'about:blank') return;
+        // Masquer/réafficher force le navigateur à reconstruire le compositing
+        // layer de l'iframe, ce qui recalcule les zones de scroll/hit-test
+        requestAnimationFrame(() => {
+            iframe.style.visibility = 'hidden';
+            requestAnimationFrame(() => {
+                iframe.style.visibility = '';
+            });
+        });
+    }
+
     function stopDrag() {
         if (!isDragging) return;
         isDragging = false;
@@ -1013,19 +1025,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
         document.querySelectorAll('.zone-iframe').forEach(f => f.style.pointerEvents = '');
-
+        // Reconstruire les layers des deux iframes après resize
+        document.querySelectorAll('.zone-iframe').forEach(f => rebuildIframeLayer(f));
     }
-
-    // Restaurer le scroll des iframes après resize
-    // en simulant un mousemove synthétique dans le document interne
-    // Fix bug Chrome/Safari : après resize, le hit-test de l'iframe n'est pas
-    // mis à jour tant qu'aucun événement ne se produit. On force un click()
-    // programmatique sur l'iframe dès que la souris entre dedans.
-    document.querySelectorAll('.zone-iframe').forEach(iframe => {
-        iframe.addEventListener('mouseenter', () => {
-            if (iframe.style.display !== 'none') iframe.click();
-        });
-    });
 
     document.addEventListener('mouseup', stopDrag);
     // Si la souris quitte la fenêtre pendant le drag, on stoppe proprement
