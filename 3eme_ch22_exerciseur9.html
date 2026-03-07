@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raisonnement Logique — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+  --blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.2);
+  --orange:#ea580c;--orange-pale:rgba(234,88,12,.1);--orange-border:rgba(234,88,12,.25);
+  --green:#16a34a;--green-pale:rgba(22,163,74,.1);--green-border:rgba(22,163,74,.25);
+  --red:#dc2626;--red-pale:rgba(220,38,38,.08);--red-border:rgba(220,38,38,.25);
+  --purple:#7c3aed;--purple-pale:rgba(124,58,237,.08);--purple-border:rgba(124,58,237,.2);
+  --teal:#0891b2;--teal-pale:rgba(8,145,178,.08);--teal-border:rgba(8,145,178,.22);
+  --rose:#e11d48;--rose-pale:rgba(225,29,72,.08);--rose-border:rgba(225,29,72,.22);
+  --text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.08);
+}
+body{
+  font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent
+}
+.app{max-width:760px;width:100%}
+
+/* ── Header ── */
+.app-header{
+  background:linear-gradient(135deg,#1d4ed8 0%,#6d28d9 100%);color:#fff;
+  padding:14px 22px;border-radius:14px 14px 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 16px rgba(29,78,216,.25);position:relative;overflow:hidden
+}
+.app-header::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 50%);pointer-events:none}
+.app-title{font-size:1.1em;font-weight:700;position:relative;display:flex;align-items:center;gap:8px}
+.hdr-menu{
+  background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82em;font-weight:600;
+  cursor:pointer;transition:all .2s;position:relative;display:none
+}
+.hdr-menu:hover{background:rgba(255,255,255,.35)}
+
+/* ── Main card ── */
+.main{
+  background:var(--card);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 14px 14px;padding:28px 24px;
+  box-shadow:0 8px 28px var(--shadow);min-height:52vh
+}
+.screen{display:none;animation:fadeIn .3s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── Typography ── */
+h1{font-size:1.45em;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:.92em;color:var(--text-light);margin-bottom:20px;line-height:1.5}
+
+/* ── Buttons ── */
+.btn{
+  font-family:'DM Sans',sans-serif;padding:11px 24px;border-radius:10px;
+  font-size:.92em;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid;
+  -webkit-tap-highlight-color:transparent;min-height:44px;touch-action:manipulation;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px
+}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(29,78,216,.15)}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+/* ── Menu grid ── */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.mc{
+  background:var(--card);border:2px solid var(--border);border-radius:12px;
+  padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;
+  position:relative;min-height:100px;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;justify-content:center
+}
+.mc:hover{transform:translateY(-3px);box-shadow:0 8px 20px var(--shadow)}
+.mc-icon{font-size:1.6em;margin-bottom:4px}
+.mc-t{font-size:.93em;font-weight:700;margin-bottom:2px}
+.mc-d{font-size:.78em;color:var(--text-light)}
+
+/* ── Exercise top bar ── */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.ex-badge{padding:5px 14px;border-radius:20px;font-size:.85em;font-weight:700;color:#fff}
+.ex-score{font-size:.88em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:16px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:4px;transition:width .4s}
+
+/* ── Question boxes ── */
+.premise-box{
+  background:var(--blue-pale);border:2px solid var(--blue-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.premise-row{display:flex;align-items:flex-start;gap:10px;margin:7px 0;line-height:1.55}
+.premise-num{
+  background:var(--blue);color:#fff;width:22px;height:22px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.72em;font-weight:700;flex-shrink:0;margin-top:3px
+}
+.premise-text{font-family:'Kalam',cursive;font-size:1.05em;font-weight:700;color:var(--text)}
+.therefore{
+  display:flex;align-items:center;gap:10px;margin-top:10px;
+  padding-top:10px;border-top:2px dashed var(--blue-border)
+}
+.therefore-sym{font-size:1.5em;color:var(--blue);font-weight:700;font-family:'Kalam',cursive}
+.therefore-q{font-family:'Kalam',cursive;font-size:1em;color:var(--text-light)}
+
+.seq-box{
+  background:var(--purple-pale);border:2px solid var(--purple-border);
+  border-radius:12px;padding:20px;margin-bottom:14px;text-align:center
+}
+.seq-box .katex{font-size:1.4em!important}
+.seq-label{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:10px}
+
+.prob-box{
+  background:var(--orange-pale);border:2px solid var(--orange-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px;
+  font-family:'Kalam',cursive;font-size:1.04em;font-weight:700;line-height:1.65
+}
+.prob-box .hl{color:var(--blue)}.prob-box .ho{color:var(--orange)}
+
+.cond-box{
+  background:var(--teal-pale);border:2px solid var(--teal-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.cond-rule{
+  background:#fff;border:2px solid var(--teal-border);border-radius:8px;
+  padding:10px 14px;margin-bottom:10px;font-family:'Kalam',cursive;
+  font-size:1.04em;font-weight:700;color:var(--teal);text-align:center
+}
+.cond-fact{
+  display:flex;align-items:flex-start;gap:8px;
+  font-family:'Kalam',cursive;font-size:1.04em;font-weight:700;color:var(--text);line-height:1.5
+}
+.cond-pin{flex-shrink:0;font-size:1.1em}
+
+.intrus-box{
+  background:var(--rose-pale);border:2px solid var(--rose-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.intrus-label{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--rose);margin-bottom:12px;text-align:center}
+.intrus-items-display{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:4px}
+.intrus-item-display{
+  background:#fff;border:2px solid var(--rose-border);border-radius:8px;
+  padding:8px 14px;font-family:'Kalam',cursive;font-size:1.05em;font-weight:700;color:var(--text)
+}
+
+.defi-box{
+  background:var(--purple-pale);border:2px solid var(--purple-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.defi-label{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:8px;text-align:center}
+.defi-text{font-family:'Kalam',cursive;font-size:1.05em;font-weight:700;line-height:1.65;text-align:center}
+
+/* ── MCQ ── */
+.q-prompt{font-size:.97em;text-align:center;margin:12px 0 6px;font-weight:600;color:var(--text)}
+.mcq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.mcq-grid.cols1{grid-template-columns:1fr}
+.mcq-opt{
+  background:#fff;border:2px solid var(--border);border-radius:10px;
+  padding:12px 14px;cursor:pointer;transition:all .2s;
+  font-family:'Kalam',cursive;font-size:1em;font-weight:700;
+  text-align:center;line-height:1.45;min-height:52px;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent
+}
+.mcq-opt:hover:not(.disabled){border-color:var(--blue);background:var(--blue-pale);transform:translateY(-1px)}
+.mcq-opt.correct,.show-correct{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.mcq-opt.correct{animation:bounceIn .3s}
+.mcq-opt.wrong{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important;animation:shake .35s}
+.mcq-opt.disabled{cursor:not-allowed;pointer-events:none;opacity:.7}
+/* intrus clickable items */
+.intrus-click{
+  cursor:pointer;transition:all .2s;
+  background:#fff;border:2px solid var(--rose-border);border-radius:8px;
+  padding:9px 16px;font-family:'Kalam',cursive;font-size:1.05em;font-weight:700;color:var(--text)
+}
+.intrus-click:hover:not(.disabled){border-color:var(--rose);background:var(--rose-pale);transform:translateY(-2px)}
+.intrus-click.correct{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;animation:bounceIn .3s}
+.intrus-click.wrong{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important;animation:shake .35s}
+.intrus-click.show-correct{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.intrus-click.disabled{cursor:not-allowed;pointer-events:none;opacity:.7}
+
+/* ── Suite input ── */
+.seq-input-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0;flex-wrap:wrap}
+.seq-input{
+  font-family:'Kalam',cursive;font-size:1.3em;font-weight:700;
+  width:100px;text-align:center;border:2px dashed var(--purple-border);
+  border-radius:10px;background:#fff;padding:8px;outline:none;
+  color:var(--text);min-height:48px;touch-action:manipulation;transition:all .2s
+}
+.seq-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-pale)}
+.seq-input.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.seq-input.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s}
+.seq-input-label{font-family:'Kalam',cursive;font-size:1.1em;font-weight:700;color:var(--text-light)}
+.hint-pill{
+  display:inline-block;background:rgba(124,58,237,.08);border:1px solid var(--purple-border);
+  border-radius:20px;padding:4px 12px;font-size:.8em;color:var(--purple);font-weight:600;
+  margin:4px auto 10px;text-align:center
+}
+
+/* ── Feedback ── */
+.fb{
+  margin-top:14px;padding:12px 16px;border-radius:10px;font-size:.92em;
+  text-align:center;display:none;animation:fadeIn .25s;font-weight:600;line-height:1.6
+}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid var(--red-border)}
+
+/* ── Results ── */
+.rc{
+  width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:16px auto;border:5px solid
+}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:var(--orange);background:var(--orange-pale)}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2em;font-weight:700;line-height:1}
+.rm{font-size:1.05em;text-align:center;margin:14px 0;line-height:1.5}
+
+/* ── Intro KaTeX ── */
+.intro-formula{text-align:center;margin:20px 0;opacity:.7}
+.intro-formula .katex{font-size:1.5em!important;color:var(--purple)}
+
+/* ── Animations ── */
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes bounceIn{0%{transform:scale(.94)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  body{padding:16px 8px 60px}
+  .app-header{padding:12px 18px}
+  .main{padding:24px 18px}
+  h1{font-size:1.35em}
+  .menu-grid{grid-template-columns:1fr;gap:10px}
+  .mcq-grid{grid-template-columns:1fr}
+  .btn{padding:10px 22px;font-size:.9em}
+}
+@media(max-width:600px){
+  body{padding:14px 6px 60px}
+  .main{padding:20px 14px}
+  h1{font-size:1.25em}
+  .sub{font-size:.88em}
+  .menu-grid{max-width:340px;margin:16px auto}
+  .seq-box .katex{font-size:1.15em!important}
+  .premise-text,.therefore-q,.cond-fact,.prob-box,.defi-text{font-size:.98em}
+  .mcq-opt{font-size:.95em;padding:10px 12px;min-height:46px}
+  .seq-input{width:88px;font-size:1.15em}
+}
+@media(max-width:480px){
+  .main{padding:18px 12px}
+  h1{font-size:1.15em}
+  .mcq-opt{font-size:.9em;min-height:42px}
+  .intrus-click{font-size:.95em;padding:8px 12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+  <span class="app-title">🧠 Raisonnement Logique</span>
+  <button class="hdr-menu" id="menuBtn" onclick="goMenu()">☰ Menu</button>
+</div>
+<div class="main">
+
+  <!-- ══ INTRO ══ -->
+  <div class="screen active" id="S_intro">
+    <h1>Raisonnement Logique</h1>
+    <p class="sub">Syllogismes, suites, énigmes, conditionnels…<br>Entraîne ta logique, pas tes calculatrices&nbsp;!</p>
+    <div class="intro-formula" id="introK"></div>
+    <div class="controls">
+      <button class="btn btn-blue" onclick="show('S_menu');$('menuBtn').style.display='block'">C'est parti&nbsp;→</button>
+    </div>
+  </div>
+
+  <!-- ══ MENU ══ -->
+  <div class="screen" id="S_menu">
+    <h1>Choisis ton exercice</h1>
+    <p class="sub">6 types de raisonnement logique à explorer</p>
+    <div class="menu-grid">
+      <div class="mc" onclick="go(0)" style="border-color:rgba(29,78,216,.3)">
+        <div class="mc-icon">📐</div>
+        <div class="mc-t" style="color:var(--blue)">Syllogismes</div>
+        <div class="mc-d">Déduction logique formelle</div>
+      </div>
+      <div class="mc" onclick="go(1)" style="border-color:rgba(124,58,237,.3)">
+        <div class="mc-icon">🔢</div>
+        <div class="mc-t" style="color:var(--purple)">Suites logiques</div>
+        <div class="mc-d">Trouve le terme suivant</div>
+      </div>
+      <div class="mc" onclick="go(2)" style="border-color:rgba(234,88,12,.3)">
+        <div class="mc-icon">🔍</div>
+        <div class="mc-t" style="color:var(--orange)">Énigmes</div>
+        <div class="mc-d">Qui est qui&nbsp;? Quel ordre&nbsp;?</div>
+      </div>
+      <div class="mc" onclick="go(3)" style="border-color:rgba(8,145,178,.3)">
+        <div class="mc-icon">↔️</div>
+        <div class="mc-t" style="color:var(--teal)">Si… Alors…</div>
+        <div class="mc-d">Raisonnement conditionnel</div>
+      </div>
+      <div class="mc" onclick="go(4)" style="border-color:rgba(225,29,72,.3)">
+        <div class="mc-icon">🎯</div>
+        <div class="mc-t" style="color:var(--rose)">L'intrus</div>
+        <div class="mc-d">Trouve ce qui ne va pas</div>
+      </div>
+      <div class="mc" onclick="go(5)" style="border-color:rgba(124,58,237,.3)">
+        <div class="mc-icon">💡</div>
+        <div class="mc-t" style="color:var(--purple)">Défis logiques</div>
+        <div class="mc-d">Casse-têtes et paradoxes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ EXERCISE ══ -->
+  <div class="screen" id="S_ex">
+    <div class="ex-top">
+      <div class="ex-badge" id="badge">—</div>
+      <div class="ex-score" id="scLbl">0 / 0</div>
+    </div>
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <div id="zone"></div>
+    <div class="fb" id="fb"></div>
+    <div class="controls" style="margin-top:14px">
+      <button class="btn btn-blue" id="nxt" style="display:none" onclick="nxtQ()">Suivant&nbsp;→</button>
+      <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+    </div>
+  </div>
+
+  <!-- ══ RESULTS ══ -->
+  <div class="screen" id="S_res">
+    <h1>Résultats</h1>
+    <div class="rc" id="rCirc">
+      <div class="rp" id="rPct">0%</div>
+      <div style="font-size:.75em;color:var(--text-light);margin-top:2px">de réussite</div>
+    </div>
+    <div class="rm" id="rMsg"></div>
+    <div class="controls">
+      <button class="btn btn-blue" onclick="replayCat()">🔁 Rejouer</button>
+      <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   UTILITIES
+══════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const rv=arr=>arr[Math.floor(Math.random()*arr.length)];
+function sh(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function tex(el,latex,dm=false){try{katex.render(latex,typeof el==='string'?$(el):el,{throwOnError:false,displayMode:dm})}catch(e){}}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function goMenu(){show('S_menu');$('menuBtn').style.display='block'}
+
+/* ══════════════════════════════════
+   STATE
+══════════════════════════════════ */
+let cat=-1,qs=[],qi=0,sc=0;
+const CATNAMES=['Syllogismes','Suites logiques','Énigmes','Si… Alors…','L\'intrus','Défis logiques'];
+const CATCOLORS=['#1d4ed8','#7c3aed','#ea580c','#0891b2','#e11d48','#7c3aed'];
+
+/* ══════════════════════════════════
+   QUESTION BANKS
+══════════════════════════════════ */
+
+/* ─── SYLLOGISMES ─── */
+const bankSyllogismes=[
+  {
+    premises:['Tous les chiens sont des mammifères.','Rex est un chien.'],
+    options:['Rex est un mammifère','Rex est un reptile','Rex peut voler','On ne peut pas savoir'],
+    answer:0,
+    expl:'Rex est un chien, et tous les chiens sont des mammifères → Rex est forcément un mammifère. Raisonnement direct (modus ponens).'
+  },
+  {
+    premises:['Certains sportifs sont médaillés.','Paul est sportif.'],
+    options:['Paul est forcément médaillé','Paul ne peut pas être médaillé','On ne peut pas conclure','Cela dépend du sport'],
+    answer:2,
+    expl:'"Certains" ≠ "tous". Paul peut faire partie des sportifs non médaillés. On manque d\'information pour conclure.'
+  },
+  {
+    premises:['Tous les élèves de cette classe aiment la lecture.','Zoé n\'aime pas la lecture.'],
+    options:['Zoé est dans cette classe','Zoé n\'est pas dans cette classe','Zoé aime les maths','On ne peut pas savoir'],
+    answer:1,
+    expl:'Si Zoé était dans la classe, elle aimerait la lecture. Comme ce n\'est pas le cas, Zoé n\'est pas dans cette classe (contraposée).'
+  },
+  {
+    premises:['Si un animal est un oiseau, alors il a des plumes.','Tweety a des plumes.'],
+    options:['Tweety est forcément un oiseau','On ne peut pas conclure que Tweety est un oiseau','Tweety est un reptile','Tweety ne peut pas être un oiseau'],
+    answer:1,
+    expl:'D\'autres animaux peuvent avoir des plumes. La règle dit oiseau → plumes, mais pas plumes → oiseau. Erreur classique d\'inversion !'
+  },
+  {
+    premises:['Aucun poisson ne peut voler.','Nemo est un poisson.'],
+    options:['Nemo peut voler','Nemo ne peut pas voler','On ne sait pas','Nemo est un oiseau'],
+    answer:1,
+    expl:'Nemo est un poisson, et aucun poisson ne peut voler → Nemo ne peut pas voler. Conclusion certaine et directe.'
+  },
+  {
+    premises:['Tous les carrés ont 4 angles droits.','Ce losange n\'a pas d\'angles droits.'],
+    options:['Ce losange est un carré','Ce losange n\'est pas un carré','On ne peut pas savoir','Ce losange est un rectangle'],
+    answer:1,
+    expl:'Tous les carrés ont des angles droits. Ce losange n\'en a pas → il ne peut pas être un carré (contraposée).'
+  },
+  {
+    premises:['Tout ce qui brille n\'est pas forcément de l\'or.','Cette pièce brille.'],
+    options:['Cette pièce est en or','Cette pièce n\'est pas en or','On ne peut pas conclure','Cette pièce est en argent'],
+    answer:2,
+    expl:'La prémisse dit que briller n\'est pas suffisant pour être de l\'or. On ne peut donc pas conclure si la pièce est en or ou non.'
+  },
+  {
+    premises:['Tous les chats ronronnent.','Minou ronronne.'],
+    options:['Minou est forcément un chat','Minou n\'est pas un chat','On ne peut pas conclure que Minou est un chat','Minou est un chien'],
+    answer:2,
+    expl:'Ronronner est une conséquence d\'être un chat, mais d\'autres animaux ronronnent aussi. La règle ne peut pas s\'appliquer dans le sens inverse.'
+  },
+  {
+    premises:['Tous les romans sont des livres.','Ce livre est un roman.'],
+    options:['Ce livre est forcément un roman','Ce livre est forcément un roman — c\'est vrai','Ce livre peut ne pas être un roman','On ne peut pas conclure — il est roman mais on le sait déjà'],
+    answer:1,
+    expl:'On nous dit directement que "ce livre est un roman". La prémisse 2 l\'affirme explicitement, la conclusion est immédiate.'
+  },
+  {
+    premises:['Aucun insecte n\'est un mammifère.','La fourmi est un insecte.'],
+    options:['La fourmi est un mammifère','La fourmi n\'est pas un mammifère','La fourmi peut être un mammifère','On ne sait pas'],
+    answer:1,
+    expl:'Aucun insecte n\'est un mammifère + la fourmi est un insecte → la fourmi n\'est pas un mammifère. Conclusion certaine.'
+  },
+  {
+    premises:['Tous les élèves ayant réussi ont travaillé.','Lucie a travaillé.'],
+    options:['Lucie a forcément réussi','Lucie n\'a pas réussi','On ne peut pas conclure que Lucie a réussi','Lucie est la meilleure de la classe'],
+    answer:2,
+    expl:'Travailler est une condition nécessaire pour réussir, mais pas suffisante. Lucie peut avoir travaillé et raté quand même.'
+  },
+  {
+    premises:['Certains fruits sont acides.','La pomme est un fruit.'],
+    options:['La pomme est forcément acide','La pomme n\'est pas acide','On ne peut pas conclure que la pomme est acide','La pomme est sucrée'],
+    answer:2,
+    expl:'"Certains fruits sont acides" ne veut pas dire "tous les fruits sont acides". La pomme peut ou non être acide, on ne peut pas conclure.'
+  },
+  {
+    premises:['Tous les humains sont mortels.','Socrate est un humain.'],
+    options:['Socrate est mortel','Socrate est immortel','On ne peut pas savoir','Socrate est un dieu'],
+    answer:0,
+    expl:'Syllogisme classique d\'Aristote. Socrate est humain, tous les humains sont mortels → Socrate est mortel. ✔'
+  },
+  {
+    premises:['Si Anne vient à la fête, alors Bob vient aussi.','Bob ne vient pas à la fête.'],
+    options:['Anne vient quand même','Anne ne vient pas','On ne peut pas conclure','Bob arrive en retard'],
+    answer:1,
+    expl:'Bob ne vient pas → la conséquence est niée → la condition est niée aussi. Anne ne vient pas (modus tollens / contraposée). ✔'
+  },
+  {
+    premises:['Tous les multiples de 4 sont pairs.','Ce nombre est un multiple de 4.'],
+    options:['Ce nombre est pair','Ce nombre est impair','On ne peut pas savoir','Ce nombre vaut 4'],
+    answer:0,
+    expl:'Multiple de 4 → pair. C\'est une application directe de la règle générale. Ce nombre est forcément pair.'
+  },
+  {
+    premises:['Aucun élève de 6ème n\'est en lycée.','Tom est en lycée.'],
+    options:['Tom est en 6ème','Tom n\'est pas en 6ème','Tom a redoublé','On ne peut pas savoir'],
+    answer:1,
+    expl:'Aucun élève de 6ème n\'est en lycée → si Tom est en lycée, il ne peut pas être en 6ème. Contraposée directe.'
+  },
+  {
+    premises:['Tous les chats sont des félins.','Tous les félins sont des carnivores.'],
+    options:['Tous les chats sont des carnivores','Certains chats sont des carnivores','Les chats ne mangent que des plantes','On ne peut pas conclure'],
+    answer:0,
+    expl:'Chaîne de syllogismes : chat → félin → carnivore. Tous les chats sont donc des carnivores. ✔'
+  },
+  {
+    premises:['Si tu mens, tu rougis.','Clara ne rougit pas.'],
+    options:['Clara ment','Clara ne ment pas','Clara a peut-être menti','On ne sait pas'],
+    answer:1,
+    expl:'Modus tollens : mentir → rougir. Clara ne rougit pas → Clara ne ment pas. ✔'
+  },
+  {
+    premises:['Certains collégiens font du sport.','Certains sportifs sont champions.'],
+    options:['Certains collégiens sont champions','Aucun collégien n\'est champion','On ne peut pas conclure','Tous les collégiens sont champions'],
+    answer:2,
+    expl:'Deux "certains" ne permettent pas de créer un lien. Les groupes peuvent ne pas se recouper. On ne peut rien conclure.'
+  },
+  {
+    premises:['Tous les rectangles ont 4 angles droits.','Ce quadrilatère a 4 angles droits.'],
+    options:['Ce quadrilatère est forcément un rectangle','Ce quadrilatère n\'est pas un rectangle','On ne peut pas conclure','Ce quadrilatère est un carré'],
+    answer:2,
+    expl:'Avoir 4 angles droits est une conséquence d\'être rectangle, mais un carré aussi a 4 angles droits. On ne peut pas conclure dans ce sens.'
+  },
+  {
+    premises:['Tous les mammifères respirent de l\'air.','La baleine est un mammifère.'],
+    options:['La baleine respire de l\'air','La baleine est un poisson','La baleine respire sous l\'eau','On ne peut pas savoir'],
+    answer:0,
+    expl:'Tous les mammifères respirent de l\'air + la baleine est un mammifère → la baleine respire de l\'air. Elle remonte à la surface pour respirer. ✔'
+  },
+  {
+    premises:['Aucune chauve-souris n\'est un oiseau.','Ce volant nocturne est une chauve-souris.'],
+    options:['Ce volant nocturne est un oiseau','Ce volant nocturne n\'est pas un oiseau','On ne peut pas savoir','Ce volant nocturne est un insecte'],
+    answer:1,
+    expl:'Aucune chauve-souris n\'est un oiseau + ce volant est une chauve-souris → ce volant n\'est pas un oiseau. ✔'
+  },
+  {
+    premises:['Tous les nombres premiers supérieurs à 2 sont impairs.','17 est un nombre premier supérieur à 2.'],
+    options:['17 est pair','17 est impair','On ne peut pas conclure','17 est divisible par 2'],
+    answer:1,
+    expl:'17 est un nombre premier supérieur à 2 → 17 est impair. Application directe de la règle. ✔'
+  },
+  {
+    premises:['Certains adultes parlent deux langues.','Marie est adulte.'],
+    options:['Marie parle deux langues','Marie ne parle qu\'une seule langue','On ne peut pas conclure','Marie est bilingue'],
+    answer:2,
+    expl:'"Certains" adultes ≠ "tous". Marie peut être ou ne pas être bilingue. On ne dispose pas d\'assez d\'information pour conclure. ✔'
+  },
+  {
+    premises:['Tous les carrés sont des losanges.','Ce quadrilatère est un carré.'],
+    options:['Ce quadrilatère est un losange','Ce quadrilatère n\'est pas un losange','On ne peut pas conclure','Ce quadrilatère est un rectangle'],
+    answer:0,
+    expl:'Carré → losange. Ce quadrilatère est un carré → il est aussi un losange. Un carré est un losange particulier avec des angles droits. ✔'
+  },
+  {
+    premises:['Si on divise un nombre pair par 2, on obtient un entier.','42 est un nombre pair.'],
+    options:['42 ÷ 2 est un entier','42 ÷ 2 n\'est pas un entier','On ne peut pas conclure','42 est impair'],
+    answer:0,
+    expl:'42 est pair → 42 ÷ 2 est un entier. 42 ÷ 2 = 21, qui est bien un entier. Application directe. ✔'
+  },
+  {
+    premises:['Aucun insecte n\'a plus de 6 pattes.','Cette araignée a 8 pattes.'],
+    options:['Cette araignée est un insecte','Cette araignée n\'est pas un insecte','On ne peut pas savoir','Cette araignée a 6 pattes'],
+    answer:1,
+    expl:'Tout insecte a au plus 6 pattes. L\'araignée en a 8 → elle ne peut pas être un insecte (c\'est un arachnide). ✔'
+  },
+  {
+    premises:['Tous les multiples de 10 sont des multiples de 5.','150 est un multiple de 10.'],
+    options:['150 est un multiple de 5','150 n\'est pas un multiple de 5','On ne peut pas conclure','150 est impair'],
+    answer:0,
+    expl:'Multiple de 10 → multiple de 5. 150 est multiple de 10 → 150 est multiple de 5. (150 ÷ 5 = 30.) ✔'
+  }
+];
+
+/* ─── SUITES LOGIQUES ─── */
+const bankSuites=[
+  {
+    latex:'2,\\ 4,\\ 6,\\ 8,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;?',
+    answer:'10',hint:'On ajoute 2 à chaque étape.',
+    expl:'Suite des nombres pairs : on ajoute 2 à chaque fois. 8 + 2 = <strong>10</strong>.'
+  },
+  {
+    latex:'\\text{A},\\ \\text{C},\\ \\text{E},\\ \\text{G},\\ \\boxed{\\,?\\,}',
+    question:'Quelle est la lettre suivante&nbsp;?',
+    answer:'I',hint:'On saute une lettre à chaque fois.',
+    expl:'On saute une lettre : A, (B), C, (D), E, (F), G, (H), <strong>I</strong>.'
+  },
+  {
+    latex:'\\text{Z},\\ \\text{Y},\\ \\text{X},\\ \\text{W},\\ \\boxed{\\,?\\,}',
+    question:'Quelle est la lettre suivante&nbsp;?',
+    answer:'V',hint:'L\'alphabet à l\'envers.',
+    expl:'On remonte l\'alphabet : Z, Y, X, W, <strong>V</strong>.'
+  },
+  {
+    latex:'1,\\ 2,\\ 4,\\ 8,\\ 16,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;?',
+    answer:'32',hint:'On double à chaque étape.',
+    expl:'On multiplie par 2 : 16 × 2 = <strong>32</strong>.'
+  },
+  {
+    latex:'\\text{J},\\ \\text{F},\\ \\text{M},\\ \\text{A},\\ \\text{M},\\ \\text{J},\\ \\text{J},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Indice&nbsp;: mois de l\'année)</em>',
+    answer:'A',hint:'Initiales des mois.',
+    expl:'Janvier, Février, Mars, Avril, Mai, Juin, Juillet, <strong>Août → A</strong>.'
+  },
+  {
+    latex:'\\text{L},\\ \\text{M},\\ \\text{M},\\ \\text{J},\\ \\text{V},\\ \\text{S},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Indice&nbsp;: jours de la semaine)</em>',
+    answer:'D',hint:'Initiales des jours.',
+    expl:'Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, <strong>Dimanche → D</strong>.'
+  },
+  {
+    latex:'\\text{U},\\ \\text{D},\\ \\text{T},\\ \\text{Q},\\ \\text{C},\\ \\text{S},\\ \\text{S},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Indice&nbsp;: chiffres en lettres)</em>',
+    answer:'H',hint:'Initiales des nombres de 1 à 8.',
+    expl:'Un, Deux, Trois, Quatre, Cinq, Six, Sept, <strong>Huit → H</strong>.'
+  },
+  {
+    latex:'1,\\ 3,\\ 6,\\ 10,\\ 15,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Les écarts entre termes varient)</em>',
+    answer:'21',hint:'Les écarts augmentent de 1 à chaque fois.',
+    expl:'Écarts : +2, +3, +4, +5, +6. Donc 15 + 6 = <strong>21</strong>. Ce sont les nombres triangulaires.'
+  },
+  {
+    latex:'1,\\ 1,\\ 2,\\ 3,\\ 5,\\ 8,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Chaque terme est la somme des deux précédents)</em>',
+    answer:'13',hint:'Fibonacci : 5 + 8 = ?',
+    expl:'Suite de Fibonacci : chaque terme = somme des 2 précédents. 5 + 8 = <strong>13</strong>.'
+  },
+  {
+    latex:'\\text{A},\\ \\text{B},\\ \\text{D},\\ \\text{G},\\ \\text{K},\\ \\boxed{\\,?\\,}',
+    question:'Quelle est la lettre suivante&nbsp;? <em>(Les écarts augmentent)</em>',
+    answer:'P',hint:'+1, +2, +3, +4, +5...',
+    expl:'A+1=B, B+2=D, D+3=G, G+4=K, K+5=<strong>P</strong>. Les sauts augmentent de 1.'
+  },
+  {
+    latex:'3,\\ 6,\\ 12,\\ 24,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;?',
+    answer:'48',hint:'On multiplie par 2.',
+    expl:'On multiplie par 2 à chaque étape : 24 × 2 = <strong>48</strong>.'
+  },
+  {
+    latex:'100,\\ 90,\\ 81,\\ 73,\\ 66,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Les soustractions diminuent)</em>',
+    answer:'60',hint:'On soustrait 10, puis 9, puis 8, puis 7...',
+    expl:'−10, −9, −8, −7, −6 → 66 − 6 = <strong>60</strong>.'
+  },
+  {
+    latex:'\\text{P},\\ \\text{M},\\ \\text{J},\\ \\text{G},\\ \\boxed{\\,?\\,}',
+    question:'Quelle est la lettre suivante&nbsp;? <em>(Indice : planètes du système solaire)</em>',
+    answer:'S',hint:'Mercure, Venus, Terre, Mars...',
+    expl:'Planètes dans l\'ordre : <strong>M</strong>ercure, <strong>V</strong>énus, <strong>T</strong>erre, <strong>M</strong>ars, <strong>J</strong>upiter, <strong>S</strong>aturne → <strong>S</strong>.'
+  },
+  {
+    latex:'\\triangle,\\ \\square,\\ \\triangle,\\ \\square,\\ \\triangle,\\ \\boxed{\\,?\\,}',
+    question:'Quelle forme vient ensuite&nbsp;? Tape : T (triangle) ou C (carré)',
+    answer:'C',hint:'Le motif se répète : triangle, carré, triangle, carré...',
+    expl:'Le motif alterne triangle–carré. Après un triangle, on a un <strong>carré (C)</strong>.'
+  },
+  {
+    latex:'2,\\ 3,\\ 5,\\ 7,\\ 11,\\ 13,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Suite très célèbre en mathématiques)</em>',
+    answer:'17',hint:'Ce sont les nombres premiers.',
+    expl:'Ce sont les nombres premiers : 2, 3, 5, 7, 11, 13, <strong>17</strong>.'
+  },
+  {
+    latex:'\\text{O},\\ \\text{T},\\ \\text{T},\\ \\text{F},\\ \\text{F},\\ \\text{S},\\ \\text{S},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Indice&nbsp;: nombres en anglais)</em>',
+    answer:'E',hint:'One, Two, Three, Four, Five, Six, Seven...',
+    expl:'<strong>O</strong>ne, <strong>T</strong>wo, <strong>T</strong>hree, <strong>F</strong>our, <strong>F</strong>ive, <strong>S</strong>ix, <strong>S</strong>even, <strong>E</strong>ight → <strong>E</strong>.'
+  },
+  {
+    latex:'1,\\ 4,\\ 9,\\ 16,\\ 25,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Carrés parfaits)</em>',
+    answer:'36',hint:'1², 2², 3², 4², 5², 6²...',
+    expl:'Ce sont les carrés : 1², 2², 3², 4², 5², 6² = <strong>36</strong>.'
+  },
+  {
+    latex:'\\text{R},\\ \\text{O},\\ \\text{J},\\ \\text{B},\\ \\text{I},\\ \\text{V},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Indice&nbsp;: un arc-en-ciel)</em>',
+    answer:'V',hint:'Rouge, Orange, Jaune, Bleu, Indigo, Violet...',
+    expl:'Couleurs de l\'arc-en-ciel : <strong>R</strong>ouge, <strong>O</strong>range, <strong>J</strong>aune, <strong>B</strong>leu, <strong>I</strong>ndigo, <strong>V</strong>iolet. La 7e est aussi <strong>Violet → V</strong>. (Variante : ROYGBIV)'
+  },
+  {
+    latex:'5,\\ 10,\\ 20,\\ 35,\\ 55,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Les écarts augmentent par pas de 5)</em>',
+    answer:'80',hint:'+5, +10, +15, +20, +25...',
+    expl:'Écarts : +5, +10, +15, +20, +25 → 55 + 25 = <strong>80</strong>.'
+  },
+  {
+    latex:'\\text{I},\\ \\text{II},\\ \\text{III},\\ \\text{IV},\\ \\text{V},\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Indice&nbsp;: chiffres romains)</em>',
+    answer:'VI',hint:'Chiffres romains : 1, 2, 3, 4, 5...',
+    expl:'Chiffres romains dans l\'ordre : I, II, III, IV, V, <strong>VI</strong> (= 6).'
+  }  ,{
+    latex:'\\text{J},\\ \\text{V},\\ \\text{R},\\ \\text{O},\\ \\text{J},\\ \\text{B},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Indice&nbsp;: un arc-en-ciel dans l\'ordre)</em>',
+    answer:'I',hint:'Jaune, Vert, Rouge, Orange, Jaune, Bleu... Arc-en-ciel : rouge, orange, jaune, vert, bleu, indigo, violet.',
+    expl:'Couleurs de l\'arc-en-ciel : Rouge, Orange, Jaune, Vert, Bleu, <strong>Indigo → I</strong>, Violet. ✔'
+  },
+  {
+    latex:'81,\\ 27,\\ 9,\\ 3,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;?',
+    answer:'1',hint:'On divise par 3 à chaque étape.',
+    expl:'On divise par 3 : 81÷3=27, 27÷3=9, 9÷3=3, 3÷3=<strong>1</strong>. ✔'
+  },
+  {
+    latex:'0,\\ 1,\\ 4,\\ 9,\\ 16,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Carrés parfaits à partir de 0)</em>',
+    answer:'25',hint:'0², 1², 2², 3², 4², 5²...',
+    expl:'Carrés : 0²=0, 1²=1, 2²=4, 3²=9, 4²=16, 5²=<strong>25</strong>. ✔'
+  },
+  {
+    latex:'1,\\ 8,\\ 27,\\ 64,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Cubes parfaits)</em>',
+    answer:'125',hint:'1³, 2³, 3³, 4³, 5³...',
+    expl:'Ce sont les cubes : 1³=1, 2³=8, 3³=27, 4³=64, 5³=<strong>125</strong>. ✔'
+  },
+  {
+    latex:'\\text{A},\\ \\text{E},\\ \\text{I},\\ \\text{O},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Indice&nbsp;: voyelles)</em>',
+    answer:'U',hint:'Les voyelles de l\'alphabet français dans l\'ordre.',
+    expl:'Les voyelles en ordre : A, E, I, O, <strong>U</strong>. ✔'
+  },
+  {
+    latex:'2,\\ 6,\\ 12,\\ 20,\\ 30,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Les écarts augmentent)</em>',
+    answer:'42',hint:'+4, +6, +8, +10, +12...',
+    expl:'Écarts : +4, +6, +8, +10, +12 → 30+12=<strong>42</strong>. (Ce sont les produits n×(n+1) : 1×2, 2×3, 3×4, ..., 6×7.) ✔'
+  },
+  {
+    latex:'\\text{M},\\ \\text{V},\\ \\text{T},\\ \\text{M},\\ \\text{J},\\ \\text{V},\\ \\text{S},\\ \\text{U},\\ \\text{N},\\ \\boxed{\\,?\\,}',
+    question:'Quelle lettre vient ensuite&nbsp;? <em>(Planètes en ordre depuis le Soleil, en français)</em>',
+    answer:'P',hint:'Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton (ancienne planète naine).',
+    expl:'Planètes (+ Pluton historiquement) : M-V-T-M-J-S-U-N → la suivante est <strong>Pluton → P</strong>. ✔'
+  },
+  {
+    latex:'3,\\ 9,\\ 27,\\ 81,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;?',
+    answer:'243',hint:'On multiplie par 3 à chaque étape.',
+    expl:'On multiplie par 3 : 81 × 3 = <strong>243</strong>. Suite géométrique de raison 3. ✔'
+  },
+  {
+    latex:'13,\\ 21,\\ 34,\\ 55,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;? <em>(Suite de Fibonacci, suite)</em>',
+    answer:'89',hint:'Chaque terme = somme des deux précédents.',
+    expl:'Suite de Fibonacci : 34+55=<strong>89</strong>. ✔'
+  },
+  {
+    latex:'500,\\ 250,\\ 125,\\ 62{,}5,\\ \\boxed{\\,?\\,}',
+    question:'Quel est le terme suivant&nbsp;?',
+    answer:'31.25',hint:'On divise par 2 à chaque étape.',
+    expl:'On divise par 2 : 62,5 ÷ 2 = <strong>31,25</strong>. Suite géométrique de raison ½. ✔'
+  }
+];
+
+/* ─── ÉNIGMES ─── */
+const bankEnigmes=[
+  {
+    text:'Alice, Bob et Clara ont chacun un animal : un <span class="hl">chien</span>, un <span class="hl">chat</span> et un <span class="hl">lapin</span>.<br>▪ Alice n\'a pas de chien.<br>▪ Bob n\'a ni chat ni lapin.<br>▪ Clara n\'a pas de lapin.<br>Quel est l\'animal d\'Alice&nbsp;?',
+    options:['Le chien','Le chat','Le lapin','Impossible à savoir'],
+    answer:2,
+    expl:'Bob n\'a ni chat ni lapin → Bob a le chien. Clara n\'a pas de lapin → Clara a le chat. Il reste le lapin pour Alice. ✔'
+  },
+  {
+    text:'Paul, Léa et Marc pratiquent chacun un sport différent : <span class="hl">natation</span>, <span class="hl">tennis</span> ou <span class="hl">football</span>.<br>▪ Paul ne fait pas de natation.<br>▪ Léa ne fait ni tennis ni natation.<br>Quel sport pratique Paul&nbsp;?',
+    options:['La natation','Le tennis','Le football','Impossible à savoir'],
+    answer:1,
+    expl:'Léa ne fait ni tennis ni natation → Léa joue au football. Paul ne fait pas natation et football est pris → Paul joue au tennis. ✔'
+  },
+  {
+    text:'Cinq amis font la queue&nbsp;: Emma, Léo, Zoé, Tom, Nina.<br>▪ Léo est juste devant Emma.<br>▪ Emma est juste devant Zoé.<br>▪ Zoé est juste devant Tom.<br>▪ Tom est juste devant Nina.<br>Qui est en <span class="ho">3ème position</span>&nbsp;?',
+    options:['Emma','Léo','Zoé','Tom'],
+    answer:2,
+    expl:'L\'ordre est : Léo ① → Emma ② → Zoé ③ → Tom ④ → Nina ⑤. Zoé est bien en 3ème position. ✔'
+  },
+  {
+    text:'Clara est <span class="hl">plus âgée</span> que Marc.<br>Marc est <span class="hl">plus âgé</span> que Sophie.<br>Emma est <span class="hl">plus âgée</span> que Clara.<br>Qui est le/la <span class="ho">plus jeune</span>&nbsp;?',
+    options:['Clara','Marc','Sophie','Emma'],
+    answer:2,
+    expl:'On range dans l\'ordre : Emma > Clara > Marc > Sophie. Sophie est donc la plus jeune. ✔'
+  },
+  {
+    text:'Dans une course, 4 athlètes se classent.<br>▪ Alice termine <span class="hl">avant</span> Bob.<br>▪ Bob termine <span class="hl">avant</span> Clara.<br>▪ David termine <span class="ho">après</span> Clara.<br>Qui finit en <span class="ho">2ème position</span>&nbsp;?',
+    options:['Alice','Bob','Clara','David'],
+    answer:1,
+    expl:'L\'ordre est : Alice ① → Bob ② → Clara ③ → David ④. Bob termine en 2ème position. ✔'
+  },
+  {
+    text:'Dans une famille&nbsp;:<br>▪ Paul est le <span class="hl">père</span> de Marie.<br>▪ Marie est la <span class="hl">mère</span> de Lucas.<br>Quel est le lien entre Paul et Lucas&nbsp;?',
+    options:['Paul est le père de Lucas','Paul est l\'oncle de Lucas','Paul est le grand-père de Lucas','Paul est le frère de Lucas'],
+    answer:2,
+    expl:'Paul est le père de Marie, et Marie est la mère de Lucas → Paul est le grand-père de Lucas. ✔'
+  },
+  {
+    text:'4 ami(e)s : Anaïs, Bilal, Chloé, David.<br>▪ Anaïs est <span class="hl">plus petite</span> que Bilal.<br>▪ Chloé est <span class="hl">plus grande</span> que David.<br>▪ David est <span class="hl">plus grand</span> que Bilal.<br>Qui est le/la <span class="ho">plus grand(e)</span>&nbsp;?',
+    options:['Anaïs','Bilal','Chloé','David'],
+    answer:2,
+    expl:'On range : Chloé > David > Bilal > Anaïs. Chloé est la plus grande. ✔'
+  },
+  {
+    text:'Trois amis habitent dans trois villes : <span class="hl">Paris</span>, <span class="hl">Lyon</span> et <span class="hl">Bordeaux</span>.<br>▪ Hugo n\'habite pas à Paris.<br>▪ Inès n\'habite ni à Paris ni à Bordeaux.<br>Où habite Hugo&nbsp;?',
+    options:['À Paris','À Lyon','À Bordeaux','Impossible à savoir'],
+    answer:2,
+    expl:'Inès ne peut habiter qu\'à Lyon. Jade habite à Paris. Hugo, qui n\'est pas à Paris, habite donc à Bordeaux. ✔'
+  },
+  {
+    text:'Trois élèves ont chacun une couleur préférée : <span class="hl">rouge</span>, <span class="hl">bleu</span>, <span class="hl">vert</span>.<br>▪ Nina n\'aime pas le rouge.<br>▪ Omar n\'aime ni le bleu ni le vert.<br>Quelle est la couleur préférée de Nina&nbsp;?',
+    options:['Le rouge','Le bleu','Le vert','Impossible à savoir'],
+    answer:1,
+    expl:'Omar n\'aime ni bleu ni vert → Omar aime le rouge. Nina n\'aime pas le rouge → Nina aime le bleu ou le vert. Il reste bleu ou vert pour Nina. Comme Pita prend l\'autre → Nina aime le <strong>bleu</strong>. ✔'
+  },
+  {
+    text:'Rose est la <span class="hl">sœur</span> de Félix.<br>Félix est le <span class="hl">fils</span> de Martine.<br>Quel est le lien entre Rose et Martine&nbsp;?',
+    options:['Martine est la tante de Rose','Martine est la grand-mère de Rose','Martine est la mère de Rose','Martine est la cousine de Rose'],
+    answer:2,
+    expl:'Félix est le fils de Martine. Rose est la sœur de Félix → Rose est aussi enfant de Martine. Donc Martine est la <strong>mère de Rose</strong>. ✔'
+  },
+  {
+    text:'5 livres sont rangés sur une étagère : A, B, C, D, E.<br>▪ B est entre A et C.<br>▪ D est à droite de C.<br>▪ E est le dernier à droite.<br>Quel livre est en <span class="ho">première position</span> (à gauche)&nbsp;?',
+    options:['A','B','C','D'],
+    answer:0,
+    expl:'L\'ordre est : A – B – C – D – E. A est bien en première position à gauche. ✔'
+  },
+  {
+    text:'Trois enfants : Karim, Lisa, Mo. Chacun a un fruit : <span class="hl">pomme</span>, <span class="hl">poire</span>, <span class="hl">banane</span>.<br>▪ Karim n\'a pas la banane.<br>▪ Lisa a la poire.<br>Quel fruit a Mo&nbsp;?',
+    options:['La pomme','La poire','La banane','Impossible à savoir'],
+    answer:2,
+    expl:'Lisa a la poire. Karim n\'a pas la banane → Karim a la pomme. Il reste la <strong>banane pour Mo</strong>. ✔'
+  },
+  {
+    text:'Lola a <span class="hl">moins</span> de livres que Théo.<br>Théo a <span class="hl">autant</span> de livres que Sam.<br>Sam a <span class="hl">moins</span> de livres que Zoé.<br>Qui a le <span class="ho">plus</span> de livres&nbsp;?',
+    options:['Lola','Théo','Sam','Zoé'],
+    answer:3,
+    expl:'Lola < Théo = Sam < Zoé. Zoé a le plus de livres. ✔'
+  },
+  {
+    text:'Quatre amis jouent aux cartes : Alex, Ben, Cara, Diane.<br>▪ Alex marque <span class="hl">plus</span> que Ben.<br>▪ Ben marque <span class="hl">plus</span> que Cara.<br>▪ Diane marque <span class="hl">plus</span> qu\'Alex.<br>Qui a le <span class="ho">score le plus bas</span>&nbsp;?',
+    options:['Alex','Ben','Cara','Diane'],
+    answer:2,
+    expl:'Diane > Alex > Ben > Cara. Cara a le score le plus bas. ✔'
+  },
+  {
+    text:'Six personnes sont assises en ligne : 1er à 6ème.<br>▪ Alice est en 3ème position.<br>▪ Bob est juste derrière Alice.<br>▪ Clara est juste devant Alice.<br>Quelle est la position de Bob&nbsp;?',
+    options:['2ème','3ème','4ème','5ème'],
+    answer:2,
+    expl:'Alice est en 3ème. Clara est juste devant → Clara en 2ème. Bob est juste derrière Alice → Bob en <strong>4ème</strong>. ✔'
+  },
+  {
+    text:'Trois frères : l\'aîné, le cadet et le benjamin.<br>▪ Tom n\'est pas l\'aîné.<br>▪ Sam n\'est ni le cadet ni le benjamin.<br>Qui est le benjamin&nbsp;?',
+    options:['Tom','Sam','Max','Impossible à savoir'],
+    answer:0,
+    expl:'Sam n\'est ni cadet ni benjamin → Sam est l\'aîné. Tom n\'est pas l\'aîné (c\'est Sam). Il reste cadet ou benjamin pour Tom. Max prend l\'autre rôle. Comme Max est le cadet → Tom est le <strong>benjamin</strong>. ✔'
+  },
+  {
+    text:'4 villes : <span class="hl">Nantes</span>, <span class="hl">Lille</span>, <span class="hl">Rennes</span>, <span class="hl">Strasbourg</span>.<br>▪ Julie n\'habite pas dans le nord.<br>▪ Kévin habite dans l\'est.<br>▪ Laura habite en Bretagne.<br>Où habite Maël (4ème personne)&nbsp;?',
+    options:['À Nantes','À Lille','À Rennes','À Strasbourg'],
+    answer:1,
+    expl:'Kévin est à Strasbourg (est). Laura est à Rennes (Bretagne). Julie n\'est pas dans le nord → Julie est à Nantes. Il reste Lille pour <strong>Maël</strong>. ✔'
+  },
+  {
+    text:'Dans un sac : billes <span class="hl">rouges</span>, <span class="hl">bleues</span> et <span class="hl">vertes</span>.<br>▪ Il y a plus de rouges que de bleues.<br>▪ Il y a moins de bleues que de vertes.<br>▪ Il y a moins de vertes que de rouges.<br>Quelle couleur est la plus représentée&nbsp;?',
+    options:['Rouge','Bleue','Verte','Impossible à savoir'],
+    answer:0,
+    expl:'Bleues < Vertes < Rouges. La couleur la plus représentée est le <strong>rouge</strong>. ✔'
+  },
+  {
+    text:'Trois enfants partagent des bonbons.<br>▪ Axel en a <span class="hl">plus</span> que Bianca.<br>▪ Bianca en a <span class="hl">autant</span> que Carlo.<br>▪ Dina en a <span class="hl">plus</span> qu\'Axel.<br>Qui en a le moins&nbsp;?',
+    options:['Axel','Bianca ou Carlo','Dina','Impossible à savoir'],
+    answer:1,
+    expl:'Dina > Axel > Bianca = Carlo. Bianca et Carlo ont le <strong>même</strong> nombre de bonbons, le plus petit. ✔'
+  },
+  {
+    text:'Anna est <span class="hl">l\'amie</span> de Bea.<br>Bea est <span class="hl">la cousine</span> de Cécile.<br>Cécile est <span class="hl">la sœur</span> de Dany.<br>Quel lien y a-t-il entre Bea et Dany&nbsp;?',
+    options:['Bea est la cousine de Dany','Bea est la sœur de Dany','Bea est la tante de Dany','Bea est l\'amie de Dany'],
+    answer:0,
+    expl:'Bea est la cousine de Cécile, et Cécile est la sœur de Dany → Bea est aussi la <strong>cousine de Dany</strong>. ✔'
+  },
+  {
+    text:'Tom, Sana et Uri ont chacun un instrument : <span class="hl">piano</span>, <span class="hl">guitare</span>, <span class="hl">batterie</span>.<br>▪ Tom ne joue ni du piano ni de la batterie.<br>▪ Sana ne joue pas de la guitare.<br>Quel instrument joue Uri&nbsp;?',
+    options:['Le piano','La guitare','La batterie','Impossible à savoir'],
+    answer:2,
+    expl:'Tom ne joue ni piano ni batterie → Tom joue de la guitare. Sana ne joue pas de guitare → Sana joue du piano. Il reste la <strong>batterie pour Uri</strong>. ✔'
+  },
+  {
+    text:'Pierre est le <span class="hl">fils unique</span> de Jean.<br>Jean est le <span class="hl">frère</span> de Marie.<br>Quel est le lien entre Pierre et Marie&nbsp;?',
+    options:['Marie est la mère de Pierre','Marie est la tante de Pierre','Marie est la grand-mère de Pierre','Marie est la cousine de Pierre'],
+    answer:1,
+    expl:'Jean est le frère de Marie. Pierre est le fils de Jean → Marie est la <strong>tante de Pierre</strong>. ✔'
+  },
+  {
+    text:'Dans une classe : Hana est <span class="hl">plus grande</span> que Ines.<br>Ines est <span class="hl">plus grande</span> que Julia.<br>Kim est <span class="hl">aussi grande</span> qu\'Ines.<br>Lola est <span class="hl">plus grande</span> que Hana.<br>Qui est la <span class="ho">2ème plus grande</span>&nbsp;?',
+    options:['Hana','Ines ou Kim','Julia','Lola'],
+    answer:0,
+    expl:'Lola > Hana > Ines = Kim > Julia. La 2ème plus grande est <strong>Hana</strong>. ✔'
+  },
+  {
+    text:'Leo est <span class="hl">plus rapide</span> que Max.<br>Noa est <span class="hl">moins rapide</span> que Max.<br>Pat est <span class="hl">plus rapide</span> que Leo.<br>Qui finit en <span class="ho">3ème position</span>&nbsp;?',
+    options:['Leo','Max','Noa','Pat'],
+    answer:1,
+    expl:'Pat > Leo > Max > Noa. La 3ème position est celle de <strong>Max</strong>. ✔'
+  },
+  {
+    text:'Cinq amis : Abel, Bea, Carl, Dina, Eva font une course.<br>▪ Abel arrive avant Bea.<br>▪ Carl arrive avant Abel.<br>▪ Dina arrive après Eva.<br>▪ Eva arrive avant Carl.<br>Qui arrive en <span class="ho">premier</span>&nbsp;?',
+    options:['Abel','Bea','Carl','Eva'],
+    answer:3,
+    expl:'Eva arrive avant Carl, Carl avant Abel, Abel avant Bea. Donc Eva → Carl → Abel → Bea. Dina arrive après Eva (quelque part dans l\'ordre). <strong>Eva arrive en premier</strong>. ✔'
+  },
+  {
+    text:'Trois enfants ont chacun une couleur préférée : <span class="hl">rouge</span>, <span class="hl">bleu</span>, <span class="hl">vert</span>.<br>▪ Rémi n\'aime pas le rouge.<br>▪ Sara aime le vert.<br>▪ Théo n\'aime pas le bleu.<br>Quelle est la couleur préférée de Rémi&nbsp;?',
+    options:['Le rouge','Le bleu','Le vert','Impossible à savoir'],
+    answer:1,
+    expl:'Sara = vert. Rémi ≠ rouge, Rémi ≠ vert (pris) → Rémi = <strong>bleu</strong>. Théo ≠ bleu (pris) → Théo = rouge. ✔'
+  },
+  {
+    text:'Dans une boîte : 3 chaussettes rouges et 5 chaussettes bleues. Tu pioches dans le noir. Combien de chaussettes dois-tu prendre pour être <span class="ho">sûr(e)</span> d\'avoir une paire assortie&nbsp;?',
+    options:['2','3','4','6'],
+    answer:1,
+    expl:'Dans le pire des cas, tu tires 1 rouge puis 1 bleue (2 chaussettes, pas de paire). Le 3ème tirage sera forcément rouge ou bleu → tu auras 2 de la même couleur. Réponse : <strong>3 chaussettes</strong>. ✔'
+  },
+  {
+    text:'Quatre équipes jouent un tournoi : chaque équipe affronte toutes les autres une fois.<br>Combien de matchs sont joués en tout&nbsp;?',
+    options:['4 matchs','6 matchs','8 matchs','12 matchs'],
+    answer:1,
+    expl:'Avec 4 équipes, le nombre de paires = 4×3÷2 = <strong>6 matchs</strong>. (A-B, A-C, A-D, B-C, B-D, C-D.) ✔'
+  }
+];
+
+/* ─── SI... ALORS... ─── */
+const bankConditionnel=[
+  {
+    rule:'"Si il pleut, alors je prends mon parapluie."',
+    fact:'Il pleut.',
+    question:'Que peut-on conclure avec certitude&nbsp;?',
+    options:['Je prends mon parapluie','Je ne prends pas mon parapluie','Il ne pleut peut-être pas','On ne peut pas savoir'],
+    answer:0,
+    expl:'La condition est remplie (il pleut) → la conséquence s\'applique. Je prends mon parapluie. C\'est le raisonnement direct (modus ponens). ✔'
+  },
+  {
+    rule:'"Si il pleut, alors je prends mon parapluie."',
+    fact:'Je ne prends pas mon parapluie.',
+    question:'Que peut-on conclure&nbsp;?',
+    options:['Il pleut quand même','Il ne pleut pas','Je suis à l\'intérieur','On ne peut rien conclure'],
+    answer:1,
+    expl:'Si je ne prends pas mon parapluie, la condition n\'est pas remplie → il ne pleut pas. C\'est la contraposée (modus tollens). ✔'
+  },
+  {
+    rule:'"Si il pleut, alors je prends mon parapluie."',
+    fact:'Je prends mon parapluie.',
+    question:'Peut-on conclure qu\'il pleut&nbsp;?',
+    options:['Oui, forcément','Non, on ne peut pas conclure','Oui, c\'est logique','Peut-être, peut-être pas'],
+    answer:1,
+    expl:'Je prends peut-être mon parapluie par soleil fort ou par précaution. La règle ne fonctionne pas dans ce sens. Erreur classique ! ✔'
+  },
+  {
+    rule:'"Si tu es membre du club, tu reçois la newsletter."',
+    fact:'Luc reçoit la newsletter.',
+    question:'Luc est-il forcément membre du club&nbsp;?',
+    options:['Oui, forcément','Non, on ne peut pas conclure','Oui, sinon il ne la recevrait pas','Non, il n\'est certainement pas membre'],
+    answer:1,
+    expl:'Il peut recevoir la newsletter pour d\'autres raisons (invité, erreur, etc.). On ne peut pas conclure qu\'il est membre. ✔'
+  },
+  {
+    rule:'"Tous les oiseaux ont des plumes."',
+    fact:'Cet animal n\'a pas de plumes.',
+    question:'Cet animal est-il un oiseau&nbsp;?',
+    options:['Oui','Non, certainement pas','Peut-être','On ne sait pas'],
+    answer:1,
+    expl:'Tous les oiseaux ont des plumes → un animal sans plumes ne peut pas être un oiseau. Contraposée directe. ✔'
+  },
+  {
+    rule:'"Si un élève travaille régulièrement, il progresse."',
+    fact:'Anna n\'a pas progressé.',
+    question:'Que peut-on conclure sur Anna&nbsp;?',
+    options:['Anna a travaillé régulièrement','Anna n\'a pas travaillé régulièrement','Anna est une mauvaise élève','On ne peut rien conclure'],
+    answer:1,
+    expl:'Si elle avait travaillé, elle aurait progressé. Comme elle n\'a pas progressé → elle n\'a pas travaillé régulièrement (contraposée). ✔'
+  },
+  {
+    rule:'"Si la lumière est allumée, quelqu\'un est à la maison."',
+    fact:'La lumière n\'est pas allumée.',
+    question:'Peut-on conclure que personne n\'est à la maison&nbsp;?',
+    options:['Oui, forcément','Non, on ne peut pas conclure','Oui, c\'est évident','Non, c\'est le contraire'],
+    answer:1,
+    expl:'La lumière éteinte n\'exclut pas quelqu\'un à la maison (dans le noir, ou dans une autre pièce). La règle ne fonctionne pas à l\'envers. ✔'
+  },
+  {
+    rule:'"Tout nombre se terminant par 0 est divisible par 5."',
+    fact:'Ce nombre ne se termine pas par 0.',
+    question:'Ce nombre est-il divisible par 5&nbsp;?',
+    options:['Non, forcément','Oui, il peut quand même l\'être','Impossible à dire','Oui, forcément'],
+    answer:1,
+    expl:'Des nombres comme 5, 15, 25 sont divisibles par 5 sans se terminer par 0. La règle donne une condition suffisante, pas nécessaire. ✔'
+  },
+  {
+    rule:'"Si Tom est fatigué, il s\'endort en classe."',
+    fact:'Tom s\'endort en classe.',
+    question:'Tom est-il forcément fatigué&nbsp;?',
+    options:['Oui, forcément','Non, on ne peut pas conclure','Non, il est en bonne santé','Oui, c\'est la seule raison possible'],
+    answer:1,
+    expl:'Tom peut s\'endormir pour d\'autres raisons (ennui, maladie…). La règle ne peut pas s\'appliquer en sens inverse. ✔'
+  },
+  {
+    rule:'"Si on est en France, on est en Europe."',
+    fact:'Lucie est en Europe.',
+    question:'Lucie est-elle forcément en France&nbsp;?',
+    options:['Oui','Non, elle peut être dans un autre pays d\'Europe','Non, elle est hors d\'Europe','On ne peut pas savoir'],
+    answer:1,
+    expl:'L\'Europe contient de nombreux pays. Lucie peut être en Espagne, Allemagne, etc. Être en Europe n\'implique pas être en France. ✔'
+  },
+  {
+    rule:'"Si on est en France, on est en Europe."',
+    fact:'Pierre n\'est pas en Europe.',
+    question:'Pierre est-il en France&nbsp;?',
+    options:['Oui, peut-être','Non, certainement pas','On ne sait pas','Oui, forcément'],
+    answer:1,
+    expl:'France ⊂ Europe. Si Pierre n\'est pas en Europe, il ne peut pas être en France (contraposée). ✔'
+  },
+  {
+    rule:'"Si un magasin est ouvert, ses lumières sont allumées."',
+    fact:'Les lumières du magasin sont éteintes.',
+    question:'Le magasin est-il ouvert&nbsp;?',
+    options:['Oui, peut-être','Non, il est fermé','On ne peut pas savoir','Oui, forcément'],
+    answer:1,
+    expl:'Ouvert → lumières allumées. Lumières éteintes → le magasin n\'est pas ouvert (contraposée). ✔'
+  },
+  {
+    rule:'"Si tu manges équilibré, tu seras en bonne santé."',
+    fact:'Élodie est en bonne santé.',
+    question:'Élodie mange-t-elle forcément équilibré&nbsp;?',
+    options:['Oui, c\'est la seule façon','Non, on ne peut pas conclure','Non, elle est malade','Oui, d\'après la règle'],
+    answer:1,
+    expl:'La bonne santé peut venir d\'autres facteurs (sport, génétique…). La règle dit manger équilibré → bonne santé, pas le contraire. ✔'
+  },
+  {
+    rule:'"Si un animal est un dauphin, c\'est un mammifère marin."',
+    fact:'Flipper est un dauphin.',
+    question:'Flipper est-il un mammifère marin&nbsp;?',
+    options:['Oui, forcément','Non','On ne peut pas savoir','Peut-être'],
+    answer:0,
+    expl:'La condition est remplie : Flipper est un dauphin → Flipper est un mammifère marin. Modus ponens direct. ✔'
+  },
+  {
+    rule:'"Si la route est mouillée, il a plu."',
+    fact:'Il n\'a pas plu.',
+    question:'La route est-elle mouillée&nbsp;?',
+    options:['Oui, forcément','Non, elle ne peut pas être mouillée','On ne sait pas — elle peut être mouillée autrement','Elle est sèche'],
+    answer:2,
+    expl:'La route peut être mouillée pour d\'autres raisons (arrosage, nettoyage…). La règle dit pluie → route mouillée, pas l\'inverse. ✔'
+  },
+  {
+    rule:'"Tous les élèves qui réussissent l\'examen obtiennent le diplôme."',
+    fact:'Hugo n\'a pas obtenu le diplôme.',
+    question:'Hugo a-t-il réussi l\'examen&nbsp;?',
+    options:['Oui, il a réussi','Non, il n\'a pas réussi','On ne sait pas','Il a peut-être réussi'],
+    answer:1,
+    expl:'Réussir → diplôme. Hugo n\'a pas le diplôme → Hugo n\'a pas réussi (modus tollens). ✔'
+  },
+  {
+    rule:'"Si une figure a 3 côtés, c\'est un triangle."',
+    fact:'Cette figure a 4 côtés.',
+    question:'Cette figure est-elle un triangle&nbsp;?',
+    options:['Oui','Non, certainement pas','On ne sait pas','C\'est peut-être un triangle'],
+    answer:1,
+    expl:'Triangle → 3 côtés. La figure a 4 côtés → elle n\'a pas 3 côtés → ce n\'est pas un triangle. ✔'
+  },
+  {
+    rule:'"Si le feu est vert, les voitures avancent."',
+    fact:'Les voitures n\'avancent pas.',
+    question:'Le feu est-il vert&nbsp;?',
+    options:['Oui, le feu est vert','Non, le feu n\'est pas vert','On ne peut pas savoir','Le feu est rouge ou orange'],
+    answer:1,
+    expl:'Feu vert → voitures avancent. Voitures n\'avancent pas → feu n\'est pas vert (contraposée). ✔'
+  },
+  {
+    rule:'"Si c\'est le week-end, l\'école est fermée."',
+    fact:'Nous sommes lundi.',
+    question:'L\'école est-elle fermée&nbsp;?',
+    options:['Oui, l\'école est fermée','Non, on ne peut pas conclure — mais c\'est probablement ouvert','Non, l\'école est forcément ouverte','On ne peut pas savoir du tout'],
+    answer:1,
+    expl:'La règle dit week-end → école fermée. Mais lundi n\'est pas le week-end → on ne peut pas appliquer la règle directement. L\'école peut être ouverte ou avoir un jour férié. On ne peut pas conclure avec certitude. ✔'
+  },
+  {
+    rule:'"Tous les carrés sont des rectangles."',
+    fact:'Cette figure n\'est pas un rectangle.',
+    question:'Cette figure peut-elle être un carré&nbsp;?',
+    options:['Oui, c\'est possible','Non, certainement pas','On ne sait pas','Oui, les carrés ne sont pas des rectangles'],
+    answer:1,
+    expl:'Carré → rectangle. Si ce n\'est pas un rectangle, ce ne peut pas être un carré (contraposée). ✔'
+  },
+  {
+    rule:'"Si un nombre est divisible par 6, il est divisible par 2 et par 3."',
+    fact:'Ce nombre est divisible par 6.',
+    question:'Ce nombre est-il divisible par 3&nbsp;?',
+    options:['Oui, forcément','Non','On ne peut pas savoir','Peut-être'],
+    answer:0,
+    expl:'Divisible par 6 → divisible par 2 ET par 3. La condition est remplie → ce nombre est forcément divisible par 3. ✔'
+  },
+  {
+    rule:'"Si un nombre est divisible par 2 et par 3, il est divisible par 6."',
+    fact:'Ce nombre est divisible par 2.',
+    question:'Ce nombre est-il divisible par 6&nbsp;?',
+    options:['Oui, forcément','Non, on ne peut pas conclure','Non, c\'est impossible','Oui, si c\'est pair'],
+    answer:1,
+    expl:'La règle requiert divisible par 2 ET par 3. On ne sait que qu\'il est divisible par 2. Il peut ne pas l\'être par 3 → on ne peut pas conclure. ✔'
+  },
+  {
+    rule:'"Si tu appuies sur ce bouton, la lumière s\'allume."',
+    fact:'La lumière ne s\'allume pas.',
+    question:'As-tu appuyé sur le bouton&nbsp;?',
+    options:['Oui, tu as appuyé','Non, tu n\'as pas appuyé','On ne peut pas savoir','Tu as peut-être appuyé'],
+    answer:1,
+    expl:'Appuyer → lumière allumée. Lumière pas allumée → tu n\'as pas appuyé (modus tollens). ✔'
+  },
+  {
+    rule:'"Tous les chiens sont des animaux."',
+    fact:'Rex est un animal.',
+    question:'Rex est-il forcément un chien&nbsp;?',
+    options:['Oui, forcément','Non, on ne peut pas conclure','Non, Rex est un chat','Oui, si c\'est un mammifère'],
+    answer:1,
+    expl:'Tous les chiens sont des animaux, mais tous les animaux ne sont pas des chiens. Rex peut être n\'importe quel animal. ✔'
+  },
+  {
+    rule:'"Si la température descend sous 0°C, l\'eau gèle."',
+    fact:'L\'eau ne gèle pas.',
+    question:'La température est-elle sous 0°C&nbsp;?',
+    options:['Oui, elle est sous 0°C','Non, elle n\'est pas sous 0°C','On ne peut pas savoir','Peut-être'],
+    answer:1,
+    expl:'T < 0°C → eau gèle. L\'eau ne gèle pas → T n\'est pas sous 0°C (contraposée). ✔'
+  },
+  {
+    rule:'"Si Paul étudie, il réussit son contrôle."',
+    fact:'Paul n\'a pas étudié.',
+    question:'Paul réussit-il son contrôle&nbsp;?',
+    options:['Oui, il réussit quand même','Non, on ne peut pas conclure','Non, il rate forcément','Oui, il est doué'],
+    answer:1,
+    expl:'La règle dit étudier → réussir. Si Paul n\'étudie pas, la règle ne s\'applique pas dans ce sens. Il peut réussir sans étudier. On ne peut pas conclure. ✔'
+  },
+  {
+    rule:'"Si je mange trop de sucre, j\'ai mal aux dents."',
+    fact:'J\'ai mal aux dents.',
+    question:'Ai-je forcément mangé trop de sucre&nbsp;?',
+    options:['Oui, c\'est la seule cause possible','Non, il y a d\'autres causes possibles','Oui, d\'après la règle','Non, la règle est fausse'],
+    answer:1,
+    expl:'Le mal aux dents peut venir d\'une cavité, d\'un traumatisme, d\'une infection… Ce n\'est pas la seule cause. Erreur d\'inversion ! ✔'
+  },
+  {
+    rule:'"Toutes les roses sont des fleurs."',
+    fact:'Cette plante n\'est pas une fleur.',
+    question:'Cette plante est-elle une rose&nbsp;?',
+    options:['Oui, peut-être','Non, certainement pas','On ne sait pas','Oui, c\'est possible'],
+    answer:1,
+    expl:'Toutes les roses sont des fleurs → si ce n\'est pas une fleur, ce ne peut pas être une rose. Contraposée directe. ✔'
+  }
+];
+
+/* ─── INTRUS ─── */
+const bankIntrus=[
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Rose','Tulipe','Marguerite','Chêne','Violette'],
+    answer:3,
+    expl:'"Chêne" est un arbre. Rose, Tulipe, Marguerite et Violette sont des fleurs.'
+  },
+  {
+    label:'Parmi ces villes, laquelle est l\'intrus&nbsp;?',
+    items:['Paris','Lyon','Berlin','Marseille','Bordeaux'],
+    answer:2,
+    expl:'"Berlin" est une ville allemande. Toutes les autres sont des villes françaises.'
+  },
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Lundi','Mardi','Mercredi','Avril','Vendredi'],
+    answer:3,
+    expl:'"Avril" est un mois de l\'année. Lundi, Mardi, Mercredi et Vendredi sont des jours de la semaine.'
+  },
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Chanter','Courir','Dormir','Manger','Table'],
+    answer:4,
+    expl:'"Table" est un nom (une chose). Chanter, Courir, Dormir et Manger sont des verbes (des actions).'
+  },
+  {
+    label:'Parmi ces formes, laquelle est l\'intrus&nbsp;?',
+    items:['Carré','Cercle','Triangle','Losange','Crayon'],
+    answer:4,
+    expl:'"Crayon" n\'est pas une forme géométrique. Carré, Cercle, Triangle et Losange le sont.'
+  },
+  {
+    label:'Parmi ces oiseaux, lequel est l\'intrus&nbsp;?',
+    items:['Aigle','Moineau','Pingouin','Hirondelle','Cigogne'],
+    answer:2,
+    expl:'"Pingouin" est le seul qui ne peut pas voler. Aigle, Moineau, Hirondelle et Cigogne volent tous.'
+  },
+  {
+    label:'Parmi ces instruments, lequel est l\'intrus&nbsp;?',
+    items:['Guitare','Violon','Flûte','Harpe','Cithare'],
+    answer:2,
+    expl:'"Flûte" est un instrument à vent. Guitare, Violon, Harpe et Cithare sont des instruments à cordes.'
+  },
+  {
+    label:'Parmi ces animaux, lequel est l\'intrus&nbsp;?',
+    items:['Chien','Chat','Lapin','Serpent','Hamster'],
+    answer:3,
+    expl:'"Serpent" est le seul reptile. Chien, Chat, Lapin et Hamster sont des mammifères.'
+  },
+  {
+    label:'Parmi ces fruits, lequel est l\'intrus&nbsp;?',
+    items:['Pomme','Poire','Carotte','Cerise','Fraise'],
+    answer:2,
+    expl:'"Carotte" est un légume. Pomme, Poire, Cerise et Fraise sont des fruits.'
+  },
+  {
+    label:'Parmi ces planètes, laquelle est l\'intrus&nbsp;?',
+    items:['Mars','Jupiter','Saturne','Lune','Neptune'],
+    answer:3,
+    expl:'"Lune" est un satellite naturel, pas une planète. Mars, Jupiter, Saturne et Neptune sont des planètes du système solaire.'
+  },
+  {
+    label:'Parmi ces nombres, lequel est l\'intrus&nbsp;?',
+    items:['2','4','6','7','10'],
+    answer:3,
+    expl:'"7" est un nombre impair. 2, 4, 6 et 10 sont tous des nombres pairs.'
+  },
+  {
+    label:'Parmi ces métiers, lequel est l\'intrus&nbsp;?',
+    items:['Médecin','Infirmier','Pharmacien','Boulanger','Chirurgien'],
+    answer:3,
+    expl:'"Boulanger" est un artisan de l\'alimentation. Médecin, Infirmier, Pharmacien et Chirurgien sont tous des professionnels de santé.'
+  },
+  {
+    label:'Parmi ces continents, lequel est l\'intrus&nbsp;?',
+    items:['Europe','Afrique','Amazonie','Asie','Amérique'],
+    answer:2,
+    expl:'"Amazonie" est une région (forêt tropicale), pas un continent. Europe, Afrique, Asie et Amérique sont des continents.'
+  },
+  {
+    label:'Parmi ces couleurs, laquelle est l\'intrus&nbsp;?',
+    items:['Rouge','Bleu','Jaune','Vert','Carré'],
+    answer:4,
+    expl:'"Carré" est une forme géométrique, pas une couleur. Rouge, Bleu, Jaune et Vert sont des couleurs.'
+  },
+  {
+    label:'Parmi ces matières scolaires, laquelle est l\'intrus&nbsp;?',
+    items:['Maths','Français','Histoire','Gomme','SVT'],
+    answer:3,
+    expl:'"Gomme" est un outil scolaire. Maths, Français, Histoire et SVT sont des matières enseignées.'
+  },
+  {
+    label:'Parmi ces sports nautiques, lequel est l\'intrus&nbsp;?',
+    items:['Natation','Surf','Voile','Kayak','Tennis'],
+    answer:4,
+    expl:'"Tennis" se pratique sur un court. Natation, Surf, Voile et Kayak sont des sports nautiques (sur ou dans l\'eau).'
+  },
+  {
+    label:'Parmi ces animaux, lequel est l\'intrus&nbsp;?',
+    items:['Saumon','Thon','Sardine','Dauphin','Truite'],
+    answer:3,
+    expl:'"Dauphin" est un mammifère marin. Saumon, Thon, Sardine et Truite sont des poissons.'
+  },
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Heureux','Triste','Colère','Rapide','Peur'],
+    answer:3,
+    expl:'"Rapide" est une caractéristique physique. Heureux, Triste, Colère et Peur sont tous des émotions.'
+  },
+  {
+    label:'Parmi ces pays, lequel est l\'intrus&nbsp;?',
+    items:['Espagne','Italie','Brésil','Portugal','Grèce'],
+    answer:2,
+    expl:'"Brésil" est en Amérique du Sud. Espagne, Italie, Portugal et Grèce sont tous des pays européens.'
+  },
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Triangle','Rectangle','Pyramide','Carré','Hexagone'],
+    answer:2,
+    expl:'"Pyramide" est une figure en 3 dimensions (solide). Triangle, Rectangle, Carré et Hexagone sont des figures planes (2D).'
+  },
+  {
+    label:'Parmi ces nombres, lequel est l\'intrus&nbsp;?',
+    items:['4','9','16','25','30'],
+    answer:4,
+    expl:'"30" n\'est pas un carré parfait. 4=2², 9=3², 16=4², 25=5² sont tous des carrés parfaits.'
+  },
+  {
+    label:'Parmi ces "capitales", laquelle est l\'intrus&nbsp;?',
+    items:['Madrid','Rome','Amsterdam','Genève','Lisbonne'],
+    answer:3,
+    expl:'"Genève" n\'est pas la capitale de la Suisse — c\'est Berne. Madrid, Rome, Amsterdam et Lisbonne sont bien des capitales nationales.'
+  },
+  {
+    label:'Parmi ces animaux, lequel est l\'intrus&nbsp;?',
+    items:['Abeille','Fourmi','Papillon','Moustique','Araignée'],
+    answer:4,
+    expl:'"Araignée" est un arachnide (8 pattes), pas un insecte. Abeille, Fourmi, Papillon et Moustique sont des insectes (6 pattes).'
+  },
+  {
+    label:'Parmi ces éléments, lequel est l\'intrus&nbsp;?',
+    items:['Or','Argent','Fer','Bronze','Cuivre'],
+    answer:3,
+    expl:'"Bronze" n\'est pas un métal pur : c\'est un alliage (cuivre + étain). Or, Argent, Fer et Cuivre sont des éléments chimiques purs.'
+  },
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Boulangerie','Fromagerie','Épicerie','Librairie','Charcuterie'],
+    answer:3,
+    expl:'"Librairie" vend des livres, pas de la nourriture. Boulangerie, Fromagerie, Épicerie et Charcuterie sont des commerces alimentaires.'
+  },
+  {
+    label:'Parmi ces formes, lequel est l\'intrus&nbsp;?',
+    items:['Triangle','Cube','Carré','Cercle','Hexagone'],
+    answer:1,
+    expl:'"Cube" est une figure en 3 dimensions (solide). Triangle, Carré, Cercle et Hexagone sont des figures planes (2D).'
+  },
+  {
+    label:'Parmi ces sports, lequel est l\'intrus&nbsp;?',
+    items:['Football','Rugby','Basket-ball','Volleyball','Golf'],
+    answer:4,
+    expl:'"Golf" est un sport individuel sans équipe adverse directe. Football, Rugby, Basket-ball et Volleyball sont des sports collectifs d\'équipe.'
+  },
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Rapide','Lent','Grand','Petit','Courir'],
+    answer:4,
+    expl:'"Courir" est un verbe. Rapide, Lent, Grand et Petit sont des adjectifs.'
+  },
+  {
+    label:'Parmi ces animaux, lequel est l\'intrus&nbsp;?',
+    items:['Aigle','Requin','Baleine','Dauphin','Phoque'],
+    answer:0,
+    expl:'"Aigle" est le seul animal non marin (c\'est un oiseau terrestre). Requin, Baleine, Dauphin et Phoque sont tous des animaux marins.'
+  },
+  {
+    label:'Parmi ces mots, lequel est l\'intrus&nbsp;?',
+    items:['Heureux','Triste','Colère','Rapide','Peur'],
+    answer:3,
+    expl:'"Rapide" est une caractéristique physique. Heureux, Triste, Colère et Peur sont toutes des émotions.'
+  },
+  {
+    label:'Parmi ces planètes, laquelle est l\'intrus&nbsp;?',
+    items:['Mercure','Vénus','Terre','Mars','Comète de Halley'],
+    answer:4,
+    expl:'"Comète de Halley" n\'est pas une planète, c\'est une comète. Mercure, Vénus, Terre et Mars sont les 4 planètes telluriques du système solaire.'
+  }
+];
+
+/* ─── DÉFIS LOGIQUES ─── */
+const bankDefis=[
+  {
+    text:'Je peux être lu de gauche à droite ou de droite à gauche&nbsp;: je suis toujours le même. Comment appelle-t-on ce type de mot&nbsp;?<br><em style="font-size:.85em;color:var(--text-light)">(Exemples : "radar", "kayak", "elle")</em>',
+    options:['Un anagramme','Un palindrome','Un acronyme','Un homonyme'],
+    answer:1,
+    expl:'Un <strong>palindrome</strong> se lit identiquement dans les deux sens. Exemples : "radar", "kayak", "été", "elle".'
+  },
+  {
+    text:'Marie dit toujours la vérité. Paul dit toujours des mensonges.<br>Tu en rencontres un, mais tu ne sais pas lequel. Tu lui demandes&nbsp;: <em>"Es-tu Marie&nbsp;?"</em><br>Que te répond-il dans <strong>tous les cas</strong>&nbsp;?',
+    options:['"Oui" dans tous les cas','"Non" dans tous les cas','Ça dépend de qui c\'est','On ne peut pas savoir'],
+    answer:0,
+    expl:'Si c\'est Marie (véridique) → "Oui" (vrai). Si c\'est Paul (menteur) → "Oui" (mensonge sur son identité). Dans les deux cas : <strong>Oui</strong>.'
+  },
+  {
+    text:'Un père a <strong>3 filles</strong>. Chaque fille a <strong>un frère</strong>. Combien d\'enfants ce père a-t-il en tout&nbsp;?',
+    options:['3 enfants','4 enfants','6 enfants','7 enfants'],
+    answer:1,
+    expl:'Les 3 filles partagent le <strong>même</strong> frère unique. Il y a donc 3 filles + 1 garçon = <strong>4 enfants</strong>.'
+  },
+  {
+    text:'Kiri dit&nbsp;: <em style="color:var(--purple)">"Je mens en ce moment."</em><br>Cette affirmation est-elle vraie ou fausse&nbsp;?',
+    options:['Vraie','Fausse','Les deux à la fois','Ni vraie ni fausse — c\'est un paradoxe'],
+    answer:3,
+    expl:'Si c\'est vrai → Kiri ment → c\'est faux. Si c\'est faux → Kiri dit la vérité → c\'est vrai. Impossible à trancher : c\'est le célèbre <strong>paradoxe du menteur</strong>.'
+  },
+  {
+    text:'Dans une pièce fermée : <strong>3 ampoules</strong>. Dehors : <strong>3 interrupteurs</strong>, chacun commandant une ampoule. Tu ne peux entrer qu\'<strong>une seule fois</strong>. Comment savoir qui commande quoi&nbsp;?',
+    options:[
+      'Impossible, il faut entrer plusieurs fois',
+      'Allume le 1er longtemps → éteins → allume le 2ème → entre.<br>(Chaude-éteinte = 1er, allumée = 2ème, froide-éteinte = 3ème)',
+      'Allume les 3 et entre vite',
+      'Demande à quelqu\'un d\'observer à l\'intérieur'
+    ],
+    answer:1,
+    expl:'La <strong>chaleur</strong> de l\'ampoule reste après qu\'on l\'éteint. C\'est cet indice supplémentaire qui rend la solution possible en une seule entrée.'
+  },
+  {
+    text:'Je suis toujours devant toi, mais tu ne peux jamais m\'attraper. Qui suis-je&nbsp;?',
+    options:['Mon ombre','L\'avenir','Le vent','Un miroir'],
+    answer:1,
+    expl:'<strong>L\'avenir</strong> est toujours devant nous, mais dès qu\'il "arrive", il est déjà devenu le présent. On ne peut jamais l\'attraper.'
+  },
+  {
+    text:'Un escargot veut sortir d\'un puits de <strong>10 mètres</strong>. Chaque jour il monte 3 m. Chaque nuit il redescend 2 m. Après combien de jours sort-il du puits&nbsp;?',
+    options:['7 jours','8 jours','10 jours','9 jours'],
+    answer:1,
+    expl:'Chaque journée nette = +1 m. Au 8ème jour il est à 7 m et monte 3 m → il atteint 10 m et sort <strong>sans redescendre</strong>. Réponse : <strong>8 jours</strong>.'
+  },
+  {
+    text:'Théo bat Lina. Lina bat Mia. Mia bat Théo. Qui est le/la meilleur(e)&nbsp;?',
+    options:['Théo','Lina','Mia','Il n\'y a pas de meilleur : c\'est cyclique'],
+    answer:3,
+    expl:'Théo > Lina > Mia > Théo : boucle parfaite. Chacun gagne contre un et perd contre un autre. Aucun n\'est le meilleur absolu : <strong>relation non transitive</strong>.'
+  },
+  {
+    text:'Tu as 2 seaux&nbsp;: un de <strong>3 litres</strong> et un de <strong>5 litres</strong>. Comment mesurer exactement <strong>4 litres</strong> d\'eau&nbsp;?',
+    options:[
+      'Impossible avec ces seaux',
+      'Remplis le 5 L, verse dans le 3 L → reste 2 L. Vide le 3 L, verse les 2 L dedans. Remplis à nouveau le 5 L, verse jusqu\'à remplir le 3 L (1 L versé) → reste 4 L dans le 5 L.',
+      'Remplis le 3 L deux fois → 6 L puis enlève 2 L',
+      'Mélange les deux seaux'
+    ],
+    answer:1,
+    expl:'Étapes : 5→(verse dans 3)→reste 2 dans 5. Vide le 3. Verse les 2 L dans le 3. Remplis le 5. Verse du 5 dans le 3 jusqu\'à plein (1 L versé). Il reste <strong>4 L dans le seau de 5 L</strong>.'
+  },
+  {
+    text:'J\'ai des <strong>semaines mais pas de jours</strong>, des <strong>années mais pas de mois</strong>, des <strong>secondes mais pas de minutes</strong>. Qu\'est-ce que je suis&nbsp;?',
+    options:['Un calendrier','Une horloge','Un dictionnaire','Le temps lui-même'],
+    answer:2,
+    expl:'Un <strong>dictionnaire</strong> contient les mots "semaine", "année", "seconde", mais pas "jours", "mois" ou "minutes". Ce sont des jeux de mots sur l\'écriture des mots eux-mêmes.'
+  },
+  {
+    text:'Tu passes devant 3 personnes dans une course. En quelle position es-tu&nbsp;?',
+    options:['1ère position','2ème position','3ème position','4ème position'],
+    answer:2,
+    expl:'Si tu <em>dépasses</em> 3 personnes, tu prends leur place. La 3ème personne que tu doubles était en 3ème position → tu es maintenant en <strong>3ème</strong>. Tu n\'es pas 1er !'
+  },
+  {
+    text:'Un coq pond un œuf au sommet d\'un toit en pente. De quel côté tombe l\'œuf&nbsp;?',
+    options:['Du côté gauche','Du côté droit','Du côté de la pente','Les coqs ne pondent pas d\'œufs'],
+    answer:3,
+    expl:'Les <strong>coqs ne pondent pas d\'œufs</strong> — ce sont les poules ! Il n\'y a donc pas d\'œuf qui tombe.'
+  },
+  {
+    text:'Il y a 5 poissons dans un aquarium. <strong>2 se noient</strong>. Combien reste-t-il de poissons vivants&nbsp;?',
+    options:['3 poissons','5 poissons','2 poissons','0 poissons'],
+    answer:1,
+    expl:'Les poissons ne se noient pas dans l\'eau — c\'est leur milieu naturel ! Il reste donc <strong>5 poissons vivants</strong>.'
+  },
+  {
+    text:'Une maison a 4 murs. Chaque mur donne vers le <span class="hl">sud</span>. De quelle couleur est l\'ours qui vit à côté&nbsp;?',
+    options:['Brun','Noir','Blanc','Il n\'y a pas d\'ours'],
+    answer:2,
+    expl:'Si <strong>tous les murs donnent au sud</strong>, la maison est au Pôle Nord. Le seul ours qui y vit est l\'<strong>ours polaire</strong>, qui est blanc.'
+  },
+  {
+    text:'Dans une salle, il y a 30 élèves. La moitié des élèves sont des filles. La moitié des filles ont les cheveux longs. Combien de filles ont les <span class="ho">cheveux courts</span>&nbsp;?',
+    options:['15','8','7,5','On ne peut pas savoir'],
+    answer:2,
+    expl:'30 élèves → 15 filles. La moitié ont les cheveux longs = 7,5 → mais on ne peut pas avoir un demi-élève ! La réponse est <strong>impossible en nombre entier</strong>, mais dans un exercice standard : 15/2 = 7,5 → l\'énoncé est piégé.'
+  },
+  {
+    text:'Combien de mois de l\'année ont <strong>28 jours</strong>&nbsp;?',
+    options:['1 (février seulement)','2','4','12 — tous les mois en ont au moins 28'],
+    answer:3,
+    expl:'<strong>Tous les mois</strong> ont au moins 28 jours ! Janvier en a 31, février en a 28 (ou 29), mars en a 31… Ils ont TOUS au moins 28 jours.'
+  },
+  {
+    text:'Si demain c\'est mercredi, alors quel jour était <span class="ho">avant-hier</span>&nbsp;?',
+    options:['Lundi','Dimanche','Samedi','Mardi'],
+    answer:1,
+    expl:'Si demain = mercredi, alors aujourd\'hui = mardi, hier = lundi, avant-hier = <strong>dimanche</strong>.'
+  },
+  {
+    text:'Une bougie met <strong>30 minutes</strong> à brûler entièrement. On allume 2 bougies en même temps. Dans combien de temps les deux seront-elles éteintes&nbsp;?',
+    options:['1 heure','30 minutes','15 minutes','45 minutes'],
+    answer:1,
+    expl:'Les deux bougies brûlent <em>en parallèle</em>, pas l\'une après l\'autre. Elles brûlent toutes les deux en <strong>30 minutes</strong> simultanément.'
+  },
+  {
+    text:'Je parle toutes les langues du monde mais je ne dis jamais un mot. Qu\'est-ce que je suis&nbsp;?',
+    options:['Un traducteur','Un livre','Un geste','Un dictionnaire de langues'],
+    answer:1,
+    expl:'Un <strong>livre</strong> "parle" toutes les langues dans lesquelles il est écrit, mais n\'émet aucun son. Une métaphore poétique sur la transmission silencieuse du savoir.'
+  },
+  {
+    text:'Alex a des frères et sœurs. Son père lui dit&nbsp;: "Tu as autant de frères que de sœurs." Sa sœur dit à son père&nbsp;: "J\'ai deux fois plus de frères que de sœurs." Combien y a-t-il d\'enfants en tout&nbsp;?',
+    options:['4 enfants','5 enfants','7 enfants','6 enfants'],
+    answer:2,
+    expl:'Soient g garçons et f filles. Alex (garçon) : g−1 = f. Sa sœur : g = 2(f−1). Substitution → g−1 = f et g = 2f−2 → f = g−1 dans g = 2(g−1)−2 = 2g−4 → g = 4, f = 3. Total : <strong>7 enfants</strong>.'
+  },
+  {
+    text:'Un agriculteur a <strong>17 moutons</strong>. Il en vend tous sauf 9. Combien lui en reste-t-il&nbsp;?',
+    options:['8','9','17','0'],
+    answer:1,
+    expl:'"Tous sauf 9" signifie qu\'il garde 9 moutons. La réponse est <strong>9</strong>, pas 17−9=8. Le piège est dans la formulation "tous sauf". ✔'
+  },
+  {
+    text:'Tu entres dans une pièce froide et sombre. Tu as <strong>une allumette</strong>. Dans la pièce : une bougie, une lampe à pétrole et une cheminée. Qu\'allumes-tu en premier&nbsp;?',
+    options:['La bougie','La lampe à pétrole','La cheminée','L\'allumette'],
+    answer:3,
+    expl:'Avant d\'allumer quoi que ce soit, tu dois d\'abord <strong>allumer l\'allumette</strong> ! On oublie souvent l\'évidence. ✔'
+  },
+  {
+    text:'Si 5 machines font 5 produits en 5 minutes, combien de machines faut-il pour faire <strong>100 produits en 100 minutes</strong>&nbsp;?',
+    options:['100 machines','5 machines','20 machines','500 machines'],
+    answer:1,
+    expl:'1 machine fait 1 produit en 5 minutes. En 100 minutes, 1 machine fait 20 produits. Pour 100 produits : 100÷20 = 5 machines. <strong>5 machines suffisent</strong>. ✔'
+  },
+  {
+    text:'Je peux te montrer du nouveau, mais je ne suis qu\'un reflet du passé. Quand tu me regardes, tu vois ce qui était il y a des millénaires. Qu\'est-ce que je suis&nbsp;?',
+    options:['Un miroir','La télévision','Une photographie','Une étoile dans le ciel'],
+    answer:3,
+    expl:'La lumière des <strong>étoiles</strong> met des années, voire des millénaires, à nous parvenir. On voit leur passé. Un reflet littéral du cosmos ancien.'
+  },
+  {
+    text:'Deux pères et deux fils vont à la pêche. Chacun attrape 1 poisson. Au total, ils rentrent avec <strong>3 poissons</strong>. Comment est-ce possible&nbsp;?',
+    options:['L\'un d\'eux a relâché son poisson','L\'un d\'eux a mangé le sien','Ils sont seulement 3 (grand-père, père, fils)','Ce n\'est pas possible'],
+    answer:2,
+    expl:'Ils sont <strong>3 personnes</strong> : grand-père, père (fils du grand-père ET père de son fils), fils. Le père est à la fois père et fils → "deux pères et deux fils" = 3 personnes. ✔'
+  },
+  {
+    text:'Un homme marche 1 km au nord, 1 km à l\'est, 1 km au sud. Il se retrouve <span class="hl">exactement</span> à son point de départ. Comment est-ce possible&nbsp;?',
+    options:['C\'est impossible','Il est au Pôle Nord','Il a fait demi-tour en chemin','Il était sur un tapis roulant'],
+    answer:1,
+    expl:'Au <strong>Pôle Nord</strong>, après 1 km vers le pôle, tous les 1 km dirigés "est" reviennent au même cercle, et 1 km "sud" ramène au point de départ. Géométrie sphérique. ✔'
+  },
+  {
+    text:'Clara a autant de frères que de sœurs. Son frère Lucas a deux fois plus de sœurs que de frères. Combien y a-t-il d\'enfants en tout dans la famille&nbsp;?',
+    options:['5 enfants','6 enfants','7 enfants','8 enfants'],
+    answer:2,
+    expl:'Soient g garçons, f filles. Clara (fille) : g = f−1. Lucas (garçon) : f = 2(g−1). → f = 2f−4 → f = 4, g = 3. Total = <strong>7 enfants</strong>. ✔'
+  },
+  {
+    text:'Combien de fois peut-on soustraire 5 du nombre 50&nbsp;?',
+    options:['10 fois','9 fois','1 seule fois','Infiniment'],
+    answer:2,
+    expl:'La première fois tu soustrais 5 de 50 et obtiens 45. La fois suivante, tu soustrais 5 de <em>45</em>, plus de 50. On ne peut soustraire 5 <strong>du nombre 50</strong> qu\'<strong>une seule fois</strong>. Piège de formulation ! ✔'
+  }
+];
+
+const BANKS=[bankSyllogismes,bankSuites,bankEnigmes,bankConditionnel,bankIntrus,bankDefis];
+
+/* ══════════════════════════════════
+   RENDERING
+══════════════════════════════════ */
+function renderQ(q){
+  const Z=$('zone');
+  $('fb').className='fb';
+  $('nxt').style.display='none';
+  Z.innerHTML='';
+  if(cat===0)renderSyllogisme(q,Z);
+  else if(cat===1)renderSuite(q,Z);
+  else if(cat===2)renderEnigme(q,Z);
+  else if(cat===3)renderConditionnel(q,Z);
+  else if(cat===4)renderIntrus(q,Z);
+  else renderDefi(q,Z);
+}
+
+function renderSyllogisme(q,Z){
+  let h='<div class="premise-box">';
+  q.premises.forEach((p,i)=>{
+    h+=`<div class="premise-row"><span class="premise-num">${i+1}</span><span class="premise-text">${p}</span></div>`;
+  });
+  h+=`<div class="therefore"><span class="therefore-sym">∴</span><span class="therefore-q">Que peut-on conclure&nbsp;?</span></div>`;
+  h+='</div>';
+  h+=renderMCQGrid(q.options,4);
+  Z.innerHTML=h;
+  setupMCQ(q);
+}
+
+function renderSuite(q,Z){
+  let h='<div class="seq-box">';
+  h+=`<div class="seq-label">Suite logique</div>`;
+  h+=`<div id="seqLatex"></div>`;
+  h+='</div>';
+  h+=`<p class="q-prompt">${q.question}</p>`;
+  if(q.hint)h+=`<p style="text-align:center"><span class="hint-pill">💡 ${q.hint}</span></p>`;
+  h+=`<div class="seq-input-row">
+    <span class="seq-input-label">Réponse&nbsp;:</span>
+    <input class="seq-input" id="seqAns" placeholder="?" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+  </div>`;
+  h+=`<div class="controls"><button class="btn btn-blue" id="seqBtn" onclick="checkSuite()">Valider ✓</button></div>`;
+  Z.innerHTML=h;
+  const el=$('seqLatex');
+  if(el)tex(el,q.latex,true);
+  const inp=$('seqAns');
+  if(inp){
+    setTimeout(()=>inp.focus(),80);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkSuite()});
+  }
+}
+
+function renderEnigme(q,Z){
+  let h=`<div class="prob-box">${q.text}</div>`;
+  h+=renderMCQGrid(q.options,4);
+  Z.innerHTML=h;
+  setupMCQ(q);
+}
+
+function renderConditionnel(q,Z){
+  let h='<div class="cond-box">';
+  h+=`<div class="cond-rule">📋 Règle&nbsp;: ${q.rule}</div>`;
+  h+=`<div class="cond-fact"><span class="cond-pin">📌</span>Fait&nbsp;: ${q.fact}</div>`;
+  h+='</div>';
+  h+=`<p class="q-prompt">${q.question}</p>`;
+  h+=renderMCQGrid(q.options,4);
+  Z.innerHTML=h;
+  setupMCQ(q);
+}
+
+function renderIntrus(q,Z){
+  let h='<div class="intrus-box">';
+  h+=`<div class="intrus-label">🎯 ${q.label}</div>`;
+  h+='<div class="intrus-items-display" id="intrusItems">';
+  q.items.forEach((it,i)=>{
+    h+=`<span class="intrus-click" id="opt${i}" onclick="chooseMCQ(${i})">${it}</span>`;
+  });
+  h+='</div></div>';
+  h+=`<p class="q-prompt">Clique sur l\'intrus&nbsp;!</p>`;
+  Z.innerHTML=h;
+}
+
+function renderDefi(q,Z){
+  let h='<div class="defi-box">';
+  h+=`<div class="defi-label">💡 Défi logique</div>`;
+  h+=`<div class="defi-text">${q.text}</div>`;
+  h+='</div>';
+  h+=`<p class="q-prompt">Quelle est la bonne réponse&nbsp;?</p>`;
+  h+=renderMCQGrid(q.options,4);
+  Z.innerHTML=h;
+  setupMCQ(q);
+}
+
+function renderMCQGrid(options,cols){
+  const colClass=options.length<=2?'cols1':'';
+  let h=`<div class="mcq-grid ${colClass}">`;
+  options.forEach((opt,i)=>{
+    h+=`<div class="mcq-opt" id="opt${i}" onclick="chooseMCQ(${i})">${opt}</div>`;
+  });
+  h+='</div>';
+  return h;
+}
+
+function setupMCQ(q){
+  // Add Enter key support for MCQ (focuses first option)
+  // We rely on click; keep it simple for accessibility
+}
+
+/* ══════════════════════════════════
+   INTERACTION
+══════════════════════════════════ */
+function chooseMCQ(idx){
+  const q=qs[qi];
+  // Disable all
+  const numOpts=q.options?q.options.length:q.items.length;
+  for(let i=0;i<numOpts;i++){
+    const el=$('opt'+i);
+    if(el){el.classList.add('disabled');el.onclick=null;}
+  }
+  const sel=$('opt'+idx);
+  const cor=$('opt'+q.answer);
+  if(idx===q.answer){
+    if(sel)sel.classList.add('correct');
+    sc++;
+    showFb(true,'✅ Correct&nbsp;! '+q.expl);
+  } else {
+    if(sel)sel.classList.add('wrong');
+    if(cor)cor.classList.add('show-correct');
+    showFb(false,'❌ Incorrect. '+q.expl);
+  }
+  $('nxt').style.display='';
+}
+
+function checkSuite(){
+  const q=qs[qi];
+  const inp=$('seqAns');
+  if(!inp||$('seqBtn').disabled)return;
+  inp.classList.remove('ok','err');
+  const val=inp.value.trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const exp=q.answer.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(val===exp){
+    inp.classList.add('ok');
+    $('seqBtn').disabled=true;
+    sc++;
+    showFb(true,'✅ Correct&nbsp;! '+q.expl);
+    $('nxt').style.display='';
+  } else {
+    q._att=(q._att||0)+1;
+    if(q._att>=2){
+      inp.value=q.answer;inp.classList.add('ok');
+      $('seqBtn').disabled=true;
+      showFb(false,'❌ La bonne réponse était&nbsp;: <strong>'+q.answer+'</strong>. '+q.expl);
+      $('nxt').style.display='';
+    } else {
+      inp.classList.add('err');
+      setTimeout(()=>{inp.classList.remove('err');inp.value='';inp.focus()},600);
+    }
+  }
+}
+
+function showFb(ok,msg){
+  const fb=$('fb');
+  fb.className=ok?'fb ok':'fb bad';
+  fb.innerHTML=msg;
+}
+
+/* ══════════════════════════════════
+   FLOW
+══════════════════════════════════ */
+function go(c){
+  cat=c;sc=0;qi=0;
+  qs=sh([...BANKS[c]]).slice(0,8);
+  $('badge').textContent=CATNAMES[c];
+  $('badge').style.background=CATCOLORS[c];
+  $('menuBtn').style.display='block';
+  show('S_ex');
+  loadQ();
+}
+
+function loadQ(){
+  const q=qs[qi];
+  q._att=0;
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';
+  $('nxt').style.display='none';
+  $('zone').innerHTML='';
+  renderQ(q);
+}
+
+function nxtQ(){
+  qi++;
+  if(qi>=qs.length)showResults();
+  else loadQ();
+}
+
+function showResults(){
+  const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className='rc '+tier;
+  $('rPct').textContent=pct+'%';
+  $('rPct').style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+  $('rMsg').innerHTML=pct===100?'🎉 Parfait&nbsp;! Tu maîtrises parfaitement ce raisonnement&nbsp;!':
+    pct>=80?'🌟 Très bien&nbsp;! Tu as l\'esprit logique&nbsp;!':
+    pct>=60?'👍 Pas mal&nbsp;! Encore quelques efforts et tu y seras&nbsp;!':
+    '💪 Continue à t\'entraîner, la logique ça se travaille&nbsp;!';
+  show('S_res');
+}
+
+function replayCat(){go(cat)}
+
+/* ══════════════════════════════════
+   INIT
+══════════════════════════════════ */
+(function(){
+  const el=$('introK');
+  if(el)tex(el,'\\forall x :\\ P(x)\\ \\Rightarrow\\ Q(x)',true);
+})();
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

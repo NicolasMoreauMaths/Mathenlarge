@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Division euclidienne — Division posée</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --ink: #1b3a5c;
+    --ink-light: #3a6b9f;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --green: #1e8449;
+    --green-light: #27ae60;
+    --green-pale: #d5f5e3;
+    --orange: #d35400;
+    --orange-light: #e67e22;
+    --purple: #6c3483;
+    --purple-light: #8e44ad;
+    --paper: #fdf8f0;
+    --line-blue: #c8daea;
+    --margin-pink: #f0c0c0;
+    --pencil: #6b6b6b;
+    --shadow: rgba(27,58,92,0.1);
+}
+
+body {
+    font-family: 'Patrick Hand', cursive;
+    min-height: 100vh;
+    background: #e8e0d0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px 10px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.notebook {
+    background: var(--paper);
+    border-radius: 4px 16px 16px 4px;
+    padding: 32px 28px 32px 48px;
+    max-width: 860px;
+    width: 100%;
+    position: relative;
+    box-shadow:
+        -4px 0 0 #c0392b, -6px 0 0 #a93226,
+        4px 4px 20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 31px, var(--line-blue) 31px, var(--line-blue) 32px),
+        repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(200,218,234,0.3) 7px, rgba(200,218,234,0.3) 8px);
+    background-size: 100% 32px, 100% 8px;
+    min-height: 90vh;
+}
+.notebook::before {
+    content: ''; position: absolute; left: 38px; top: 0; bottom: 0;
+    width: 2px; background: var(--margin-pink); z-index: 1;
+}
+.notebook::after {
+    content: ''; position: absolute; left: -2px; top: 20px; bottom: 20px; width: 14px;
+    background-image: radial-gradient(circle 5px, #d0c8b8 90%, transparent 90%);
+    background-size: 14px 40px; background-repeat: repeat-y;
+}
+
+h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.7em; color: var(--ink);
+    text-align: center; margin-bottom: 6px; line-height: 1.3;
+}
+.subtitle { text-align: center; font-size: 1.1em; color: var(--pencil); margin-bottom: 24px; }
+
+.screen { display: none; animation: fadeIn 0.35s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn {
+    font-family: 'Patrick Hand', cursive;
+    padding: 12px 28px; border-radius: 12px; font-size: 1.05em;
+    cursor: pointer; transition: all 0.2s; border: 2px solid;
+    min-height: 46px; touch-action: manipulation;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-ink { background: var(--ink); color: white; border-color: var(--ink); box-shadow: 0 3px 10px var(--shadow); }
+.btn-ink:hover:not(:disabled) { background: var(--ink-light); transform: translateY(-2px); }
+.btn-green { background: var(--green); color: white; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { background: var(--green-light); transform: translateY(-2px); }
+.btn-outline { background: transparent; color: var(--ink); border-color: var(--line-blue); }
+.btn-outline:hover { background: rgba(200,218,234,0.2); }
+.controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+/* ============ INTRO ============ */
+.intro-screen { text-align: center; padding: 16px 0; }
+.intro-visual { font-size: 2.4em; margin-bottom: 16px; color: var(--ink); }
+.intro-desc { color: var(--pencil); font-size: 1.05em; max-width: 520px; margin: 0 auto 24px; line-height: 1.6; }
+
+/* ============ TUTORIAL ============ */
+.tuto-block {
+    background: rgba(200,218,234,0.12); border: 1px dashed var(--line-blue);
+    border-radius: 14px; padding: 20px; margin-bottom: 18px;
+}
+.tuto-title {
+    font-family: 'Libre Baskerville', serif; font-size: 1.15em; color: var(--red);
+    margin-bottom: 10px; padding-bottom: 4px; border-bottom: 1px solid rgba(200,180,180,0.4);
+}
+.tuto-text { color: var(--pencil); line-height: 1.65; margin-bottom: 8px; }
+.tuto-text strong { color: var(--ink); }
+.tuto-step-list { margin: 10px 0; }
+.tuto-step-item { display: flex; gap: 8px; margin-bottom: 6px; color: var(--pencil); line-height: 1.5; }
+.tuto-step-num { color: var(--ink); font-weight: 700; flex-shrink: 0; }
+
+/* ============ MENU ============ */
+.menu-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px; margin-bottom: 16px;
+}
+.menu-card {
+    background: white; border: 2px solid var(--line-blue); border-radius: 14px;
+    padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.25s;
+}
+.menu-card:hover { border-color: var(--ink-light); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.menu-card .card-icon { font-size: 2em; margin-bottom: 6px; }
+.menu-card .card-title { font-size: 1.1em; color: var(--ink); font-family: 'Libre Baskerville', serif; font-weight: 700; margin-bottom: 3px; }
+.menu-card .card-desc { font-size: 0.88em; color: var(--pencil); }
+
+/* ============ EXERCISE HEADER ============ */
+.ex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--ink); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.9em; }
+.ex-score { font-size: 1em; color: var(--ink); background: rgba(200,218,234,0.2); padding: 6px 14px; border-radius: 20px; }
+.progress-wrap { width: 100%; background: #e8e0d0; border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 14px; }
+.progress-fill { height: 100%; background: var(--ink); border-radius: 6px; transition: width 0.4s ease; width: 0%; }
+
+/* ============ DIVISION POSÉE DISPLAY ============ */
+.div-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0 20px;
+    overflow-x: auto;
+}
+
+.div-layout {
+    display: flex;
+    gap: 0;
+}
+
+.div-left { display: flex; flex-direction: column; align-items: flex-end; }
+
+.div-vbar { width: 3px; background: var(--ink); flex-shrink: 0; }
+
+.div-right { display: flex; flex-direction: column; }
+.div-right-top {
+    font-size: 1.8em; font-weight: 700; color: var(--red);
+    padding: 4px 14px 6px; border-bottom: 3px solid var(--ink);
+    min-height: 44px; display: flex; align-items: center; justify-content: center;
+}
+.div-right-bot {
+    font-size: 1.8em; font-weight: 700; color: var(--orange);
+    padding: 6px 14px; min-height: 44px; display: flex; align-items: center;
+    justify-content: center; letter-spacing: 2px;
+}
+
+.ld-row { display: flex; align-items: center; min-height: 40px; }
+.ld-cell {
+    width: 36px; height: 40px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.7em; color: var(--ink); position: relative;
+}
+.ld-cell.minus-col { width: 24px; font-size: 1.4em; color: var(--red); font-weight: 700; }
+.ld-cell.c-green { color: var(--green); font-weight: 700; }
+.ld-cell.c-red { color: var(--red); font-weight: 700; }
+.ld-cell.c-purple { color: var(--purple); font-weight: 700; }
+.ld-cell.c-orange { color: var(--orange); font-weight: 700; }
+.ld-cell.c-ink { color: var(--ink); }
+.ld-cell.underline { border-bottom: 2px solid var(--ink); }
+
+.ld-line-row { min-height: 8px !important; }
+.ld-line-row .ld-cell { height: 8px !important; min-height: 8px; }
+
+/* ============ PROMPT ============ */
+.prompt-zone {
+    background: white; border: 2px solid var(--line-blue); border-radius: 14px;
+    padding: 16px 20px; text-align: center; margin-bottom: 14px;
+    min-height: 80px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+}
+.prompt-text { font-size: 1.15em; color: var(--ink); line-height: 1.5; }
+.prompt-text .hl-green { color: var(--green); font-weight: 700; }
+.prompt-text .hl-red { color: var(--red); font-weight: 700; }
+.prompt-text .hl-orange { color: var(--orange); font-weight: 700; }
+.prompt-text .hl-purple { color: var(--purple); font-weight: 700; }
+
+.prompt-input-row { display: flex; align-items: center; gap: 10px; }
+.prompt-input {
+    font-family: 'Patrick Hand', cursive; font-size: 1.5em; width: 90px;
+    text-align: center; border: 2px dashed var(--line-blue); border-radius: 10px;
+    background: rgba(255,255,255,0.8); padding: 6px; outline: none;
+    color: var(--ink); transition: all 0.2s;
+}
+.prompt-input:focus { border-color: var(--ink-light); background: white; box-shadow: 0 0 0 3px rgba(58,107,159,0.1); }
+.prompt-input.error { border-color: var(--red); background: #fdedec; animation: shake 0.4s; }
+
+/* ============ EQUALITY ============ */
+.equality-section {
+    display: none; animation: fadeIn 0.4s ease;
+    text-align: center; margin-top: 16px; padding: 18px;
+    background: rgba(200,218,234,0.1); border: 2px dashed var(--line-blue); border-radius: 14px;
+}
+.equality-section.active { display: block; }
+.equality-label { font-size: 0.95em; color: var(--pencil); margin-bottom: 12px; }
+.equality-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 5px; flex-wrap: wrap; font-size: 1.5em; color: var(--ink); line-height: 2;
+}
+.eq-fixed { font-weight: 700; }
+.eq-fixed.sign { color: var(--pencil); }
+.eq-input {
+    font-family: 'Patrick Hand', cursive; font-size: 0.85em;
+    width: 60px; text-align: center; border: 2px dashed var(--line-blue);
+    border-radius: 8px; background: rgba(255,255,255,0.7); padding: 3px 4px; outline: none; transition: all 0.2s;
+}
+.eq-input:focus { border-color: var(--ink-light); background: white; }
+.eq-input.locked { border-style: solid; border-color: var(--green-light); background: var(--green-pale); }
+.eq-input.error { border-color: var(--red); background: #fdedec; }
+.eq-input.green { color: var(--green); }
+.eq-input.red { color: var(--red); }
+.eq-input.orange { color: var(--orange); }
+.eq-input.purple { color: var(--purple); }
+
+/* ============ FEEDBACK ============ */
+.feedback-box {
+    margin-top: 14px; padding: 14px 18px; border-radius: 12px;
+    font-size: 1em; text-align: center; display: none; animation: fadeIn 0.3s ease;
+}
+.feedback-box.correct { background: var(--green-pale); color: var(--green); border: 2px solid var(--green-light); display: block; }
+.feedback-box.incorrect { background: #fdedec; color: var(--red); border: 2px solid var(--red-light); display: block; }
+
+/* ============ RESULTS ============ */
+.results-screen { text-align: center; padding: 16px 0; }
+.results-emoji { font-size: 3.5em; margin-bottom: 10px; }
+.results-score { font-family: 'Libre Baskerville', serif; font-size: 2.6em; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.results-label { font-size: 1em; color: var(--pencil); margin-bottom: 16px; }
+.results-bar { width: 100%; max-width: 260px; height: 8px; background: var(--line-blue); border-radius: 6px; margin: 0 auto 16px; overflow: hidden; }
+.results-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; width: 0%; }
+.results-bar-fill.good { background: var(--green); }
+.results-bar-fill.bad { background: var(--red); }
+.results-msg { font-size: 1.2em; color: var(--ink); margin-bottom: 20px; }
+
+.color-legend {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 12px; font-size: 0.82em;
+}
+.legend-item { display: flex; align-items: center; gap: 4px; }
+.legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    body { padding: 14px 8px; }
+    .notebook { padding: 28px 18px 28px 40px; border-radius: 4px 14px 14px 4px; }
+    .notebook::before { left: 32px; }
+    h1 { font-size: 1.55em; }
+    .subtitle { font-size: 1.05em; }
+    .intro-visual { font-size: 2.2em; }
+    .intro-desc { font-size: 1.02em; }
+    .btn { padding: 11px 26px; font-size: 1.02em; min-height: 44px; }
+    .controls { gap: 9px; }
+    .menu-grid { grid-template-columns: 1fr; gap: 10px; }
+    .level-card { padding: 18px 14px; min-height: 100px; }
+    .ld-cell { width: 30px; height: 36px; font-size: 1.4em; }
+    .ld-cell.minus-col { width: 20px; font-size: 1.15em; }
+    .div-right-top, .div-right-bot { font-size: 1.45em; padding: 5px 12px; }
+}
+
+@media (max-width: 600px) {
+    body { padding: 12px 6px; }
+    .notebook { padding: 24px 14px 24px 36px; min-height: 85vh; }
+    .notebook::before { left: 28px; }
+    .notebook::after { left: -2px; width: 12px; background-size: 12px 36px; }
+    h1 { font-size: 1.35em; }
+    .subtitle { font-size: 1em; margin-bottom: 20px; }
+    .intro-visual { font-size: 2em; }
+    .intro-desc { font-size: 1em; }
+    .btn { padding: 10px 24px; font-size: 1em; min-height: 42px; }
+    .controls { gap: 8px; }
+    .tuto-block { padding: 16px; }
+    .tuto-title { font-size: 1.15em; }
+    .tuto-step { font-size: 1em; }
+    .menu-grid { grid-template-columns: 1fr; gap: 9px; }
+    .level-card { padding: 16px 12px; min-height: 90px; }
+    .level-icon { font-size: 1.8em; }
+    .level-title { font-size: 1.05em; }
+    .level-desc { font-size: 0.9em; }
+    .header { gap: 8px; }
+    .badge { padding: 6px 14px; font-size: 0.9em; }
+    .score { font-size: 1em; padding: 6px 14px; }
+    .problem-text { font-size: 1.05em; }
+    .ld-wrapper { margin: 12px auto; }
+    .ld-cell { width: 28px; height: 34px; font-size: 1.35em; }
+    .ld-cell.minus-col { width: 18px; font-size: 1.1em; }
+    .div-right-top, .div-right-bot { font-size: 1.4em; padding: 4px 10px; }
+    .feedback { padding: 10px 14px; font-size: 0.95em; }
+    .results-emoji { font-size: 3em; }
+    .results-score { font-size: 2.5em; }
+}
+
+@media (max-width: 480px) {
+    .notebook { padding: 22px 12px 22px 32px; }
+    .notebook::before { left: 24px; }
+    h1 { font-size: 1.25em; }
+    .subtitle { font-size: 0.98em; }
+    .intro-visual { font-size: 1.85em; }
+    .intro-desc { font-size: 0.98em; }
+    .btn { padding: 10px 22px; font-size: 0.98em; min-height: 40px; }
+    .tuto-block { padding: 14px; }
+    .level-card { padding: 14px 10px; min-height: 85px; }
+    .level-icon { font-size: 1.6em; }
+    .level-title { font-size: 1em; }
+    .level-desc { font-size: 0.88em; }
+    .problem-text { font-size: 1.02em; }
+    .ld-cell { width: 26px; height: 32px; font-size: 1.3em; }
+    .ld-cell.minus-col { width: 17px; font-size: 1.05em; }
+    .div-right-top, .div-right-bot { font-size: 1.35em; padding: 4px 9px; }
+    .feedback { padding: 9px 12px; font-size: 0.92em; }
+    .results-emoji { font-size: 2.8em; }
+    .results-score { font-size: 2.3em; }
+}
+
+@media (max-width: 380px) {
+    .notebook { padding: 20px 10px 20px 28px; }
+    .notebook::before { left: 20px; }
+    h1 { font-size: 1.2em; }
+    .btn { padding: 9px 20px; font-size: 0.95em; }
+    .level-card { padding: 12px 8px; min-height: 80px; }
+    .ld-cell { width: 25px; height: 30px; font-size: 1.25em; }
+    .ld-cell.minus-col { width: 16px; font-size: 1em; }
+    .div-right-top, .div-right-bot { font-size: 1.3em; padding: 3px 8px; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="notebook">
+
+<!-- ============ INTRO ============ -->
+<div class="screen active" id="introScreen">
+    <div class="intro-screen">
+        <div class="intro-visual">
+            <span style="color:var(--green);">142</span>
+            <span style="color:var(--pencil);"> ÷ </span>
+            <span style="color:var(--red);">8</span>
+            <span style="color:var(--pencil);"> = </span>
+            <span style="color:var(--orange);">17</span>
+            <span style="color:var(--pencil);"> reste </span>
+            <span style="color:var(--purple);">6</span>
+        </div>
+        <h1>La Division Posée</h1>
+        <p class="subtitle">Apprends à poser une division chiffre par chiffre !</p>
+        <p class="intro-desc">On avance chiffre par chiffre dans le dividende : on cherche combien de fois le diviseur rentre, on soustrait, on abaisse le chiffre suivant, et on recommence !</p>
+        <button class="btn btn-ink" onclick="show('tutorialScreen')">Ouvrir le cahier ✏️</button>
+    </div>
+</div>
+
+<!-- ============ TUTORIAL ============ -->
+<div class="screen" id="tutorialScreen">
+    <h1>📖 La méthode</h1>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Le vocabulaire</div>
+        <p class="tuto-text">
+            <strong style="color:var(--green);">dividende</strong> = 
+            <strong style="color:var(--red);">diviseur</strong> × 
+            <strong style="color:var(--orange);">quotient</strong> + 
+            <strong style="color:var(--purple);">reste</strong>
+        </p>
+        <p class="tuto-text">Le <strong style="color:var(--purple);">reste</strong> est toujours ≥ 0 et &lt; <strong style="color:var(--red);">diviseur</strong>.</p>
+    </div>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Exemple : 142 ÷ 8</div>
+        <div class="tuto-step-list">
+            <div class="tuto-step-item"><span class="tuto-step-num">❶</span><span>On prend <strong>14</strong> (car 1 &lt; 8). Combien de fois <strong style="color:var(--red);">8</strong> dans 14 ? → <strong style="color:var(--orange);">1</strong> fois.</span></div>
+            <div class="tuto-step-item"><span class="tuto-step-num">❷</span><span><strong style="color:var(--red);">8</strong> × <strong style="color:var(--orange);">1</strong> = 8. On soustrait : 14 − 8 = <strong>6</strong>.</span></div>
+            <div class="tuto-step-item"><span class="tuto-step-num">❸</span><span>On <strong>abaisse</strong> le <strong>2</strong> → on obtient <strong>62</strong>.</span></div>
+            <div class="tuto-step-item"><span class="tuto-step-num">❹</span><span>Combien de fois <strong style="color:var(--red);">8</strong> dans 62 ? → <strong style="color:var(--orange);">7</strong> fois.</span></div>
+            <div class="tuto-step-item"><span class="tuto-step-num">❺</span><span><strong style="color:var(--red);">8</strong> × <strong style="color:var(--orange);">7</strong> = 56. On soustrait : 62 − 56 = <strong style="color:var(--purple);">6</strong>. C'est le reste !</span></div>
+        </div>
+
+        <!-- Static visual of 142÷8 -->
+        <div id="tutoVisual" style="display:flex;justify-content:center;gap:0;margin:14px 0;"></div>
+
+        <p class="tuto-text" style="text-align:center;font-size:1.25em;margin-top:10px;">
+            <strong style="color:var(--green);">142</strong> = 
+            <strong style="color:var(--red);">8</strong> × 
+            <strong style="color:var(--orange);">17</strong> + 
+            <strong style="color:var(--purple);">6</strong>
+        </p>
+    </div>
+    <div class="controls">
+        <button class="btn btn-ink" onclick="show('menuScreen')">J'ai compris !</button>
+    </div>
+</div>
+
+<!-- ============ MENU ============ -->
+<div class="screen" id="menuScreen">
+    <h1>Choisis ton niveau</h1>
+    <p class="subtitle">De la division simple aux grands nombres ✏️</p>
+    <div class="menu-grid">
+        <div class="menu-card" onclick="startLevel(1)">
+            <div class="card-icon">🌱</div>
+            <div class="card-title">Niveau 1</div>
+            <div class="card-desc">Diviseur 2–9<br>Dividende &lt; 100</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(2)">
+            <div class="card-icon">🌿</div>
+            <div class="card-title">Niveau 2</div>
+            <div class="card-desc">Diviseur 2–9<br>Dividende &lt; 1000</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(3)">
+            <div class="card-icon">🌳</div>
+            <div class="card-title">Niveau 3</div>
+            <div class="card-desc">Diviseur 11–30<br>Dividende &lt; 5000</div>
+        </div>
+    </div>
+    <div class="controls">
+        <button class="btn btn-outline" onclick="show('tutorialScreen')">📖 Revoir la méthode</button>
+    </div>
+</div>
+
+<!-- ============ EXERCISE ============ -->
+<div class="screen" id="exerciseScreen">
+    <div class="ex-header">
+        <div class="ex-badge" id="exBadge">Niveau 1</div>
+        <div class="ex-score">Score : <span id="exScore">0</span> / <span id="exTotal">5</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="color-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div> dividende</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div> diviseur</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange);"></div> quotient</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple);"></div> reste</div>
+    </div>
+
+    <div class="div-wrapper"><div class="div-layout" id="divLayout"></div></div>
+
+    <div class="prompt-zone" id="promptZone"></div>
+
+    <div class="equality-section" id="equalitySection">
+        <div class="equality-label">Écris l'égalité de la division euclidienne :</div>
+        <div class="equality-row" id="equalityRow"></div>
+        <div class="controls" style="margin-top:12px;">
+            <button class="btn btn-green" id="btnEqValidate" onclick="validateEquality()">✓ Valider</button>
+        </div>
+    </div>
+
+    <div class="feedback-box" id="mainFeedback"></div>
+
+    <div class="controls" id="mainControls">
+        <button class="btn btn-ink" id="btnNext" style="display:none" onclick="nextExercise()">Suivant →</button>
+        <button class="btn btn-outline" id="btnSkip" onclick="skipExercise()">Passer →</button>
+        <button class="btn btn-outline" onclick="show('menuScreen')">← Menu</button>
+    </div>
+</div>
+
+<!-- ============ RESULTS ============ -->
+<div class="screen" id="resultsScreen">
+    <div class="results-screen">
+        <div class="results-emoji" id="resEmoji">✏️</div>
+        <div class="results-score" id="resScoreText">5 / 5</div>
+        <div class="results-label">Exercices réussis</div>
+        <div class="results-bar"><div class="results-bar-fill" id="resBarFill"></div></div>
+        <div class="results-msg" id="resMsg">Parfait !</div>
+        <button class="btn btn-ink" onclick="show('menuScreen')">Retour au menu</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+// ============================== STATE ==============================
+const TOTAL = 5;
+let level = 1, score = 0, exCount = 0;
+let dividend = 0, divisor = 0, fullQuotient = 0, finalRemainder = 0;
+let steps = [];
+let roundIdx = 0, subStep = 0; // subStep: 0=qDigit, 1=product, 2=remainder
+let quotientDigits = [];
+let N = 0; // digit count of dividend
+
+function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// ============================== COMPUTE DIVISION STEPS ==============================
+function computeSteps(a, b) {
+    const digits = String(a).split('').map(Number);
+    const result = [];
+    let partial = 0;
+    let started = false;
+
+    for (let i = 0; i < digits.length; i++) {
+        partial = partial * 10 + digits[i];
+        if (!started && partial < b && i < digits.length - 1) continue;
+        started = true;
+
+        const qd = Math.floor(partial / b);
+        const prod = qd * b;
+        const rem = partial - prod;
+
+        result.push({
+            partial, qDigit: qd, product: prod, remainder: rem,
+            endCol: i,
+            broughtDown: i < digits.length - 1 ? digits[i + 1] : null,
+        });
+        partial = rem;
+    }
+    return result;
+}
+
+// ============================== RENDER DIVISION DISPLAY ==============================
+function renderDiv(container, dvd, dvs, stps, completedRounds, qDigits, numDigits, showFinalRemainder) {
+    container.innerHTML = '';
+
+    const leftDiv = document.createElement('div');
+    leftDiv.className = 'div-left';
+
+    const vbar = document.createElement('div');
+    vbar.className = 'div-vbar';
+
+    const rightDiv = document.createElement('div');
+    rightDiv.className = 'div-right';
+
+    // Right side: divisor + quotient
+    rightDiv.innerHTML = `
+        <div class="div-right-top">${dvs}</div>
+        <div class="div-right-bot">${qDigits.length > 0 ? qDigits.join(' ') : '&nbsp;'}</div>
+    `;
+
+    // Left side: work rows
+    const dStr = String(dvd).split('');
+
+    // Row 0: dividend
+    leftDiv.appendChild(mkRow(dStr.join(''), numDigits, numDigits - 1, false, 'c-green'));
+
+    for (let r = 0; r < completedRounds; r++) {
+        const st = stps[r];
+        // Subtraction: − product
+        leftDiv.appendChild(mkRow(String(st.product), numDigits, st.endCol, true, 'c-red'));
+        // Line
+        leftDiv.appendChild(mkLineRow(numDigits, st));
+
+        if (r < completedRounds - 1) {
+            // Next partial
+            leftDiv.appendChild(mkRow(String(stps[r + 1].partial), numDigits, stps[r + 1].endCol, false, 'c-ink'));
+        } else if (showFinalRemainder) {
+            // Final remainder
+            leftDiv.appendChild(mkRow(String(st.remainder), numDigits, st.endCol, false, 'c-purple'));
+        } else if (completedRounds < stps.length) {
+            // Show next partial (remainder + brought down)
+            leftDiv.appendChild(mkRow(String(stps[completedRounds].partial), numDigits, stps[completedRounds].endCol, false, 'c-ink'));
+        }
+    }
+
+    container.appendChild(leftDiv);
+    container.appendChild(vbar);
+    container.appendChild(rightDiv);
+}
+
+function mkRow(numStr, numCols, endCol, isMinus, colorClass) {
+    const row = document.createElement('div');
+    row.className = 'ld-row';
+
+    const mc = document.createElement('div');
+    mc.className = 'ld-cell minus-col';
+    if (isMinus) mc.textContent = '−';
+    row.appendChild(mc);
+
+    const startCol = endCol - numStr.length + 1;
+
+    for (let i = 0; i < numCols; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'ld-cell ' + colorClass;
+        const di = i - startCol;
+        if (di >= 0 && di < numStr.length) cell.textContent = numStr[di];
+        row.appendChild(cell);
+    }
+    return row;
+}
+
+function mkLineRow(numCols, step) {
+    const row = document.createElement('div');
+    row.className = 'ld-row ld-line-row';
+
+    const mc = document.createElement('div');
+    mc.className = 'ld-cell minus-col';
+    mc.style.height = '8px';
+    row.appendChild(mc);
+
+    const prodLen = String(step.product).length;
+    const lineStart = Math.max(0, step.endCol - Math.max(prodLen, String(step.partial).length) + 1);
+
+    for (let i = 0; i < numCols; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'ld-cell';
+        cell.style.height = '8px';
+        if (i >= lineStart && i <= step.endCol) cell.classList.add('underline');
+        row.appendChild(cell);
+    }
+    return row;
+}
+
+// ============================== EXERCISE FLOW ==============================
+function startLevel(lvl) {
+    level = lvl; score = 0; exCount = 0;
+    document.getElementById('exBadge').textContent = 'Niveau ' + lvl;
+    document.getElementById('exScore').textContent = '0';
+    document.getElementById('exTotal').textContent = TOTAL;
+    show('exerciseScreen');
+    generateExercise();
+}
+
+function generateExercise() {
+    exCount++;
+    if (level === 1) { divisor = ri(2, 9); fullQuotient = ri(5, 11); }
+    else if (level === 2) { divisor = ri(2, 9); fullQuotient = ri(12, 110); }
+    else { divisor = ri(11, 30); fullQuotient = ri(10, 150); }
+    finalRemainder = ri(0, divisor - 1);
+    dividend = divisor * fullQuotient + finalRemainder;
+    N = String(dividend).length;
+    steps = computeSteps(dividend, divisor);
+    roundIdx = 0; subStep = 0;
+    quotientDigits = [];
+
+    resetUI();
+    renderDiv(document.getElementById('divLayout'), dividend, divisor, steps, 0, [], N, false);
+    showPrompt();
+}
+
+function resetUI() {
+    document.getElementById('progressFill').style.width = Math.min(((exCount - 1) / TOTAL) * 100, 100) + '%';
+    document.getElementById('mainFeedback').className = 'feedback-box';
+    document.getElementById('btnNext').style.display = 'none';
+    document.getElementById('btnSkip').style.display = '';
+    document.getElementById('equalitySection').className = 'equality-section';
+    document.getElementById('btnEqValidate').style.display = '';
+    document.getElementById('promptZone').style.display = '';
+}
+
+// ============================== PROMPT ==============================
+function showPrompt() {
+    const zone = document.getElementById('promptZone');
+    const st = steps[roundIdx];
+
+    let html = '';
+    if (subStep === 0) {
+        const txt = roundIdx === 0
+            ? `On prend <span class="hl-green">${st.partial}</span>. Combien de fois <span class="hl-red">${divisor}</span> dans ${st.partial} ?`
+            : `Combien de fois <span class="hl-red">${divisor}</span> dans <span class="hl-green">${st.partial}</span> ?`;
+        html = `
+            <div class="prompt-text">${txt}</div>
+            <div class="prompt-input-row">
+                <input type="number" class="prompt-input" id="pInput" placeholder="?" min="0" style="color:var(--orange);">
+                <button class="btn btn-green" onclick="validateSub()">✓</button>
+            </div>
+            <div class="prompt-feedback" id="pFb"></div>`;
+    } else if (subStep === 1) {
+        html = `
+            <div class="prompt-text"><span class="hl-red">${divisor}</span> × <span class="hl-orange">${st.qDigit}</span> = ?</div>
+            <div class="prompt-input-row">
+                <input type="number" class="prompt-input" id="pInput" placeholder="?" min="0" style="color:var(--red);">
+                <button class="btn btn-green" onclick="validateSub()">✓</button>
+            </div>
+            <div class="prompt-feedback" id="pFb"></div>`;
+    } else if (subStep === 2) {
+        html = `
+            <div class="prompt-text">${st.partial} − <span class="hl-red">${st.product}</span> = ?</div>
+            <div class="prompt-input-row">
+                <input type="number" class="prompt-input" id="pInput" placeholder="?" min="0" style="color:var(--purple);">
+                <button class="btn btn-green" onclick="validateSub()">✓</button>
+            </div>
+            <div class="prompt-feedback" id="pFb"></div>`;
+    }
+    zone.innerHTML = html;
+    setTimeout(() => {
+        const el = document.getElementById('pInput');
+        if (el) { el.focus(); el.addEventListener('keydown', e => { if (e.key === 'Enter') validateSub(); }); }
+    }, 60);
+}
+
+// ============================== VALIDATE SUB-STEP ==============================
+function validateSub() {
+    const el = document.getElementById('pInput');
+    const fb = document.getElementById('pFb');
+    if (!el) return;
+    const val = parseInt(el.value);
+    el.classList.remove('error');
+    const st = steps[roundIdx];
+
+    if (isNaN(val) || val < 0) { el.classList.add('error'); fb.innerHTML = `<span style="color:var(--red)">Entre un nombre.</span>`; el.focus(); return; }
+
+    if (subStep === 0) {
+        if (val !== st.qDigit) {
+            el.classList.add('error');
+            if (val * divisor > st.partial) fb.innerHTML = `<span style="color:var(--red)">❌ Trop grand ! ${divisor} × ${val} = ${divisor*val} &gt; ${st.partial}</span>`;
+            else if ((st.partial - val * divisor) >= divisor) fb.innerHTML = `<span style="color:var(--red)">❌ Trop petit ! Il resterait ${st.partial - val*divisor}, c'est ≥ ${divisor}</span>`;
+            else fb.innerHTML = `<span style="color:var(--red)">❌ Ce n'est pas correct.</span>`;
+            el.focus(); return;
+        }
+        quotientDigits.push(st.qDigit);
+        renderDiv(document.getElementById('divLayout'), dividend, divisor, steps, roundIdx, quotientDigits, N, false);
+        subStep = 1;
+        showPrompt();
+
+    } else if (subStep === 1) {
+        if (val !== st.product) {
+            el.classList.add('error');
+            fb.innerHTML = `<span style="color:var(--red)">❌ ${divisor} × ${st.qDigit} = ${st.product}, pas ${val}</span>`;
+            el.focus(); return;
+        }
+        subStep = 2;
+        showPrompt();
+
+    } else if (subStep === 2) {
+        if (val !== st.remainder) {
+            el.classList.add('error');
+            fb.innerHTML = `<span style="color:var(--red)">❌ ${st.partial} − ${st.product} = ${st.remainder}, pas ${val}</span>`;
+            el.focus(); return;
+        }
+
+        roundIdx++;
+        const done = roundIdx >= steps.length;
+
+        // Re-render with completed round
+        renderDiv(document.getElementById('divLayout'), dividend, divisor, steps, roundIdx, quotientDigits, N, done);
+
+        if (done) {
+            document.getElementById('promptZone').innerHTML =
+                `<div class="prompt-text" style="color:var(--green);">✅ Division terminée ! Le reste est <strong style="color:var(--purple);">${finalRemainder}</strong>. Écris l'égalité.</div>`;
+            setTimeout(() => showEquality(), 400);
+        } else {
+            const nextSt = steps[roundIdx];
+            document.getElementById('promptZone').innerHTML =
+                `<div class="prompt-text">On abaisse le <strong>${steps[roundIdx - 1].broughtDown}</strong> → on obtient <strong>${nextSt.partial}</strong></div>`;
+            setTimeout(() => { subStep = 0; showPrompt(); }, 1200);
+        }
+    }
+}
+
+// ============================== EQUALITY ==============================
+function showEquality() {
+    const section = document.getElementById('equalitySection');
+    section.className = 'equality-section active';
+    document.getElementById('equalityRow').innerHTML = `
+        <input type="number" class="eq-input green" id="eqA" placeholder="?">
+        <span class="eq-fixed sign">=</span>
+        <input type="number" class="eq-input red" id="eqB" placeholder="?">
+        <span class="eq-fixed sign">×</span>
+        <input type="number" class="eq-input orange" id="eqQ" placeholder="?">
+        <span class="eq-fixed sign">+</span>
+        <input type="number" class="eq-input purple" id="eqR" placeholder="?">
+    `;
+    const ids = ['eqA','eqB','eqQ','eqR'];
+    ids.forEach((id, i) => {
+        document.getElementById(id).addEventListener('keydown', e => {
+            if (e.key === 'Enter') { if (i < 3) document.getElementById(ids[i+1]).focus(); else validateEquality(); }
+        });
+    });
+    setTimeout(() => document.getElementById('eqA').focus(), 100);
+}
+
+function validateEquality() {
+    const ids = ['eqA','eqB','eqQ','eqR'];
+    const expected = [dividend, divisor, fullQuotient, finalRemainder];
+    const names = ['dividende','diviseur','quotient','reste'];
+
+    for (let i = 0; i < 4; i++) {
+        const el = document.getElementById(ids[i]);
+        const val = parseInt(el.value);
+        el.classList.remove('error','locked');
+        if (isNaN(val) || val !== expected[i]) {
+            el.classList.add('error');
+            showFb(false, `Le ${names[i]} n'est pas correct.`);
+            el.focus();
+            return;
+        }
+        el.classList.add('locked');
+    }
+
+    score++;
+    document.getElementById('exScore').textContent = score;
+    showFb(true,
+        `<span style="color:var(--green);font-weight:700">${dividend}</span> = ` +
+        `<span style="color:var(--red)">${divisor}</span> × ` +
+        `<span style="color:var(--orange)">${fullQuotient}</span> + ` +
+        `<span style="color:var(--purple)">${finalRemainder}</span>`);
+    endExercise();
+}
+
+// ============================== FLOW ==============================
+function showFb(ok, html) {
+    const fb = document.getElementById('mainFeedback');
+    fb.className = 'feedback-box ' + (ok ? 'correct' : 'incorrect');
+    fb.innerHTML = (ok ? '✅ Bravo ! ' : '❌ ') + html;
+}
+
+function endExercise() {
+    document.getElementById('btnSkip').style.display = 'none';
+    document.getElementById('btnNext').style.display = '';
+    document.getElementById('btnEqValidate').style.display = 'none';
+    document.getElementById('promptZone').style.display = 'none';
+}
+
+function skipExercise() {
+    renderDiv(document.getElementById('divLayout'), dividend, divisor, steps, steps.length, steps.map(s=>s.qDigit), N, true);
+    showFb(false,
+        `La réponse : <span style="color:var(--green)">${dividend}</span> = ` +
+        `<span style="color:var(--red)">${divisor}</span> × ` +
+        `<span style="color:var(--orange)">${fullQuotient}</span> + ` +
+        `<span style="color:var(--purple)">${finalRemainder}</span>`);
+    endExercise();
+}
+
+function nextExercise() {
+    document.getElementById('promptZone').style.display = '';
+    if (exCount >= TOTAL) showResults();
+    else generateExercise();
+}
+
+function showResults() {
+    const pct = Math.round(score / TOTAL * 100);
+    document.getElementById('resEmoji').textContent = pct === 100 ? '🏆' : pct >= 80 ? '📝' : pct >= 60 ? '✏️' : '💪';
+    document.getElementById('resScoreText').textContent = `${score} / ${TOTAL}`;
+    document.getElementById('resMsg').textContent = pct === 100 ? 'Division posée maîtrisée !' : pct >= 80 ? 'Très bien !' : pct >= 60 ? 'Pas mal, continue !' : 'Révise et réessaie !';
+    const bf = document.getElementById('resBarFill');
+    bf.className = 'results-bar-fill ' + (pct >= 60 ? 'good' : 'bad');
+    bf.style.width = '0%';
+    show('resultsScreen');
+    setTimeout(() => bf.style.width = pct + '%', 100);
+}
+
+// ============================== TUTORIAL VISUAL ==============================
+(function buildTutoVisual() {
+    setTimeout(() => {
+        const el = document.getElementById('tutoVisual');
+        if (el) renderDiv(el, 142, 8, computeSteps(142, 8), 2, [1, 7], 3, true);
+    }, 50);
+})();
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture de diagrammes – Statistiques | 4ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#b45309; --primary-dark:#78350f; --primary-light:#fef3c7;
+            --success:#059669; --bonus:#7c3aed; --bonus-light:#ede9fe;
+            --bg-card:#ffffff; --border:#fde68a; --text-dark:#1c1917; --text-medium:#57534e;
+            --shadow:rgba(180,83,9,0.10);
+            --tag-bar:#dbeafe; --tag-bar-text:#1d4ed8;
+            --tag-circ:#fce7f3; --tag-circ-text:#be185d;
+            --tag-hist:#dcfce7; --tag-hist-text:#166534;
+            --tag-pb:#fef3c7; --tag-pb-text:#92400e;
+            --c1:#6366f1; --c2:#f59e0b; --c3:#10b981; --c4:#ef4444; --c5:#8b5cf6; --c6:#06b6d4;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#fef3c7 0%,#ede9fe 50%,#ccfbf1 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--bonus),#10b981);}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--bonus));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--bonus));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.orange{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.purple{background:var(--bonus-light);color:var(--bonus);}
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-bar{background:var(--tag-bar);color:var(--tag-bar-text);}
+        .tag-circ{background:var(--tag-circ);color:var(--tag-circ-text);}
+        .tag-hist{background:var(--tag-hist);color:var(--tag-hist-text);}
+        .tag-pb{background:var(--tag-pb);color:var(--tag-pb-text);}
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(180,83,9,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--bonus);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--bonus-light);color:var(--bonus);border:2px solid #c4b5fd;border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:normal;flex-shrink:0;}
+        .hint-btn:hover{background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn.active{background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--bonus);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;word-break:break-word;}
+        .hint-text.revealed{max-height:300px;padding:0.5rem 0.85rem;opacity:1;}
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .exercise-content p{margin-bottom:0.5rem;}
+        .q-row{display:flex;align-items:flex-start;gap:0.4rem;margin-bottom:0.6rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:0.8rem;font-weight:700;width:1.4rem;height:1.4rem;border-radius:50%;text-align:center;line-height:1.4rem;flex-shrink:0;margin-top:0.2rem;}
+        .calcul-step{background:white;padding:1.25rem 1.5rem;border-radius:10px;margin:0.75rem 0;border-left:4px solid var(--primary);}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .rule-box{background:#faf5ff;border:2px solid #c4b5fd;border-radius:10px;padding:0.9rem 1.25rem;margin:0.75rem 0;font-size:0.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--bonus);}
+        /* SVG charts */
+        .chart-container{background:#f8faff;border:2px solid var(--border);border-radius:14px;padding:1.25rem;margin:1.25rem 0;overflow-x:auto;}
+        .chart-title{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:700;color:var(--primary-dark);text-align:center;margin-bottom:0.75rem;}
+        svg text{font-family:'DM Sans',sans-serif;}
+        /* Pie legend */
+        .pie-legend{display:flex;flex-wrap:wrap;gap:0.5rem 1.25rem;justify-content:center;margin-top:0.75rem;}
+        .pie-legend-item{display:flex;align-items:center;gap:0.4rem;font-size:0.9rem;}
+        .pie-legend-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}.subtitle{font-size:0.95rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.calcul-step{padding:0.75rem;}.solution-text{font-size:1rem;padding:0.65rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.score-card{padding:1.5rem 1.25rem;}.hint-btn{width:100%;text-align:left;}.hint-item{flex-direction:column;gap:0.3rem;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}}
+        @media(max-width:380px){h1{font-size:1.25rem;}.exercise-title{font-size:1.1rem;}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📊 Feuille d'exercices</h1>
+        <p class="subtitle">Lecture de diagrammes et histogrammes – Statistiques – Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">4ème</span>
+            <span class="header-chip">4 exercices</span>
+            <span class="header-chip">Barres · Circulaire · Histogramme</span>
+        </div>
+    </header>
+
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 4</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ===== EXERCICE 1 : Diagramme en barres ===== -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 4</h2>
+                <span class="exercise-tag tag-bar">Diagramme en barres</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Le diagramme ci-dessous représente le nombre de livres lus par des élèves d'une classe de 4ème pendant les vacances.</p>
+            <div class="chart-container">
+                <div class="chart-title">Nombre de livres lus pendant les vacances</div>
+                <svg viewBox="0 0 520 260" width="100%" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Axes -->
+                    <line x1="60" y1="220" x2="490" y2="220" stroke="#94a3b8" stroke-width="2"/>
+                    <line x1="60" y1="20" x2="60" y2="220" stroke="#94a3b8" stroke-width="2"/>
+                    <!-- Grille horizontale -->
+                    <line x1="60" y1="180" x2="490" y2="180" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="140" x2="490" y2="140" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="100" x2="490" y2="100" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="60" x2="490" y2="60" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <!-- Labels axe Y -->
+                    <text x="50" y="224" text-anchor="end" font-size="12" fill="#64748b">0</text>
+                    <text x="50" y="184" text-anchor="end" font-size="12" fill="#64748b">2</text>
+                    <text x="50" y="144" text-anchor="end" font-size="12" fill="#64748b">4</text>
+                    <text x="50" y="104" text-anchor="end" font-size="12" fill="#64748b">6</text>
+                    <text x="50" y="64" text-anchor="end" font-size="12" fill="#64748b">8</text>
+                    <!-- Barres : 0 livre=3, 1 livre=7, 2 livres=9, 3 livres=6, 4 livres=5 -->
+                    <!-- Barre 0 livre : 3 élèves → hauteur = 3×20=60 -->
+                    <rect x="80" y="160" width="55" height="60" fill="#6366f1" rx="4"/>
+                    <text x="107" y="155" text-anchor="middle" font-size="12" fill="#6366f1" font-weight="700">3</text>
+                    <!-- Barre 1 livre : 7 élèves → hauteur = 7×20=140 -->
+                    <rect x="165" y="80" width="55" height="140" fill="#f59e0b" rx="4"/>
+                    <text x="192" y="75" text-anchor="middle" font-size="12" fill="#d97706" font-weight="700">7</text>
+                    <!-- Barre 2 livres : 9 élèves → hauteur = 9×20=180 -->
+                    <rect x="250" y="40" width="55" height="180" fill="#10b981" rx="4"/>
+                    <text x="277" y="35" text-anchor="middle" font-size="12" fill="#059669" font-weight="700">9</text>
+                    <!-- Barre 3 livres : 6 élèves → hauteur = 6×20=120 -->
+                    <rect x="335" y="100" width="55" height="120" fill="#ef4444" rx="4"/>
+                    <text x="362" y="95" text-anchor="middle" font-size="12" fill="#dc2626" font-weight="700">6</text>
+                    <!-- Barre 4 livres : 5 élèves → hauteur = 5×20=100 -->
+                    <rect x="420" y="120" width="55" height="100" fill="#8b5cf6" rx="4"/>
+                    <text x="447" y="115" text-anchor="middle" font-size="12" fill="#7c3aed" font-weight="700">5</text>
+                    <!-- Labels axe X -->
+                    <text x="107" y="237" text-anchor="middle" font-size="12" fill="#475569">0 livre</text>
+                    <text x="192" y="237" text-anchor="middle" font-size="12" fill="#475569">1 livre</text>
+                    <text x="277" y="237" text-anchor="middle" font-size="12" fill="#475569">2 livres</text>
+                    <text x="362" y="237" text-anchor="middle" font-size="12" fill="#475569">3 livres</text>
+                    <text x="447" y="237" text-anchor="middle" font-size="12" fill="#475569">4 livres</text>
+                    <!-- Label Y -->
+                    <text x="14" y="130" text-anchor="middle" font-size="11" fill="#94a3b8" transform="rotate(-90,14,130)">Nombre d'élèves</text>
+                </svg>
+            </div>
+            <div class="q-row"><span class="qnum">1</span><p>Combien d'élèves ont lu exactement 2 livres ? Combien d'élèves n'ont lu aucun livre ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Combien d'élèves y a-t-il dans la classe au total ?</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Calculer le nombre moyen de livres lus par élève. Arrondir au dixième.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice 1 – Lire les barres (Q. 1–2)</button>
+                    <div class="hint-text" id="h1-1">Pour lire un diagramme en barres, quel axe te donne les effectifs ? Comment faire quand la hauteur d'une barre tombe entre deux graduations ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Indice 2 – Calculer la moyenne (Q. 3)</button>
+                    <div class="hint-text" id="h1-2">Pour la question 3, chaque élève a lu un certain nombre de livres. Comment combiner le nombre de livres et le nombre d'élèves pour calculer une moyenne ? Est-ce une moyenne simple ou faut-il tenir compte des effectifs ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Lecture directe</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">La barre « 2 livres » atteint la valeur <strong>9</strong> → 9 élèves ont lu 2 livres.</p>
+                <p style="font-size:1rem;margin-top:0.4rem;">La barre « 0 livre » atteint la valeur <strong>3</strong> → 3 élèves n'ont lu aucun livre.</p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Effectif total</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">Total = 3 + 7 + 9 + 6 + 5 = <strong>30 élèves</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Moyenne</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">Somme pondérée = 0×3 + 1×7 + 2×9 + 3×6 + 4×5 = 0 + 7 + 18 + 18 + 20 = 63</p>
+                <p style="font-size:1rem;">Moyenne = 63 ÷ 30 = 2,1</p>
+                <div class="solution-text">Moyenne ≈ 2,1 livres par élève</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 2 : Diagramme circulaire ===== -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 4</h2>
+                <span class="exercise-tag tag-circ">Diagramme circulaire</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Le diagramme circulaire représente la répartition des sports pratiqués par les 120 élèves d'un collège.</p>
+            <div class="chart-container">
+                <div class="chart-title">Sports pratiqués par les élèves (120 élèves)</div>
+                <svg viewBox="0 0 320 240" width="100%" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Football 36% = 129.6° -->
+                    <!-- Natation 25% = 90° -->
+                    <!-- Tennis 15% = 54° -->
+                    <!-- Basket 14% = 50.4° -->
+                    <!-- Autre 10% = 36° -->
+                    <!-- Centre (160,120) rayon 95 -->
+                    <!-- Football: 0° à 129.6° -->
+                    <path d="M160,120 L255,120 A95,95 0 0,1 117.6,210.5 Z" fill="#6366f1"/>
+                    <!-- Natation: 129.6° à 219.6° -->
+                    <path d="M160,120 L117.6,210.5 A95,95 0 0,1 65,58.3 Z" fill="#06b6d4"/>
+                    <!-- Tennis: 219.6° à 273.6° -->
+                    <path d="M160,120 L65,58.3 A95,95 0 0,1 155.3,25.1 Z" fill="#f59e0b"/>
+                    <!-- Basket: 273.6° à 324° -->
+                    <path d="M160,120 L155.3,25.1 A95,95 0 0,1 236.9,47.1 Z" fill="#10b981"/>
+                    <!-- Autre: 324° à 360° -->
+                    <path d="M160,120 L236.9,47.1 A95,95 0 0,1 255,120 Z" fill="#ef4444"/>
+                    <!-- Labels sur le diagramme -->
+                    <text x="195" y="140" text-anchor="middle" font-size="13" fill="white" font-weight="700">36%</text>
+                    <text x="108" y="155" text-anchor="middle" font-size="13" fill="white" font-weight="700">25%</text>
+                    <text x="104" y="82" text-anchor="middle" font-size="13" fill="white" font-weight="700">15%</text>
+                    <text x="175" y="55" text-anchor="middle" font-size="13" fill="white" font-weight="700">14%</text>
+                    <text x="224" y="78" text-anchor="middle" font-size="13" fill="white" font-weight="700">10%</text>
+                </svg>
+                <div class="pie-legend">
+                    <div class="pie-legend-item"><div class="pie-legend-dot" style="background:#6366f1"></div>Football</div>
+                    <div class="pie-legend-item"><div class="pie-legend-dot" style="background:#06b6d4"></div>Natation</div>
+                    <div class="pie-legend-item"><div class="pie-legend-dot" style="background:#f59e0b"></div>Tennis</div>
+                    <div class="pie-legend-item"><div class="pie-legend-dot" style="background:#10b981"></div>Basket</div>
+                    <div class="pie-legend-item"><div class="pie-legend-dot" style="background:#ef4444"></div>Autre</div>
+                </div>
+            </div>
+            <div class="q-row"><span class="qnum">1</span><p>Quel sport est le plus pratiqué ? Le moins pratiqué ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Combien d'élèves pratiquent la natation ? Et le basket ?</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Combien d'élèves pratiquent un sport autre que le football ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Indice 1 – Passer d'un % à un effectif</button>
+                    <div class="hint-text" id="h2-1">Un pourcentage, c'est une fraction du total. Quelle opération te permet de passer d'un pourcentage à un nombre d'élèves, si tu connais le total ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2">💡 Indice 2 – Trouver le football (Q. 3)</button>
+                    <div class="hint-text" id="h2-2">Pour la question 3, réfléchis : as-tu besoin de connaître tous les autres sports pour trouver le football, ou peux-tu raisonner à partir du total ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Lecture directe</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">Sport le plus pratiqué : <strong>Football (36 %)</strong>.</p>
+                <p style="font-size:1rem;margin-top:0.4rem;">Sport le moins pratiqué : <strong>Autre (10 %)</strong>.</p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Effectifs</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.75rem;"><strong>Natation (25 %) :</strong></p>
+                <table style="border-collapse:collapse;margin:0.5rem auto 0.75rem;font-family:'Times New Roman',serif;font-size:1.05rem;">
+                    <tbody>
+                        <tr>
+                            <th style="border:2px solid var(--border);padding:0.45rem 1rem;background:var(--primary-light);color:var(--primary-dark);font-family:'DM Sans',sans-serif;font-size:0.85rem;">Pourcentage</th>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">100 %</td>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">25 %</td>
+                        </tr>
+                        <tr>
+                            <th style="border:2px solid var(--border);padding:0.45rem 1rem;background:var(--primary-light);color:var(--primary-dark);font-family:'DM Sans',sans-serif;font-size:0.85rem;">Élèves</th>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">120</td>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;background:#faf5ff;color:var(--bonus);font-weight:700;">?</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size:1rem;margin-bottom:0.25rem;">Produit en croix : ? = 25 × 120 ÷ 100 = <strong>30 élèves</strong></p>
+
+                <p style="font-size:1rem;margin:1rem 0 0.75rem;"><strong>Basket (14 %) :</strong></p>
+                <table style="border-collapse:collapse;margin:0.5rem auto 0.75rem;font-family:'Times New Roman',serif;font-size:1.05rem;">
+                    <tbody>
+                        <tr>
+                            <th style="border:2px solid var(--border);padding:0.45rem 1rem;background:var(--primary-light);color:var(--primary-dark);font-family:'DM Sans',sans-serif;font-size:0.85rem;">Pourcentage</th>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">100 %</td>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">14 %</td>
+                        </tr>
+                        <tr>
+                            <th style="border:2px solid var(--border);padding:0.45rem 1rem;background:var(--primary-light);color:var(--primary-dark);font-family:'DM Sans',sans-serif;font-size:0.85rem;">Élèves</th>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">120</td>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;background:#faf5ff;color:var(--bonus);font-weight:700;">?</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size:1rem;margin-bottom:0.25rem;">Produit en croix : ? = 14 × 120 ÷ 100 = 16,8 ≈ <strong>17 élèves</strong></p>
+                <div class="rule-box" style="margin-top:0.75rem;"><strong>Remarque :</strong> On arrondit à l'entier le plus proche car on ne peut pas avoir un demi-élève. Les pourcentages d'un diagramme circulaire sont parfois légèrement arrondis.</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Hors football</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.75rem;"><strong>Football (36 %) :</strong></p>
+                <table style="border-collapse:collapse;margin:0.5rem auto 0.75rem;font-family:'Times New Roman',serif;font-size:1.05rem;">
+                    <tbody>
+                        <tr>
+                            <th style="border:2px solid var(--border);padding:0.45rem 1rem;background:var(--primary-light);color:var(--primary-dark);font-family:'DM Sans',sans-serif;font-size:0.85rem;">Pourcentage</th>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">100 %</td>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">36 %</td>
+                        </tr>
+                        <tr>
+                            <th style="border:2px solid var(--border);padding:0.45rem 1rem;background:var(--primary-light);color:var(--primary-dark);font-family:'DM Sans',sans-serif;font-size:0.85rem;">Élèves</th>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;">120</td>
+                            <td style="border:2px solid var(--border);padding:0.45rem 1.1rem;text-align:center;background:#faf5ff;color:var(--bonus);font-weight:700;">?</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size:1rem;margin-bottom:0.5rem;">Produit en croix : ? = 36 × 120 ÷ 100 = 43,2 ≈ <strong>43 élèves</strong></p>
+                <p style="font-size:1rem;">Élèves hors football = 120 − 43 = <strong>77 élèves</strong></p>
+                <div class="solution-text">77 élèves pratiquent un sport autre que le football</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 3 : Histogramme ===== -->
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 4</h2>
+                <span class="exercise-tag tag-hist">Histogramme</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>L'histogramme ci-dessous représente la répartition des temps (en minutes) mis par 40 élèves pour rentrer chez eux après l'école.</p>
+            <div class="chart-container">
+                <div class="chart-title">Temps de trajet retour à la maison (40 élèves)</div>
+                <svg viewBox="0 0 520 270" width="100%" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Axes -->
+                    <line x1="60" y1="230" x2="490" y2="230" stroke="#94a3b8" stroke-width="2"/>
+                    <line x1="60" y1="20" x2="60" y2="230" stroke="#94a3b8" stroke-width="2"/>
+                    <!-- Grille -->
+                    <line x1="60" y1="198" x2="490" y2="198" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="166" x2="490" y2="166" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="134" x2="490" y2="134" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="102" x2="490" y2="102" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="70" x2="490" y2="70" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="60" y1="38" x2="490" y2="38" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <!-- Labels Y (0 à 15 par pas de 2.5 → 6 graduations) -->
+                    <text x="50" y="234" text-anchor="end" font-size="11" fill="#64748b">0</text>
+                    <text x="50" y="202" text-anchor="end" font-size="11" fill="#64748b">2</text>
+                    <text x="50" y="170" text-anchor="end" font-size="11" fill="#64748b">4</text>
+                    <text x="50" y="138" text-anchor="end" font-size="11" fill="#64748b">6</text>
+                    <text x="50" y="106" text-anchor="end" font-size="11" fill="#64748b">8</text>
+                    <text x="50" y="74" text-anchor="end" font-size="11" fill="#64748b">10</text>
+                    <text x="50" y="42" text-anchor="end" font-size="11" fill="#64748b">12</text>
+                    <!-- Barres (classes de 5 min) : [0;5[=4, [5;10[=8, [10;15[=12, [15;20[=10, [20;25[=6 -->
+                    <!-- hauteur = effectif × 16 px par unité ; base y=230 -->
+                    <!-- [0;5[ : 4 élèves → h=64 -->
+                    <rect x="60" y="166" width="86" height="64" fill="#6366f1" opacity="0.85"/>
+                    <text x="103" y="160" text-anchor="middle" font-size="12" fill="#6366f1" font-weight="700">4</text>
+                    <!-- [5;10[ : 8 élèves → h=128 -->
+                    <rect x="146" y="102" width="86" height="128" fill="#06b6d4" opacity="0.85"/>
+                    <text x="189" y="96" text-anchor="middle" font-size="12" fill="#0369a1" font-weight="700">8</text>
+                    <!-- [10;15[ : 12 élèves → h=192 -->
+                    <rect x="232" y="38" width="86" height="192" fill="#10b981" opacity="0.85"/>
+                    <text x="275" y="32" text-anchor="middle" font-size="12" fill="#047857" font-weight="700">12</text>
+                    <!-- [15;20[ : 10 élèves → h=160 -->
+                    <rect x="318" y="70" width="86" height="160" fill="#f59e0b" opacity="0.85"/>
+                    <text x="361" y="64" text-anchor="middle" font-size="12" fill="#b45309" font-weight="700">10</text>
+                    <!-- [20;25[ : 6 élèves → h=96 -->
+                    <rect x="404" y="134" width="86" height="96" fill="#ef4444" opacity="0.85"/>
+                    <text x="447" y="128" text-anchor="middle" font-size="12" fill="#dc2626" font-weight="700">6</text>
+                    <!-- Labels axe X -->
+                    <text x="60" y="248" text-anchor="middle" font-size="11" fill="#475569">0</text>
+                    <text x="146" y="248" text-anchor="middle" font-size="11" fill="#475569">5</text>
+                    <text x="232" y="248" text-anchor="middle" font-size="11" fill="#475569">10</text>
+                    <text x="318" y="248" text-anchor="middle" font-size="11" fill="#475569">15</text>
+                    <text x="404" y="248" text-anchor="middle" font-size="11" fill="#475569">20</text>
+                    <text x="490" y="248" text-anchor="middle" font-size="11" fill="#475569">25</text>
+                    <!-- Label X -->
+                    <text x="275" y="265" text-anchor="middle" font-size="11" fill="#94a3b8">Temps (min)</text>
+                    <!-- Label Y -->
+                    <text x="14" y="130" text-anchor="middle" font-size="11" fill="#94a3b8" transform="rotate(-90,14,130)">Nb d'élèves</text>
+                </svg>
+            </div>
+            <div class="q-row"><span class="qnum">1</span><p>Quelle classe de temps regroupe le plus grand nombre d'élèves ? Combien sont-ils ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Combien d'élèves mettent moins de 10 minutes pour rentrer ?</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Calculer la moyenne des temps de trajet en utilisant le milieu de chaque classe.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-1">💡 Indice 1 – Lire l'histogramme</button>
+                    <div class="hint-text" id="h3-1">Qu'est-ce qui distingue un histogramme d'un diagramme en barres ? Que représente la hauteur de chaque barre dans un histogramme par intervalles ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-2">💡 Indice 2 – Calculer la moyenne approchée</button>
+                    <div class="hint-text" id="h3-2">Pour la moyenne, on ne connaît pas les valeurs exactes dans chaque intervalle. Quelle valeur de l'intervalle pourrait raisonnablement représenter toutes les valeurs qu'il contient ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Classe modale</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">La barre la plus haute correspond à l'intervalle <strong>[10 ; 15[</strong> avec <strong>12 élèves</strong>.</p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Moins de 10 minutes</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">Élèves dans [0 ; 5[ + [5 ; 10[ = 4 + 8 = <strong>12 élèves</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Moyenne</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">Milieux de classes : 2,5 – 7,5 – 12,5 – 17,5 – 22,5</p>
+                <p style="font-size:1rem;margin-bottom:0.4rem;">Somme pondérée = 2,5×4 + 7,5×8 + 12,5×12 + 17,5×10 + 22,5×6</p>
+                <p style="font-size:1rem;margin-bottom:0.4rem;">= 10 + 60 + 150 + 175 + 135 = <strong>530</strong></p>
+                <p style="font-size:1rem;">Moyenne = 530 ÷ 40 = <strong>13,25</strong></p>
+                <div class="solution-text">Temps de trajet moyen ≈ 13,25 minutes</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 4 : Deux diagrammes à comparer ===== -->
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 4</h2>
+                <span class="exercise-tag tag-pb">Comparaison de deux diagrammes</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Les deux diagrammes en barres ci-dessous montrent les résultats (en nombre de victoires) de deux équipes de handball sur les 8 derniers mois.</p>
+            <div class="chart-container">
+                <div class="chart-title">Victoires par mois – Équipe A (bleu) et Équipe B (orange)</div>
+                <svg viewBox="0 0 520 260" width="100%" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Axes -->
+                    <line x1="55" y1="220" x2="500" y2="220" stroke="#94a3b8" stroke-width="2"/>
+                    <line x1="55" y1="20" x2="55" y2="220" stroke="#94a3b8" stroke-width="2"/>
+                    <!-- Grille -->
+                    <line x1="55" y1="186" x2="500" y2="186" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="55" y1="152" x2="500" y2="152" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="55" y1="118" x2="500" y2="118" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="55" y1="84" x2="500" y2="84" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="55" y1="50" x2="500" y2="50" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <!-- Labels Y 0 à 5 -->
+                    <text x="46" y="224" text-anchor="end" font-size="11" fill="#64748b">0</text>
+                    <text x="46" y="190" text-anchor="end" font-size="11" fill="#64748b">1</text>
+                    <text x="46" y="156" text-anchor="end" font-size="11" fill="#64748b">2</text>
+                    <text x="46" y="122" text-anchor="end" font-size="11" fill="#64748b">3</text>
+                    <text x="46" y="88" text-anchor="end" font-size="11" fill="#64748b">4</text>
+                    <text x="46" y="54" text-anchor="end" font-size="11" fill="#64748b">5</text>
+                    <!-- Données A: 2,4,3,5,3,4,2,3 | B: 3,2,4,3,5,3,4,4 -->
+                    <!-- hauteur = v × 34 ; largeur barre = 18 ; espacement groupe = 55 -->
+                    <!-- Mois 1 -->
+                    <rect x="65"  y="152" width="18" height="68"  fill="#6366f1" rx="3"/>
+                    <rect x="85"  y="118" width="18" height="102" fill="#f59e0b" rx="3"/>
+                    <!-- Mois 2 -->
+                    <rect x="120" y="84"  width="18" height="136" fill="#6366f1" rx="3"/>
+                    <rect x="140" y="152" width="18" height="68"  fill="#f59e0b" rx="3"/>
+                    <!-- Mois 3 -->
+                    <rect x="175" y="118" width="18" height="102" fill="#6366f1" rx="3"/>
+                    <rect x="195" y="84"  width="18" height="136" fill="#f59e0b" rx="3"/>
+                    <!-- Mois 4 -->
+                    <rect x="230" y="50"  width="18" height="170" fill="#6366f1" rx="3"/>
+                    <rect x="250" y="118" width="18" height="102" fill="#f59e0b" rx="3"/>
+                    <!-- Mois 5 -->
+                    <rect x="285" y="118" width="18" height="102" fill="#6366f1" rx="3"/>
+                    <rect x="305" y="50"  width="18" height="170" fill="#f59e0b" rx="3"/>
+                    <!-- Mois 6 -->
+                    <rect x="340" y="84"  width="18" height="136" fill="#6366f1" rx="3"/>
+                    <rect x="360" y="118" width="18" height="102" fill="#f59e0b" rx="3"/>
+                    <!-- Mois 7 -->
+                    <rect x="395" y="152" width="18" height="68"  fill="#6366f1" rx="3"/>
+                    <rect x="415" y="84"  width="18" height="136" fill="#f59e0b" rx="3"/>
+                    <!-- Mois 8 -->
+                    <rect x="450" y="118" width="18" height="102" fill="#6366f1" rx="3"/>
+                    <rect x="470" y="84"  width="18" height="136" fill="#f59e0b" rx="3"/>
+                    <!-- Labels X -->
+                    <text x="82"  y="237" text-anchor="middle" font-size="10" fill="#475569">M1</text>
+                    <text x="137" y="237" text-anchor="middle" font-size="10" fill="#475569">M2</text>
+                    <text x="192" y="237" text-anchor="middle" font-size="10" fill="#475569">M3</text>
+                    <text x="247" y="237" text-anchor="middle" font-size="10" fill="#475569">M4</text>
+                    <text x="302" y="237" text-anchor="middle" font-size="10" fill="#475569">M5</text>
+                    <text x="357" y="237" text-anchor="middle" font-size="10" fill="#475569">M6</text>
+                    <text x="412" y="237" text-anchor="middle" font-size="10" fill="#475569">M7</text>
+                    <text x="467" y="237" text-anchor="middle" font-size="10" fill="#475569">M8</text>
+                    <!-- Légende -->
+                    <rect x="290" y="22" width="12" height="12" fill="#6366f1" rx="2"/>
+                    <text x="306" y="33" font-size="11" fill="#475569">Équipe A</text>
+                    <rect x="365" y="22" width="12" height="12" fill="#f59e0b" rx="2"/>
+                    <text x="381" y="33" font-size="11" fill="#475569">Équipe B</text>
+                </svg>
+            </div>
+            <div class="q-row"><span class="qnum">1</span><p>Relever les victoires de chaque équipe mois par mois, puis calculer leur total sur les 8 mois.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Calculer la moyenne mensuelle de victoires de chaque équipe.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Quelle équipe a le mieux performé sur cette période ? Quel mois les deux équipes ont-elles eu le même nombre de victoires ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-1">💡 Indice 1 – Lire le graphique double</button>
+                    <div class="hint-text" id="h4-1">Il y a beaucoup d'informations sur ce graphique. Comment t'organiser pour ne pas te perdre entre les deux équipes et les différents mois ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-2">💡 Indice 2 – Trouver l'égalité entre équipes</button>
+                    <div class="hint-text" id="h4-2">Pour trouver le mois où les deux équipes sont à égalité, que dois-tu chercher visuellement sur le graphique ? Qu'est-ce que ça veut dire pour les deux barres ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Relevé des données</h3>
+            <div class="calcul-step">
+                <p style="font-size:0.95rem;margin-bottom:0.3rem;"><strong>Équipe A :</strong> 2 – 4 – 3 – 5 – 3 – 4 – 2 – 3 &nbsp;→&nbsp; Total = <strong>26 victoires</strong></p>
+                <p style="font-size:0.95rem;"><strong>Équipe B :</strong> 3 – 2 – 4 – 3 – 5 – 3 – 4 – 4 &nbsp;→&nbsp; Total = <strong>28 victoires</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Moyennes mensuelles</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;">Équipe A : 26 ÷ 8 = <strong>3,25 victoires/mois</strong></p>
+                <p style="font-size:1rem;margin-top:0.4rem;">Équipe B : 28 ÷ 8 = <strong>3,5 victoires/mois</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Comparaison</h3>
+            <div class="calcul-step">
+                <div class="solution-text">L'équipe B a mieux performé (28 victoires contre 26, moyenne de 3,5 contre 3,25)</div>
+                <p style="font-size:1rem;margin-top:0.75rem;">En M6, les deux équipes ont toutes les deux remporté <strong>4 victoires</strong> : c'est le seul mois à égalité.</p>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! Lire un diagramme correctement, c'est la base pour interpréter des données statistiques dans la vie réelle.</footer>
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    const TOTAL = 4, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 4, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as revu tous les exercices. Excellent travail !' },
+        { min: 3, emoji: '🎉', stars: '⭐⭐⭐', title: 'Très bien !', msg: 'Presque tout vérifié. Jette un œil au dernier !' },
+        { min: 2, emoji: '👍', stars: '⭐⭐', title: 'Bien !', msg: 'La moitié vérifiée. Continue !' },
+        { min: 1, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir les autres corrections !" },
+    ];
+
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot';
+        d.id = `dot-ex${i}`;
+        d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge orange">📚 Feuille complète</span>` +
+            `<span class="score-badge purple">📊 Statistiques 4ème</span>`;
+        card.classList.add('visible');
+    }
+
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction);
+            btn.classList.remove('active');
+            btn.textContent = 'Voir la correction';
+            openSet.delete(exId);
+        } else {
+            openCorrection(correction);
+            btn.classList.add('active');
+            btn.textContent = 'Masquer la correction';
+            openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId);
+                dot.classList.add('done');
+                card.classList.add('seen');
+                updateProgress();
+            }
+        }
+    }
+
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+
+    const hintGroups = {
+        ex1: ['h1-1', 'h1-2'],
+        ex2: ['h2-1', 'h2-2'],
+        ex3: ['h3-1', 'h3-2'],
+        ex4: ['h4-1', 'h4-2'],
+    };
+
+        document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            const hintEl = document.getElementById(id);
+            const isRevealed = hintEl.classList.contains('revealed');
+            if (isRevealed) {
+                hintEl.classList.remove('revealed');
+                this.classList.remove('active');
+            } else {
+                hintEl.classList.add('revealed');
+                this.classList.add('active');
+            }
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

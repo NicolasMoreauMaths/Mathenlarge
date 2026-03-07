@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Feuille d'exercices interactive – La médiane – Statistiques 4ème.">
+    <title>La Médiane – Statistiques | 4ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#0f766e; --primary-dark:#134e4a; --primary-light:#ccfbf1;
+            --secondary:#f59e0b; --success:#059669; --bonus:#7c3aed; --bonus-light:#ede9fe;
+            --bg-card:#ffffff; --border:#99f6e4; --text-dark:#042f2e; --text-medium:#475569;
+            --shadow:rgba(15,118,110,0.10);
+            --tag-imp:#dbeafe; --tag-imp-text:#1d4ed8;
+            --tag-pair:#fce7f3; --tag-pair-text:#be185d;
+            --tag-ctx:#fef3c7; --tag-ctx-text:#92400e;
+            --tag-pb:#dcfce7; --tag-pb-text:#166534;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#ccfbf1 0%,#e0e7ff 50%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--bonus),#ec4899);}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+        /* Rappel de cours */
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+        .recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        .recap-card{border-radius:10px;padding:1rem 1.25rem;font-size:0.97rem;line-height:1.8;}
+        .recap-card.impair{background:var(--tag-imp);border:2px solid #93c5fd;}
+        .recap-card.pair{background:var(--tag-pair);border:2px solid #f9a8d4;}
+        .recap-card strong{display:block;font-size:1rem;margin-bottom:0.3rem;}
+        .recap-card.impair strong{color:var(--tag-imp-text);}
+        .recap-card.pair strong{color:var(--tag-pair-text);}
+        /* Barre de progression */
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--bonus));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+        /* Carte score */
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--bonus));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.blue{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.purple{background:var(--bonus-light);color:var(--bonus);}
+        /* Séparateurs */
+        .section-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;}
+        .section-divider-line{flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent);}
+        .section-divider-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+        .section-divider-icon{font-size:1.3rem;}
+        /* Exercices */
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;position:relative;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-imp{background:var(--tag-imp);color:var(--tag-imp-text);}
+        .tag-pair{background:var(--tag-pair);color:var(--tag-pair-text);}
+        .tag-ctx{background:var(--tag-ctx);color:var(--tag-ctx-text);}
+        .tag-pb{background:var(--tag-pb);color:var(--tag-pb-text);}
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(15,118,110,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(15,118,110,0.4);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);box-shadow:0 4px 15px rgba(5,150,105,0.3);}
+        /* Indices */
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--bonus);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--bonus-light);color:var(--bonus);border:2px solid #c4b5fd;border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:normal;flex-shrink:0;}
+        .hint-btn:hover{background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn.active{background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--bonus);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;word-break:break-word;}
+        .hint-text.revealed{max-height:300px;padding:0.5rem 0.85rem;opacity:1;}
+        /* Correction */
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+        /* Contenu */
+        .exercise-content{font-size:1.05rem;line-height:2;}
+        .exercise-content p{margin-bottom:0.5rem;}
+        .q-row{display:flex;align-items:flex-start;gap:0.4rem;margin-bottom:0.6rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:0.8rem;font-weight:700;width:1.4rem;height:1.4rem;border-radius:50%;text-align:center;line-height:1.4rem;flex-shrink:0;margin-top:0.2rem;}
+        .context-box{background:#f0fdfc;border:2px solid #99f6e4;border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0 1rem;font-size:0.97rem;line-height:1.8;}
+        .context-box strong{color:var(--primary-dark);}
+        .data-box{background:#f8faff;border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0;font-size:1.1rem;font-family:'Times New Roman',serif;letter-spacing:0.05em;text-align:center;}
+        /* Tableaux de données */
+        .data-table{border-collapse:collapse;margin:0.75rem auto;font-size:1rem;width:100%;}
+        .data-table th{background:var(--primary-light);color:var(--primary-dark);border:2px solid var(--border);padding:0.5rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;}
+        .data-table td{border:2px solid var(--border);padding:0.5rem 1rem;text-align:center;font-family:'Times New Roman',serif;font-size:1.1rem;}
+        /* Éléments de correction */
+        .calcul-step{background:white;padding:1.5rem;border-radius:10px;margin:1rem 0;border-left:4px solid var(--primary);}
+        .calcul-line{font-size:1.25rem;text-align:center;margin:0.5rem 0;font-family:'Times New Roman',serif;font-style:italic;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.9rem 1.5rem;border-radius:10px;text-align:center;font-size:1.1rem;font-weight:600;color:var(--primary-dark);margin:1rem 0;}
+        .rule-box{background:#faf5ff;border:2px solid #c4b5fd;border-radius:10px;padding:1rem 1.5rem;margin:1rem 0;font-size:0.97rem;line-height:1.7;}
+        .rule-box strong{color:var(--bonus);}
+        .info-box{background:#fffbeb;border:2px solid #fcd34d;border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0;font-size:0.97rem;line-height:1.7;}
+        .info-box strong{color:#92400e;}
+        /* Série ordonnée avec mise en valeur */
+        .serie{display:flex;flex-wrap:wrap;gap:0.4rem;justify-content:center;margin:0.75rem 0;font-family:'Times New Roman',serif;font-size:1.15rem;}
+        .serie span{padding:0.3rem 0.65rem;border-radius:6px;border:2px solid var(--border);background:#f8faff;}
+        .serie span.med{background:#fef08a;border-color:#ca8a04;font-weight:700;color:#713f12;}
+        .serie span.med-pair{background:#fce7f3;border-color:#ec4899;font-weight:700;color:#831843;}
+        .serie span.counted{background:var(--primary-light);border-color:var(--primary);}
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}.recap-grid{grid-template-columns:1fr;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}.subtitle{font-size:0.95rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.calcul-step{padding:0.75rem;}.solution-text{font-size:1rem;padding:0.75rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.score-card{padding:1.5rem 1.25rem;}.data-table th,.data-table td{padding:0.4rem 0.5rem;font-size:0.9rem;}.hint-btn{width:100%;text-align:left;}.hint-item{flex-direction:column;gap:0.3rem;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}}
+        @media(max-width:380px){h1{font-size:1.25rem;}.exercise-title{font-size:1.1rem;}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📊 Feuille d'exercices</h1>
+        <p class="subtitle">La médiane – Statistiques – Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">4ème</span>
+            <span class="header-chip">6 exercices</span>
+            <span class="header-chip">Série impaire &amp; paire</span>
+        </div>
+    </header>
+
+    <!-- Rappel de cours -->
+    <div class="recap">
+        <div class="recap-title">📖 Rappel de cours</div>
+        <div class="recap-grid">
+            <div class="recap-card impair">
+                <strong>Série de taille impaire</strong>
+                On range les valeurs dans l'ordre croissant. La médiane est la valeur du <em>milieu</em>, celle qui se trouve exactement à la position (n+1)/2, où n est le nombre de valeurs.
+                <br><em>Exemple : 7 valeurs → position (7+1)/2 = 4 → la 4ème valeur est la médiane.</em>
+            </div>
+            <div class="recap-card pair">
+                <strong>Série de taille paire</strong>
+                On range les valeurs dans l'ordre croissant. La médiane est la <em>moyenne des deux valeurs du milieu</em> (aux positions n/2 et n/2 + 1).
+                <br><em>Exemple : 8 valeurs → positions 4 et 5 → médiane = (valeur₄ + valeur₅) / 2.</em>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 6</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- PARTIE 1 : SÉRIE IMPAIRE -->
+    <div class="section-divider">
+        <div class="section-divider-icon">🔵</div>
+        <div class="section-divider-title">Partie 1 – Série de taille impaire</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Exercice 1 -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 6</h2>
+                <span class="exercise-tag tag-imp">Série impaire – direct</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Voici les notes obtenues par 9 élèves à un contrôle de mathématiques :</p>
+            <div class="data-box">8 &nbsp;|&nbsp; 14 &nbsp;|&nbsp; 6 &nbsp;|&nbsp; 17 &nbsp;|&nbsp; 11 &nbsp;|&nbsp; 9 &nbsp;|&nbsp; 13 &nbsp;|&nbsp; 5 &nbsp;|&nbsp; 15</div>
+            <div class="q-row"><span class="qnum">1</span><p>Ranger ces notes dans l'ordre croissant.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Déterminer la médiane de cette série.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Que signifie concrètement cette médiane dans le contexte des notes ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice 1 – Trier la série</button>
+                    <div class="hint-text" id="h1-1">Quelle est la première étape indispensable avant de chercher la médiane ? Comment t'assurer de n'oublier aucune valeur en les réordonnant ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Indice 2 – Position de la médiane (n impair)</button>
+                    <div class="hint-text" id="h1-2">Avec 9 valeurs (nombre impair), comment trouver la position de la médiane ? Quelle règle générale s'applique pour une série de taille <em>n</em> impair ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-3">💡 Indice 3 – Répartition de part et d'autre</button>
+                    <div class="hint-text" id="h1-3">Qu'est-ce que la médiane garantit sur la répartition des valeurs de part et d'autre ? Combien d'élèves se trouvent de chaque côté ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:1rem;">Question 1 – Tri croissant</h3>
+            <div class="calcul-step">
+                <div class="serie">
+                    <span>5</span><span>6</span><span>8</span><span>9</span><span class="med">11</span><span>13</span><span>14</span><span>15</span><span>17</span>
+                </div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 2 – Médiane</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">Nombre de valeurs : n = 9 (impair)</p>
+                <div class="calcul-line">Position de la médiane = (9 + 1) ÷ 2 = 5</div>
+                <p style="font-size:1rem;margin:0.5rem 0;">La 5ème valeur de la série triée est <strong>11</strong>.</p>
+                <div class="solution-text">Médiane = 11</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 3 – Interprétation</h3>
+            <div class="calcul-step">
+                <div class="rule-box">La médiane est 11 : <strong>la moitié des élèves a une note inférieure ou égale à 11</strong>, et l'autre moitié a une note supérieure ou égale à 11. Ici, 4 élèves ont moins de 11 et 4 ont plus de 11.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 2 -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 6</h2>
+                <span class="exercise-tag tag-imp">Série impaire – tableau</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Un professeur de sport relève le nombre de pompes réalisées par ses élèves :</p>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Élève</th><th>Ana</th><th>Ben</th><th>Carla</th><th>Driss</th><th>Eva</th><th>Félix</th><th>Gina</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Pompes</td><td>12</td><td>7</td><td>20</td><td>15</td><td>3</td><td>18</td><td>9</td></tr>
+                </tbody>
+            </table>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">1</span><p>Ranger les valeurs dans l'ordre croissant et déterminer la médiane.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Calculer la moyenne de cette série (arrondir au dixième si nécessaire).</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>La moyenne et la médiane sont-elles proches ? Que peut-on dire sur la répartition des résultats ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Indice 1 – Trier et trouver la médiane</button>
+                    <div class="hint-text" id="h2-1">Commence par lister les valeurs dans l'ordre croissant. Avec 7 valeurs et un nombre impair, à quelle position se trouve la médiane ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2">💡 Indice 2 – Calculer la moyenne</button>
+                    <div class="hint-text" id="h2-2">Pour la moyenne, rappelle-toi la définition de base. Veille à bien relever toutes les valeurs depuis le tableau sans en oublier.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-3">💡 Indice 3 – Comparer moyenne et médiane</button>
+                    <div class="hint-text" id="h2-3">Quand moyenne et médiane sont très proches (ou très éloignées), qu'est-ce que cela révèle sur la série ? Dans quel cas préfèrerait-on utiliser l'une plutôt que l'autre ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:1rem;">Question 1 – Tri et médiane</h3>
+            <div class="calcul-step">
+                <div class="serie">
+                    <span>3</span><span>7</span><span>9</span><span class="med">12</span><span>15</span><span>18</span><span>20</span>
+                </div>
+                <p style="font-size:1rem;margin:0.75rem 0;">n = 7 (impair) → position = (7+1) ÷ 2 = 4 → 4ème valeur</p>
+                <div class="solution-text">Médiane = 12 pompes</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 2 – Moyenne</h3>
+            <div class="calcul-step">
+                <div class="calcul-line">Somme = 12 + 7 + 20 + 15 + 3 + 18 + 9 = 84</div>
+                <div class="calcul-line">Moyenne = 84 ÷ 7 = 12</div>
+                <div class="solution-text">Moyenne = 12 pompes</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 3 – Comparaison</h3>
+            <div class="calcul-step">
+                <div class="rule-box">Moyenne = Médiane = 12 : la série est <strong>symétrique</strong>. Les deux indicateurs donnent la même information, ce qui signifie que les résultats sont bien répartis de part et d'autre de 12.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 3 -->
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 6</h2>
+                <span class="exercise-tag tag-imp">Série impaire – valeur manquante</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Une série de 5 valeurs est partiellement donnée, dans l'ordre croissant :</p>
+            <div class="data-box">4 &nbsp;|&nbsp; 7 &nbsp;|&nbsp; <strong>x</strong> &nbsp;|&nbsp; 15 &nbsp;|&nbsp; 19</div>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">1</span><p>Sans calculer, quelle est la médiane de cette série ? Justifier.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>On sait que la médiane est 10. Quelle est la valeur de <em>x</em> ? Que peut-on dire sur les valeurs possibles de <em>x</em> ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-1">💡 Indice 1 – Position de la médiane (série triée)</button>
+                    <div class="hint-text" id="h3-1">La série est déjà triée et comporte 5 valeurs. À quelle position se trouve la médiane ? Quelle valeur occupe cette position ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-2">💡 Indice 2 – Identifier x dans la série</button>
+                    <div class="hint-text" id="h3-2">Si la médiane vaut 10, quelle position dans la série doit valoir 10 ? Quelle lettre occupe cette place ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-3">💡 Indice 3 – Contraintes sur x</button>
+                    <div class="hint-text" id="h3-3">Pour que la série reste ordonnée, quelles contraintes <em>x</em> doit-il respecter par rapport à ses voisins ? Ces contraintes bornent-elles <em>x</em> d'un seul côté ou des deux ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:1rem;">Question 1 – Médiane directe</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">n = 5 (impair) → position = (5+1) ÷ 2 = 3</p>
+                <div class="serie">
+                    <span>4</span><span>7</span><span class="med">x</span><span>15</span><span>19</span>
+                </div>
+                <p style="font-size:1rem;margin-top:0.75rem;">La valeur à la 3ème position est <strong>x</strong>. Quelle que soit la valeur de x (entre 7 et 15), <strong>la médiane est x</strong>.</p>
+                <div class="solution-text">Médiane = x</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 2 – Valeur de x</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">Si la médiane vaut 10, alors x = 10.</p>
+                <div class="serie">
+                    <span>4</span><span>7</span><span class="med">10</span><span>15</span><span>19</span>
+                </div>
+                <div class="rule-box" style="margin-top:0.75rem;"><strong>Contrainte :</strong> pour que la série reste ordonnée, il faut 7 ≤ x ≤ 15. Ici x = 10 respecte bien cette condition.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- PARTIE 2 : SÉRIE PAIRE -->
+    <div class="section-divider">
+        <div class="section-divider-icon">🟣</div>
+        <div class="section-divider-title">Partie 2 – Série de taille paire</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Exercice 4 -->
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 6</h2>
+                <span class="exercise-tag tag-pair">Série paire – direct</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Voici les durées (en minutes) de 8 trajets en bus relevées par un élève :</p>
+            <div class="data-box">23 &nbsp;|&nbsp; 17 &nbsp;|&nbsp; 31 &nbsp;|&nbsp; 14 &nbsp;|&nbsp; 27 &nbsp;|&nbsp; 19 &nbsp;|&nbsp; 35 &nbsp;|&nbsp; 22</div>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">1</span><p>Ranger ces durées dans l'ordre croissant.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Déterminer la médiane de cette série.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Interpréter la médiane dans le contexte du problème.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-1">💡 Indice 1 – Lister toutes les valeurs</button>
+                    <div class="hint-text" id="h4-1">Commence par lister toutes les valeurs dans l'ordre croissant. Es-tu sûr de ne pas en oublier ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-2">💡 Indice 2 – Médiane avec n pair</button>
+                    <div class="hint-text" id="h4-2">Avec un nombre pair de valeurs, il n'y a pas de valeur exactement au milieu. Comment adapte-t-on la méthode dans ce cas ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-3">💡 Indice 3 – Calculer la médiane finale</button>
+                    <div class="hint-text" id="h4-3">Tu as identifié les deux valeurs centrales. Comment obtenir la médiane à partir d'elles ? Le résultat sera-t-il forcément un entier ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:1rem;">Question 1 – Tri croissant</h3>
+            <div class="calcul-step">
+                <div class="serie">
+                    <span>14</span><span>17</span><span>19</span><span class="med-pair">22</span><span class="med-pair">23</span><span>27</span><span>31</span><span>35</span>
+                </div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 2 – Médiane</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">n = 8 (pair) → positions centrales : 8÷2 = 4 et 4+1 = 5</p>
+                <p style="font-size:1rem;margin-bottom:0.5rem;">4ème valeur : <strong>22</strong> &nbsp;|&nbsp; 5ème valeur : <strong>23</strong></p>
+                <div class="calcul-line">Médiane = (22 + 23) ÷ 2 = 45 ÷ 2 = 22,5</div>
+                <div class="solution-text">Médiane = 22,5 minutes</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 3 – Interprétation</h3>
+            <div class="calcul-step">
+                <div class="rule-box">La médiane est 22,5 min : <strong>la moitié des trajets durent moins de 22,5 minutes</strong> et l'autre moitié dure plus de 22,5 minutes. 4 trajets sur 8 sont en dessous, 4 sont au-dessus.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Exercice 5 -->
+    <div class="exercise" id="card-ex5">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 6</h2>
+                <span class="exercise-tag tag-pair">Série paire – tableau de fréquences</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p>Le tableau suivant donne les tailles (en cm) de 10 élèves d'une classe :</p>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Taille (cm)</th><th>152</th><th>155</th><th>158</th><th>161</th><th>163</th><th>165</th><th>168</th><th>170</th><th>172</th><th>178</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Effectif</td><td>1</td><td>1</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+                </tbody>
+            </table>
+            <div class="q-row" style="margin-top:0.75rem;"><span class="qnum">1</span><p>Vérifier que la série comporte bien 10 valeurs.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Donner la série ordonnée et déterminer la médiane.</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Calculer la moyenne et comparer avec la médiane.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-1">💡 Indice 1 – Lire les effectifs du tableau</button>
+                    <div class="hint-text" id="h5-1">Quand un élève a un effectif de 2, combien de fois sa taille apparaît-elle dans la série ? Quel est le nombre total de valeurs dans la série ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-2">💡 Indice 2 – Écrire la série complète</button>
+                    <div class="hint-text" id="h5-2">Comment écrire la série complète en tenant compte des effectifs ? Une fois listée, le nombre de valeurs est-il pair ou impair ? Quelle règle appliquer ensuite ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-3">💡 Indice 3 – Moyenne avec effectifs</button>
+                    <div class="hint-text" id="h5-3">Pour la moyenne avec un tableau d'effectifs, comment procède-t-on ? Si médiane et moyenne diffèrent, que cela révèle-t-il sur la répartition des tailles dans ce groupe ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:1rem;">Question 1 – Vérification</h3>
+            <div class="calcul-step">
+                <div class="calcul-line">1+1+2+1+1+1+1+1+1+1 = 11</div>
+                <div class="info-box" style="margin-top:0.75rem;"><strong>Attention !</strong> Le total des effectifs vaut 11, pas 10. La série comporte donc <strong>11 valeurs</strong> (n est impair).</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 2 – Série ordonnée et médiane</h3>
+            <div class="calcul-step">
+                <div class="serie" style="font-size:1rem;">
+                    <span>152</span><span>155</span><span>158</span><span>158</span><span>161</span><span class="med">163</span><span>165</span><span>168</span><span>170</span><span>172</span><span>178</span>
+                </div>
+                <p style="font-size:1rem;margin:0.75rem 0;">n = 11 (impair) → position = (11+1) ÷ 2 = 6 → 6ème valeur</p>
+                <div class="solution-text">Médiane = 163 cm</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 3 – Moyenne</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">Somme = 152 + 155 + 158×2 + 161 + 163 + 165 + 168 + 170 + 172 + 178</p>
+                <div class="calcul-line">Somme = 1 800</div>
+                <div class="calcul-line">Moyenne = 1 800 ÷ 11 ≈ 163,6 cm</div>
+                <div class="solution-text">Moyenne ≈ 163,6 cm – Médiane = 163 cm</div>
+                <div class="rule-box" style="margin-top:0.75rem;">Les deux valeurs sont très proches, ce qui indique une répartition assez <strong>symétrique</strong> des tailles dans ce groupe.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- PARTIE 3 : PROBLÈME -->
+    <div class="section-divider">
+        <div class="section-divider-icon">🧩</div>
+        <div class="section-divider-title">Partie 3 – Problème de synthèse</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Exercice 6 -->
+    <div class="exercise" id="card-ex6">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 6 / 6</h2>
+                <span class="exercise-tag tag-pb">Problème – Salaires</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">
+                <strong>Contexte :</strong> Dans une petite entreprise de 9 salariés, voici les salaires mensuels nets en euros :<br>
+                1 400 &nbsp;|&nbsp; 1 650 &nbsp;|&nbsp; 1 500 &nbsp;|&nbsp; 2 800 &nbsp;|&nbsp; 1 600 &nbsp;|&nbsp; 1 750 &nbsp;|&nbsp; 1 500 &nbsp;|&nbsp; 1 900 &nbsp;|&nbsp; 5 200
+            </div>
+            <div class="q-row"><span class="qnum">1</span><p>Trier les salaires dans l'ordre croissant et calculer la médiane.</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Calculer la moyenne des salaires (arrondir à l'euro).</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Comparer la médiane et la moyenne. Laquelle est la plus représentative du salaire « typique » dans cette entreprise ? Pourquoi ?</p></div>
+            <div class="q-row"><span class="qnum">4</span><p>Le dirigeant dit : « Le salaire moyen dans mon entreprise est de plus de 2 000 €. » Est-ce vrai ? Est-ce honnête vis-à-vis des employés ? Justifier.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h6-1">💡 Indice 1 – Trier et trouver la médiane</button>
+                    <div class="hint-text" id="h6-1">Avec 9 salaires, la série est de taille impaire. Après avoir trié, à quelle position se trouve la médiane ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h6-2">💡 Indice 2 – Calculer la moyenne</button>
+                    <div class="hint-text" id="h6-2">Pour la moyenne, sois vigilant avec les grands nombres. Observe ensuite si une valeur très différente des autres semble « tirer » le résultat vers elle.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h6-3">💡 Indice 3 – Comparer moyenne et médiane</button>
+                    <div class="hint-text" id="h6-3">Quand une série contient une valeur très éloignée des autres, quel indicateur (moyenne ou médiane) est le plus fiable pour représenter le groupe ? Combien de salariés gagnent réellement plus que la moyenne calculée ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:1rem;">Question 1 – Tri et médiane</h3>
+            <div class="calcul-step">
+                <div class="serie" style="font-size:1rem;">
+                    <span>1 400</span><span>1 500</span><span>1 500</span><span>1 600</span><span class="med">1 650</span><span>1 750</span><span>1 900</span><span>2 800</span><span>5 200</span>
+                </div>
+                <p style="font-size:1rem;margin:0.75rem 0;">n = 9 (impair) → position = (9+1) ÷ 2 = 5 → 5ème valeur</p>
+                <div class="solution-text">Médiane = 1 650 €</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 2 – Moyenne</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">Somme = 1 400 + 1 500 + 1 500 + 1 600 + 1 650 + 1 750 + 1 900 + 2 800 + 5 200</p>
+                <div class="calcul-line">Somme = 19 300</div>
+                <div class="calcul-line">Moyenne = 19 300 ÷ 9 ≈ 2 144 €</div>
+                <div class="solution-text">Moyenne ≈ 2 144 €</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 3 – Comparaison</h3>
+            <div class="calcul-step">
+                <div class="rule-box">La médiane (1 650 €) est bien plus représentative du salaire « typique » que la moyenne (2 144 €). En effet, <strong>7 salariés sur 9 gagnent moins que la moyenne</strong>, ce qui montre que la moyenne est fortement tirée vers le haut par le salaire de 5 200 €.</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.5rem 0 1rem;">Question 4 – Affirmation du dirigeant</h3>
+            <div class="calcul-step">
+                <div class="rule-box">L'affirmation est <strong>techniquement vraie</strong> (2 144 € &gt; 2 000 €), mais elle n'est <strong>pas honnête</strong> : elle donne une image fausse de la réalité des salaires. La médiane, à 1 650 €, montre que la moitié des salariés gagne moins de 1 650 €. Le salaire de 5 200 € (probablement celui du dirigeant lui-même) déforme la moyenne vers le haut.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! La médiane est un outil puissant pour analyser des données sans être trompé par les valeurs extrêmes !</footer>
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    const TOTAL = 6, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 6, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as revu tous les exercices. Excellent travail !' },
+        { min: 5, emoji: '🎉', stars: '⭐⭐⭐', title: 'Très bien !', msg: 'Presque tout vérifié. Jette un œil au dernier !' },
+        { min: 4, emoji: '👍', stars: '⭐⭐', title: 'Bien !', msg: 'Plus de la moitié vérifiée. Continue !' },
+        { min: 1, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir les autres corrections !" },
+    ];
+
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot';
+        d.id = `dot-ex${i}`;
+        d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge blue">📚 Feuille complète</span>` +
+            `<span class="score-badge purple">📊 Statistiques 4ème</span>`;
+        card.classList.add('visible');
+    }
+
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction);
+            btn.classList.remove('active');
+            btn.textContent = 'Voir la correction';
+            openSet.delete(exId);
+        } else {
+            openCorrection(correction);
+            btn.classList.add('active');
+            btn.textContent = 'Masquer la correction';
+            openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId);
+                dot.classList.add('done');
+                card.classList.add('seen');
+                updateProgress();
+            }
+        }
+    }
+
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+
+    const hintGroups = {
+        ex1: ['h1-1', 'h1-2', 'h1-3'],
+        ex2: ['h2-1', 'h2-2', 'h2-3'],
+        ex3: ['h3-1', 'h3-2', 'h3-3'],
+        ex4: ['h4-1', 'h4-2', 'h4-3'],
+        ex5: ['h5-1', 'h5-2', 'h5-3'],
+        ex6: ['h6-1', 'h6-2', 'h6-3'],
+    };
+
+        document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            const hintEl = document.getElementById(id);
+            const isRevealed = hintEl.classList.contains('revealed');
+            if (isRevealed) {
+                hintEl.classList.remove('revealed');
+                this.classList.remove('active');
+            } else {
+                hintEl.classList.add('revealed');
+                this.classList.add('active');
+            }
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

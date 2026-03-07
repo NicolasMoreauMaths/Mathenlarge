@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Critères de divisibilité</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --ink: #1b3a5c;
+    --ink-light: #3a6b9f;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --green: #1e8449;
+    --green-light: #27ae60;
+    --green-pale: #d5f5e3;
+    --orange: #d35400;
+    --orange-light: #e67e22;
+    --purple: #6c3483;
+    --paper: #fdf8f0;
+    --line-blue: #c8daea;
+    --margin-pink: #f0c0c0;
+    --pencil: #6b6b6b;
+    --shadow: rgba(27,58,92,0.1);
+}
+
+body {
+    font-family: 'Patrick Hand', cursive;
+    min-height: 100vh;
+    background: #e8e0d0;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 16px 10px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.notebook {
+    background: var(--paper);
+    border-radius: 4px 16px 16px 4px;
+    padding: 32px 28px 32px 48px;
+    max-width: 840px; width: 100%; position: relative;
+    box-shadow: -4px 0 0 #c0392b, -6px 0 0 #a93226, 4px 4px 20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 31px, var(--line-blue) 31px, var(--line-blue) 32px),
+        repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(200,218,234,0.3) 7px, rgba(200,218,234,0.3) 8px);
+    background-size: 100% 32px, 100% 8px;
+    min-height: 90vh;
+}
+.notebook::before { content:''; position:absolute; left:38px; top:0; bottom:0; width:2px; background:var(--margin-pink); z-index:1; }
+.notebook::after { content:''; position:absolute; left:-2px; top:20px; bottom:20px; width:14px; background-image:radial-gradient(circle 5px,#d0c8b8 90%,transparent 90%); background-size:14px 40px; background-repeat:repeat-y; }
+
+h1 { font-family:'Libre Baskerville',serif; font-size:1.7em; color:var(--ink); text-align:center; margin-bottom:6px; line-height:1.3; }
+.subtitle { text-align:center; font-size:1.1em; color:var(--pencil); margin-bottom:24px; }
+
+.screen { display:none; animation:fadeIn 0.35s ease; }
+.screen.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* BUTTONS */
+.btn { font-family:'Patrick Hand',cursive; padding:12px 28px; border-radius:12px; font-size:1.05em; cursor:pointer; transition:all 0.2s; border:2px solid; min-height:46px; touch-action:manipulation; display:inline-flex; align-items:center; justify-content:center; }
+.btn:disabled { opacity:0.3; cursor:not-allowed; }
+.btn-ink { background:var(--ink); color:white; border-color:var(--ink); box-shadow:0 3px 10px var(--shadow); }
+.btn-ink:hover:not(:disabled) { background:var(--ink-light); transform:translateY(-2px); }
+.btn-green { background:var(--green); color:white; border-color:var(--green); }
+.btn-green:hover:not(:disabled) { background:var(--green-light); transform:translateY(-2px); }
+.btn-outline { background:transparent; color:var(--ink); border-color:var(--line-blue); }
+.btn-outline:hover { background:rgba(200,218,234,0.2); }
+.controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px; }
+
+/* INTRO */
+.intro-screen { text-align:center; padding:16px 0; }
+.intro-visual { font-size:2.2em; margin-bottom:16px; color:var(--ink); }
+.intro-desc { color:var(--pencil); font-size:1.05em; max-width:530px; margin:0 auto 24px; line-height:1.6; }
+
+/* TUTORIAL */
+.tuto-block { background:rgba(200,218,234,0.12); border:1px dashed var(--line-blue); border-radius:14px; padding:20px; margin-bottom:16px; }
+.tuto-title { font-family:'Libre Baskerville',serif; font-size:1.1em; color:var(--red); margin-bottom:10px; padding-bottom:4px; border-bottom:1px solid rgba(200,180,180,0.4); }
+.tuto-text { color:var(--pencil); line-height:1.6; margin-bottom:6px; }
+.tuto-text strong { color:var(--ink); }
+
+.rule-table { width:100%; border-collapse:collapse; margin:10px 0; }
+.rule-table th { font-family:'Libre Baskerville',serif; font-size:0.9em; color:var(--ink); text-align:left; padding:8px 10px; border-bottom:2px solid var(--line-blue); }
+.rule-table td { padding:8px 10px; border-bottom:1px solid rgba(200,218,234,0.3); color:var(--pencil); font-size:0.95em; line-height:1.4; }
+.rule-table td:first-child { color:var(--red); font-weight:700; font-size:1.1em; width:60px; text-align:center; }
+.rule-table .highlight-row { background:rgba(200,218,234,0.1); }
+
+.tuto-example {
+    background:rgba(255,255,255,0.6); border:1px solid var(--line-blue); border-radius:10px;
+    padding:12px 16px; margin:10px 0; font-size:0.95em; color:var(--pencil); line-height:1.6;
+}
+.tuto-example strong { color:var(--ink); }
+.tuto-example .hl { color:var(--red); font-weight:700; }
+
+/* MENU */
+.menu-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
+.menu-card { background:white; border:2px solid var(--line-blue); border-radius:14px; padding:16px 12px; text-align:center; cursor:pointer; transition:all 0.25s; }
+.menu-card:hover { border-color:var(--ink-light); transform:translateY(-4px); box-shadow:0 8px 24px var(--shadow); }
+.menu-card .card-icon { font-size:1.8em; margin-bottom:4px; }
+.menu-card .card-title { font-size:1.05em; color:var(--ink); font-family:'Libre Baskerville',serif; font-weight:700; margin-bottom:2px; }
+.menu-card .card-desc { font-size:0.82em; color:var(--pencil); }
+
+/* EXERCISE HEADER */
+.ex-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+.ex-badge { background:var(--ink); color:white; padding:6px 16px; border-radius:20px; font-size:0.9em; }
+.ex-score { font-size:1em; color:var(--ink); background:rgba(200,218,234,0.2); padding:6px 14px; border-radius:20px; }
+.progress-wrap { width:100%; background:#e8e0d0; border-radius:6px; height:6px; overflow:hidden; margin-bottom:16px; }
+.progress-fill { height:100%; background:var(--ink); border-radius:6px; transition:width 0.4s ease; }
+
+/* BIG NUMBER DISPLAY */
+.big-number {
+    text-align:center; margin:10px 0 18px;
+    font-family:'Libre Baskerville',serif;
+    font-size:4em; font-weight:700; color:var(--green);
+    letter-spacing:4px; line-height:1.2;
+}
+.big-number .digit { display:inline-block; transition:all 0.3s; }
+.big-number .digit.highlight-units {
+    color:var(--red); position:relative;
+}
+.big-number .digit.highlight-units::after {
+    content:''; position:absolute; bottom:-4px; left:0; right:0;
+    height:3px; background:var(--red); border-radius:2px;
+}
+.big-number .digit.faded { opacity:0.3; }
+
+/* PROMPT */
+.prompt-zone {
+    background:white; border:2px solid var(--line-blue); border-radius:14px;
+    padding:18px 20px; text-align:center; margin-bottom:14px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+}
+.prompt-text { font-size:1.15em; color:var(--ink); line-height:1.5; }
+.prompt-text .hl { color:var(--red); font-weight:700; }
+.prompt-text .hl-green { color:var(--green); font-weight:700; }
+.prompt-text .hl-orange { color:var(--orange); font-weight:700; }
+
+.prompt-input {
+    font-family:'Patrick Hand',cursive; font-size:1.5em; width:100px; text-align:center;
+    border:2px dashed var(--line-blue); border-radius:10px; background:rgba(255,255,255,0.8);
+    padding:6px; outline:none; color:var(--ink); transition:all 0.2s;
+}
+.prompt-input:focus { border-color:var(--ink-light); background:white; box-shadow:0 0 0 3px rgba(58,107,159,0.1); }
+.prompt-input.error { border-color:var(--red); background:#fdedec; animation:shake 0.4s; }
+
+.prompt-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+/* YES/NO BUTTONS */
+.yn-row { display:flex; gap:14px; justify-content:center; }
+.yn-btn {
+    font-family:'Patrick Hand',cursive; font-size:1.3em; padding:14px 32px;
+    border-radius:14px; cursor:pointer; border:3px solid; transition:all 0.2s; min-width:130px;
+}
+.yn-btn.yes { background:white; color:var(--green); border-color:var(--green); }
+.yn-btn.yes:hover { background:var(--green-pale); transform:scale(1.05); }
+.yn-btn.no { background:white; color:var(--red); border-color:var(--red); }
+.yn-btn.no:hover { background:#fdedec; transform:scale(1.05); }
+.yn-btn:disabled { transform:none!important; opacity:0.5; cursor:not-allowed; }
+
+/* GRAND TEST: TOGGLE CHIPS */
+.chips-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:10px 0; }
+.chip {
+    font-family:'Patrick Hand',cursive; font-size:1.2em; padding:10px 22px;
+    border-radius:30px; cursor:pointer; border:3px solid var(--line-blue);
+    background:white; color:var(--ink); transition:all 0.2s; user-select:none;
+    -webkit-tap-highlight-color:transparent;
+}
+.chip:hover { border-color:var(--ink-light); }
+.chip.selected { background:var(--ink); color:white; border-color:var(--ink); }
+.chip.correct { background:var(--green); color:white; border-color:var(--green); }
+.chip.wrong { background:var(--red-light); color:white; border-color:var(--red); }
+.chip.missed { background:white; color:var(--green); border-color:var(--green); animation:pulse 0.5s; }
+
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+/* SUM DISPLAY */
+.sum-display {
+    font-size:1.4em; color:var(--ink); text-align:center;
+    background:rgba(200,218,234,0.15); border-radius:10px; padding:10px 18px;
+    margin:6px 0;
+}
+.sum-display .plus { color:var(--pencil); margin:0 2px; }
+.sum-display .eq { color:var(--pencil); font-weight:700; margin:0 6px; }
+.sum-display .result { color:var(--orange); font-weight:700; }
+
+/* STEP CARD */
+.step-card {
+    background:rgba(200,218,234,0.08); border:1px dashed var(--line-blue);
+    border-radius:12px; padding:14px 18px; margin:8px 0;
+    text-align:center; animation:fadeIn 0.3s ease;
+}
+.step-card.done { border-color:var(--green-light); background:rgba(30,132,73,0.05); }
+
+/* FEEDBACK */
+.feedback-box {
+    margin-top:14px; padding:14px 18px; border-radius:12px;
+    font-size:1em; text-align:center; display:none; animation:fadeIn 0.3s ease;
+}
+.feedback-box.correct { background:var(--green-pale); color:var(--green); border:2px solid var(--green-light); display:block; }
+.feedback-box.incorrect { background:#fdedec; color:var(--red); border:2px solid var(--red-light); display:block; }
+
+.prompt-feedback { font-size:1em; min-height:24px; text-align:center; }
+
+/* RESULTS */
+.results-screen { text-align:center; padding:16px 0; }
+.results-emoji { font-size:3.5em; margin-bottom:10px; }
+.results-score { font-family:'Libre Baskerville',serif; font-size:2.6em; font-weight:700; color:var(--ink); margin-bottom:4px; }
+.results-label { font-size:1em; color:var(--pencil); margin-bottom:16px; }
+.results-bar { width:100%; max-width:260px; height:8px; background:var(--line-blue); border-radius:6px; margin:0 auto 16px; overflow:hidden; }
+.results-bar-fill { height:100%; border-radius:6px; transition:width 1s ease; width:0%; }
+.results-bar-fill.good { background:var(--green); }
+.results-bar-fill.bad { background:var(--red); }
+.results-msg { font-size:1.2em; color:var(--ink); margin-bottom:20px; }
+
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width:768px) {
+    body { padding:14px 8px; }
+    .notebook { padding:28px 18px 28px 40px; border-radius:4px 14px 14px 4px; }
+    .notebook::before { left:32px; }
+    h1 { font-size:1.55em; }
+    .subtitle { font-size:1.05em; }
+    .intro-visual { font-size:2em; }
+    .intro-desc { font-size:1.02em; }
+    .btn { padding:11px 26px; font-size:1.02em; min-height:44px; }
+    .controls { gap:9px; }
+    .menu-grid { grid-template-columns:1fr 1fr; gap:11px; }
+    .menu-card { padding:15px 11px; min-height:100px; }
+    .tuto-block { padding:18px; }
+    .rule-table th { font-size:0.88em; padding:7px 9px; }
+    .rule-table td { font-size:0.93em; padding:7px 9px; }
+    .big-number { font-size:3em; }
+    .yn-btn { font-size:1.15em; padding:11px 24px; min-width:110px; min-height:48px; }
+    .chip { font-size:1.05em; padding:9px 18px; min-height:40px; }
+}
+
+@media (max-width:600px) {
+    body { padding:12px 6px; }
+    .notebook { padding:24px 14px 24px 36px; min-height:85vh; }
+    .notebook::before { left:28px; }
+    .notebook::after { left:-2px; width:12px; background-size:12px 36px; }
+    h1 { font-size:1.35em; }
+    .subtitle { font-size:1em; margin-bottom:20px; }
+    .intro-visual { font-size:1.85em; }
+    .intro-desc { font-size:1em; }
+    .btn { padding:10px 24px; font-size:1em; min-height:42px; }
+    .controls { gap:8px; }
+    .tuto-block { padding:16px; }
+    .tuto-title { font-size:1.05em; }
+    .tuto-text { font-size:0.95em; }
+    .rule-table { font-size:0.92em; }
+    .rule-table th { font-size:0.86em; padding:6px 8px; }
+    .rule-table td { font-size:0.91em; padding:6px 8px; }
+    .rule-table td:first-child { font-size:1.05em; width:50px; }
+    .tuto-example { padding:11px 14px; font-size:0.93em; }
+    .menu-grid { grid-template-columns:1fr 1fr; gap:10px; }
+    .menu-card { padding:14px 10px; min-height:90px; }
+    .menu-card .card-icon { font-size:1.6em; }
+    .menu-card .card-title { font-size:1em; }
+    .menu-card .card-desc { font-size:0.8em; }
+    .header { gap:8px; }
+    .badge { padding:6px 14px; font-size:0.9em; }
+    .score { font-size:1em; padding:6px 14px; }
+    .big-number { font-size:2.8em; }
+    .divisor-text { font-size:1.05em; }
+    .yn-btn { font-size:1.1em; padding:10px 22px; min-width:100px; min-height:46px; }
+    .chip { font-size:1em; padding:8px 16px; min-height:38px; }
+    .feedback { padding:10px 14px; font-size:0.95em; }
+    .results-emoji { font-size:3em; }
+    .results-score { font-size:2.5em; }
+}
+
+@media (max-width:480px) {
+    .notebook { padding:22px 12px 22px 32px; }
+    .notebook::before { left:24px; }
+    h1 { font-size:1.25em; }
+    .subtitle { font-size:0.98em; }
+    .intro-visual { font-size:1.75em; }
+    .intro-desc { font-size:0.98em; }
+    .btn { padding:10px 22px; font-size:0.98em; min-height:40px; }
+    .tuto-block { padding:14px; }
+    .rule-table th { font-size:0.84em; padding:5px 7px; }
+    .rule-table td { font-size:0.89em; padding:5px 7px; }
+    .tuto-example { padding:10px 12px; font-size:0.91em; }
+    .menu-grid { grid-template-columns:1fr; gap:9px; }
+    .menu-card { padding:13px 9px; min-height:85px; }
+    .menu-card .card-icon { font-size:1.5em; }
+    .menu-card .card-title { font-size:0.98em; }
+    .menu-card .card-desc { font-size:0.78em; }
+    .big-number { font-size:2.6em; }
+    .divisor-text { font-size:1.02em; }
+    .yn-btn { font-size:1.08em; padding:10px 20px; min-width:95px; min-height:44px; }
+    .chip { font-size:0.98em; padding:7px 15px; min-height:36px; }
+    .feedback { padding:9px 12px; font-size:0.92em; }
+    .results-emoji { font-size:2.8em; }
+    .results-score { font-size:2.3em; }
+}
+
+@media (max-width:380px) {
+    .notebook { padding:20px 10px 20px 28px; }
+    .notebook::before { left:20px; }
+    h1 { font-size:1.2em; }
+    .btn { padding:9px 20px; font-size:0.95em; }
+    .menu-card { padding:12px 8px; min-height:80px; }
+    .big-number { font-size:2.4em; }
+    .yn-btn { font-size:1.05em; padding:9px 18px; min-width:90px; }
+    .chip { font-size:0.95em; padding:6px 14px; }
+}
+
+</style>
+</head>
+<body>
+<div class="notebook">
+
+<!-- ============ INTRO ============ -->
+<div class="screen active" id="introScreen">
+    <div class="intro-screen">
+        <div class="intro-visual">2 &nbsp; 3 &nbsp; 5 &nbsp; 9 &nbsp; 10</div>
+        <h1>Critères de Divisibilité</h1>
+        <p class="subtitle">Comment savoir si un nombre est divisible… sans calculer ?</p>
+        <p class="intro-desc">Il existe des astuces pour savoir rapidement si un nombre est divisible par 2, 3, 5, 9 ou 10, juste en regardant ses chiffres !</p>
+        <button class="btn btn-ink" onclick="show('tutorialScreen')">Ouvrir le cahier ✏️</button>
+    </div>
+</div>
+
+<!-- ============ TUTORIAL ============ -->
+<div class="screen" id="tutorialScreen">
+    <h1>📖 Les règles</h1>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Le chiffre des unités</div>
+        <p class="tuto-text">Le <strong>chiffre des unités</strong>, c'est le dernier chiffre d'un nombre.<br>
+        Exemple : dans <strong>3 47<span style="color:var(--red)">6</span></strong>, le chiffre des unités est <strong style="color:var(--red)">6</strong>.</p>
+    </div>
+
+    <div class="tuto-block">
+        <div class="tuto-title">Les critères</div>
+        <table class="rule-table">
+            <tr><th>Par…</th><th>Règle</th><th>Exemple</th></tr>
+            <tr>
+                <td>2</td>
+                <td>Le chiffre des unités est <strong>pair</strong> (0, 2, 4, 6, 8)</td>
+                <td>37<strong style="color:var(--red)">8</strong> → 8 est pair → ✓</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Le chiffre des unités est <strong>0 ou 5</strong></td>
+                <td>46<strong style="color:var(--red)">5</strong> → ✓</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>Le chiffre des unités est <strong>0</strong></td>
+                <td>29<strong style="color:var(--red)">0</strong> → ✓</td>
+            </tr>
+            <tr class="highlight-row">
+                <td>3</td>
+                <td>La <strong>somme des chiffres</strong> est divisible par 3</td>
+                <td>426 → 4+2+6 = <strong style="color:var(--orange)">12</strong> → 12÷3 = 4 → ✓</td>
+            </tr>
+            <tr class="highlight-row">
+                <td>9</td>
+                <td>La <strong>somme des chiffres</strong> est divisible par 9</td>
+                <td>738 → 7+3+8 = <strong style="color:var(--orange)">18</strong> → 18÷9 = 2 → ✓</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="tuto-block">
+        <div class="tuto-title">⚠️ Attention pour 3 et 9</div>
+        <p class="tuto-text">Pour 3 et 9, il faut <strong>d'abord calculer la somme des chiffres</strong>, puis vérifier si cette somme est divisible.</p>
+        <div class="tuto-example">
+            <strong>Est-ce que 2 847 est divisible par 9 ?</strong><br>
+            ❶ Somme des chiffres : 2 + 8 + 4 + 7 = <strong class="hl">21</strong><br>
+            ❷ Est-ce que 21 est divisible par 9 ? → 9 × 2 = 18, 9 × 3 = 27 → <strong>Non !</strong><br>
+            → 2 847 n'est <strong>pas</strong> divisible par 9.
+        </div>
+        <div class="tuto-example">
+            <strong>Et par 3 ?</strong><br>
+            La somme est <strong class="hl">21</strong>. Est-ce que 21 est divisible par 3 ? → 3 × 7 = 21 → <strong>Oui !</strong><br>
+            → 2 847 <strong>est</strong> divisible par 3.
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-ink" onclick="show('menuScreen')">J'ai compris !</button>
+    </div>
+</div>
+
+<!-- ============ MENU ============ -->
+<div class="screen" id="menuScreen">
+    <h1>Que veux-tu travailler ?</h1>
+    <p class="subtitle">Progresse étape par étape ✏️</p>
+
+    <div class="menu-grid">
+        <div class="menu-card" onclick="startLevel(1)">
+            <div class="card-icon">🔎</div>
+            <div class="card-title">Niveau 1</div>
+            <div class="card-desc">Chiffre des unités<br>Pair ou impair</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(2)">
+            <div class="card-icon">👁️</div>
+            <div class="card-title">Niveau 2</div>
+            <div class="card-desc">Critères de 2, 5, 10<br>Regarde le dernier chiffre</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(3)">
+            <div class="card-icon">🧮</div>
+            <div class="card-title">Niveau 3</div>
+            <div class="card-desc">Critères de 3 et 9<br>Somme des chiffres</div>
+        </div>
+        <div class="menu-card" onclick="startLevel(4)">
+            <div class="card-icon">🏆</div>
+            <div class="card-title">Le Grand Test</div>
+            <div class="card-desc">Tous les critères<br>2, 3, 5, 9, 10</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-outline" onclick="show('tutorialScreen')">📖 Revoir les règles</button>
+    </div>
+</div>
+
+<!-- ============ EXERCISE ============ -->
+<div class="screen" id="exerciseScreen">
+    <div class="ex-header">
+        <div class="ex-badge" id="exBadge">Niveau 1</div>
+        <div class="ex-score">Score : <span id="exScore">0</span> / <span id="exTotal">8</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="big-number" id="bigNumber"></div>
+
+    <div class="prompt-zone" id="promptZone"></div>
+
+    <div id="stepsZone"></div>
+
+    <div class="feedback-box" id="mainFeedback"></div>
+
+    <div class="controls" id="mainControls">
+        <button class="btn btn-ink" id="btnNext" style="display:none" onclick="nextQ()">Suivant →</button>
+        <button class="btn btn-outline" onclick="show('menuScreen')">← Menu</button>
+    </div>
+</div>
+
+<!-- ============ RESULTS ============ -->
+<div class="screen" id="resultsScreen">
+    <div class="results-screen">
+        <div class="results-emoji" id="resEmoji">✏️</div>
+        <div class="results-score" id="resScoreText">8 / 8</div>
+        <div class="results-label">Bonnes réponses</div>
+        <div class="results-bar"><div class="results-bar-fill" id="resBarFill"></div></div>
+        <div class="results-msg" id="resMsg"></div>
+        <button class="btn btn-ink" onclick="show('menuScreen')">Retour au menu</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+// ============================== UTILS ==============================
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function rv(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function digitSum(n){return String(n).split('').reduce((s,d)=>s+Number(d),0)}
+function isDivBy(n,d){return n%d===0}
+function lastDigit(n){return n%10}
+
+// ============================== STATE ==============================
+let level=1, score=0, qIdx=0, questions=[];
+const COUNTS = {1:10, 2:8, 3:8, 4:8};
+
+// ============================== GENERATE QUESTIONS ==============================
+function genNumber(min,max){return ri(min,max)}
+
+function genLevel1(){
+    // Mix of "chiffre des unités" and "pair ou impair"
+    const qs = [];
+    for(let i=0;i<5;i++) qs.push({type:'units', number:genNumber(100,9999)});
+    for(let i=0;i<5;i++) qs.push({type:'parity', number:genNumber(10,9999)});
+    return shuffle(qs);
+}
+
+function genLevel2(){
+    const qs = [];
+    const criteria = [2,5,10];
+    for(let i=0;i<8;i++){
+        const c = rv(criteria);
+        let n;
+        // Half divisible, half not
+        if(i<4){
+            // Make divisible
+            n = ri(10,500)*c;
+            if(n>9999) n = ri(2,200)*c;
+        } else {
+            do { n = genNumber(12,9999); } while(n%c===0);
+        }
+        qs.push({type:'simple', number:n, criterion:c});
+    }
+    return shuffle(qs);
+}
+
+function genLevel3(){
+    const qs = [];
+    const criteria = [3,9];
+    for(let i=0;i<8;i++){
+        const c = rv(criteria);
+        let n;
+        if(i<4){
+            n = ri(10,400)*c;
+            if(n>9999) n = ri(5,200)*c;
+        } else {
+            do { n = genNumber(100,9999); } while(n%c===0);
+        }
+        qs.push({type:'sum', number:n, criterion:c});
+    }
+    return shuffle(qs);
+}
+
+function genLevel4(){
+    const qs = [];
+    // Generate 8 varied numbers
+    const pool = [];
+    // Some divisible by many, some by none
+    pool.push(ri(10,50)*30);   // div by 2,3,5,10
+    pool.push(ri(10,100)*9);   // div by 3,9
+    pool.push(ri(10,200)*5);   // div by 5
+    pool.push(ri(10,200)*2);   // div by 2
+    pool.push(ri(10,100)*10);  // div by 2,5,10
+    // Some random
+    for(let i=0;i<3;i++) pool.push(genNumber(101,5000));
+
+    shuffle(pool);
+    for(const n of pool.slice(0,8)){
+        qs.push({type:'grand', number:n});
+    }
+    return qs;
+}
+
+// ============================== START ==============================
+function startLevel(lvl){
+    level = lvl;
+    score = 0;
+    qIdx = 0;
+    const total = COUNTS[lvl];
+
+    if(lvl===1) questions = genLevel1();
+    else if(lvl===2) questions = genLevel2();
+    else if(lvl===3) questions = genLevel3();
+    else questions = genLevel4();
+
+    questions = questions.slice(0, total);
+
+    document.getElementById('exBadge').textContent =
+        lvl===4 ? 'Le Grand Test' : 'Niveau '+lvl;
+    document.getElementById('exScore').textContent = '0';
+    document.getElementById('exTotal').textContent = total;
+    show('exerciseScreen');
+    showQuestion();
+}
+
+function showQuestion(){
+    document.getElementById('progressFill').style.width = (qIdx/questions.length*100)+'%';
+    document.getElementById('mainFeedback').className = 'feedback-box';
+    document.getElementById('btnNext').style.display = 'none';
+    document.getElementById('stepsZone').innerHTML = '';
+
+    const q = questions[qIdx];
+    renderBigNumber(q.number);
+
+    if(q.type==='units') showUnitsQ(q);
+    else if(q.type==='parity') showParityQ(q);
+    else if(q.type==='simple') showSimpleQ(q);
+    else if(q.type==='sum') showSumQ(q);
+    else if(q.type==='grand') showGrandQ(q);
+}
+
+// ============================== BIG NUMBER ==============================
+function renderBigNumber(n, highlightUnits, fadeOthers){
+    const el = document.getElementById('bigNumber');
+    const digits = String(n).split('');
+    el.innerHTML = digits.map((d,i) => {
+        let cls = 'digit';
+        if(highlightUnits && i === digits.length-1) cls += ' highlight-units';
+        if(fadeOthers && i < digits.length-1) cls += ' faded';
+        return `<span class="${cls}">${d}</span>`;
+    }).join(' ');
+}
+
+// ============================== LEVEL 1: UNITS / PARITY ==============================
+function showUnitsQ(q){
+    const zone = document.getElementById('promptZone');
+    zone.innerHTML = `
+        <div class="prompt-text">Quel est le <strong style="color:var(--red)">chiffre des unités</strong> ?</div>
+        <div class="prompt-row">
+            <input type="number" class="prompt-input" id="pInput" placeholder="?" min="0" max="9" style="width:70px;">
+            <button class="btn btn-green" onclick="checkUnits()">✓</button>
+        </div>
+        <div class="prompt-feedback" id="pFb"></div>
+    `;
+    focusInput();
+}
+
+function checkUnits(){
+    const q = questions[qIdx];
+    const el = document.getElementById('pInput');
+    const fb = document.getElementById('pFb');
+    const val = parseInt(el.value);
+    const correct = lastDigit(q.number);
+    el.classList.remove('error');
+
+    if(isNaN(val)){
+        el.classList.add('error'); fb.innerHTML=`<span style="color:var(--red)">Entre un chiffre.</span>`; el.focus(); return;
+    }
+
+    if(val !== correct){
+        el.classList.add('error');
+        fb.innerHTML = `<span style="color:var(--red)">❌ Le chiffre des unités de ${q.number}, c'est le dernier chiffre : <strong>${correct}</strong></span>`;
+        showNext(false); return;
+    }
+
+    renderBigNumber(q.number, true, true);
+    fb.innerHTML = `<span style="color:var(--green)">✅ Le chiffre des unités est bien <strong>${correct}</strong> !</span>`;
+    showNext(true);
+}
+
+function showParityQ(q){
+    const zone = document.getElementById('promptZone');
+    zone.innerHTML = `
+        <div class="prompt-text">Est-ce que <strong style="color:var(--green)">${q.number}</strong> est <strong>pair</strong> ou <strong>impair</strong> ?</div>
+        <div class="yn-row">
+            <button class="yn-btn yes" id="btnPair" onclick="checkParity(true)">Pair</button>
+            <button class="yn-btn no" id="btnImpair" onclick="checkParity(false)">Impair</button>
+        </div>
+        <div class="prompt-feedback" id="pFb"></div>
+    `;
+}
+
+function checkParity(saidPair){
+    const q = questions[qIdx];
+    const isEven = q.number%2===0;
+    const correct = saidPair===isEven;
+    const u = lastDigit(q.number);
+
+    document.getElementById('btnPair').disabled = true;
+    document.getElementById('btnImpair').disabled = true;
+
+    renderBigNumber(q.number, true, true);
+
+    const fb = document.getElementById('pFb');
+    if(correct){
+        fb.innerHTML = `<span style="color:var(--green)">✅ ${q.number} est ${isEven?'pair':'impair'} (chiffre des unités = ${u}).</span>`;
+    } else {
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${q.number} est ${isEven?'pair':'impair'}. Le chiffre des unités est ${u}, qui est ${u%2===0?'pair':'impair'}.</span>`;
+    }
+    showNext(correct);
+}
+
+// ============================== LEVEL 2: SIMPLE CRITERIA ==============================
+function showSimpleQ(q){
+    const zone = document.getElementById('promptZone');
+    zone.innerHTML = `
+        <div class="prompt-text">Est-ce que <strong style="color:var(--green)">${q.number}</strong> est divisible par <strong class="hl">${q.criterion}</strong> ?</div>
+        <div class="yn-row">
+            <button class="yn-btn yes" id="btnYes" onclick="checkSimple(true)">✓ Oui</button>
+            <button class="yn-btn no" id="btnNo" onclick="checkSimple(false)">✗ Non</button>
+        </div>
+        <div class="prompt-feedback" id="pFb"></div>
+    `;
+}
+
+function checkSimple(saidYes){
+    const q = questions[qIdx];
+    const divides = isDivBy(q.number, q.criterion);
+    const correct = saidYes === divides;
+    const u = lastDigit(q.number);
+
+    document.getElementById('btnYes').disabled = true;
+    document.getElementById('btnNo').disabled = true;
+    renderBigNumber(q.number, true, true);
+
+    const fb = document.getElementById('pFb');
+    let expl = '';
+    if(q.criterion===2) expl = `Le chiffre des unités est ${u}, qui est ${u%2===0?'pair':'impair'}.`;
+    else if(q.criterion===5) expl = `Le chiffre des unités est ${u}${u===0||u===5?' (0 ou 5)':''}.`;
+    else if(q.criterion===10) expl = `Le chiffre des unités est ${u}${u===0?' (c\'est 0)':''}.`;
+
+    if(correct){
+        fb.innerHTML = `<span style="color:var(--green)">✅ ${divides?'Oui':'Non'} ! ${expl}</span>`;
+    } else {
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${divides?'Si, c\'est divisible':'Non, pas divisible'} ! ${expl}</span>`;
+    }
+    showNext(correct);
+}
+
+// ============================== LEVEL 3: SUM CRITERIA (3,9) ==============================
+function showSumQ(q){
+    // Step 1: ask for sum of digits
+    const zone = document.getElementById('promptZone');
+    zone.innerHTML = `
+        <div class="prompt-text">Est-ce que <strong style="color:var(--green)">${q.number}</strong> est divisible par <strong class="hl">${q.criterion}</strong> ?</div>
+        <div class="prompt-text" style="font-size:0.95em;color:var(--pencil)">Première étape : calcule la somme des chiffres</div>
+        <div class="prompt-row">
+            <input type="number" class="prompt-input" id="pInput" placeholder="?" style="color:var(--orange);">
+            <button class="btn btn-green" onclick="checkSum1()">✓</button>
+        </div>
+        <div class="prompt-feedback" id="pFb"></div>
+    `;
+    focusInput();
+}
+
+function checkSum1(){
+    const q = questions[qIdx];
+    const el = document.getElementById('pInput');
+    const fb = document.getElementById('pFb');
+    const val = parseInt(el.value);
+    const sum = digitSum(q.number);
+    el.classList.remove('error');
+
+    if(isNaN(val)){el.classList.add('error');fb.innerHTML=`<span style="color:var(--red)">Entre la somme.</span>`;el.focus();return;}
+
+    const digits = String(q.number).split('');
+    const sumStr = digits.join(' + ') + ' = ';
+
+    if(val !== sum){
+        el.classList.add('error');
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${sumStr}<strong>${sum}</strong>, pas ${val}.</span>`;
+        el.focus();
+        return;
+    }
+
+    // Show sum display
+    const stepsZone = document.getElementById('stepsZone');
+    stepsZone.innerHTML = `
+        <div class="step-card done">
+            <div class="sum-display">${digits.map(d=>`<span>${d}</span>`).join('<span class="plus">+</span>')}<span class="eq">=</span><span class="result">${sum}</span></div>
+        </div>
+    `;
+
+    // Step 2: is this sum divisible?
+    const zone = document.getElementById('promptZone');
+    zone.innerHTML = `
+        <div class="prompt-text">La somme est <strong style="color:var(--orange)">${sum}</strong>. Est-ce que ${sum} est divisible par <strong class="hl">${q.criterion}</strong> ?</div>
+        <div class="yn-row">
+            <button class="yn-btn yes" id="btnYes" onclick="checkSum2(true)">✓ Oui</button>
+            <button class="yn-btn no" id="btnNo" onclick="checkSum2(false)">✗ Non</button>
+        </div>
+        <div class="prompt-feedback" id="pFb"></div>
+    `;
+}
+
+function checkSum2(saidYes){
+    const q = questions[qIdx];
+    const sum = digitSum(q.number);
+    const divides = isDivBy(sum, q.criterion);
+    const finalDivides = isDivBy(q.number, q.criterion);
+    const correct = saidYes === divides;
+
+    document.getElementById('btnYes').disabled = true;
+    document.getElementById('btnNo').disabled = true;
+
+    const fb = document.getElementById('pFb');
+
+    // Show conclusion
+    const stepsZone = document.getElementById('stepsZone');
+    if(correct){
+        fb.innerHTML = `<span style="color:var(--green)">✅ ${divides?'Oui':'Non'}, ${sum} ${divides?'est':'n\'est pas'} divisible par ${q.criterion}${divides?' ('+q.criterion+' × '+sum/q.criterion+' = '+sum+')':''}.</span>`;
+        stepsZone.innerHTML += `
+            <div class="step-card done" style="margin-top:8px;">
+                <span style="color:var(--green);font-weight:700;">Donc ${q.number} ${finalDivides?'est':'n\'est pas'} divisible par ${q.criterion}. ${finalDivides?'✅':'❌'}</span>
+            </div>
+        `;
+    } else {
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${divides?'Si':'Non'}, ${sum} ${divides?'est':'n\'est pas'} divisible par ${q.criterion}.</span>`;
+    }
+    showNext(correct);
+}
+
+// ============================== LEVEL 4: GRAND TEST ==============================
+function showGrandQ(q){
+    const zone = document.getElementById('promptZone');
+    zone.innerHTML = `
+        <div class="prompt-text">Par quoi est divisible <strong style="color:var(--green)">${q.number}</strong> ?</div>
+        <div class="prompt-text" style="font-size:0.9em;color:var(--pencil)">Sélectionne tous les critères qui marchent (ou aucun)</div>
+        <div class="chips-row" id="chipsRow">
+            <div class="chip" data-c="2" onclick="toggleChip(this)">par 2</div>
+            <div class="chip" data-c="3" onclick="toggleChip(this)">par 3</div>
+            <div class="chip" data-c="5" onclick="toggleChip(this)">par 5</div>
+            <div class="chip" data-c="9" onclick="toggleChip(this)">par 9</div>
+            <div class="chip" data-c="10" onclick="toggleChip(this)">par 10</div>
+        </div>
+        <button class="btn btn-green" id="btnGrandValidate" onclick="checkGrand()" style="margin-top:4px;">✓ Valider</button>
+        <div class="prompt-feedback" id="pFb"></div>
+    `;
+}
+
+function toggleChip(el){
+    el.classList.toggle('selected');
+}
+
+function checkGrand(){
+    const q = questions[qIdx];
+    const chips = document.querySelectorAll('#chipsRow .chip');
+    const criteria = [2,3,5,9,10];
+    const userSelected = new Set();
+    chips.forEach(c => { if(c.classList.contains('selected')) userSelected.add(Number(c.dataset.c)); });
+
+    const correctSet = new Set();
+    criteria.forEach(c => { if(isDivBy(q.number, c)) correctSet.add(c); });
+
+    let perfect = true;
+    chips.forEach(c => {
+        const val = Number(c.dataset.c);
+        c.classList.remove('selected');
+        if(correctSet.has(val) && userSelected.has(val)){
+            c.classList.add('correct');
+        } else if(!correctSet.has(val) && userSelected.has(val)){
+            c.classList.add('wrong');
+            perfect = false;
+        } else if(correctSet.has(val) && !userSelected.has(val)){
+            c.classList.add('missed');
+            perfect = false;
+        }
+        c.style.pointerEvents = 'none';
+    });
+
+    document.getElementById('btnGrandValidate').style.display = 'none';
+
+    // Show explanation
+    const stepsZone = document.getElementById('stepsZone');
+    const u = lastDigit(q.number);
+    const sum = digitSum(q.number);
+    const digits = String(q.number).split('');
+    const sumStr = digits.join('+') + '=' + sum;
+
+    let expl = `<div style="text-align:left;font-size:0.9em;color:var(--pencil);line-height:1.7;padding:6px 0;">`;
+    expl += `Chiffre des unités : <strong style="color:var(--red)">${u}</strong> → `;
+    expl += `${u%2===0?'pair':'impair'}`;
+    expl += `, ${u===0||u===5?'finit par 0 ou 5':'ne finit pas par 0 ou 5'}`;
+    expl += `, ${u===0?'finit par 0':'ne finit pas par 0'}`;
+    expl += `<br>`;
+    expl += `Somme des chiffres : ${digits.join(' + ')} = <strong style="color:var(--orange)">${sum}</strong> → `;
+    expl += `${isDivBy(sum,3)?'':'pas '}divisible par 3`;
+    expl += `, ${isDivBy(sum,9)?'':'pas '}divisible par 9`;
+    expl += `</div>`;
+
+    stepsZone.innerHTML = `<div class="step-card">${expl}</div>`;
+
+    renderBigNumber(q.number, true, false);
+
+    const fb = document.getElementById('pFb');
+    if(perfect){
+        fb.innerHTML = `<span style="color:var(--green)">✅ Parfait !</span>`;
+    } else {
+        const missed = [...correctSet].filter(x => !userSelected.has(x));
+        const extra = [...userSelected].filter(x => !correctSet.has(x));
+        let msg = '';
+        if(missed.length) msg += `Il manquait : ${missed.map(x=>'par '+x).join(', ')}. `;
+        if(extra.length) msg += `En trop : ${extra.map(x=>'par '+x).join(', ')}.`;
+        fb.innerHTML = `<span style="color:var(--red)">❌ ${msg}</span>`;
+    }
+    showNext(perfect);
+}
+
+// ============================== FLOW ==============================
+function focusInput(){
+    setTimeout(()=>{
+        const el=document.getElementById('pInput');
+        if(el){el.focus();el.addEventListener('keydown',e=>{if(e.key==='Enter')el.nextElementSibling?el.parentElement.querySelector('.btn').click():null});}
+    },60);
+}
+
+function showNext(correct){
+    if(correct) { score++; document.getElementById('exScore').textContent = score; }
+    document.getElementById('btnNext').style.display = '';
+}
+
+function nextQ(){
+    qIdx++;
+    if(qIdx >= questions.length) showResults();
+    else showQuestion();
+}
+
+function showResults(){
+    const total = questions.length;
+    const pct = Math.round(score/total*100);
+    document.getElementById('resEmoji').textContent = pct===100?'🏆':pct>=80?'📝':pct>=60?'✏️':'💪';
+    document.getElementById('resScoreText').textContent = `${score} / ${total}`;
+    document.getElementById('resMsg').textContent = pct===100?'Critères de divisibilité maîtrisés !':pct>=80?'Très bien !':pct>=60?'Pas mal, continue !':'Révise les règles et réessaie !';
+    const bf=document.getElementById('resBarFill');
+    bf.className='results-bar-fill '+(pct>=60?'good':'bad');
+    bf.style.width='0%';
+    show('resultsScreen');
+    setTimeout(()=>bf.style.width=pct+'%',100);
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

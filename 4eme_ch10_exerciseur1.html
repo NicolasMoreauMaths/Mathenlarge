@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exerciseur de Factorisation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+    <!-- jQuery + MathQuill pour saisie mathématique interactive -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --primary-dark: #5568d3;
+            --secondary-color: #764ba2;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --warning-color: #ed8936;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --card-shadow-hover: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .menu-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            text-align: left;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .menu-btn .number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .menu-btn .subtitle {
+            display: block;
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        .menu-btn .subtitle .katex {
+            color: white;
+        }
+
+        .recall-sheet {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary-color);
+            overflow-x: hidden;
+        }
+
+        .recall-sheet h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recall-sheet h2::before {
+            content: "📚";
+            font-size: 1.2em;
+        }
+
+        .recall-item {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow-x: hidden;
+        }
+
+        .recall-item h3 {
+            color: var(--secondary-color);
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .example-box {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid var(--warning-color);
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .exercise-area {
+            margin-top: 30px;
+        }
+
+        .exercise-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .exercise-card:hover {
+            border-color: var(--primary-color);
+        }
+
+        .exercise-number {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .math-input-wrapper {
+            margin: 15px 0;
+        }
+
+        /* Conteneur MathQuill */
+        .mq-field {
+            width: 100%;
+            min-height: 65px;
+            padding: 10px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            font-size: 1.4em;
+            text-align: center;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: text;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        /* MathQuill override pour centrer et colorier */
+        .mq-field .mq-editable-field {
+            border: none !important;
+            box-shadow: none !important;
+            min-width: 80px;
+            color: var(--primary-color);
+            font-size: 1em;
+        }
+
+        .mq-field .mq-editable-field.mq-focused {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .mq-field:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .mq-field .mq-cursor {
+            border-color: var(--primary-color) !important;
+        }
+
+        .mq-placeholder {
+            color: #cbd5e0;
+            font-size: 0.7em;
+            font-family: 'Segoe UI', sans-serif;
+            pointer-events: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .mq-field {
+            position: relative;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: var(--bg-gradient);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 5px solid var(--success-color);
+        }
+
+        .feedback.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 5px solid var(--error-color);
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            height: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            background: var(--bg-gradient);
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.3em;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin: 15px 0;
+        }
+
+        .back-btn {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .hint-box {
+            background: #fef5e7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid var(--warning-color);
+            display: none;
+        }
+
+        .hint-btn {
+            background: transparent;
+            color: var(--warning-color);
+            border: 2px solid var(--warning-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .hint-btn:hover {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-card {
+                padding: 25px;
+            }
+
+            .menu-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .math-input {
+                font-size: 1em;
+            }
+        }
+
+        .instruction-box {
+            background: #ebf8ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4299e1;
+        }
+
+        .instruction-box h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .key-indicator {
+            display: inline-block;
+            background: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            margin: 5px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border: 1px solid #cbd5e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Exerciseur de Factorisation</h1>
+            <p>Maîtrise la factorisation pas à pas</p>
+        </header>
+
+        <div class="main-card">
+            <!-- Menu Principal -->
+            <div id="mainMenu">
+                <div class="recall-sheet">
+                    <h2>Rappels : La Factorisation</h2>
+                    
+                    <div class="recall-item">
+                        <h3>🎯 Qu'est-ce que factoriser ?</h3>
+                        <p>Factoriser, c'est transformer une <strong>somme</strong> en <strong>produit</strong>.</p>
+                        <div class="example-box">
+                            <p><strong>Exemple :</strong></p>
+                            <p>$$5x + 15 = 5(x + 3)$$</p>
+                            <p style="margin-top: 10px;">On passe de $5x + 15$ (somme) à $5(x+3)$ (produit)</p>
+                        </div>
+                    </div>
+
+                    <div class="recall-item">
+                        <h3>🔍 Comment factoriser ?</h3>
+                        <p><strong>Étape 1 :</strong> Repérer le <strong>facteur commun</strong> (le nombre ou la lettre qui apparaît dans tous les termes)</p>
+                        <p><strong>Étape 2 :</strong> Mettre ce facteur en évidence</p>
+                        <p><strong>Étape 3 :</strong> Écrire ce qui reste entre parenthèses</p>
+                        <div class="example-box">
+                            <p><strong>Exemple détaillé :</strong></p>
+                            <p>$$6x + 9$$</p>
+                            <p>→ Facteur commun : <strong>3</strong> (car $6 = 3 \times 2$ et $9 = 3 \times 3$)</p>
+                            <p>→ Factorisation : $$3(2x + 3)$$</p>
+                        </div>
+                    </div>
+
+                    <div class="recall-item">
+                        <h3>💡 Cas particuliers importants</h3>
+                        <p><strong>Avec des lettres :</strong></p>
+                        <div class="example-box">
+                            <p>$$x^2 + 5x = x \times x + 5 \times x = x(x + 5)$$</p>
+                        </div>
+                        <p style="margin-top: 15px;"><strong>Attention aux signes :</strong></p>
+                        <div class="example-box">
+                            <p>$$3x - x = 3x + (-1) \times x = x(3 - 1) = x(2)$$</p>
+                            <p>ou plus simplement : $$3x - x = x(3-1) = 2x$$</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="color: var(--primary-color); margin-bottom: 20px;">Choisis ton niveau :</h2>
+                <div class="menu-buttons">
+                    <button class="menu-btn" onclick="startLevel(1)">
+                        <span class="number">1</span> Repérer un facteur commun
+                        <span class="subtitle">Identifier ce qui est commun à tous les termes</span>
+                    </button>
+                    <button class="menu-btn" onclick="startLevel(2)">
+                        <span class="number">2</span> Factoriser avec des nombres
+                        <span class="subtitle">Ex : $5x + 15 = 5(x + 3)$</span>
+                    </button>
+                    <button class="menu-btn" onclick="startLevel(3)">
+                        <span class="number">3</span> Factoriser avec la lettre x
+                        <span class="subtitle">Ex : $x^2 + 5x = x(x + 5)$</span>
+                    </button>
+                    <button class="menu-btn" onclick="startLevel(4)">
+                        <span class="number">4</span> Le mélange (nombres et lettres)
+                        <span class="subtitle">Ex : $6x^2 + 4x = 2x(3x + 2)$</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zone d'exercices -->
+            <div id="exerciseArea" class="hidden">
+                <button class="back-btn" onclick="goBack()">← Retour au menu</button>
+                
+                <div class="score-display">
+                    Score : <span id="score">0</span> / <span id="total">0</span>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+
+                <div id="exerciseContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 0;
+        let currentExercise = 0;
+        let score = 0;
+        let totalExercises = 5;
+        let exercises = [];
+
+        // Générateurs d'exercices pour chaque niveau
+        function generateLevel1Exercises() {
+            const exercises = [
+                {
+                    expression: "3x + 6",
+                    options: ["3", "x", "6", "Aucun"],
+                    answer: "3",
+                    explanation: "Le nombre 3 divise à la fois 3x (3×x) et 6 (3×2)."
+                },
+                {
+                    expression: "5a + 10",
+                    options: ["5", "a", "10", "Aucun"],
+                    answer: "5",
+                    explanation: "Le nombre 5 divise à la fois 5a (5×a) et 10 (5×2)."
+                },
+                {
+                    expression: "7y + 14",
+                    options: ["7", "y", "14", "Aucun"],
+                    answer: "7",
+                    explanation: "Le nombre 7 divise à la fois 7y (7×y) et 14 (7×2)."
+                },
+                {
+                    expression: "4b - 8",
+                    options: ["4", "b", "8", "2"],
+                    answer: "4",
+                    explanation: "Le nombre 4 divise à la fois 4b (4×b) et 8 (4×2)."
+                },
+                {
+                    expression: "6x + 9",
+                    options: ["3", "6", "9", "x"],
+                    answer: "3",
+                    explanation: "Le nombre 3 divise à la fois 6x (3×2x) et 9 (3×3)."
+                }
+            ];
+            return exercises;
+        }
+
+        function generateLevel2Exercises() {
+            const exercises = [
+                {
+                    expression: "5x + 15",
+                    answer: "5(x+3)",
+                    hint: "Quel nombre divise à la fois 5 et 15 ? Ensuite, que reste-t-il ?"
+                },
+                {
+                    expression: "4a - 12",
+                    answer: "4(a-3)",
+                    hint: "Quel est le plus grand nombre qui divise 4 et 12 ?"
+                },
+                {
+                    expression: "6y + 18",
+                    answer: "6(y+3)",
+                    hint: "6 = 6×1 et 18 = 6×?"
+                },
+                {
+                    expression: "10b - 5",
+                    answer: "5(2b-1)",
+                    hint: "Le facteur commun est 5. Que reste-t-il après avoir divisé chaque terme par 5 ?"
+                },
+                {
+                    expression: "8x + 12",
+                    answer: "4(2x+3)",
+                    hint: "Quel est le PGCD de 8 et 12 ? C'est 4 !"
+                }
+            ];
+            return exercises;
+        }
+
+        function generateLevel3Exercises() {
+            const exercises = [
+                {
+                    expression: "x^2 + 5x",
+                    answer: "x(x+5)",
+                    hint: "x² = x × x. Le facteur commun est donc x."
+                },
+                {
+                    expression: "3x^2 - x",
+                    answer: "x(3x-1)",
+                    hint: "Rappelle-toi : -x = -1 × x. Le facteur commun est x."
+                },
+                {
+                    expression: "7x + x^2",
+                    answer: "x(7+x)",
+                    hint: "7x = 7 × x et x² = x × x. Le facteur commun est x."
+                },
+                {
+                    expression: "x^2 - 4x",
+                    answer: "x(x-4)",
+                    hint: "x² = x × x et 4x = 4 × x. Facteur commun : x."
+                },
+                {
+                    expression: "2x^2 + x",
+                    answer: "x(2x+1)",
+                    hint: "x apparaît dans les deux termes. Après factorisation, que reste-t-il ?"
+                }
+            ];
+            return exercises;
+        }
+
+        function generateLevel4Exercises() {
+            const exercises = [
+                {
+                    expression: "6x^2 + 4x",
+                    answer: "2x(3x+2)",
+                    hint: "Facteur commun : 2 (PGCD de 6 et 4) ET x. Donc 2x."
+                },
+                {
+                    expression: "10x - 15x^2",
+                    answer: "5x(2-3x)",
+                    hint: "PGCD de 10 et 15 est 5. Les deux termes ont x. Facteur : 5x."
+                },
+                {
+                    expression: "9x^2 + 12x",
+                    answer: "3x(3x+4)",
+                    hint: "PGCD de 9 et 12 ? C'est 3. Et les deux ont x."
+                },
+                {
+                    expression: "8x - 12x^2",
+                    answer: "4x(2-3x)",
+                    hint: "PGCD de 8 et 12 est 4. Facteur commun : 4x."
+                },
+                {
+                    expression: "14x^2 + 21x",
+                    answer: "7x(2x+3)",
+                    hint: "PGCD de 14 et 21 ? C'est 7 ! Et n'oublie pas le x."
+                }
+            ];
+            return exercises;
+        }
+
+        function startLevel(level) {
+            currentLevel = level;
+            currentExercise = 0;
+            score = 0;
+            
+            // Générer les exercices selon le niveau
+            if (level === 1) {
+                exercises = generateLevel1Exercises();
+            } else if (level === 2) {
+                exercises = generateLevel2Exercises();
+            } else if (level === 3) {
+                exercises = generateLevel3Exercises();
+            } else if (level === 4) {
+                exercises = generateLevel4Exercises();
+            }
+            
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('exerciseArea').classList.remove('hidden');
+            
+            updateScore();
+            displayExercise();
+        }
+
+        function displayExercise() {
+            const content = document.getElementById('exerciseContent');
+            const exercise = exercises[currentExercise];
+            
+            if (currentLevel === 1) {
+                // Niveau 1 : QCM
+                content.innerHTML = `
+                    <div class="instruction-box">
+                        <h3>📌 Identifie le facteur commun</h3>
+                        <p>Quel est le facteur commun dans l'expression suivante ?</p>
+                    </div>
+                    <div class="exercise-card">
+                        <span class="exercise-number">Exercice ${currentExercise + 1}/${exercises.length}</span>
+                        <div style="font-size: 1.8em; text-align: center; margin: 30px 0; color: var(--primary-color);">
+                            $$${exercise.expression}$$
+                        </div>
+                        <div id="optionsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin: 20px 0;">
+                            ${exercise.options.map(opt => `
+                                <button class="btn btn-secondary" onclick="checkLevel1Answer('${opt}')" style="padding: 20px;">
+                                    ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div id="feedback" class="feedback"></div>
+                    </div>
+                `;
+            } else {
+                // Niveaux 2, 3, 4 : Saisie libre avec KaTeX live
+                content.innerHTML = `
+                    <div class="instruction-box">
+                        <h3>✍️ Factorise l'expression suivante</h3>
+                        <p>Écris ta réponse sous la forme : <span class="key-indicator">a(b+c)</span> ou <span class="key-indicator">ax(bx+c)</span></p>
+                        <p style="margin-top: 8px; font-size: 0.9em;">💡 Utilise <strong>x^2</strong> pour x²</p>
+                    </div>
+                    <div class="exercise-card">
+                        <span class="exercise-number">Exercice ${currentExercise + 1}/${exercises.length}</span>
+                        <div style="font-size: 1.8em; text-align: center; margin: 30px 0; color: var(--primary-color);">
+                            <span id="exprDisplay"></span>
+                        </div>
+                        <div class="math-input-wrapper">
+                            <div class="mq-field" id="mqFieldWrapper">
+                                <span id="mqAnswer"></span>
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin: 20px 0;">
+                            <button class="btn btn-primary" onclick="checkAnswer()">✓ Vérifier</button>
+                            <button class="hint-btn" onclick="showHint()">💡 Indice</button>
+                        </div>
+                        <div id="hintBox" class="hint-box">
+                            ${exercise.hint}
+                        </div>
+                        <div id="feedback" class="feedback"></div>
+                    </div>
+                `;
+                // Render the expression with KaTeX
+                katex.render(exercise.expression + ' =', document.getElementById('exprDisplay'), {throwOnError: false, displayMode: true});
+                // Init MathQuill
+                initMathQuillField();
+            }
+            
+            // Render math in exercise content with KaTeX
+            if (window.renderMathInElement) {
+                renderMathInElement(document.getElementById('exerciseContent'), {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+        }
+
+        let mqField = null; // MathQuill instance
+
+        function initMathQuillField() {
+            if (typeof MathQuill === 'undefined') {
+                // MathQuill not loaded yet, retry
+                setTimeout(initMathQuillField, 100);
+                return;
+            }
+            const MQ = MathQuill.getInterface(2);
+            const span = document.getElementById('mqAnswer');
+            if (!span) return;
+
+            mqField = MQ.MathField(span, {
+                spaceBehavesLikeTab: false,
+                handlers: {
+                    enter: function() { checkAnswer(); }
+                }
+            });
+
+            // Show placeholder when empty
+            updatePlaceholder();
+            span.addEventListener('input', updatePlaceholder);
+
+            // Focus the field
+            setTimeout(() => mqField.focus(), 100);
+        }
+
+        function updatePlaceholder() {
+            const wrapper = document.getElementById('mqFieldWrapper');
+            if (!wrapper || !mqField) return;
+            const latex = mqField.latex();
+            let ph = wrapper.querySelector('.mq-placeholder');
+            if (latex === '') {
+                if (!ph) {
+                    ph = document.createElement('span');
+                    ph.className = 'mq-placeholder';
+                    ph.textContent = 'Ex : 5(x+3)';
+                    wrapper.appendChild(ph);
+                }
+            } else {
+                if (ph) ph.remove();
+            }
+        }
+
+        function getMQLatex() {
+            if (!mqField) return '';
+            // Convert MathQuill latex to something checkable
+            return mqField.latex()
+                .replace(/\\cdot/g, '*')
+                .replace(/\s+/g, '');
+        }
+
+        function updateLiveKatex() { /* no-op, MathQuill handles rendering */ }
+        function updateMathDisplay() { /* no-op */ }
+        function switchToKatex() { /* no-op */ }
+        function switchToInput() { /* no-op */ }
+
+        // Fonction pour développer une expression factorisée
+        function expandExpression(expr) {
+            // Normaliser l'expression
+            expr = expr.toLowerCase().replace(/\s+/g, '').replace(/\*/g, '');
+            
+            // Gérer xx -> x^2
+            expr = expr.replace(/xx/g, 'x^2');
+            
+            // Pattern pour capturer a(b+c) ou a(b-c)
+            const pattern = /([0-9]*[a-z]?\^?[0-9]*)\(([^)]+)\)/;
+            const match = expr.match(pattern);
+            
+            if (!match) {
+                // Pas de parenthèses, retourner tel quel normalisé
+                return normalizeForComparison(expr);
+            }
+            
+            const factor = match[1] || '1';
+            const inside = match[2];
+            
+            // Séparer les termes à l'intérieur des parenthèses
+            const terms = splitTerms(inside);
+            
+            // Développer : multiplier chaque terme par le facteur
+            const expandedTerms = terms.map(term => multiplyTerms(factor, term));
+            
+            return normalizeForComparison(expandedTerms.join(''));
+        }
+
+        function splitTerms(expr) {
+            const terms = [];
+            let currentTerm = '';
+            let sign = '+';
+            
+            for (let i = 0; i < expr.length; i++) {
+                const char = expr[i];
+                if (char === '+' || char === '-') {
+                    if (currentTerm) {
+                        terms.push(sign + currentTerm);
+                    }
+                    sign = char;
+                    currentTerm = '';
+                } else {
+                    currentTerm += char;
+                }
+            }
+            if (currentTerm) {
+                terms.push(sign + currentTerm);
+            }
+            
+            return terms;
+        }
+
+        function multiplyTerms(factor, term) {
+            // Extraire le signe
+            let sign = '+';
+            if (term[0] === '-') {
+                sign = '-';
+                term = term.substring(1);
+            } else if (term[0] === '+') {
+                term = term.substring(1);
+            }
+            
+            // Parser le facteur
+            const factorNum = parseCoefficient(factor);
+            const factorVar = extractVariable(factor);
+            
+            // Parser le terme
+            const termNum = parseCoefficient(term);
+            const termVar = extractVariable(term);
+            
+            // Multiplier les coefficients
+            const resultNum = factorNum * termNum;
+            
+            // Combiner les variables
+            const resultVar = combineVariables(factorVar, termVar);
+            
+            // Construire le résultat
+            let result = sign;
+            if (resultNum !== 1 || resultVar === '') {
+                result += resultNum;
+            }
+            result += resultVar;
+            
+            return result;
+        }
+
+        function parseCoefficient(term) {
+            const match = term.match(/^-?[0-9]+/);
+            if (match) {
+                return parseInt(match[0]);
+            }
+            if (term[0] === '-') return -1;
+            return 1;
+        }
+
+        function extractVariable(term) {
+            const match = term.match(/[a-z]\^?[0-9]*/);
+            return match ? match[0] : '';
+        }
+
+        function combineVariables(var1, var2) {
+            if (var1 === '' && var2 === '') return '';
+            if (var1 === '') return var2;
+            if (var2 === '') return var1;
+            
+            // Extraire la lettre et l'exposant
+            const letter1 = var1[0];
+            const letter2 = var2[0];
+            
+            if (letter1 !== letter2) {
+                // Variables différentes
+                return var1 + var2;
+            }
+            
+            const exp1 = var1.includes('^') ? parseInt(var1.split('^')[1]) : 1;
+            const exp2 = var2.includes('^') ? parseInt(var2.split('^')[1]) : 1;
+            
+            const totalExp = exp1 + exp2;
+            
+            if (totalExp === 1) return letter1;
+            return letter1 + '^' + totalExp;
+        }
+
+        function normalizeForComparison(expr) {
+            // Retirer espaces et *
+            expr = expr.replace(/\s+/g, '').replace(/\*/g, '');
+            
+            // Séparer les termes
+            const terms = splitTerms(expr);
+            
+            // Normaliser chaque terme et trier pour comparer
+            const normalized = terms.map(t => {
+                t = t.replace(/^\+/, '');
+                // Créer une clé de tri : variable puis coefficient
+                const varPart = extractVariable(t) || 'zzz';
+                const coef = parseCoefficient(t);
+                return { original: t, var: varPart, coef: coef };
+            });
+            
+            // Trier par variable (ordre alphabétique inversé pour mettre x^2 avant x)
+            normalized.sort((a, b) => {
+                if (a.var !== b.var) {
+                    // Ordre spécial : x^2 avant x avant constantes
+                    if (a.var.includes('^') && !b.var.includes('^') && a.var[0] === b.var[0]) return -1;
+                    if (b.var.includes('^') && !a.var.includes('^') && a.var[0] === b.var[0]) return 1;
+                    return b.var.localeCompare(a.var);
+                }
+                return 0;
+            });
+            
+            return normalized.map(t => t.original).join('');
+        }
+
+        function isFactorized(expr) {
+            // Vérifier qu'il y a bien des parenthèses
+            return expr.includes('(') && expr.includes(')');
+        }
+
+        function checkLevel1Answer(selectedAnswer) {
+            const exercise = exercises[currentExercise];
+            const feedback = document.getElementById('feedback');
+            
+            if (selectedAnswer === exercise.answer) {
+                score++;
+                updateScore();
+                feedback.className = 'feedback success';
+                feedback.style.display = 'block';
+                feedback.innerHTML = `
+                    ✓ Excellent ! ${exercise.explanation}
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button>
+                    </div>
+                `;
+            } else {
+                feedback.className = 'feedback error';
+                feedback.style.display = 'block';
+                feedback.innerHTML = `
+                    ✗ Pas tout à fait. ${exercise.explanation}
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button>
+                    </div>
+                `;
+            }
+            
+            // Désactiver les boutons après la réponse
+            document.getElementById('optionsContainer').style.pointerEvents = 'none';
+            document.getElementById('optionsContainer').style.opacity = '0.6';
+        }
+
+        function checkAnswer() {
+            // Lire la réponse depuis MathQuill
+            const rawLatex = mqField ? mqField.latex() : '';
+            // Convertir le latex MathQuill en expression lisible
+            let userAnswer = rawLatex
+                .replace(/\\left\(/g, '(')
+                .replace(/\\right\)/g, ')')
+                .replace(/\\cdot /g, '*')
+                .replace(/\^{([^}]+)}/g, '^$1')
+                .replace(/\s+/g, '');
+
+            const exercise = exercises[currentExercise];
+            const feedback = document.getElementById('feedback');
+            
+            // Vérifier si la réponse est vide
+            if (userAnswer === '') {
+                feedback.className = 'feedback error';
+                feedback.style.display = 'block';
+                feedback.innerHTML = '⚠️ Entre une réponse avant de vérifier !';
+                return;
+            }
+            
+            // Vérifier que c'est une forme factorisée
+            if (!isFactorized(userAnswer)) {
+                feedback.className = 'feedback error';
+                feedback.style.display = 'block';
+                feedback.innerHTML = '⚠️ Ta réponse doit être sous forme factorisée avec des parenthèses. Exemple : 5(x+3)';
+                return;
+            }
+            
+            // Développer la réponse de l'utilisateur
+            const expandedUser = expandExpression(userAnswer);
+            
+            // Développer l'expression originale (normaliser)
+            const expandedOriginal = normalizeForComparison(exercise.expression);
+            
+            // Comparer
+            const isCorrect = expandedUser === expandedOriginal;
+            
+            if (isCorrect) {
+                score++;
+                updateScore();
+                
+                let userLatex = userAnswer.replace(/\*/g, '').replace(/xx/g, 'x^2');
+                
+                const userNormalized = userAnswer.toLowerCase().replace(/\s+/g, '').replace(/\*/g, '');
+                const bestNormalized = exercise.answer.toLowerCase().replace(/\s+/g, '').replace(/\*/g, '');
+                const isBestForm = userNormalized === bestNormalized;
+                
+                feedback.className = 'feedback success';
+                feedback.style.display = 'block';
+                
+                let userRendered = document.createElement('span');
+                try { katex.render(userLatex, userRendered, {throwOnError:false}); } catch(e) { userRendered.textContent = userLatex; }
+                
+                let noteHTML = '';
+                if (!isBestForm) {
+                    let bestRendered = document.createElement('span');
+                    try { katex.render(exercise.answer, bestRendered, {throwOnError:false}); } catch(e) { bestRendered.textContent = exercise.answer; }
+                    noteHTML = `<p style="margin-top: 10px; font-size: 0.9em;">💡 Note : La forme la plus factorisée serait ${bestRendered.outerHTML}</p>`;
+                }
+                
+                feedback.innerHTML = `✓ Bravo ! Ta factorisation est correcte : ${userRendered.outerHTML}${noteHTML}
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button>
+                    </div>`;
+                if (mqField) mqField.blur();
+            } else {
+                feedback.className = 'feedback error';
+                feedback.style.display = 'block';
+                
+                let ansRendered = document.createElement('span');
+                try { katex.render(exercise.answer, ansRendered, {throwOnError:false}); } catch(e) { ansRendered.textContent = exercise.answer; }
+                
+                feedback.innerHTML = `✗ Ce n'est pas correct. Vérifie ta factorisation en la développant.
+                    <p style="margin-top: 10px;">💡 La bonne réponse est : ${ansRendered.outerHTML}</p>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="nextExercise()">Exercice suivant →</button>
+                    </div>`;
+            }
+        }
+
+        function showHint() {
+            const hintBox = document.getElementById('hintBox');
+            hintBox.style.display = hintBox.style.display === 'none' || hintBox.style.display === '' ? 'block' : 'none';
+        }
+
+        function nextExercise() {
+            currentExercise++;
+            
+            if (currentExercise < exercises.length) {
+                displayExercise();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const content = document.getElementById('exerciseContent');
+            const percentage = Math.round((score / exercises.length) * 100);
+            let message = '';
+            let emoji = '';
+            
+            if (percentage === 100) {
+                message = 'Parfait ! Tu maîtrises ce niveau !';
+                emoji = '🏆';
+            } else if (percentage >= 80) {
+                message = 'Très bien ! Encore un petit effort !';
+                emoji = '🌟';
+            } else if (percentage >= 60) {
+                message = 'Pas mal ! Continue de t\'entraîner !';
+                emoji = '👍';
+            } else {
+                message = 'Continue tes efforts, tu vas y arriver !';
+                emoji = '💪';
+            }
+            
+            content.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 5em; margin-bottom: 20px;">${emoji}</div>
+                    <h2 style="color: var(--primary-color); margin-bottom: 20px;">Résultats</h2>
+                    <div style="font-size: 3em; font-weight: bold; color: var(--primary-color); margin: 30px 0;">
+                        ${score} / ${exercises.length}
+                    </div>
+                    <div style="font-size: 1.5em; color: var(--secondary-color); margin-bottom: 30px;">
+                        ${percentage}%
+                    </div>
+                    <p style="font-size: 1.2em; margin-bottom: 40px;">${message}</p>
+                    <div>
+                        <button class="btn btn-primary" onclick="startLevel(${currentLevel})">🔄 Recommencer ce niveau</button>
+                        <button class="btn btn-secondary" onclick="goBack()">← Retour au menu</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('total').textContent = exercises.length;
+            const progress = (currentExercise / exercises.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function goBack() {
+            document.getElementById('mainMenu').classList.remove('hidden');
+            document.getElementById('exerciseArea').classList.add('hidden');
+            currentLevel = 0;
+            currentExercise = 0;
+            score = 0;
+        }
+
+        // Render static math in the page after KaTeX loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (window.renderMathInElement) {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                }
+            }, 200);
+        });
+    </script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

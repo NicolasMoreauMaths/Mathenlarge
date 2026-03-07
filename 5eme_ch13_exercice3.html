@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Feuille d'exercices interactive – Comparer des fractions – 5ème.">
+    <title>Fractions – Comparer | Mathématiques 5ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#0d9488; --primary-dark:#0f766e; --primary-light:#ccfbf1;
+            --secondary:#f59e0b; --success:#059669; --bonus:#7c3aed; --bonus-light:#ede9fe;
+            --bg-card:#ffffff; --border:#99f6e4; --text-dark:#0c2420; --text-medium:#4b5563;
+            --shadow:rgba(13,148,136,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#ccfbf1 0%,#ede9fe 55%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--bonus),#ec4899);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary-dark);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+        .recap-box{background:white;border:2px solid var(--border);border-radius:16px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-size:0.82rem;font-weight:700;color:var(--primary-dark);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.9rem;}
+        .recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0.7rem;}
+        .recap-chip{background:var(--primary-light);border-radius:12px;padding:0.75rem 1rem;}
+        .recap-chip .rc-title{font-weight:700;font-size:0.98rem;color:var(--primary-dark);margin-bottom:0.3rem;}
+        .recap-chip .rc-body{font-size:0.88rem;color:var(--text-medium);line-height:1.65;}
+        .frac{display:inline-flex;flex-direction:column;align-items:center;font-family:'Times New Roman',serif;font-size:1.1rem;vertical-align:middle;margin:0 0.2rem;line-height:1.25;}
+        .frac .num-part{border-bottom:2px solid currentColor;padding:0 0.25rem;text-align:center;font-weight:700;}
+        .frac .den-part{padding:0 0.25rem;text-align:center;}
+
+        /* ── Cross product visual ── */
+        .cross-visual{display:inline-flex;align-items:center;gap:0.5rem;font-family:'Times New Roman',serif;font-size:1.15rem;background:white;border:2px solid var(--border);border-radius:10px;padding:0.4rem 0.9rem;margin:0.3rem 0;}
+        .cross-eq{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;font-family:'Times New Roman',serif;font-size:1.1rem;margin:0.3rem 0;}
+        .prod-a{color:#0369a1;font-weight:700;}
+        .prod-b{color:#dc2626;font-weight:700;}
+
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--bonus));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--primary));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary-dark);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.teal{background:var(--primary-light);color:var(--primary-dark);}
+
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;position:relative;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.3rem;}
+        .tag-row{display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;background:var(--primary-light);color:var(--primary-dark);}
+        .exercise-tag.tag-pb{background:#fef3c7;color:#92400e;}
+        .exercise-tag.tag-m1{background:#ccfbf1;color:#0f766e;}
+        .exercise-tag.tag-m2{background:#dbeafe;color:#1e40af;}
+        .exercise-tag.tag-m3{background:#ede9fe;color:#5b21b6;}
+        .seen-badge{position:absolute;top:1rem;right:1rem;background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(13,148,136,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(13,148,136,0.4);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);box-shadow:0 4px 15px rgba(5,150,105,0.3);}
+
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #5eead4;padding-top:1.25rem;}
+        .hint-row{display:flex;align-items:flex-start;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.55rem;}
+        .hint-btn{background:#f0fdfa;color:var(--primary-dark);border:2px solid #5eead4;border-radius:10px;padding:0.5rem 0.9rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:normal;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#ccfbf1;border-color:var(--primary);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#f0fdfa;border-left:3px solid var(--primary);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;overflow-wrap:break-word;word-break:break-word;flex:1;min-width:0;}
+        .hint-text.revealed{max-height:220px;padding:0.5rem 0.85rem;opacity:1;}
+
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-list{display:flex;flex-direction:column;gap:0.6rem;margin:1rem 0;}
+        .q-item{background:#f0fdfa;padding:0.85rem 1.1rem;border-radius:10px;border:2px solid var(--border);font-size:1.05rem;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;}
+        .q-num{font-weight:700;color:var(--primary-dark);min-width:1.6rem;font-size:0.9rem;flex-shrink:0;}
+        .problem-box{background:#f0fdfa;border:2px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin:1rem 0;font-size:1.05rem;line-height:1.9;}
+        .problem-box strong.pb-title{color:var(--primary-dark);font-size:1.1rem;}
+        .correction-item{background:white;border-radius:10px;padding:1.1rem 1.4rem;margin:0.7rem 0;border-left:4px solid var(--success);}
+        .correction-item .num{font-weight:700;color:var(--primary-dark);font-size:0.88rem;margin-bottom:0.35rem;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.4rem;border-radius:10px;text-align:center;font-size:1.1rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .rule-box{background:#fff7ed;border:2px solid var(--secondary);border-radius:10px;padding:0.9rem 1.2rem;margin:0.9rem 0;font-size:0.95rem;}
+        .rule-box strong{color:#b45309;}
+        .etape-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:0.75rem;margin:1.1rem 0;}
+        .etape-item{background:#f0fdfa;padding:0.9rem 1rem;border-radius:10px;border:2px solid var(--border);font-size:1.02rem;line-height:1.85;}
+        .etape-item .etape-titre{font-weight:700;color:var(--primary-dark);margin-bottom:0.4rem;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.04em;}
+        .frac-line{display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;margin:0.3rem 0;font-family:'Times New Roman',serif;font-size:1.15rem;}
+        .hl-teal{color:var(--primary-dark);font-weight:700;}
+        .hl-green{color:#059669;font-weight:700;}
+        .hl-red{color:#dc2626;font-weight:700;}
+        .hl-blue{color:#1d4ed8;font-weight:700;}
+        .hl-orange{color:#b45309;font-weight:700;}
+
+        /* Produits en croix display */
+        .croix-block{background:white;border:2px solid var(--border);border-radius:12px;padding:0.9rem 1.2rem;margin:0.5rem 0;display:inline-flex;flex-direction:column;gap:0.3rem;font-family:'Times New Roman',serif;font-size:1.1rem;}
+        .croix-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+        .croix-arrow{font-size:1.4rem;color:var(--text-medium);}
+        .conclusion-box{background:#ecfdf5;border:2px solid var(--success);border-radius:10px;padding:0.6rem 1rem;margin-top:0.5rem;font-size:1rem;font-weight:600;color:#065f46;}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.solution-text{font-size:1rem;padding:0.75rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.score-card{padding:1.5rem 1.25rem;}.etape-grid{grid-template-columns:1fr;}.recap-grid{grid-template-columns:1fr;}.hint-item{flex-direction:column;}.hint-btn{white-space:normal;width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+        @media(max-width:380px){h1{font-size:1.2rem;}.exercise-title{font-size:1.05rem;}}
+
+        .hint-for{font-weight:400;font-style:italic;font-size:0.8rem;color:#5b21b6;margin-left:0.25rem;}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>⚖️ Feuille d'exercices</h1>
+        <p class="subtitle">Comparer des fractions – 5<sup>ème</sup> – Correction interactive</p>
+    </header>
+
+    <!-- Rappel de cours -->
+    <div class="recap-box">
+        <p class="recap-title">📌 Trois méthodes pour comparer des fractions</p>
+        <div class="recap-grid">
+            <div class="recap-chip">
+                <div class="rc-title">Méthode 1 — Comparer à 1</div>
+                <div class="rc-body">
+                    Une fraction est <strong>inférieure à 1</strong> si son numérateur est plus petit que son dénominateur.<br>
+                    Elle est <strong>supérieure à 1</strong> si son numérateur est plus grand.<br>
+                    <em>Ex : 5/7 &lt; 1 et 9/4 &gt; 1, donc 5/7 &lt; 9/4.</em>
+                </div>
+            </div>
+            <div class="recap-chip">
+                <div class="rc-title">Méthode 2 — Même dénominateur</div>
+                <div class="rc-body">
+                    Si les dénominateurs sont identiques (ou si l'un est multiple de l'autre), on met au même dénominateur et on compare les numérateurs.<br>
+                    <em>Ex : 3/8 et 1/4 → 3/8 et 2/8 → 3/8 &gt; 2/8.</em>
+                </div>
+            </div>
+            <div class="recap-chip">
+                <div class="rc-title">Méthode 3 — Produit en croix</div>
+                <div class="rc-body">
+                    Pour tester si <span class="frac" style="font-size:0.95rem;"><span class="num-part">a</span><span class="den-part">b</span></span> et <span class="frac" style="font-size:0.95rem;"><span class="num-part">c</span><span class="den-part">d</span></span> sont <strong>égales</strong>, on calcule <strong>a × d</strong> et <strong>b × c</strong>.<br>
+                    Si a × d = b × c, alors les deux fractions sont égales.<br>
+                    <em>Ex : 2/3 et 4/6 → 2×6=12 et 3×4=12 → 2/3 = 4/6.</em>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 7</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 1 ═══════════════════ -->
+    <div class="exercise" id="card-ex1">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 7</h2>
+                <div class="tag-row">
+                    <span class="exercise-tag tag-m1">Méthode 1 — Comparer à 1</span>
+                </div>
+            </div>
+            <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Pour chaque paire, comparer les deux fractions en passant par 1. Écrire le résultat avec &lt;, &gt; ou =.</strong></p>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">a.</span>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">3</span></span>
+                    &nbsp;…&nbsp;
+                    <span class="frac"><span class="num-part">4</span><span class="den-part">7</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">b.</span>
+                    <span class="frac"><span class="num-part">9</span><span class="den-part">11</span></span>
+                    &nbsp;…&nbsp;
+                    <span class="frac"><span class="num-part">13</span><span class="den-part">8</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">c.</span>
+                    <span class="frac"><span class="num-part">7</span><span class="den-part">7</span></span>
+                    &nbsp;…&nbsp;
+                    <span class="frac"><span class="num-part">10</span><span class="den-part">9</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="1" data-idx="0">💡 Indice (1/2) <span class="hint-for">– situer chaque fraction par rapport à 1</span></button>
+                <div class="hint-text" id="h1-0">Comment peut-on situer une fraction par rapport à 1 sans calculer ? Que vaut une fraction dont le numérateur est égal au dénominateur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="1" data-idx="1">💡 Indice (2/2) <span class="hint-for">– conclure la comparaison directement</span></button>
+                <div class="hint-text" id="h1-1">Si une fraction est au-dessus de 1 et l'autre en-dessous, a-t-on encore besoin de calculer pour comparer ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box"><strong>Rappel :</strong> Si numérateur &lt; dénominateur → fraction &lt; 1. Si numérateur &gt; dénominateur → fraction &gt; 1. Si numérateur = dénominateur → fraction = 1.</div>
+            <div class="etape-grid">
+                <div class="etape-item">
+                    <div class="etape-titre">a) 5/3 … 4/7</div>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">3</span></span> : 5 &gt; 3 → <span class="hl-teal">5/3 &gt; 1</span><br>
+                    <span class="frac"><span class="num-part">4</span><span class="den-part">7</span></span> : 4 &lt; 7 → <span class="hl-red">4/7 &lt; 1</span><br>
+                    Une fraction est au-dessus de 1, l'autre en-dessous.<br>
+                    <div class="conclusion-box">5/3 &gt; 4/7</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">b) 9/11 … 13/8</div>
+                    <span class="frac"><span class="num-part">9</span><span class="den-part">11</span></span> : 9 &lt; 11 → <span class="hl-red">9/11 &lt; 1</span><br>
+                    <span class="frac"><span class="num-part">13</span><span class="den-part">8</span></span> : 13 &gt; 8 → <span class="hl-teal">13/8 &gt; 1</span><br>
+                    Une fraction est au-dessus de 1, l'autre en-dessous.<br>
+                    <div class="conclusion-box">9/11 &lt; 13/8</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">c) 7/7 … 10/9</div>
+                    <span class="frac"><span class="num-part">7</span><span class="den-part">7</span></span> : 7 = 7 → <span class="hl-orange">7/7 = 1</span><br>
+                    <span class="frac"><span class="num-part">10</span><span class="den-part">9</span></span> : 10 &gt; 9 → <span class="hl-teal">10/9 &gt; 1</span><br>
+                    L'une vaut exactement 1, l'autre est au-dessus.<br>
+                    <div class="conclusion-box">7/7 &lt; 10/9</div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 2 ═══════════════════ -->
+    <div class="exercise" id="card-ex2">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 7</h2>
+                <div class="tag-row">
+                    <span class="exercise-tag tag-m2">Méthode 2 — Même dénominateur</span>
+                </div>
+            </div>
+            <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Comparer chaque paire de fractions en les mettant au même dénominateur. Écrire le résultat avec &lt;, &gt; ou =.</strong></p>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">a.</span>
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">4</span></span>
+                    &nbsp;…&nbsp;
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">b.</span>
+                    <span class="frac"><span class="num-part">2</span><span class="den-part">3</span></span>
+                    &nbsp;…&nbsp;
+                    <span class="frac"><span class="num-part">7</span><span class="den-part">9</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">c.</span>
+                    <span class="frac"><span class="num-part">7</span><span class="den-part">10</span></span>
+                    &nbsp;…&nbsp;
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">5</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">d.</span>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span>
+                    &nbsp;…&nbsp;
+                    <span class="frac"><span class="num-part">10</span><span class="den-part">12</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="2" data-idx="0">💡 Indice (1/3) <span class="hint-for">– relation entre les dénominateurs</span></button>
+                <div class="hint-text" id="h2-0">Pour chaque paire, regarde les deux dénominateurs : quelle relation y a-t-il entre eux ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="2" data-idx="1">💡 Indice (2/3) <span class="hint-for">– transformer la fraction correctement</span></button>
+                <div class="hint-text" id="h2-1">Quand on change le dénominateur d'une fraction, que doit-on obligatoirement faire au numérateur pour garder la même valeur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="2" data-idx="2">💡 Indice (3/3) <span class="hint-for">– comparer une fois les dénominateurs égaux</span></button>
+                <div class="hint-text" id="h2-2">Une fois les dénominateurs identiques, comment compare-t-on deux fractions ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <div class="etape-grid">
+                <div class="etape-item">
+                    <div class="etape-titre">a) 3/4 … 5/8</div>
+                    Par combien multiplie-t-on 4 pour trouver 8 ? Par <span class="hl-teal">2</span>.<br>
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">4</span></span> = <span class="frac"><span class="num-part">3 × 2</span><span class="den-part">4 × 2</span></span> = <span class="frac"><span class="num-part">6</span><span class="den-part">8</span></span><br>
+                    Comparer : <span class="frac"><span class="num-part">6</span><span class="den-part">8</span></span> et <span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span> → 6 &gt; 5<br>
+                    <div class="conclusion-box">3/4 &gt; 5/8</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">b) 2/3 … 7/9</div>
+                    Par combien multiplie-t-on 3 pour trouver 9 ? Par <span class="hl-teal">3</span>.<br>
+                    <span class="frac"><span class="num-part">2</span><span class="den-part">3</span></span> = <span class="frac"><span class="num-part">2 × 3</span><span class="den-part">3 × 3</span></span> = <span class="frac"><span class="num-part">6</span><span class="den-part">9</span></span><br>
+                    Comparer : <span class="frac"><span class="num-part">6</span><span class="den-part">9</span></span> et <span class="frac"><span class="num-part">7</span><span class="den-part">9</span></span> → 6 &lt; 7<br>
+                    <div class="conclusion-box">2/3 &lt; 7/9</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">c) 7/10 … 3/5</div>
+                    Par combien multiplie-t-on 5 pour trouver 10 ? Par <span class="hl-teal">2</span>.<br>
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">5</span></span> = <span class="frac"><span class="num-part">3 × 2</span><span class="den-part">5 × 2</span></span> = <span class="frac"><span class="num-part">6</span><span class="den-part">10</span></span><br>
+                    Comparer : <span class="frac"><span class="num-part">7</span><span class="den-part">10</span></span> et <span class="frac"><span class="num-part">6</span><span class="den-part">10</span></span> → 7 &gt; 6<br>
+                    <div class="conclusion-box">7/10 &gt; 3/5</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">d) 5/6 … 10/12</div>
+                    Par combien multiplie-t-on 6 pour trouver 12 ? Par <span class="hl-teal">2</span>.<br>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span> = <span class="frac"><span class="num-part">5 × 2</span><span class="den-part">6 × 2</span></span> = <span class="frac"><span class="num-part">10</span><span class="den-part">12</span></span><br>
+                    Comparer : <span class="frac"><span class="num-part">10</span><span class="den-part">12</span></span> et <span class="frac"><span class="num-part">10</span><span class="den-part">12</span></span> → 10 = 10<br>
+                    <div class="conclusion-box">5/6 = 10/12 (fractions égales)</div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 3 ═══════════════════ -->
+    <div class="exercise" id="card-ex3">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 7</h2>
+                <div class="tag-row">
+                    <span class="exercise-tag tag-m3">Méthode 3 — Produit en croix</span>
+                </div>
+            </div>
+            <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Pour chaque paire, utiliser le produit en croix pour déterminer si les deux fractions sont égales ou non.</strong></p>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">a.</span>
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">5</span></span>
+                    &nbsp;et&nbsp;
+                    <span class="frac"><span class="num-part">6</span><span class="den-part">10</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">b.</span>
+                    <span class="frac"><span class="num-part">4</span><span class="den-part">6</span></span>
+                    &nbsp;et&nbsp;
+                    <span class="frac"><span class="num-part">6</span><span class="den-part">9</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">c.</span>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span>
+                    &nbsp;et&nbsp;
+                    <span class="frac"><span class="num-part">15</span><span class="den-part">25</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">d.</span>
+                    <span class="frac"><span class="num-part">7</span><span class="den-part">4</span></span>
+                    &nbsp;et&nbsp;
+                    <span class="frac"><span class="num-part">21</span><span class="den-part">12</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="3" data-idx="0">💡 Indice (1/3) <span class="hint-for">– principe du produit en croix</span></button>
+                <div class="hint-text" id="h3-0">Le produit en croix : quels sont les deux produits à calculer pour tester l'égalité de deux fractions ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="3" data-idx="1">💡 Indice (2/3) <span class="hint-for">– calcul du produit en croix pour a)</span></button>
+                <div class="hint-text" id="h3-1">Pour a), quels sont exactement les deux produits à comparer ? Sont-ils égaux ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="3" data-idx="2">💡 Indice (3/3) <span class="hint-for">– interpréter le résultat</span></button>
+                <div class="hint-text" id="h3-2">Que conclure si les deux produits en croix sont égaux ? Et s'ils sont différents ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box"><strong>Méthode :</strong> Pour tester si a/b = c/d, on calcule a × d et b × c. Si ces deux produits sont égaux, les fractions sont égales ; sinon elles sont différentes.</div>
+            <div class="etape-grid">
+                <div class="etape-item">
+                    <div class="etape-titre">a) 3/5 et 6/10</div>
+                    <span class="prod-a">3 × 10 = 30</span> &nbsp;et&nbsp; <span class="prod-b">5 × 6 = 30</span><br>
+                    <span class="prod-a">30</span> = <span class="prod-b">30</span>
+                    <div class="conclusion-box">3/5 = 6/10 ✓</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">b) 4/6 et 6/9</div>
+                    <span class="prod-a">4 × 9 = 36</span> &nbsp;et&nbsp; <span class="prod-b">6 × 6 = 36</span><br>
+                    <span class="prod-a">36</span> = <span class="prod-b">36</span>
+                    <div class="conclusion-box">4/6 = 6/9 ✓</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">c) 5/8 et 15/25</div>
+                    <span class="prod-a">5 × 25 = 125</span> &nbsp;et&nbsp; <span class="prod-b">8 × 15 = 120</span><br>
+                    <span class="prod-a">125</span> ≠ <span class="prod-b">120</span>
+                    <div class="conclusion-box">5/8 ≠ 15/25</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">d) 7/4 et 21/12</div>
+                    <span class="prod-a">7 × 12 = 84</span> &nbsp;et&nbsp; <span class="prod-b">4 × 21 = 84</span><br>
+                    <span class="prod-a">84</span> = <span class="prod-b">84</span>
+                    <div class="conclusion-box">7/4 = 21/12 ✓</div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 1 ═══════════════════ -->
+    <div class="exercise" id="card-ex4">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 7</h2>
+                <div class="tag-row">
+                    <span class="exercise-tag tag-pb">🧩 Problème</span>
+                    <span class="exercise-tag tag-m1" style="font-size:0.68rem;">Méthode 1</span>
+                </div>
+            </div>
+            <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">🍰 Les parts de gâteau</strong><br><br>
+                Alice a mangé <span class="frac"><span class="num-part">7</span><span class="den-part">6</span></span> de part de gâteau (elle a repris du dessert !). Son frère Paul a mangé <span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span> de part.<br><br>
+                <strong>1.</strong> Sans calculer, dire qui a mangé plus d'une part entière et qui a mangé moins d'une part.<br>
+                <strong>2.</strong> En déduire qui a mangé le plus. Justifier.
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="4" data-idx="0">💡 Indice (1/2) <span class="hint-for">– question 1 – situer chaque fraction par rapport à 1</span></button>
+                <div class="hint-text" id="h4-0">Comment la comparaison du numérateur et du dénominateur te renseigne-t-elle sur la position d'une fraction par rapport à 1 ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="4" data-idx="1">💡 Indice (2/2) <span class="hint-for">– question 2 – conclure la comparaison</span></button>
+                <div class="hint-text" id="h4-1">Sachant où chaque fraction se situe par rapport à 1, peut-on conclure directement sans autre calcul ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Position par rapport à 1</div>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">7</span><span class="den-part">6</span></span> : 7 &gt; 6 → <span class="hl-teal">7/6 &gt; 1</span> : Alice a mangé plus d'une part entière.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span> : 5 &lt; 8 → <span class="hl-red">5/8 &lt; 1</span> : Paul a mangé moins d'une part entière.</p>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Conclusion</div>
+                <p style="margin:0.35rem 0;">7/6 est supérieure à 1 et 5/8 est inférieure à 1, donc 7/6 &gt; 1 &gt; 5/8.</p>
+                <div class="solution-text">Alice a mangé plus que Paul : <strong>7/6 &gt; 5/8</strong>.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 2 ═══════════════════ -->
+    <div class="exercise" id="card-ex5">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 7</h2>
+                <div class="tag-row">
+                    <span class="exercise-tag tag-pb">🧩 Problème</span>
+                    <span class="exercise-tag tag-m2" style="font-size:0.68rem;">Méthode 2</span>
+                </div>
+            </div>
+            <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">🏊 La piscine</strong><br><br>
+                Lors d'un entraînement, Camille a nagé <span class="frac"><span class="num-part">3</span><span class="den-part">4</span></span> du programme prévu. Son coéquipier Romain a nagé <span class="frac"><span class="num-part">7</span><span class="den-part">12</span></span> du même programme.<br><br>
+                <strong>1.</strong> Mettre ces deux fractions au même dénominateur.<br>
+                <strong>2.</strong> Qui a nagé le plus ? De quelle fraction de programme Camille a-t-elle nagé de plus que Romain ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="5" data-idx="0">💡 Indice (1/3) <span class="hint-for">– question 1 – relation entre 4 et 12</span></button>
+                <div class="hint-text" id="h5-0">Regarde les deux dénominateurs : quelle relation y a-t-il entre 4 et 12 ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="5" data-idx="1">💡 Indice (2/3) <span class="hint-for">– question 1 – transformer 3/4</span></button>
+                <div class="hint-text" id="h5-1">Pour transformer 3/4 avec un dénominateur de 12, par quel nombre faut-il multiplier le dénominateur ? Que fait-on alors au numérateur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="5" data-idx="2">💡 Indice (3/3) <span class="hint-for">– question 3 – calculer la différence</span></button>
+                <div class="hint-text" id="h5-2">Une fois les fractions au même dénominateur, quelle opération effectuer pour trouver la différence ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Mise au même dénominateur</div>
+                <p style="margin:0.35rem 0;">Par combien multiplie-t-on 4 pour trouver 12 ? Par <span class="hl-teal">3</span>.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">3</span><span class="den-part">4</span></span> = <span class="frac"><span class="num-part">3 × 3</span><span class="den-part">4 × 3</span></span> = <span class="frac"><span class="num-part">9</span><span class="den-part">12</span></span></p>
+                <p style="margin:0.35rem 0;">On compare : <span class="frac"><span class="num-part">9</span><span class="den-part">12</span></span> et <span class="frac"><span class="num-part">7</span><span class="den-part">12</span></span> → 9 &gt; 7</p>
+                <div class="conclusion-box">3/4 &gt; 7/12, donc Camille a nagé plus.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Différence</div>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">9</span><span class="den-part">12</span></span> − <span class="frac"><span class="num-part">7</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part">1</span><span class="den-part">6</span></span></p>
+                <div class="solution-text">Camille a nagé <strong>1/6 de programme de plus</strong> que Romain.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 3 ═══════════════════ -->
+    <div class="exercise" id="card-ex6">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 6 / 7</h2>
+                <div class="tag-row">
+                    <span class="exercise-tag tag-pb">🧩 Problème</span>
+                    <span class="exercise-tag tag-m3" style="font-size:0.68rem;">Méthode 3</span>
+                </div>
+            </div>
+            <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">🧪 Les solutions chimiques</strong><br><br>
+                Dans un laboratoire, deux techniciens préparent des solutions. Le technicien A dit avoir mis <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> de produit dans sa fiole. Le technicien B dit en avoir mis <span class="frac"><span class="num-part">9</span><span class="den-part">24</span></span>.<br><br>
+                <strong>1.</strong> Utilise le produit en croix pour vérifier si leurs deux fractions sont égales.<br>
+                <strong>2.</strong> Que peut-on conclure sur leurs solutions ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="6" data-idx="0">💡 Indice (1/2) <span class="hint-for">– question 1 – calcul du produit en croix</span></button>
+                <div class="hint-text" id="h6-0">Pour tester l'égalité par produit en croix, quels sont les quatre nombres impliqués et quels produits calcule-t-on ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="6" data-idx="1">💡 Indice (2/2) <span class="hint-for">– question 1 – interpréter le résultat</span></button>
+                <div class="hint-text" id="h6-1">Que signifie l'égalité (ou l'inégalité) des deux produits pour les deux solutions chimiques ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Test par produit en croix</div>
+                <p style="margin:0.35rem 0;">On teste si <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">9</span><span class="den-part">24</span></span>.</p>
+                <p style="margin:0.35rem 0;"><span class="prod-a">3 × 24 = 72</span></p>
+                <p style="margin:0.35rem 0;"><span class="prod-b">8 × 9 = 72</span></p>
+                <p style="margin:0.35rem 0;"><span class="prod-a">72</span> = <span class="prod-b">72</span> → les produits en croix sont égaux.</p>
+                <div class="conclusion-box">3/8 = 9/24 ✓</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Conclusion</div>
+                <div class="solution-text">Les deux techniciens ont mis <strong>la même proportion</strong> de produit dans leur fiole. Leurs solutions sont identiques.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 4 ═══════════════════ -->
+    <div class="exercise" id="card-ex7">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 7 / 7</h2>
+                <div class="tag-row">
+                    <span class="exercise-tag tag-pb">🧩 Problème</span>
+                    <span class="exercise-tag" style="background:#fee2e2;color:#991b1b;font-size:0.68rem;">⭐ Méthode au choix</span>
+                    <span class="exercise-tag" style="background:#fee2e2;color:#991b1b;font-size:0.68rem;">Très difficile</span>
+                </div>
+            </div>
+            <button class="reveal-btn" data-target="ex7">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">🗺️ Les randonneurs</strong><br><br>
+                Trois amis ont chacun parcouru une fraction du sentier de randonnée de 24 km :<br><br>
+                &bull; Jade : <span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span> du sentier<br>
+                &bull; Noé : <span class="frac"><span class="num-part">7</span><span class="den-part">8</span></span> du sentier<br>
+                &bull; Iris : <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> du sentier<br><br>
+                <strong>1.</strong> Ranger ces trois fractions dans l'ordre croissant. Justifie en choisissant la méthode la plus adaptée.<br>
+                <strong>2.</strong> Qui est arrivé le plus loin ? Combien de kilomètres a-t-il parcouru ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="7" data-idx="0">💡 Indice (1/3) <span class="hint-for">– question 1 – trouver le dénominateur commun</span></button>
+                <div class="hint-text" id="h7-0">Y a-t-il un nombre qui serait multiple des trois dénominateurs à la fois ? Comment le trouver ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="7" data-idx="1">💡 Indice (2/3) <span class="hint-for">– question 1 – transformer chaque fraction</span></button>
+                <div class="hint-text" id="h7-1">Pour chaque fraction, par quel nombre faut-il multiplier son dénominateur pour atteindre le dénominateur commun ? Que fait-on alors au numérateur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="7" data-idx="2">💡 Indice (3/3) <span class="hint-for">– question 2 – convertir en kilomètres</span></button>
+                <div class="hint-text" id="h7-2">Une fois la comparaison faite, comment passe-t-on de la fraction gagnante à une distance en kilomètres ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex7"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Mise au même dénominateur (méthode 2)</div>
+                <p style="margin:0.35rem 0;">Dénominateurs : 6, 8, 12. Le dénominateur commun est <span class="hl-teal">24</span>.</p>
+                <p style="margin:0.35rem 0;">Jade : <span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span> → par combien multiplie-t-on 6 pour trouver 24 ? Par <span class="hl-teal">4</span>. → <span class="frac"><span class="num-part">5 × 4</span><span class="den-part">6 × 4</span></span> = <span class="frac"><span class="num-part">20</span><span class="den-part">24</span></span></p>
+                <p style="margin:0.35rem 0;">Noé : <span class="frac"><span class="num-part">7</span><span class="den-part">8</span></span> → par combien multiplie-t-on 8 pour trouver 24 ? Par <span class="hl-teal">3</span>. → <span class="frac"><span class="num-part">7 × 3</span><span class="den-part">8 × 3</span></span> = <span class="frac"><span class="num-part">21</span><span class="den-part">24</span></span></p>
+                <p style="margin:0.35rem 0;">Iris : <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> → par combien multiplie-t-on 12 pour trouver 24 ? Par <span class="hl-teal">2</span>. → <span class="frac"><span class="num-part">11 × 2</span><span class="den-part">12 × 2</span></span> = <span class="frac"><span class="num-part">22</span><span class="den-part">24</span></span></p>
+                <p style="margin:0.35rem 0;">Comparaison des numérateurs : 20 &lt; 21 &lt; 22</p>
+                <div class="conclusion-box">Ordre croissant : 5/6 &lt; 7/8 &lt; 11/12, soit Jade &lt; Noé &lt; Iris.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Distance parcourue par Iris</div>
+                <p style="margin:0.35rem 0;">Iris a parcouru <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> du sentier de 24 km.</p>
+                <p style="margin:0.35rem 0;">Par combien multiplie-t-on 12 pour trouver 24 ? Par <span class="hl-teal">2</span>. Donc 24 ÷ 12 = 2 km par douzième.</p>
+                <p style="margin:0.35rem 0;">11 × 2 = <span class="hl-green">22 km</span>.</p>
+                <div class="solution-text">Iris est arrivée le plus loin, avec <strong>22 km</strong> parcourus.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! Comparer des fractions n'a plus de secrets — tu maîtrises les trois méthodes !</footer>
+
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+
+</div>
+<script>
+    const TOTAL = 7;
+    const seenSet = new Set();
+    const openSet = new Set();
+
+    const SCORE_DATA = [
+        {min:7, emoji:'🏆', stars:'⭐⭐⭐', title:'Parfait !',       msg:'Tu as revu tous les exercices. Tu maîtrises les trois méthodes de comparaison !'},
+        {min:5, emoji:'🎉', stars:'⭐⭐⭐', title:'Très bien !',     msg:'Presque tout vérifié. Jette un œil aux derniers !'},
+        {min:3, emoji:'👍', stars:'⭐⭐',   title:'Bien !',          msg:'Plus de la moitié vérifiée. Continue sur ta lancée !'},
+        {min:1, emoji:'💪', stars:'⭐',    title:"C'est un début !", msg:"Ouvre les autres corrections — chaque méthode mérite d'être comprise !"},
+    ];
+
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot';
+        d.id = `dot-ex${i}`;
+        d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge teal">📚 3 méthodes maîtrisées</span>`;
+        card.classList.add('visible');
+    }
+
+    function openCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        el.classList.add('show');
+    }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction);
+            btn.classList.remove('active');
+            btn.textContent = 'Voir la correction';
+            openSet.delete(exId);
+        } else {
+            openCorrection(correction);
+            btn.classList.add('active');
+            btn.textContent = 'Masquer la correction';
+            openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId);
+                dot.classList.add('done');
+                card.classList.add('seen');
+                updateProgress();
+            }
+        }
+    }
+
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+
+    document.querySelectorAll('.hint-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const ex  = this.dataset.ex;
+            const idx = parseInt(this.dataset.idx);
+            const hintId = `h${ex}-${idx}`;
+            document.getElementById(hintId).classList.add('revealed');
+            this.disabled = true;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

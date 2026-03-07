@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fonctions — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#eef2f7;
+  --grid:#d5dce6;
+  --card:#fff;
+  --blue:#1d4ed8;
+  --blue-l:#3b82f6;
+  --blue-pale:rgba(59,130,246,0.08);
+  --blue-border:rgba(59,130,246,0.2);
+  --purple:#7c3aed;
+  --purple-l:#a78bfa;
+  --purple-pale:rgba(124,58,237,0.1);
+  --orange:#ea580c;
+  --orange-pale:rgba(234,88,12,0.1);
+  --green:#16a34a;
+  --green-pale:rgba(22,163,74,0.1);
+  --red:#dc2626;
+  --red-pale:rgba(220,38,38,0.08);
+  --text:#1e293b;
+  --text-l:#64748b;
+  --border:#e2e8f0;
+  --shadow:rgba(30,41,59,0.08);
+}
+body{
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  background:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:20px 20px;
+  display:flex;
+  justify-content:center;
+  padding:16px 10px 60px;
+  color:var(--text);
+  -webkit-text-size-adjust:100%;
+}
+.app{max-width:920px;width:100%;}
+.app-header{
+  background:linear-gradient(135deg,#1d4ed8 0%,#7c3aed 100%);
+  color:#fff;
+  padding:18px 24px;
+  border-radius:16px 16px 0 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 4px 20px rgba(29,78,216,0.3);
+  position:relative;
+  overflow:hidden;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.app-header::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent 50%);pointer-events:none;}
+.app-title{font-size:1.25em;font-weight:700;display:flex;align-items:center;gap:10px;position:relative;}
+.header-right{display:flex;align-items:center;gap:10px;position:relative;}
+.btn-menu-header{
+  background:rgba(255,255,255,0.18);
+  border:1.5px solid rgba(255,255,255,0.4);
+  color:#fff;
+  padding:8px 16px;
+  border-radius:10px;
+  font-size:0.88em;
+  font-weight:700;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:all 0.2s;
+  display:flex;align-items:center;gap:6px;
+}
+.btn-menu-header:hover{background:rgba(255,255,255,0.3);}
+.main{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-top:none;
+  border-radius:0 0 16px 16px;
+  padding:32px 28px;
+  box-shadow:0 8px 28px var(--shadow);
+  min-height:60vh;
+}
+@media(max-width:600px){
+  .main{padding:20px 14px;}
+  .app-header{padding:14px 16px;}
+}
+.screen{display:none;animation:fadeIn 0.3s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* ---- MATH DISPLAY ---- */
+.math-display{
+  font-family:'Crimson Pro',serif;
+  font-size:1.55em;
+  font-style:italic;
+  text-align:center;
+  margin:18px 0;
+  color:var(--text);
+  line-height:1.6;
+}
+.math-display .fn{color:var(--blue);font-weight:700;font-style:normal;}
+.math-display .coef{color:var(--purple);}
+.math-display .cst{color:var(--orange);}
+.math-block{
+  background:var(--blue-pale);
+  border:1.5px solid var(--blue-border);
+  border-radius:14px;
+  padding:18px 24px;
+  margin:14px 0;
+  text-align:center;
+}
+.math-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 2px;}
+.math-frac .num,.math-frac .den{display:block;padding:0 4px;}
+.math-frac .bar{width:100%;border-top:2px solid currentColor;margin:2px 0;}
+
+/* ---- BUTTONS ---- */
+.btn{
+  font-family:'DM Sans',sans-serif;
+  padding:11px 26px;
+  border-radius:12px;
+  font-size:0.93em;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+  border:2px solid;
+  min-height:44px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:none;
+}
+.btn:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 12px rgba(29,78,216,0.2);}
+.btn-blue:hover:not(:disabled){background:var(--blue-l);transform:translateY(-2px);box-shadow:0 4px 16px rgba(29,78,216,0.3);}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-green:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px);}
+.btn-ghost{background:transparent;color:var(--text-l);border-color:var(--border);}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-l);}
+.btn-purple{background:var(--purple);color:#fff;border-color:var(--purple);}
+.btn-purple:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px);}
+.controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+
+/* ---- MENU ---- */
+h1{font-size:1.55em;font-weight:700;text-align:center;margin-bottom:8px;color:var(--blue);}
+.sub{text-align:center;font-size:0.95em;color:var(--text-l);margin-bottom:24px;line-height:1.6;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:20px 0;}
+.mc{
+  background:var(--card);
+  border:2px solid var(--border);
+  border-radius:14px;
+  padding:22px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.25s;
+  position:relative;
+  min-height:130px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.mc:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 8px 24px var(--shadow);}
+.mc-icon{font-size:2em;margin-bottom:8px;}
+.mc-t{font-size:0.93em;color:var(--blue);font-weight:700;margin-bottom:4px;}
+.mc-d{font-size:0.78em;color:var(--text-l);line-height:1.4;}
+.mc-num{
+  position:absolute;top:10px;left:12px;
+  background:var(--purple-pale);color:var(--purple);
+  font-size:0.75em;font-weight:700;
+  padding:3px 10px;border-radius:12px;
+}
+
+/* ---- EX TOP ---- */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.ex-badge{background:var(--blue-pale);color:var(--blue);padding:6px 14px;border-radius:20px;font-size:0.83em;font-weight:700;}
+.ex-score{font-size:0.88em;color:var(--text-l);font-weight:600;}
+.pbar{width:100%;background:var(--border);border-radius:6px;height:6px;overflow:hidden;margin-bottom:20px;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:6px;transition:width 0.4s;}
+.question-label{font-size:1em;font-weight:600;color:var(--text);margin-bottom:8px;}
+.question-label .light{color:var(--text-l);font-weight:400;}
+
+/* ---- INPUTS ---- */
+.ans-input{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1.4em;
+  font-weight:600;
+  padding:10px 16px;
+  border:2.5px dashed var(--purple);
+  border-radius:12px;
+  background:#fff;
+  text-align:center;
+  outline:none;
+  transition:all 0.2s;
+  width:140px;
+  display:inline-block;
+}
+.ans-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.ans-input.ok{border-color:var(--green)!important;background:var(--green-pale);color:var(--green);border-style:solid;}
+.ans-input.err{border-color:var(--red)!important;background:var(--red-pale);animation:shake 0.3s;border-style:solid;}
+.step-input{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1.35em;
+  font-weight:600;
+  padding:10px 14px;
+  border:2.5px dashed var(--purple);
+  border-radius:12px;
+  background:#fff;
+  text-align:center;
+  outline:none;
+  transition:all 0.2s;
+  width:260px;
+  max-width:100%;
+}
+@media(max-width:480px){.step-input{width:200px;}.ans-input{width:110px;}}
+.step-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.step-input.ok{border-color:var(--green)!important;background:var(--green-pale);color:var(--green);border-style:solid;}
+.step-input.err{border-color:var(--red)!important;background:var(--red-pale);animation:shake 0.3s;border-style:solid;}
+
+/* choice buttons for Q1 */
+.choice-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:20px 0;}
+.choice-btn{
+  font-family:'DM Sans',sans-serif;
+  font-size:1em;
+  font-weight:700;
+  padding:18px 36px;
+  border:2.5px solid var(--border);
+  border-radius:16px;
+  background:#fff;
+  cursor:pointer;
+  transition:all 0.25s;
+  min-width:160px;
+}
+.choice-btn:hover{border-color:var(--blue);background:var(--blue-pale);color:var(--blue);}
+.choice-btn.ok{border-color:var(--green);background:var(--green-pale);color:var(--green);}
+.choice-btn.err{border-color:var(--red);background:var(--red-pale);color:var(--red);}
+
+/* ---- ARROWS for antecedents ---- */
+.arrows-container{margin:24px auto;max-width:660px;}
+.equation-step-item{margin-bottom:8px;text-align:center;}
+.equation-line{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1.5em;
+  text-align:center;
+  margin:0.4rem 0;
+  line-height:1.6;
+}
+.arrow-section{position:relative;height:80px;margin:6px 0;}
+.arrow-svg{position:absolute;width:100%;height:100%;}
+.op-input{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1em;
+  font-weight:700;
+  padding:6px 14px;
+  border:2px dashed var(--purple);
+  border-radius:10px;
+  background:#fff;
+  text-align:center;
+  outline:none;
+  width:110px;
+  transition:all 0.2s;
+}
+.op-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale);}
+.op-input.ok{border-color:var(--green)!important;background:var(--green-pale);color:var(--green);border-style:solid;}
+.op-input.err{border-color:var(--red)!important;background:var(--red-pale);animation:shake 0.3s;border-style:solid;}
+.sol-input{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1.5em;
+  font-weight:700;
+  width:80px;
+  padding:8px;
+  text-align:center;
+  border:2.5px dashed var(--purple);
+  border-radius:12px;
+  background:#fff;
+  outline:none;
+  transition:all 0.2s;
+  display:inline-block;
+}
+.sol-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.sol-input.ok{border-color:var(--green)!important;background:var(--green-pale);color:var(--green);border-style:solid;}
+.sol-input.err{border-color:var(--red)!important;background:var(--red-pale);animation:shake 0.3s;border-style:solid;}
+
+/* ---- CANVAS GRAPH ---- */
+.graph-wrap{
+  position:relative;
+  margin:16px auto;
+  max-width:520px;
+  background:#fff;
+  border:1.5px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 4px 16px var(--shadow);
+}
+canvas{display:block;width:100%;height:auto;}
+.graph-question{
+  background:var(--orange-pale);
+  border:1.5px solid rgba(234,88,12,0.25);
+  border-radius:12px;
+  padding:14px 18px;
+  margin:14px 0;
+  font-size:0.95em;
+  font-weight:600;
+  color:var(--orange);
+  text-align:center;
+}
+.read-row{display:flex;flex-direction:column;gap:14px;margin:10px 0;}
+.read-item{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--blue-pale);
+  border:1.5px solid var(--blue-border);
+  border-radius:12px;
+  padding:14px 18px;
+}
+.read-label{font-family:'Crimson Pro',serif;font-style:italic;font-size:1.15em;font-weight:600;color:var(--text);flex:1 1 auto;}
+.read-input{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1.3em;
+  font-weight:700;
+  padding:8px 14px;
+  border:2px dashed var(--purple);
+  border-radius:10px;
+  background:#fff;
+  text-align:center;
+  outline:none;
+  width:100px;
+  transition:all 0.2s;
+}
+.read-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale);}
+.read-input.ok{border-color:var(--green)!important;background:var(--green-pale);color:var(--green);border-style:solid;}
+.read-input.err{border-color:var(--red)!important;background:var(--red-pale);animation:shake 0.3s;border-style:solid;}
+
+/* ---- DRAWING GRAPH ---- */
+.draw-hint{font-size:0.88em;color:var(--text-l);text-align:center;margin-bottom:8px;}
+.draw-canvas-wrap{position:relative;margin:0 auto;max-width:520px;}
+#drawCanvas{cursor:crosshair;touch-action:none;}
+.dot-placed{
+  position:absolute;
+  width:12px;height:12px;
+  background:var(--red);
+  border:2px solid white;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  box-shadow:0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* ---- FEEDBACK ---- */
+.fb{
+  margin-top:20px;
+  padding:14px 18px;
+  border-radius:12px;
+  font-size:0.93em;
+  text-align:center;
+  display:none;
+  animation:fadeIn 0.3s;
+  font-weight:600;
+  line-height:1.6;
+}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:2px solid rgba(22,163,74,0.2);}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:2px solid rgba(220,38,38,0.15);}
+
+/* ---- RESULTS ---- */
+.rc{width:140px;height:140px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:20px auto;border:6px solid;}
+.rc.good{border-color:var(--green);background:var(--green-pale);}
+.rc.mid{border-color:var(--orange);background:var(--orange-pale);}
+.rc.bad{border-color:var(--red);background:var(--red-pale);}
+.rp{font-size:2.2em;font-weight:700;}
+.rs{font-size:0.8em;color:var(--text-l);font-weight:600;margin-top:8px;text-align:center;}
+
+/* ---- COEF INPUT ROWS (L6) ---- */
+.coef-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:16px 0;
+}
+.coef-label{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1.3em;
+  font-weight:600;
+  color:var(--text);
+}
+
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-7px);}75%{transform:translateX(7px);}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="app-title">📐 Fonctions — Exerciseur interactif</div>
+    <div class="header-right">
+      <button class="btn-menu-header" id="menuBtn" onclick="showMenu()" style="display:none">☰ Menu</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- MENU -->
+    <div class="screen active" id="S_menu">
+      <h1>Fonctions</h1>
+      <p class="sub">Choisir un thème pour t'entraîner.</p>
+      <div class="menu-grid">
+        <div class="mc" onclick="go(1)">
+          <div class="mc-num">1</div>
+          <div class="mc-icon">🔍</div>
+          <div class="mc-t">Type de fonction</div>
+          <div class="mc-d">Linéaire ou affine ?</div>
+        </div>
+        <div class="mc" onclick="go(2)">
+          <div class="mc-num">2</div>
+          <div class="mc-icon">🖩</div>
+          <div class="mc-t">Calcul d'image</div>
+          <div class="mc-d">Trouver f(a) pour une valeur donnée</div>
+        </div>
+        <div class="mc" onclick="go(3)">
+          <div class="mc-num">3</div>
+          <div class="mc-icon">🔄</div>
+          <div class="mc-t">Calcul d'antécédent</div>
+          <div class="mc-d">Résoudre f(x) = k étape par étape</div>
+        </div>
+        <div class="mc" onclick="go(4)">
+          <div class="mc-num">4</div>
+          <div class="mc-icon">📈</div>
+          <div class="mc-t">Lecture graphique</div>
+          <div class="mc-d">Lire images et antécédents sur un graphique</div>
+        </div>
+        <div class="mc" onclick="go(5)">
+          <div class="mc-num">5</div>
+          <div class="mc-icon">✏️</div>
+          <div class="mc-t">Tracer une fonction</div>
+          <div class="mc-d">Placer deux points et tracer la droite</div>
+        </div>
+        <div class="mc" onclick="go(6)">
+          <div class="mc-num">6</div>
+          <div class="mc-icon">🎯</div>
+          <div class="mc-t">Coefficient et ordonnée</div>
+          <div class="mc-d">Identifier a et b dans f(x) = ax + b</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCISE SCREEN -->
+    <div class="screen" id="S_ex">
+      <div class="ex-top">
+        <span class="ex-badge" id="badge">—</span>
+        <span class="ex-score">Score : <span id="scLbl">0 / 0</span></span>
+      </div>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+      <div id="zone"></div>
+      <div class="fb" id="fb"></div>
+      <div class="controls" id="nxt" style="display:none">
+        <button class="btn btn-blue" onclick="nxtQ()">Question suivante →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div class="screen" id="S_res">
+      <h1>Résultats</h1>
+      <div class="rc" id="rCirc"><div class="rp" id="rPct">—</div></div>
+      <p id="rMsg" class="sub"></p>
+      <div class="rs" id="rSub"></div>
+      <div class="controls" style="margin-top:24px;">
+        <button class="btn btn-blue" id="retryBtn" onclick="">🔁 Recommencer</button>
+        <button class="btn btn-ghost" onclick="showMenu()">☰ Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* =============== HELPERS =============== */
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rnz(a,b){let v=0;while(v===0)v=rnd(a,b);return v;}
+function pm(n){return n>=0?'+'+n:String(n);}
+
+function fstr(a,b,fname){
+  // Returns HTML string representing a·x + b with colors
+  const fn=fname||'f';
+  let expr='';
+  if(a===1) expr='<span class="coef"><i>x</i></span>';
+  else if(a===-1) expr='<span class="coef">−<i>x</i></span>';
+  else expr=`<span class="coef">${a}<i>x</i></span>`;
+  if(b!==0){
+    if(b>0) expr+=` + <span class="cst">${b}</span>`;
+    else expr+=` − <span class="cst">${Math.abs(b)}</span>`;
+  }
+  return `<span class="fn">${fn}(<i>x</i>)</span> = ${expr}`;
+}
+
+function feval(a,b,x){return a*x+b;}
+
+function fracStr(num,den){
+  if(den===1) return String(num);
+  if(den===-1) return String(-num);
+  const sign=den<0?-1:1;
+  const n=sign*num, d=sign*den;
+  return `<span class="math-frac"><span class="num">${n}</span><span class="bar"></span><span class="den">${d}</span></span>`;
+}
+
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+
+/* =============== STATE =============== */
+let lv,qs,qi,sc,cq;
+
+const LVNAMES=['','Type de fonction','Calcul d\'image','Calcul d\'antécédent','Lecture graphique','Tracer une fonction','Coefficient et ordonnée'];
+
+/* =============== GENERATORS =============== */
+function genL1(){
+  const q=[];
+  for(let i=0;i<8;i++){
+    const linear=(Math.random()<0.5);
+    const a=rnz(-6,6);
+    const b=linear?0:rnz(-8,8);
+    const fname=['f','g','h','k'][rnd(0,3)];
+    q.push({a,b,fname,isLinear:linear});
+  }
+  return q;
+}
+
+function genL2(){
+  const q=[];
+  for(let i=0;i<7;i++){
+    const a=rnz(-5,5);
+    const b=(Math.random()<0.5)?0:rnz(-8,8);
+    const x=rnd(-6,6);
+    const fname=['f','g','h'][rnd(0,2)];
+    q.push({a,b,x,fname,img:feval(a,b,x)});
+  }
+  return q;
+}
+
+function genL3(){
+  const q=[];
+  for(let i=0;i<6;i++){
+    // Always use integer x so solution is always a clean integer
+    const a=rnz(-4,4);
+    const b=(Math.random()<0.5)?0:rnz(-6,6);
+    const x=rnz(-5,5); // avoid x=0 (too trivial)
+    const k=feval(a,b,x);
+    const fname=['f','g','h'][rnd(0,2)];
+    q.push({a,b,k,x,fname});
+  }
+  return q;
+}
+
+function genL4(){
+  const q=[];
+  const SAFE=GRANGE-1; // values must be within -5..5 to be readable on the graph
+  for(let i=0;i<6;i++){
+    let a,b,fname,type,xVal,yVal,attempts=0;
+    do {
+      a=rnz(-3,3);
+      b=(Math.random()<0.5)?0:rnd(-3,3);
+      fname=['f','g','h'][rnd(0,2)];
+      type=(Math.random()<0.5)?'image':'antecedent';
+      if(type==='image'){
+        // Pick xVal such that f(xVal) stays within range
+        xVal=rnd(-SAFE,SAFE);
+        yVal=feval(a,b,xVal);
+      } else {
+        // Pick yVal first (integer, within range), derive xVal
+        // yVal = a*x + b → x = (yVal-b)/a
+        yVal=rnd(-SAFE,SAFE);
+        const xExact=(yVal-b)/a;
+        xVal=Math.round(xExact);
+        // Recalculate yVal to ensure it's exact on the function
+        yVal=feval(a,b,xVal);
+      }
+      attempts++;
+      // Ensure both values are within the displayable range and x-domain
+    } while(
+      (Math.abs(yVal)>SAFE || Math.abs(xVal)>SAFE || !Number.isInteger(xVal) || !Number.isInteger(yVal))
+      && attempts<50
+    );
+    if(attempts>=50){
+      // Fallback: simple safe values
+      a=1;b=0;type='image';xVal=rnd(-3,3);yVal=xVal;
+    }
+    q.push({a,b,fname,type,xVal,yVal});
+  }
+  return q;
+}
+
+function genL5(){
+  const q=[];
+  for(let i=0;i<4;i++){
+    const a=rnz(-3,3);
+    const b=(Math.random()<0.5)?0:rnd(-4,4);
+    const fname=['f','g','h'][rnd(0,2)];
+    q.push({a,b,fname});
+  }
+  return q;
+}
+
+function genL6(){
+  const q=[];
+  // Générer 8 questions variées avec différents types de fonctions
+  for(let i=0;i<8;i++){
+    const type = rnd(0,5);
+    let a, b, fname, displayForm;
+    fname=['f','g','h','k'][rnd(0,3)];
+    
+    switch(type){
+      case 0: // Forme standard: ax + b
+        a=rnz(-7,7);
+        b=rnz(-9,9);
+        displayForm='standard';
+        break;
+      case 1: // Fonction linéaire (b=0)
+        a=rnz(-6,6);
+        b=0;
+        displayForm='linear';
+        break;
+      case 2: // Forme avec fraction pour a
+        const num=rnz(-5,5);
+        const den=rnz(2,5);
+        a=num/den;
+        b=rnz(-6,6);
+        displayForm='frac';
+        break;
+      case 3: // Forme développée: ax - b (pour montrer b négatif)
+        a=rnz(-5,5);
+        b=rnz(-8,-1); // b négatif
+        displayForm='standard';
+        break;
+      case 4: // Grand coefficient
+        a=rnz(-10,-7) || rnz(7,10);
+        b=rnz(-12,12);
+        displayForm='standard';
+        break;
+      case 5: // Forme mixte
+        a=rnd(0,1) ? rnz(-4,4) : rnz(-3,3)/2;
+        b=rnz(-7,7);
+        displayForm='mixed';
+        break;
+    }
+    
+    q.push({a,b,fname,displayForm});
+  }
+  return q;
+}
+
+/* =============== RENDERERS =============== */
+// L1 — type de fonction
+function renderL1(q){
+  $('zone').innerHTML=`
+    <p class="question-label">Observe la fonction suivante. Est-ce une fonction <strong>linéaire</strong> ou <strong>affine</strong> ?</p>
+    <div class="math-block"><div class="math-display">${fstr(q.a,q.b,q.fname)}</div></div>
+    <div class="choice-row">
+      <button class="choice-btn" onclick="checkL1(this,'linéaire')">Linéaire</button>
+      <button class="choice-btn" onclick="checkL1(this,'affine')">Affine</button>
+    </div>
+  `;
+}
+
+function checkL1(btn,choice){
+  const q=cq;
+  const correct=q.isLinear?'linéaire':'affine';
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  if(choice===correct){
+    btn.classList.add('ok');
+    const exp=q.isLinear?
+      `Une fonction linéaire est de la forme <i>f</i>(<i>x</i>) = <i>a</i>·<i>x</i>, sans terme constant. Ici <i>b</i> = 0.`:
+      `Une fonction affine est de la forme <i>f</i>(<i>x</i>) = <i>a</i>·<i>x</i> + <i>b</i> avec <i>b</i> ≠ 0.`;
+    finish(true,`Correct ! ${exp}`);
+  } else {
+    btn.classList.add('err');
+    document.querySelectorAll('.choice-btn').forEach(b=>{if(b.textContent.trim()===correct)b.classList.add('ok');});
+    const exp=q.isLinear?
+      `Cette fonction est <strong>linéaire</strong> car <i>b</i> = 0 : <i>f</i>(<i>x</i>) = ${q.a}<i>x</i>.`:
+      `Cette fonction est <strong>affine</strong> car <i>b</i> = ${q.b} ≠ 0.`;
+    finish(false,`${exp}`);
+  }
+}
+
+// L2 — image
+function renderL2(q){
+  $('zone').innerHTML=`
+    <p class="question-label">Calcule l'image de <strong>${q.x}</strong> par <strong>${q.fname}</strong>.</p>
+    <div class="math-block"><div class="math-display">${fstr(q.a,q.b,q.fname)}</div></div>
+    <p style="font-size:0.88em;color:var(--text-l);text-align:center;margin-bottom:6px;">Tu peux écrire le détail du calcul ou directement le résultat.</p>
+    <div id="l2fields">
+      <div class="math-display" style="font-size:1.25em;margin:14px 0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
+        <span><span class="fn">${q.fname}</span>(<input type="text" class="ans-input" id="inX" placeholder="?" style="width:66px;font-size:0.85em;" />)</span>
+        <span>&nbsp;=&nbsp;</span>
+        <input type="text" class="ans-input" id="inCalc" placeholder="calcul ou résultat" style="width:220px;font-size:0.85em;" />
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-green" id="btnVerif" onclick="checkL2()">✓ Vérifier</button>
+    </div>
+  `;
+  bindL2Enter();
+  $('inX').focus();
+}
+
+function bindL2Enter(){
+  $('zone').querySelectorAll('.ans-input').forEach(inp=>{
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter') $('btnVerif').click();});
+  });
+}
+
+function safeEval(expr){
+  try {
+    let s = expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/,/g,'.').replace(/\s/g,'');
+    if(!/^[-\d\.\+\*\/\(\)]+$/.test(s)) return NaN;
+    if(s.includes('=')) s = s.split('=').pop();
+    // eslint-disable-next-line no-new-func
+    return Function('"use strict"; return (' + s + ')')();
+  } catch(e){ return NaN; }
+}
+
+function isExpressionNotNumber(raw){
+  // Returns true if the input looks like an expression (contains operators other than a leading minus)
+  const s = raw.replace(/\s/g,'').replace(/^-/,''); // strip leading minus
+  return /[+\-\*\/×÷]/.test(s);
+}
+
+function checkL2(){
+  const q=cq;
+
+  // --- Phase 1 ---
+  if(!cq._l2phase2){
+    let xOk = false, calcOk = false;
+
+    // Check x field
+    const xv = parseFloat($('inX').value.replace(',','.'));
+    if(xv !== q.x){
+      $('inX').classList.add('err'); $('inX').classList.remove('ok');
+    } else {
+      $('inX').classList.add('ok'); $('inX').classList.remove('err');
+      $('inX').disabled = true;
+      xOk = true;
+    }
+
+    // Check calc field
+    const calcRaw = $('inCalc').value.trim();
+    const evaluated = safeEval(calcRaw);
+    const isDirectNumber = !isExpressionNotNumber(calcRaw);
+
+    // Does the field evaluate to / equal the correct answer?
+    let calcValueOk = false;
+    if(Math.abs(evaluated - q.img) < 0.001) calcValueOk = true;
+    if(!calcValueOk && Math.abs(parseFloat(calcRaw.replace(',','.')) - q.img) < 0.001) calcValueOk = true;
+
+    if(!calcValueOk){
+      $('inCalc').classList.add('err'); $('inCalc').classList.remove('ok');
+      // Show error feedback but don't finish
+      let expl = `${q.a===1?'':q.a===-1?'−':q.a}×${q.x}`;
+      if(q.b>0) expl += ` + ${q.b}`; else if(q.b<0) expl += ` − ${Math.abs(q.b)}`;
+      expl += ` = ${q.img}`;
+      if(xOk){
+        // Only show calc error
+        const fb=$('fb');
+        fb.className='fb bad';
+        fb.innerHTML=`❌ Le détail ou le résultat n'est pas correct. Rappel : <i>${q.fname}(${q.x})</i> = ${expl}`;
+      } else {
+        const fb=$('fb');
+        fb.className='fb bad';
+        fb.innerHTML=`❌ Vérifie la valeur dans la parenthèse et le calcul.`;
+      }
+      return;
+    }
+
+    // calc field is correct
+    $('inCalc').classList.add('ok'); $('inCalc').classList.remove('err');
+
+    if(!xOk) return; // x still wrong, wait
+
+    // Both x and calc are correct.
+    if(isDirectNumber){
+      // User gave a plain number → done immediately
+      $('inCalc').disabled = true;
+      finish(true, `Correct ! <i>${q.fname}(${q.x})</i> = ${q.img}`);
+    } else {
+      // User gave an expression → lock it and ask for the final result
+      $('inCalc').disabled = true;
+      cq._l2phase2 = true;
+
+      // Append the "= ?" final result row
+      const fields = $('l2fields');
+      const row = document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px 0;';
+      row.innerHTML=`
+        <span style="font-family:'Crimson Pro',serif;font-style:italic;font-size:1.35em;color:var(--text-l);">= </span>
+        <input type="text" class="ans-input" id="inResult" placeholder="résultat ?" style="width:130px;font-size:0.9em;" autofocus />
+      `;
+      fields.appendChild(row);
+
+      // Update hint text
+      const hint = $('zone').querySelector('p[style]');
+      if(hint) hint.innerHTML = '✅ Bon calcul ! Maintenant donne le <strong>résultat final</strong>.';
+      if(hint) hint.style.color='var(--green)';
+
+      // Rebind enter key on the new input
+      $('inResult').addEventListener('keydown',e=>{if(e.key==='Enter') $('btnVerif').click();});
+      $('inResult').focus();
+    }
+    return;
+  }
+
+  // --- Phase 2 : user just needs to give the final numeric result ---
+  const resultRaw = $('inResult') ? $('inResult').value.trim() : '';
+  const resultVal = parseFloat(resultRaw.replace(',','.'));
+  if(Math.abs(resultVal - q.img) < 0.001){
+    $('inResult').classList.add('ok'); $('inResult').classList.remove('err');
+    $('inResult').disabled = true;
+    finish(true, `Correct ! <i>${q.fname}(${q.x})</i> = ${q.img}`);
+  } else {
+    $('inResult').classList.add('err'); $('inResult').classList.remove('ok');
+    const fb=$('fb');
+    fb.className='fb bad';
+    fb.innerHTML=`❌ Pas tout à fait. Le résultat final est <strong>${q.img}</strong>.`;
+  }
+}
+
+// L3 — antécédent (step by step with arrows)
+function renderL3(q){
+  // We solve a·x + b = k  →  (if b≠0) a·x = k - b  →  (if a≠1) x = (k-b)/a
+  const rhs1 = q.k - q.b;
+
+  $('zone').innerHTML=`
+    <p class="question-label">
+      Détermine l'antécédent de <strong>${q.k}</strong> par <strong>${q.fname}</strong>.<br>
+      <span class="light">Résous l'équation étape par étape.</span>
+    </p>
+    <div class="math-block"><div class="math-display">${fstr(q.a,q.b,q.fname)}</div></div>
+
+    <div class="arrows-container" id="arrowZone">
+      <!-- Step 0: write full equation -->
+      <div class="equation-step-item">
+        <input type="text" class="step-input" id="eq0" placeholder="Écrire l'équation complète" style="width:290px;">
+      </div>
+
+      ${q.b!==0?`
+      <div class="arrow-section">
+        <svg class="arrow-svg" viewBox="0 0 460 80" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="ah1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/></marker></defs>
+          <path d="M110 15 Q80 40 110 65" stroke="#7c3aed" stroke-width="2.5" fill="none" marker-end="url(#ah1)"/>
+          <path d="M350 15 Q380 40 350 65" stroke="#7c3aed" stroke-width="2.5" fill="none" marker-end="url(#ah1)"/>
+        </svg>
+        <input type="text" class="op-input" id="op1L" placeholder="opération" style="left:6%;top:50%;">
+        <input type="text" class="op-input" id="op1R" placeholder="opération" style="right:6%;top:50%;">
+      </div>
+      <div class="equation-step-item">
+        <input type="text" class="step-input" id="eq1" placeholder="Équation après 1ère étape">
+      </div>
+      `:''}
+
+      ${q.a!==1?`
+      <div class="arrow-section">
+        <svg class="arrow-svg" viewBox="0 0 460 80" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/></marker></defs>
+          <path d="M110 15 Q80 40 110 65" stroke="#7c3aed" stroke-width="2.5" fill="none" marker-end="url(#ah2)"/>
+          <path d="M350 15 Q380 40 350 65" stroke="#7c3aed" stroke-width="2.5" fill="none" marker-end="url(#ah2)"/>
+        </svg>
+        <input type="text" class="op-input" id="op2L" placeholder="opération" style="left:6%;top:50%;">
+        <input type="text" class="op-input" id="op2R" placeholder="opération" style="right:6%;top:50%;">
+      </div>
+      `:''}
+
+      <div class="equation-step-item" style="margin-top:4px">
+        <div class="equation-line"><i>x</i> = <input type="text" class="sol-input" id="solInp" placeholder="?"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-green" onclick="checkL3()">✓ Vérifier</button>
+    </div>
+  `;
+  document.querySelectorAll('#arrowZone .step-input, #arrowZone .op-input, #arrowZone .sol-input').forEach(el=>{
+    el.addEventListener('keydown',e=>{if(e.key==='Enter')checkL3();});
+  });
+  $('eq0').focus();
+  cq._rhs1=rhs1;
+}
+
+function norm(s){return s.replace(/\s/g,'').replace(/−/g,'-').replace(/÷/g,'/').replace(/×/g,'*');}
+
+function checkL3(){
+  const q=cq;
+  let ok=true;
+  const rhs1=q._rhs1;
+
+  function fieldOk(id, accepted){
+    const el=$(id);
+    if(!el) return true;
+    const v=norm(el.value);
+    const hit = accepted.some(a => {
+      const an=norm(a);
+      return v===an || v.includes(an) || an.includes(v);
+    });
+    if(hit){el.classList.add('ok');el.classList.remove('err');el.disabled=true;}
+    else{el.classList.add('err');el.classList.remove('ok');ok=false;}
+    return hit;
+  }
+
+  // eq0: full equation f(x)=k OR ax+b=k
+  // Build many acceptable variants
+  const aStr = q.a===1?'x': q.a===-1?'-x': `${q.a}x`;
+  const eq0variants = [
+    `${q.fname}(x)=${q.k}`,
+    `${aStr}${q.b>0?'+'+q.b:q.b<0?q.b:''}=${q.k}`,
+    `${q.a}x${q.b>0?'+'+q.b:q.b<0?q.b:''}=${q.k}`,
+    q.b===0 ? `${aStr}=${q.k}` : null,
+    q.b===0 ? `${q.a}x=${q.k}` : null,
+  ].filter(Boolean);
+  fieldOk('eq0', eq0variants);
+
+  if(q.b!==0){
+    // op1: remove b — accept ±|b| on both sides
+    const opVal = q.b>0 ? [`-${q.b}`,`−${q.b}`] : [`+${Math.abs(q.b)}`];
+    fieldOk('op1L', opVal);
+    fieldOk('op1R', opVal);
+
+    // eq1: a·x = rhs1
+    const rhs1Str = String(rhs1);
+    const eq1variants = [
+      `${aStr}=${rhs1}`,
+      `${q.a}x=${rhs1}`,
+      `${q.a}*x=${rhs1}`,
+    ].filter(Boolean);
+    fieldOk('eq1', eq1variants);
+  }
+
+  if(q.a!==1){
+    // op2: divide by a (even if a=-1)
+    // Accept: /a, ÷a, :a, ×(1/a), ×(-1) when a=-1
+    const op2variants = [
+      `/${q.a}`, `÷${q.a}`, `:${q.a}`, `/${q.a}`,
+      `*${q.a===(-1)?'-1':1/q.a}`,
+    ];
+    if(q.a===-1) op2variants.push('*-1','×-1','÷-1','/-1',':-1','×(-1)');
+    fieldOk('op2L', op2variants);
+    fieldOk('op2R', op2variants);
+  }
+
+  // solution
+  const solv=parseFloat($('solInp').value.replace(',','.'));
+  if(Math.abs(solv-q.x)<0.001){$('solInp').classList.add('ok');$('solInp').classList.remove('err');$('solInp').disabled=true;}
+  else{$('solInp').classList.add('err');$('solInp').classList.remove('ok');ok=false;}
+
+  if(ok) finish(true,`Bravo ! L'antécédent de ${q.k} par ${q.fname} est <i>x</i> = ${q.x}`);
+  else finish(false,`Vérifie toutes les étapes. Solution : <i>x</i> = ${q.x}`);
+}
+
+/* ---- L4 — Graph reading ---- */
+const GSIZE=480;
+const GPAD=50;
+const GRANGE=6; // -6 to 6
+
+function drawGrid(ctx,size,pad,range){
+  const step=(size-2*pad)/(2*range);
+  ctx.clearRect(0,0,size,size);
+
+  // Background
+  ctx.fillStyle='#f8fafc';
+  ctx.fillRect(0,0,size,size);
+
+  // Grid
+  ctx.strokeStyle='#e2e8f0';ctx.lineWidth=1;
+  for(let v=-range;v<=range;v++){
+    const px=pad+((v+range)/(2*range))*(size-2*pad);
+    ctx.beginPath();ctx.moveTo(px,pad);ctx.lineTo(px,size-pad);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad,px);ctx.lineTo(size-pad,px);ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;
+  const mx=pad+range*step, my=pad+range*step;
+  ctx.beginPath();ctx.moveTo(pad,my);ctx.lineTo(size-pad,my);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(mx,pad);ctx.lineTo(mx,size-pad);ctx.stroke();
+
+  // Arrows
+  ctx.fillStyle='#94a3b8';
+  ctx.beginPath();ctx.moveTo(size-pad,my);ctx.lineTo(size-pad-8,my-5);ctx.lineTo(size-pad-8,my+5);ctx.fill();
+  ctx.beginPath();ctx.moveTo(mx,pad);ctx.lineTo(mx-5,pad+8);ctx.lineTo(mx+5,pad+8);ctx.fill();
+
+  // Labels
+  ctx.fillStyle='#64748b';ctx.font=`${Math.round(step*0.4)}px DM Sans`;ctx.textAlign='center';ctx.textBaseline='top';
+  for(let v=-range;v<=range;v++){
+    if(v===0)continue;
+    const px=pad+((v+range)/(2*range))*(size-2*pad);
+    const py=pad+range*step;
+    ctx.fillText(v,px,py+5);
+  }
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let v=-range;v<=range;v++){
+    if(v===0)continue;
+    const py=pad+((range-v)/(2*range))*(size-2*pad);
+    const px=pad+range*step;
+    ctx.fillText(v,px-5,py);
+  }
+  ctx.fillStyle='#1e293b';ctx.textAlign='right';ctx.textBaseline='top';
+  ctx.fillText('x',size-pad+12,my+4);
+  ctx.fillStyle='#1e293b';ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText('y',mx+5,pad-16);
+}
+
+function toCanvas(v,size,pad,range){
+  // v in math coords → canvas pixel
+  return pad + ((v+range)/(2*range))*(size-2*pad);
+}
+function fromCanvas(px,size,pad,range){
+  return (px-pad)/(size-2*pad)*(2*range)-range;
+}
+
+function drawLine(ctx,a,b,size,pad,range,color,width){
+  ctx.strokeStyle=color||'#1d4ed8';ctx.lineWidth=width||2.5;
+  // clip to range
+  const xmin=-range, xmax=range;
+  const y0=a*xmin+b, y1=a*xmax+b;
+  ctx.beginPath();
+  ctx.moveTo(toCanvas(xmin,size,pad,range),toCanvas(-y0,size,pad,range));
+  ctx.lineTo(toCanvas(xmax,size,pad,range),toCanvas(-y1,size,pad,range));
+  ctx.stroke();
+}
+
+function renderL4(q){
+  const size=Math.min(GSIZE,window.innerWidth-60);
+  const pad=GPAD;
+  const range=GRANGE;
+
+  const isImg=(q.type==='image');
+  const question=isImg
+    ? `Lis l'image de <strong>${q.xVal}</strong> par <i>${q.fname}</i> sur le graphique.`
+    : `Lis l'antécédent de <strong>${q.yVal}</strong> par <i>${q.fname}</i> sur le graphique.`;
+
+  $('zone').innerHTML=`
+    <p class="question-label" style="margin-bottom:10px;">${question}</p>
+    <div class="graph-wrap" style="max-width:${size}px;"><canvas id="gc4" width="${size}" height="${size}"></canvas></div>
+    <div class="read-row">
+      <div class="read-item">
+        <div class="read-label">${isImg
+          ? `<i>${q.fname}(${q.xVal})</i> = `
+          : `<i>x</i> tel que <i>${q.fname}(<i>x</i>) = ${q.yVal}</i> :`
+        }</div>
+        <input type="text" class="read-input" id="readAns" placeholder="?">
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-green" onclick="checkL4()">✓ Vérifier</button>
+    </div>
+  `;
+
+  const canvas=$('gc4');
+  const ctx=canvas.getContext('2d');
+  drawGrid(ctx,size,pad,range);
+  drawLine(ctx,q.a,q.b,size,pad,range,'#1d4ed8',2.5);
+
+  // Draw dashed helper lines
+  if(isImg){
+    const px=toCanvas(q.xVal,size,pad,range);
+    const py=toCanvas(-q.yVal,size,pad,range);
+    const ax=toCanvas(0,size,pad,range);
+    const ay=toCanvas(0,size,pad,range);
+    ctx.setLineDash([5,4]);ctx.strokeStyle='rgba(234,88,12,0.6)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(px,ay);ctx.lineTo(px,py);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ax,py);ctx.lineTo(px,py);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ea580c';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+  } else {
+    const px=toCanvas(q.xVal,size,pad,range);
+    const py=toCanvas(-q.yVal,size,pad,range);
+    const ax=toCanvas(0,size,pad,range);
+    const ay=toCanvas(0,size,pad,range);
+    ctx.setLineDash([5,4]);ctx.strokeStyle='rgba(124,58,237,0.6)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(px,ay);ctx.lineTo(px,py);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ax,py);ctx.lineTo(px,py);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+  }
+
+  $('readAns').addEventListener('keydown',e=>{if(e.key==='Enter')checkL4();});
+  $('readAns').focus();
+}
+
+function checkL4(){
+  const q=cq;
+  const ans=parseFloat($('readAns').value.replace(',','.'));
+  const correct=q.type==='image'?q.yVal:q.xVal;
+  if(ans===correct){
+    $('readAns').classList.add('ok');
+    finish(true,q.type==='image'
+      ?`Correct ! <i>${q.fname}(${q.xVal})</i> = ${q.yVal}`
+      :`Correct ! L'antécédent de ${q.yVal} est <i>x</i> = ${q.xVal}`);
+  } else {
+    $('readAns').classList.add('err');
+    finish(false,q.type==='image'
+      ?`La bonne réponse est <i>${q.fname}(${q.xVal})</i> = ${q.yVal}`
+      :`La bonne réponse est <i>x</i> = ${q.xVal}`);
+  }
+}
+
+/* ---- L5 — Draw function ---- */
+let drawState={};
+
+function renderL5(q){
+  const size=Math.min(GSIZE,window.innerWidth-60);
+  const pad=GPAD;
+  const range=GRANGE;
+
+  $('zone').innerHTML=`
+    <p class="question-label">Trace la droite représentant la fonction :</p>
+    <div class="math-block" style="margin-bottom:12px;"><div class="math-display">${fstr(q.a,q.b,q.fname)}</div></div>
+    <p class="draw-hint">Clique (ou appuie) sur <strong>deux points</strong> appartenant à la droite pour la tracer.</p>
+    <div class="draw-canvas-wrap" style="max-width:${size}px;" id="dcWrap">
+      <canvas id="drawCanvas" width="${size}" height="${size}"></canvas>
+    </div>
+    <div class="controls" style="margin-top:14px;">
+      <button class="btn btn-ghost" onclick="resetDraw()">🗑 Effacer</button>
+      <button class="btn btn-green" id="checkDrawBtn" onclick="checkL5()" disabled>✓ Vérifier</button>
+    </div>
+  `;
+
+  drawState={a:q.a,b:q.b,size,pad,range,points:[]};
+
+  const canvas=$('drawCanvas');
+  const ctx=canvas.getContext('2d');
+  drawGrid(ctx,size,pad,range);
+
+  function getCanvasPos(e){
+    const rect=canvas.getBoundingClientRect();
+    const scaleX=size/rect.width;
+    const scaleY=size/rect.height;
+    let rawCx,rawCy;
+    if(e.touches){
+      rawCx=(e.touches[0].clientX-rect.left)*scaleX;
+      rawCy=(e.touches[0].clientY-rect.top)*scaleY;
+    } else {
+      rawCx=(e.clientX-rect.left)*scaleX;
+      rawCy=(e.clientY-rect.top)*scaleY;
+    }
+    // Convert to math coordinates
+    // x: straight mapping
+    const mathX_raw = fromCanvas(rawCx, size, pad, range);
+    // y: INVERT because canvas y goes down but math y goes up
+    const mathY_raw = -fromCanvas(rawCy, size, pad, range);
+    // Snap to nearest integer
+    const mathX = Math.round(mathX_raw);
+    const mathY = Math.round(mathY_raw);
+    // Canvas pixel for the snapped math point
+    const canvasX = toCanvas(mathX, size, pad, range);
+    const canvasY = toCanvas(-mathY, size, pad, range); // negate y for canvas
+    return {mathX, mathY, canvasX, canvasY};
+  }
+
+  function redrawAll(){
+    drawGrid(ctx, size, pad, range);
+    // Re-draw placed dots
+    for(const p of drawState.points){
+      drawDot(ctx, p.canvasX, p.canvasY, '#dc2626');
+    }
+    // If 2 points placed, draw the student line through them
+    if(drawState.points.length===2){
+      const p1=drawState.points[0], p2=drawState.points[1];
+      if(Math.abs(p1.mathX - p2.mathX) > 0.01){
+        const sa=(p2.mathY - p1.mathY)/(p2.mathX - p1.mathX);
+        const sb=p1.mathY - sa*p1.mathX;
+        drawState.studentA=sa;
+        drawState.studentB=sb;
+        drawLine(ctx, sa, sb, size, pad, range, 'rgba(220,38,38,0.75)', 2.5);
+      }
+    }
+  }
+
+  function drawDot(ctx, cx, cy, color){
+    ctx.fillStyle=color;
+    ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='white';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.stroke();
+  }
+
+  function onTap(e){
+    e.preventDefault();
+    if(drawState.points.length>=2) return;
+    const pos=getCanvasPos(e);
+    // Avoid duplicate points
+    if(drawState.points.length===1){
+      const p=drawState.points[0];
+      if(p.mathX===pos.mathX && p.mathY===pos.mathY) return;
+    }
+    drawState.points.push(pos);
+    redrawAll();
+    if(drawState.points.length===2) $('checkDrawBtn').disabled=false;
+  }
+
+  canvas.addEventListener('click', onTap);
+  canvas.addEventListener('touchstart', onTap, {passive:false});
+  // Store redrawAll for reset
+  drawState.redrawAll = redrawAll;
+  drawState.drawDot = drawDot;
+}
+
+function resetDraw(){
+  drawState.points=[];
+  drawState.studentA=undefined;drawState.studentB=undefined;
+  $('checkDrawBtn').disabled=true;
+  const canvas=$('drawCanvas');
+  const ctx=canvas.getContext('2d');
+  const {size,pad,range}=drawState;
+  drawGrid(ctx,size,pad,range);
+}
+
+function checkL5(){
+  const q=cq;
+  const {size,pad,range}=drawState;
+  const canvas=$('drawCanvas');
+  const ctx=canvas.getContext('2d');
+
+  if(drawState.points.length<2){finish(false,'Place deux points d\'abord.');return;}
+
+  // Check if the two student points are actually on the correct line (within ±1 unit)
+  const tol=1.0; // generous tolerance — student point must be within 1 math unit of the true line
+  let ptsOk=0;
+  for(const p of drawState.points){
+    const expectedY = q.a*p.mathX + q.b;
+    if(Math.abs(p.mathY - expectedY) <= tol) ptsOk++;
+  }
+
+  // Also check slope/intercept if we computed them
+  let lineOk=false;
+  if(drawState.studentA!==undefined){
+    const aTol=0.6, bTol=1.2;
+    lineOk = Math.abs(drawState.studentA - q.a) < aTol && Math.abs(drawState.studentB - q.b) < bTol;
+  }
+
+  // Draw correct line in green
+  drawLine(ctx, q.a, q.b, size, pad, range, 'rgba(22,163,74,0.9)', 2.5);
+
+  const fnStr=`${q.fname}(x) = ${q.a===1?'':q.a===-1?'−':q.a}x${q.b>0?' + '+q.b:q.b<0?' − '+Math.abs(q.b):''}`;
+
+  if(ptsOk===2 || lineOk){
+    finish(true, `Excellent ! La droite <i>${fnStr}</i> est bien tracée.`);
+  } else {
+    finish(false, `Pas tout à fait. La droite verte est la bonne réponse : <i>${fnStr}</i>`);
+  }
+}
+
+/* ---- L6 — Coefficient directeur et ordonnée à l'origine ---- */
+function renderL6(q){
+  // Créer l'affichage de la fonction selon son type
+  let funcDisplay = '';
+  
+  // Construire l'expression mathématique
+  if(q.displayForm === 'frac' && !Number.isInteger(q.a)){
+    // Afficher avec fraction pour le coefficient directeur
+    const num = Math.round(q.a * 100) / 100;
+    const parts = num.toString().split('.');
+    let numerator, denominator;
+    if(parts[1]){
+      denominator = Math.pow(10, parts[1].length);
+      numerator = parseFloat(num) * denominator;
+      const g = gcd(Math.abs(numerator), denominator);
+      numerator = numerator / g;
+      denominator = denominator / g;
+    } else {
+      numerator = num;
+      denominator = 1;
+    }
+    
+    const fracPart = fracStr(numerator, denominator);
+    funcDisplay = `<span class="fn">${q.fname}(<i>x</i>)</span> = <span class="coef">${fracPart}<i>x</i></span>`;
+    if(q.b !== 0){
+      funcDisplay += q.b > 0 ? ` + <span class="cst">${q.b}</span>` : ` − <span class="cst">${Math.abs(q.b)}</span>`;
+    }
+  } else {
+    funcDisplay = fstr(q.a, q.b, q.fname);
+  }
+
+  $('zone').innerHTML=`
+    <p class="question-label">
+      Identifie le <strong>coefficient directeur</strong> (<i>a</i>) et l'<strong>ordonnée à l'origine</strong> (<i>b</i>) de la fonction suivante :
+    </p>
+    <div class="math-block">
+      <div class="math-display">${funcDisplay}</div>
+    </div>
+    
+    <p style="font-size:0.88em;color:var(--text-l);text-align:center;margin:16px 0 8px 0;">
+      Rappel : <i>f</i>(<i>x</i>) = <i>a</i><i>x</i> + <i>b</i> où <i>a</i> est le coefficient directeur et <i>b</i> l'ordonnée à l'origine
+    </p>
+    
+    <div class="read-row" style="max-width:500px;margin:20px auto;">
+      <div class="read-item">
+        <div class="read-label">Coefficient directeur <i>a</i> =</div>
+        <input type="text" class="read-input" id="coefA" placeholder="?" style="width:120px;">
+      </div>
+      <div class="read-item">
+        <div class="read-label">Ordonnée à l'origine <i>b</i> =</div>
+        <input type="text" class="read-input" id="coefB" placeholder="?" style="width:120px;">
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn btn-green" onclick="checkL6()">✓ Vérifier</button>
+    </div>
+  `;
+  
+  // Bind enter key
+  ['coefA', 'coefB'].forEach(id => {
+    $(id).addEventListener('keydown', e => {
+      if(e.key === 'Enter') checkL6();
+    });
+  });
+  
+  $('coefA').focus();
+}
+
+function checkL6(){
+  const q = cq;
+  let ok = true;
+  
+  // Vérifier le coefficient directeur (a)
+  const aInput = $('coefA').value.trim().replace(',', '.');
+  let aVal;
+  
+  // Gérer les fractions entrées par l'utilisateur (ex: "3/2", "-5/4")
+  if(aInput.includes('/')){
+    const parts = aInput.split('/');
+    if(parts.length === 2){
+      const num = parseFloat(parts[0]);
+      const den = parseFloat(parts[1]);
+      if(!isNaN(num) && !isNaN(den) && den !== 0){
+        aVal = num / den;
+      } else {
+        aVal = NaN;
+      }
+    } else {
+      aVal = NaN;
+    }
+  } else {
+    aVal = parseFloat(aInput);
+  }
+  
+  const aTolerance = 0.01;
+  if(Math.abs(aVal - q.a) < aTolerance){
+    $('coefA').classList.add('ok');
+    $('coefA').classList.remove('err');
+    $('coefA').disabled = true;
+  } else {
+    $('coefA').classList.add('err');
+    $('coefA').classList.remove('ok');
+    ok = false;
+  }
+  
+  // Vérifier l'ordonnée à l'origine (b)
+  const bVal = parseFloat($('coefB').value.trim().replace(',', '.'));
+  if(Math.abs(bVal - q.b) < 0.01){
+    $('coefB').classList.add('ok');
+    $('coefB').classList.remove('err');
+    $('coefB').disabled = true;
+  } else {
+    $('coefB').classList.add('err');
+    $('coefB').classList.remove('ok');
+    ok = false;
+  }
+  
+  // Construire le message de feedback
+  let aDisplay = q.a;
+  if(!Number.isInteger(q.a) && q.displayForm === 'frac'){
+    // Afficher sous forme de fraction dans le feedback
+    const num = Math.round(q.a * 100) / 100;
+    const parts = num.toString().split('.');
+    if(parts[1]){
+      const denominator = Math.pow(10, parts[1].length);
+      const numerator = parseFloat(num) * denominator;
+      const g = gcd(Math.abs(numerator), denominator);
+      aDisplay = `${numerator/g}/${denominator/g}`;
+    }
+  }
+  
+  if(ok){
+    const explanation = q.b === 0 
+      ? `C'est une fonction <strong>linéaire</strong> avec <i>a</i> = ${aDisplay} et <i>b</i> = 0.`
+      : `Coefficient directeur <i>a</i> = ${aDisplay}, ordonnée à l'origine <i>b</i> = ${q.b}`;
+    finish(true, `Parfait ! ${explanation}`);
+  } else {
+    const correction = `La bonne réponse est : <i>a</i> = ${aDisplay} et <i>b</i> = ${q.b}`;
+    finish(false, correction);
+  }
+}
+
+/* =============== FLOW =============== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  $('menuBtn').style.display=(id==='S_menu')?'none':'flex';
+}
+
+function showMenu(){
+  show('S_menu');
+}
+
+function go(l){
+  lv=l;sc=0;qi=0;
+  if(l===1) qs=genL1();
+  else if(l===2) qs=genL2();
+  else if(l===3) qs=genL3();
+  else if(l===4) qs=genL4();
+  else if(l===5) qs=genL5();
+  else if(l===6) qs=genL6();
+  $('badge').textContent=LVNAMES[l];
+  show('S_ex');
+  loadQ();
+}
+
+function loadQ(){
+  cq=qs[qi];
+  cq._l2phase2=false;
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';
+  $('nxt').style.display='none';
+  $('zone').innerHTML='';
+  if(lv===1) renderL1(cq);
+  else if(lv===2) renderL2(cq);
+  else if(lv===3) renderL3(cq);
+  else if(lv===4) renderL4(cq);
+  else if(lv===5) renderL5(cq);
+  else if(lv===6) renderL6(cq);
+}
+
+function finish(ok,msg){
+  if(ok) sc++;
+  $('scLbl').textContent=`${sc} / ${qi+1}`;
+  const fb=$('fb');
+  fb.className=ok?'fb ok':'fb bad';
+  fb.innerHTML=(ok?'✅ ':'❌ ')+msg;
+  $('nxt').style.display='';
+  // Disable check buttons
+  document.querySelectorAll('.btn-green').forEach(b=>b.disabled=true);
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+}
+
+function nxtQ(){
+  qi++;
+  if(qi>=qs.length) showRes();
+  else loadQ();
+}
+
+function showRes(){
+  const tot=qs.length;
+  const pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className=`rc ${tier}`;
+  const rp=$('rPct');
+  rp.textContent=`${pct}%`;
+  rp.style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+  $('rMsg').textContent=
+    pct===100?'🎉 Parfait ! Tu maîtrises les fonctions !':
+    pct>=80?'👏 Très bien ! Continue comme ça !':
+    pct>=60?'👍 Bon travail ! Tu progresses !':
+    '💪 Continue à t\'entraîner, tu vas y arriver !';
+  $('rSub').textContent=`${sc} bonne${sc>1?'s':''} réponse${sc>1?'s':''} sur ${tot}`;
+  $('retryBtn').onclick=()=>go(lv);
+  show('S_res');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: Quicksand, sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

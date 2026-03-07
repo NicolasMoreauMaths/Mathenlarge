@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Feuille d'exercices interactive – Additions et soustractions de fractions – 5ème.">
+    <title>Fractions – Additions & Soustractions | Mathématiques 5ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#7c3aed; --primary-dark:#5b21b6; --primary-light:#ede9fe;
+            --secondary:#f59e0b; --success:#059669; --accent:#0ea5e9; --accent-light:#e0f2fe;
+            --bg-card:#ffffff; --border:#ddd6fe; --text-dark:#1e1033; --text-medium:#4b5563;
+            --shadow:rgba(124,58,237,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#ede9fe 0%,#e0f2fe 55%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+
+        /* ── Header ── */
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--accent),#ec4899);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary-dark);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+        /* ── Rappel de cours ── */
+        .recap-box{background:white;border:2px solid var(--border);border-radius:16px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-size:0.82rem;font-weight:700;color:var(--primary-dark);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.9rem;}
+        .recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0.7rem;}
+        .recap-chip{background:var(--primary-light);border-radius:12px;padding:0.65rem 1rem;}
+        .recap-chip .rc-title{font-weight:700;font-size:0.98rem;color:var(--primary-dark);margin-bottom:0.2rem;}
+        .recap-chip .rc-body{font-size:0.88rem;color:var(--text-medium);line-height:1.6;}
+        .frac{display:inline-flex;flex-direction:column;align-items:center;font-family:'Times New Roman',serif;font-size:1.1rem;vertical-align:middle;margin:0 0.2rem;line-height:1.25;}
+        .frac .num-part{border-bottom:2px solid currentColor;padding:0 0.25rem;text-align:center;font-weight:700;}
+        .frac .den-part{padding:0 0.25rem;text-align:center;}
+
+        /* ── Progress ── */
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+        /* ── Score card ── */
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--primary));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary-dark);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.purple{background:var(--primary-light);color:var(--primary-dark);}
+
+        /* ── Exercise cards ── */
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;position:relative;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;background:var(--primary-light);color:var(--primary-dark);}
+        .exercise-tag.tag-pb{background:#fef3c7;color:#92400e;}
+        .seen-badge{position:absolute;top:1rem;right:1rem;background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(124,58,237,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(124,58,237,0.4);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);box-shadow:0 4px 15px rgba(5,150,105,0.3);}
+
+        /* ── Hints ── */
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hint-row{display:flex;align-items:flex-start;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.55rem;}
+        .hint-btn{background:#faf5ff;color:var(--primary);border:2px solid #c4b5fd;border-radius:10px;padding:0.5rem 0.9rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:normal;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#ede9fe;border-color:var(--primary);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--primary);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;overflow-wrap:break-word;word-break:break-word;flex:1;min-width:0;}
+        .hint-text.revealed{max-height:200px;padding:0.5rem 0.85rem;opacity:1;}
+
+        /* ── Correction ── */
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+
+        /* ── Content elements ── */
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-list{display:flex;flex-direction:column;gap:0.6rem;margin:1rem 0;}
+        .q-item{background:#f5f3ff;padding:0.85rem 1.1rem;border-radius:10px;border:2px solid var(--border);font-size:1.05rem;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;}
+        .q-num{font-weight:700;color:var(--primary-dark);min-width:1.6rem;font-size:0.9rem;flex-shrink:0;}
+        .problem-box{background:#f5f3ff;border:2px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin:1rem 0;font-size:1.05rem;line-height:1.9;}
+        .problem-box strong.pb-title{color:var(--primary-dark);font-size:1.1rem;}
+        .correction-item{background:white;border-radius:10px;padding:1.1rem 1.4rem;margin:0.7rem 0;border-left:4px solid var(--success);}
+        .correction-item .num{font-weight:700;color:var(--primary-dark);font-size:0.88rem;margin-bottom:0.35rem;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.4rem;border-radius:10px;text-align:center;font-size:1.1rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .rule-box{background:#fff7ed;border:2px solid var(--secondary);border-radius:10px;padding:0.9rem 1.2rem;margin:0.9rem 0;font-size:0.95rem;}
+        .rule-box strong{color:#b45309;}
+        .calculs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;margin:1.1rem 0;}
+        .calcul-item{background:#f5f3ff;padding:1rem 0.9rem;border-radius:8px;border:2px solid var(--border);font-family:'Times New Roman',serif;font-size:1.3rem;text-align:center;line-height:2;}
+        .etape-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0.75rem;margin:1.1rem 0;}
+        .etape-item{background:#f8f7ff;padding:0.85rem 1rem;border-radius:10px;border:2px solid var(--border);font-size:1.02rem;line-height:1.8;}
+        .etape-item .etape-titre{font-weight:700;color:var(--primary-dark);margin-bottom:0.4rem;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.04em;}
+        .frac-line{display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;margin:0.3rem 0;font-family:'Times New Roman',serif;font-size:1.15rem;}
+        .hl-blue{color:#0369a1;font-weight:700;}
+        .hl-green{color:#059669;font-weight:700;}
+        .hl-red{color:#dc2626;font-weight:700;}
+        .hl-purple{color:var(--primary-dark);font-weight:700;}
+        /* transformation display: shows ×k above/below arrow */
+        .transform-step{display:inline-flex;flex-direction:column;align-items:center;gap:0;margin:0 0.3rem;font-family:'Times New Roman',serif;}
+        .transform-eq{display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;margin:0.25rem 0;font-family:'Times New Roman',serif;font-size:1.1rem;}
+        .times-badge{font-size:0.75rem;font-weight:700;color:var(--primary-dark);background:var(--primary-light);padding:0.05rem 0.35rem;border-radius:4px;font-family:'DM Sans',sans-serif;}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.solution-text{font-size:1rem;padding:0.75rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.score-card{padding:1.5rem 1.25rem;}.calculs-grid{grid-template-columns:1fr 1fr;}.etape-grid{grid-template-columns:1fr;}.recap-grid{grid-template-columns:1fr;}.hint-item{flex-direction:column;}.hint-btn{white-space:normal;width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+        @media(max-width:380px){h1{font-size:1.2rem;}.exercise-title{font-size:1.05rem;}}
+
+        .hint-for{font-weight:400;font-style:italic;font-size:0.8rem;color:#5b21b6;margin-left:0.25rem;}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>➕➖ Feuille d'exercices</h1>
+        <p class="subtitle">Additions et soustractions de fractions – 5<sup>ème</sup> – Correction interactive</p>
+    </header>
+
+    <!-- Rappel de cours -->
+    <div class="recap-box">
+        <p class="recap-title">📌 Méthode — Additions et soustractions de fractions</p>
+        <div class="recap-grid">
+            <div class="recap-chip">
+                <div class="rc-title">Étape 1 — Même dénominateur ?</div>
+                <div class="rc-body">Si les dénominateurs sont déjà identiques, on additionne (ou soustrait) directement les numérateurs. Le dénominateur ne change pas.</div>
+            </div>
+            <div class="recap-chip">
+                <div class="rc-title">Étape 2 — Changer de dénominateur</div>
+                <div class="rc-body">Si l'un des dénominateurs est multiple de l'autre : on se demande <em>« par combien multiplie-t-on le petit pour obtenir le grand ? »</em> puis on multiplie numérateur et dénominateur par ce nombre.</div>
+            </div>
+            <div class="recap-chip">
+                <div class="rc-title">Étape 3 — Calculer</div>
+                <div class="rc-body">Une fois au même dénominateur, on additionne ou soustrait les numérateurs. On simplifie le résultat si possible.</div>
+            </div>
+            <div class="recap-chip">
+                <div class="rc-title">Exemple</div>
+                <div class="rc-body">
+                    <span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> → 8 = 4 × <strong>2</strong><br>
+                    <span class="frac"><span class="num-part">1×2</span><span class="den-part">4×2</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part"><strong>5</strong></span><span class="den-part">8</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 9</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 1 ═══════════════════ -->
+    <div class="exercise" id="card-ex1">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 9</h2>
+                <span class="exercise-tag">Additions — même dénominateur</span>
+            </div>
+            <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Calculer. Simplifier le résultat lorsque c'est possible.</strong></p>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">a.</span>
+                    <span class="frac"><span class="num-part">2</span><span class="den-part">7</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">7</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">b.</span>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">9</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">9</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">c.</span>
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">d.</span>
+                    <span class="frac"><span class="num-part">4</span><span class="den-part">10</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">10</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="1" data-idx="0">💡 Indice (1/2) <span class="hint-for">– addition même dénominateur</span></button>
+                <div class="hint-text" id="h1-0">Quand les dénominateurs sont identiques, qu'est-ce qui change et qu'est-ce qui reste le même lors d'une addition de fractions ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="1" data-idx="1">💡 Indice (2/2) <span class="hint-for">– simplification du résultat</span></button>
+                <div class="hint-text" id="h1-1">Comment reconnaître qu'une fraction peut être simplifiée ? Que cherche-t-on entre numérateur et dénominateur ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+            <div class="rule-box"><strong>Rappel :</strong> Quand les dénominateurs sont identiques, on additionne les numérateurs et on garde le dénominateur.</div>
+            <div class="etape-grid">
+                <div class="etape-item">
+                    <div class="etape-titre">a) 2/7 + 3/7</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">2</span><span class="den-part">7</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">7</span></span> = <span class="frac"><span class="num-part">2 + 3</span><span class="den-part">7</span></span> = <span class="frac"><span class="num-part" style="color:#059669">5</span><span class="den-part">7</span></span>
+                    </div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">b) 5/9 + 1/9</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">5</span><span class="den-part">9</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">9</span></span> = <span class="frac"><span class="num-part">5 + 1</span><span class="den-part">9</span></span> = <span class="frac"><span class="num-part" style="color:#059669">6</span><span class="den-part">9</span></span> = <span class="frac"><span class="num-part" style="color:#059669">2</span><span class="den-part">3</span></span> (÷ 3)
+                    </div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">c) 3/8 + 5/8</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">3 + 5</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">8</span><span class="den-part">8</span></span> = <span class="hl-green">1</span>
+                    </div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">d) 4/10 + 1/10</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">4</span><span class="den-part">10</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part">4 + 1</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part">5</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">2</span></span> (÷ 5)
+                    </div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 2 ═══════════════════ -->
+    <div class="exercise" id="card-ex2">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 9</h2>
+                <span class="exercise-tag">Soustractions — même dénominateur</span>
+            </div>
+            <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Calculer. Simplifier le résultat lorsque c'est possible.</strong></p>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">a.</span>
+                    <span class="frac"><span class="num-part">7</span><span class="den-part">11</span></span> &minus; <span class="frac"><span class="num-part">3</span><span class="den-part">11</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">b.</span>
+                    <span class="frac"><span class="num-part">9</span><span class="den-part">10</span></span> &minus; <span class="frac"><span class="num-part">4</span><span class="den-part">10</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">c.</span>
+                    <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> &minus; <span class="frac"><span class="num-part">5</span><span class="den-part">12</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">d.</span>
+                    <span class="frac"><span class="num-part">13</span><span class="den-part">6</span></span> &minus; <span class="frac"><span class="num-part">7</span><span class="den-part">6</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="2" data-idx="0">💡 Indice (1/2) <span class="hint-for">– soustraction même dénominateur</span></button>
+                <div class="hint-text" id="h2-0">Quand les dénominateurs sont identiques, la soustraction de fractions fonctionne-t-elle comme l'addition ? Qu'est-ce qui change ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="2" data-idx="1">💡 Indice (2/2) <span class="hint-for">– écrire un entier en fraction (d.)</span></button>
+                <div class="hint-text" id="h2-1">Pour d), quel entier peut-on écrire sous forme de fraction avec n'importe quel dénominateur ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <div class="etape-grid">
+                <div class="etape-item">
+                    <div class="etape-titre">a) 7/11 − 3/11</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">7</span><span class="den-part">11</span></span> − <span class="frac"><span class="num-part">3</span><span class="den-part">11</span></span> = <span class="frac"><span class="num-part">7 − 3</span><span class="den-part">11</span></span> = <span class="frac"><span class="num-part" style="color:#059669">4</span><span class="den-part">11</span></span>
+                    </div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">b) 9/10 − 4/10</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">9</span><span class="den-part">10</span></span> − <span class="frac"><span class="num-part">4</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part">9 − 4</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part">5</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">2</span></span> (÷ 5)
+                    </div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">c) 11/12 − 5/12</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> − <span class="frac"><span class="num-part">5</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part">11 − 5</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part">6</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">2</span></span> (÷ 6)
+                    </div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">d) 13/6 − 7/6</div>
+                    <div class="frac-line">
+                        <span class="frac"><span class="num-part">13</span><span class="den-part">6</span></span> − <span class="frac"><span class="num-part">7</span><span class="den-part">6</span></span> = <span class="frac"><span class="num-part">13 − 7</span><span class="den-part">6</span></span> = <span class="frac"><span class="num-part">6</span><span class="den-part">6</span></span> = <span class="hl-green">1</span>
+                    </div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 3 ═══════════════════ -->
+    <div class="exercise" id="card-ex3">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 9</h2>
+                <span class="exercise-tag">Additions — changement de dénominateur</span>
+            </div>
+            <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Calculer en mettant d'abord au même dénominateur. Simplifier si possible.</strong></p>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">a.</span>
+                    <span class="frac"><span class="num-part">1</span><span class="den-part">2</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">b.</span>
+                    <span class="frac"><span class="num-part">2</span><span class="den-part">3</span></span> + <span class="frac"><span class="num-part">5</span><span class="den-part">9</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">c.</span>
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">5</span></span> + <span class="frac"><span class="num-part">7</span><span class="den-part">15</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">d.</span>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">24</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="3" data-idx="0">💡 Indice (1/3) <span class="hint-for">– trouver le dénominateur commun</span></button>
+                <div class="hint-text" id="h3-0">Quel est le lien entre les deux dénominateurs ? Lequel est le plus grand ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="3" data-idx="1">💡 Indice (2/3) <span class="hint-for">– transformer la fraction</span></button>
+                <div class="hint-text" id="h3-1">Quelle est la fraction qui doit être transformée ? Par quel facteur multiplie-t-on son dénominateur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="3" data-idx="2">💡 Indice (3/3) <span class="hint-for">– multiplier numérateur et dénominateur</span></button>
+                <div class="hint-text" id="h3-2">Quand on multiplie le dénominateur d'une fraction par un certain nombre, que doit-on faire au numérateur pour que la fraction garde la même valeur ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <div class="etape-grid">
+                <div class="etape-item">
+                    <div class="etape-titre">a) 1/2 + 3/8</div>
+                    8 = 2 × <span class="hl-purple">4</span> → dénominateur commun : <span class="hl-purple">8</span><br>
+                    Par combien multiplie-t-on 2 pour trouver 8 ? Par <span class="hl-purple">4</span>.<br>
+                    <span class="frac"><span class="num-part">1</span><span class="den-part">2</span></span> = <span class="frac"><span class="num-part">1 × 4</span><span class="den-part">2 × 4</span></span> = <span class="frac"><span class="num-part">4</span><span class="den-part">8</span></span><br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">4</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part" style="color:#059669">7</span><span class="den-part">8</span></span></div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">b) 2/3 + 5/9</div>
+                    9 = 3 × <span class="hl-purple">3</span> → dénominateur commun : <span class="hl-purple">9</span><br>
+                    Par combien multiplie-t-on 3 pour trouver 9 ? Par <span class="hl-purple">3</span>.<br>
+                    <span class="frac"><span class="num-part">2</span><span class="den-part">3</span></span> = <span class="frac"><span class="num-part">2 × 3</span><span class="den-part">3 × 3</span></span> = <span class="frac"><span class="num-part">6</span><span class="den-part">9</span></span><br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">6</span><span class="den-part">9</span></span> + <span class="frac"><span class="num-part">5</span><span class="den-part">9</span></span> = <span class="frac"><span class="num-part">11</span><span class="den-part">9</span></span> <span class="hl-green">(déjà simplifié)</span></div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">c) 3/5 + 7/15</div>
+                    15 = 5 × <span class="hl-purple">3</span> → dénominateur commun : <span class="hl-purple">15</span><br>
+                    Par combien multiplie-t-on 5 pour trouver 15 ? Par <span class="hl-purple">3</span>.<br>
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">5</span></span> = <span class="frac"><span class="num-part">3 × 3</span><span class="den-part">5 × 3</span></span> = <span class="frac"><span class="num-part">9</span><span class="den-part">15</span></span><br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">9</span><span class="den-part">15</span></span> + <span class="frac"><span class="num-part">7</span><span class="den-part">15</span></span> = <span class="frac"><span class="num-part">16</span><span class="den-part">15</span></span> <span class="hl-green">(déjà simplifié)</span></div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">d) 5/6 + 3/24</div>
+                    24 = 6 × <span class="hl-purple">4</span> → dénominateur commun : <span class="hl-purple">24</span><br>
+                    Par combien multiplie-t-on 6 pour trouver 24 ? Par <span class="hl-purple">4</span>.<br>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span> = <span class="frac"><span class="num-part">5 × 4</span><span class="den-part">6 × 4</span></span> = <span class="frac"><span class="num-part">20</span><span class="den-part">24</span></span><br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">20</span><span class="den-part">24</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">24</span></span> = <span class="frac"><span class="num-part">23</span><span class="den-part">24</span></span> <span class="hl-green">(déjà simplifié)</span></div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ EXERCICE 4 ═══════════════════ -->
+    <div class="exercise" id="card-ex4">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 9</h2>
+                <span class="exercise-tag">Soustractions — changement de dénominateur</span>
+            </div>
+            <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <p><strong>Calculer en mettant d'abord au même dénominateur. Simplifier si possible.</strong></p>
+            <div class="q-list">
+                <div class="q-item"><span class="q-num">a.</span>
+                    <span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span> &minus; <span class="frac"><span class="num-part">1</span><span class="den-part">3</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">b.</span>
+                    <span class="frac"><span class="num-part">7</span><span class="den-part">10</span></span> &minus; <span class="frac"><span class="num-part">1</span><span class="den-part">5</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">c.</span>
+                    <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> &minus; <span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span>
+                </div>
+                <div class="q-item"><span class="q-num">d.</span>
+                    1 &minus; <span class="frac"><span class="num-part">3</span><span class="den-part">7</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="4" data-idx="0">💡 Indice (1/3) <span class="hint-for">– identifier quelle fraction transformer</span></button>
+                <div class="hint-text" id="h4-0">Pour chaque calcul, compare les dénominateurs : lequel est un multiple de l'autre ? Quelle fraction faut-il transformer ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="4" data-idx="1">💡 Indice (2/3) <span class="hint-for">– écrire 1 en fraction (d.)</span></button>
+                <div class="hint-text" id="h4-1">Comment écrire l'entier 1 sous forme de fraction avec 7 comme dénominateur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="4" data-idx="2">💡 Indice (3/3) <span class="hint-for">– simplifier le résultat</span></button>
+                <div class="hint-text" id="h4-2">Comment vérifier si un résultat de fraction peut être simplifié ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <div class="etape-grid">
+                <div class="etape-item">
+                    <div class="etape-titre">a) 5/6 − 1/3</div>
+                    6 = 3 × <span class="hl-purple">2</span> → dénominateur commun : <span class="hl-purple">6</span><br>
+                    Par combien multiplie-t-on 3 pour trouver 6 ? Par <span class="hl-purple">2</span>.<br>
+                    <span class="frac"><span class="num-part">1</span><span class="den-part">3</span></span> = <span class="frac"><span class="num-part">1 × 2</span><span class="den-part">3 × 2</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">6</span></span><br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">5</span><span class="den-part">6</span></span> − <span class="frac"><span class="num-part">2</span><span class="den-part">6</span></span> = <span class="frac"><span class="num-part">3</span><span class="den-part">6</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">2</span></span> (÷ 3)</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">b) 7/10 − 1/5</div>
+                    10 = 5 × <span class="hl-purple">2</span> → dénominateur commun : <span class="hl-purple">10</span><br>
+                    Par combien multiplie-t-on 5 pour trouver 10 ? Par <span class="hl-purple">2</span>.<br>
+                    <span class="frac"><span class="num-part">1</span><span class="den-part">5</span></span> = <span class="frac"><span class="num-part">1 × 2</span><span class="den-part">5 × 2</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">10</span></span><br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">7</span><span class="den-part">10</span></span> − <span class="frac"><span class="num-part">2</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part" style="color:#059669">5</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">2</span></span> (÷ 5)</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">c) 11/12 − 1/4</div>
+                    12 = 4 × <span class="hl-purple">3</span> → dénominateur commun : <span class="hl-purple">12</span><br>
+                    Par combien multiplie-t-on 4 pour trouver 12 ? Par <span class="hl-purple">3</span>.<br>
+                    <span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span> = <span class="frac"><span class="num-part">1 × 3</span><span class="den-part">4 × 3</span></span> = <span class="frac"><span class="num-part">3</span><span class="den-part">12</span></span><br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> − <span class="frac"><span class="num-part">3</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part" style="color:#059669">8</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part" style="color:#059669">2</span><span class="den-part">3</span></span> (÷ 4)</div>
+                </div>
+                <div class="etape-item">
+                    <div class="etape-titre">d) 1 − 3/7</div>
+                    1 = <span class="frac"><span class="num-part">7</span><span class="den-part">7</span></span> (par combien multiplie-t-on 1 pour trouver 7 ? Par <span class="hl-purple">7</span>)<br>
+                    <div class="frac-line"><span class="frac"><span class="num-part">7</span><span class="den-part">7</span></span> − <span class="frac"><span class="num-part">3</span><span class="den-part">7</span></span> = <span class="frac"><span class="num-part" style="color:#059669">4</span><span class="den-part">7</span></span></div>
+                </div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 1 ═══════════════════ -->
+    <div class="exercise" id="card-ex5">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 9</h2>
+                <span class="exercise-tag tag-pb">🧩 Problème</span>
+            </div>
+            <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">🍕 La pizza partagée</strong><br><br>
+                Hugo et ses amis commandent une grande pizza. Hugo mange <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> de la pizza, sa sœur Inès en mange <span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span>, et leur ami Théo en mange <span class="frac"><span class="num-part">1</span><span class="den-part">8</span></span>.<br><br>
+                <strong>1.</strong> Quelle fraction de pizza ont-ils mangée en tout ?<br>
+                <strong>2.</strong> Quelle fraction de pizza reste-t-il ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="5" data-idx="0">💡 Indice (1/3) <span class="hint-for">– question 1 – dénominateur commun</span></button>
+                <div class="hint-text" id="h5-0">Parmi les trois fractions, lesquelles ont déjà le même dénominateur ? Quelle est celle qui doit être transformée ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="5" data-idx="1">💡 Indice (2/3) <span class="hint-for">– question 1 – transformer 1/4</span></button>
+                <div class="hint-text" id="h5-1">Pour transformer la fraction avec le dénominateur 4, quel facteur faut-il utiliser pour atteindre le dénominateur commun ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="5" data-idx="2">💡 Indice (3/3) <span class="hint-for">– question 2 – écrire 1 pizza en fraction</span></button>
+                <div class="hint-text" id="h5-2">Comment écrire 1 (la pizza entière) sous forme de fraction avec le même dénominateur que ton résultat ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Fraction mangée en tout</div>
+                <p style="margin:0.35rem 0;">Les fractions de Hugo et Théo ont déjà le dénominateur 8. Il faut transformer celle d'Inès.</p>
+                <p style="margin:0.35rem 0;">8 = 4 × <span class="hl-purple">2</span>. Par combien multiplie-t-on 4 pour trouver 8 ? Par <span class="hl-purple">2</span>.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span> = <span class="frac"><span class="num-part">1 × 2</span><span class="den-part">4 × 2</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">8</span></span></p>
+                <div class="frac-line" style="margin-top:0.4rem;">
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">2</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">3 + 2 + 1</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">6</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part" style="color:#059669">3</span><span class="den-part">4</span></span> (÷ 2)
+                </div>
+                <div class="solution-text">Ils ont mangé <strong>3/4</strong> de la pizza en tout.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Fraction restante</div>
+                <p style="margin:0.35rem 0;">1 pizza entière = <span class="frac"><span class="num-part">4</span><span class="den-part">4</span></span>. Par combien multiplie-t-on 1 pour trouver 4 ? Par <span class="hl-purple">4</span>.</p>
+                <div class="frac-line" style="margin-top:0.4rem;">
+                    <span class="frac"><span class="num-part">4</span><span class="den-part">4</span></span> − <span class="frac"><span class="num-part">3</span><span class="den-part">4</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">4</span></span>
+                </div>
+                <div class="solution-text">Il reste <strong>1/4</strong> de pizza.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 2 ═══════════════════ -->
+    <div class="exercise" id="card-ex6">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 6 / 9</h2>
+                <span class="exercise-tag tag-pb">🧩 Problème</span>
+            </div>
+            <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">📚 La journée d'Emma</strong><br><br>
+                Dans une journée, Emma consacre <span class="frac"><span class="num-part">1</span><span class="den-part">3</span></span> de son temps à l'école, <span class="frac"><span class="num-part">5</span><span class="den-part">12</span></span> de son temps à dormir, et <span class="frac"><span class="num-part">1</span><span class="den-part">6</span></span> de son temps à ses loisirs.<br><br>
+                <strong>1.</strong> Quelle fraction de la journée ces activités représentent-elles en tout ?<br>
+                <strong>2.</strong> Quelle fraction reste-t-il pour les repas, les trajets et autres ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="6" data-idx="0">💡 Indice (1/3) <span class="hint-for">– question 1 – dénominateur commun</span></button>
+                <div class="hint-text" id="h6-0">Parmi les trois dénominateurs 3, 12 et 6, lequel est multiple des deux autres ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="6" data-idx="1">💡 Indice (2/3) <span class="hint-for">– question 1 – transformer chaque fraction</span></button>
+                <div class="hint-text" id="h6-1">Pour chaque fraction à transformer, quel facteur applique-t-on au dénominateur ? Et donc au numérateur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="6" data-idx="2">💡 Indice (3/3) <span class="hint-for">– question 2 – écrire 1 journée en fraction</span></button>
+                <div class="hint-text" id="h6-2">Comment représenter la journée entière (= 1) sous forme de fraction avec le dénominateur commun trouvé ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Fraction totale de la journée</div>
+                <p style="margin:0.35rem 0;">Dénominateurs : 3, 12 et 6. 12 = 3 × 4 et 12 = 6 × 2 → dénominateur commun : <span class="hl-purple">12</span>.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">3</span></span> → par combien multiplie-t-on 3 pour trouver 12 ? Par <span class="hl-purple">4</span>. → <span class="frac"><span class="num-part">1 × 4</span><span class="den-part">3 × 4</span></span> = <span class="frac"><span class="num-part">4</span><span class="den-part">12</span></span></p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">6</span></span> → par combien multiplie-t-on 6 pour trouver 12 ? Par <span class="hl-purple">2</span>. → <span class="frac"><span class="num-part">1 × 2</span><span class="den-part">6 × 2</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">12</span></span></p>
+                <div class="frac-line" style="margin-top:0.4rem;">
+                    <span class="frac"><span class="num-part">4</span><span class="den-part">12</span></span> + <span class="frac"><span class="num-part">5</span><span class="den-part">12</span></span> + <span class="frac"><span class="num-part">2</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span>
+                </div>
+                <div class="solution-text">Ces activités représentent <strong>11/12</strong> de la journée.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Fraction restante</div>
+                <p style="margin:0.35rem 0;">1 journée entière = <span class="frac"><span class="num-part">12</span><span class="den-part">12</span></span>.</p>
+                <div class="frac-line" style="margin-top:0.3rem;">
+                    <span class="frac"><span class="num-part">12</span><span class="den-part">12</span></span> − <span class="frac"><span class="num-part">11</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">12</span></span>
+                </div>
+                <div class="solution-text">Il reste <strong>1/12</strong> de la journée pour les repas, trajets et autres.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 3 ═══════════════════ -->
+    <div class="exercise" id="card-ex7">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 7 / 9</h2>
+                <span class="exercise-tag tag-pb">🧩 Problème</span>
+            </div>
+            <button class="reveal-btn" data-target="ex7">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">🎨 Le pot de peinture</strong><br><br>
+                Un pot contient de la peinture rouge. Un peintre utilise <span class="frac"><span class="num-part">2</span><span class="den-part">5</span></span> du pot le lundi, puis <span class="frac"><span class="num-part">3</span><span class="den-part">10</span></span> du pot le mardi.<br><br>
+                <strong>1.</strong> Quelle fraction du pot a-t-il utilisée en tout ?<br>
+                <strong>2.</strong> Quelle fraction du pot lui reste-t-il ?<br>
+                <strong>3.</strong> Le mercredi, il utilise encore <span class="frac"><span class="num-part">1</span><span class="den-part">10</span></span> du pot. Peut-il terminer le mercredi en utilisant ce qui reste ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="7" data-idx="0">💡 Indice (1/3) <span class="hint-for">– question 1 – dénominateur commun</span></button>
+                <div class="hint-text" id="h7-0">Quel est le lien entre les dénominateurs 5 et 10 ? Quelle fraction faut-il transformer ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="7" data-idx="1">💡 Indice (2/3) <span class="hint-for">– question 2 – écrire 1 pot en fraction</span></button>
+                <div class="hint-text" id="h7-1">Comment écrire « 1 pot entier » sous forme de fraction avec le même dénominateur que ton résultat ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="7" data-idx="2">💡 Indice (3/3) <span class="hint-for">– question 3 – comparer deux fractions</span></button>
+                <div class="hint-text" id="h7-2">Comment comparer deux fractions pour savoir laquelle est la plus grande ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex7"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Fraction utilisée en tout</div>
+                <p style="margin:0.35rem 0;">10 = 5 × <span class="hl-purple">2</span>. Par combien multiplie-t-on 5 pour trouver 10 ? Par <span class="hl-purple">2</span>.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">2</span><span class="den-part">5</span></span> = <span class="frac"><span class="num-part">2 × 2</span><span class="den-part">5 × 2</span></span> = <span class="frac"><span class="num-part">4</span><span class="den-part">10</span></span></p>
+                <div class="frac-line"><span class="frac"><span class="num-part">4</span><span class="den-part">10</span></span> + <span class="frac"><span class="num-part">3</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part">7</span><span class="den-part">10</span></span></div>
+                <div class="solution-text">Le peintre a utilisé <strong>7/10</strong> du pot en tout.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Fraction restante</div>
+                <p style="margin:0.35rem 0;">1 pot entier = <span class="frac"><span class="num-part">10</span><span class="den-part">10</span></span>.</p>
+                <div class="frac-line"><span class="frac"><span class="num-part">10</span><span class="den-part">10</span></span> − <span class="frac"><span class="num-part">7</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part" style="color:#059669">3</span><span class="den-part">10</span></span></div>
+                <div class="solution-text">Il reste <strong>3/10</strong> du pot.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">3. Peut-il terminer le mercredi ?</div>
+                <p style="margin:0.35rem 0;">Il lui reste 3/10 du pot et il prévoit d'utiliser 1/10 le mercredi.</p>
+                <p style="margin:0.35rem 0;">Comme <span class="hl-green">3/10 &gt; 1/10</span>, il y a assez de peinture pour le mercredi.</p>
+                <p style="margin:0.35rem 0;">Après le mercredi : <span class="frac"><span class="num-part">3</span><span class="den-part">10</span></span> − <span class="frac"><span class="num-part">1</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">10</span></span> = <span class="frac"><span class="num-part">1</span><span class="den-part">5</span></span> restant.</p>
+                <div class="solution-text">Oui, il peut utiliser 1/10 le mercredi — il lui restera encore <strong>1/5</strong> du pot.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 4 ═══════════════════ -->
+    <div class="exercise" id="card-ex8">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 8 / 9</h2>
+                <span class="exercise-tag tag-pb">🧩 Problème</span>
+            </div>
+            <button class="reveal-btn" data-target="ex8">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">🏃 La course à pied</strong><br><br>
+                Lors d'une course, le parcours total fait 1 km. Lola a couru <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> km et s'est reposée. Sa coéquipière a couru <span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span> km.<br><br>
+                <strong>1.</strong> Combien de kilomètres ont-elles couru ensemble ?<br>
+                <strong>2.</strong> Combien de kilomètres reste-t-il à courir pour finir le parcours ?<br>
+                <strong>3.</strong> Lola repart et court encore <span class="frac"><span class="num-part">1</span><span class="den-part">8</span></span> km. A-t-elle dépassé la moitié du parcours à elle seule ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="8" data-idx="0">💡 Indice (1/3) <span class="hint-for">– question 1 – dénominateur commun</span></button>
+                <div class="hint-text" id="h8-0">Quel est le lien entre 4 et 8 ? Quelle fraction doit être transformée et par quel facteur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="8" data-idx="1">💡 Indice (2/3) <span class="hint-for">– question 2 – écrire 1 km en fraction</span></button>
+                <div class="hint-text" id="h8-1">Comment écrire 1 km sous forme de fraction avec le dénominateur de ton résultat de la question 1 ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="8" data-idx="2">💡 Indice (3/3) <span class="hint-for">– comparer deux fractions</span></button>
+                <div class="hint-text" id="h8-2">Pour comparer deux fractions, qu'est-il nécessaire de faire d'abord avec leurs dénominateurs ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex8"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Distance totale courue</div>
+                <p style="margin:0.35rem 0;">8 = 4 × <span class="hl-purple">2</span>. Par combien multiplie-t-on 4 pour trouver 8 ? Par <span class="hl-purple">2</span>.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span> = <span class="frac"><span class="num-part">1 × 2</span><span class="den-part">4 × 2</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">8</span></span></p>
+                <div class="frac-line"><span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">2</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part" style="color:#059669">5</span><span class="den-part">8</span></span> km</div>
+                <div class="solution-text">Elles ont couru <strong>5/8 km</strong> ensemble.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Distance restante</div>
+                <p style="margin:0.35rem 0;">1 km = <span class="frac"><span class="num-part">8</span><span class="den-part">8</span></span> km.</p>
+                <div class="frac-line"><span class="frac"><span class="num-part">8</span><span class="den-part">8</span></span> − <span class="frac"><span class="num-part">5</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part" style="color:#059669">3</span><span class="den-part">8</span></span> km</div>
+                <div class="solution-text">Il reste <strong>3/8 km</strong> à courir.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">3. Lola a-t-elle dépassé la moitié ?</div>
+                <p style="margin:0.35rem 0;">Distance totale de Lola : <span class="frac"><span class="num-part">3</span><span class="den-part">8</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">4</span><span class="den-part">8</span></span> = <span class="frac"><span class="num-part">1</span><span class="den-part">2</span></span> km.</p>
+                <p style="margin:0.35rem 0;">La moitié du parcours = <span class="frac"><span class="num-part">1</span><span class="den-part">2</span></span> km.</p>
+                <p style="margin:0.35rem 0;">Lola a exactement atteint <span class="frac"><span class="num-part">1</span><span class="den-part">2</span></span> km, ce qui est <span class="hl-blue">égal</span> à la moitié.</p>
+                <div class="solution-text">Lola a couru exactement la moitié du parcours — elle ne l'a pas dépassée.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ═══════════════════ PROBLÈME 5 ═══════════════════ -->
+    <div class="exercise" id="card-ex9">
+        <span class="seen-badge">✓ Vu</span>
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 9 / 9</h2>
+                <span class="exercise-tag tag-pb">🧩 Problème</span>
+                <span class="exercise-tag" style="background:#fee2e2;color:#991b1b;">⭐ Très difficile</span>
+            </div>
+            <button class="reveal-btn" data-target="ex9">Voir la correction</button>
+        </div>
+        <div class="exercise-content">
+            <div class="problem-box">
+                <strong class="pb-title">💰 L'argent de poche</strong><br><br>
+                Sacha reçoit de l'argent de poche chaque mois. Il dépense <span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span> de son argent en jeux vidéo, <span class="frac"><span class="num-part">1</span><span class="den-part">3</span></span> en sorties avec ses amis, et économise <span class="frac"><span class="num-part">1</span><span class="den-part">6</span></span>.<br><br>
+                <strong>1.</strong> Quelle fraction de son argent de poche Sacha a-t-il utilisée ou économisée ?<br>
+                <strong>2.</strong> Quelle fraction lui reste-t-il pour d'autres achats ?<br>
+                <strong>3.</strong> Le mois suivant, il décide de mettre <span class="frac"><span class="num-part">1</span><span class="den-part">12</span></span> de plus en économies. Quelle est alors sa nouvelle fraction totale d'économies ?
+            </div>
+        </div>
+        <div class="hints-section">
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="9" data-idx="0">💡 Indice (1/3) <span class="hint-for">– question 1 – dénominateur commun</span></button>
+                <div class="hint-text" id="h9-0">Parmi les dénominateurs 4, 3 et 6, quel est le plus grand multiple commun possible ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="9" data-idx="1">💡 Indice (2/3) <span class="hint-for">– question 1 – transformer chaque fraction</span></button>
+                <div class="hint-text" id="h9-1">Pour chaque fraction, quel facteur permet de passer de son dénominateur au dénominateur commun ? Que fait-on alors au numérateur ?</div>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" data-ex="9" data-idx="2">💡 Indice (3/3) <span class="hint-for">– question 2 – dénominateur commun</span></button>
+                <div class="hint-text" id="h9-2">Pour les économies, les dénominateurs sont-ils déjà identiques ? Sinon, lequel est multiple de l'autre ?</div>
+            </div>
+        </div>
+        <div class="correction" id="ex9"><div class="correction-box"><div class="correction-content">
+            <div class="correction-item">
+                <div class="num">1. Fraction utilisée ou économisée</div>
+                <p style="margin:0.35rem 0;">Dénominateurs : 4, 3 et 6. 12 = 4 × 3 = 3 × 4 = 6 × 2 → dénominateur commun : <span class="hl-purple">12</span>.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">4</span></span> → 4 × <span class="hl-purple">3</span> = 12 → <span class="frac"><span class="num-part">1 × 3</span><span class="den-part">4 × 3</span></span> = <span class="frac"><span class="num-part">3</span><span class="den-part">12</span></span></p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">3</span></span> → 3 × <span class="hl-purple">4</span> = 12 → <span class="frac"><span class="num-part">1 × 4</span><span class="den-part">3 × 4</span></span> = <span class="frac"><span class="num-part">4</span><span class="den-part">12</span></span></p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">6</span></span> → 6 × <span class="hl-purple">2</span> = 12 → <span class="frac"><span class="num-part">1 × 2</span><span class="den-part">6 × 2</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">12</span></span></p>
+                <div class="frac-line" style="margin-top:0.4rem;">
+                    <span class="frac"><span class="num-part">3</span><span class="den-part">12</span></span> + <span class="frac"><span class="num-part">4</span><span class="den-part">12</span></span> + <span class="frac"><span class="num-part">2</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part">9</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part" style="color:#059669">3</span><span class="den-part">4</span></span> (÷ 3)
+                </div>
+                <div class="solution-text">Sacha a utilisé ou économisé <strong>3/4</strong> de son argent de poche.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">2. Fraction restante</div>
+                <p style="margin:0.35rem 0;">1 = <span class="frac"><span class="num-part">4</span><span class="den-part">4</span></span>.</p>
+                <div class="frac-line"><span class="frac"><span class="num-part">4</span><span class="den-part">4</span></span> − <span class="frac"><span class="num-part">3</span><span class="den-part">4</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">4</span></span></div>
+                <div class="solution-text">Il reste <strong>1/4</strong> de son argent pour d'autres achats.</div>
+            </div>
+            <div class="correction-item">
+                <div class="num">3. Nouvelles économies totales</div>
+                <p style="margin:0.35rem 0;">Économies : <span class="frac"><span class="num-part">1</span><span class="den-part">6</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">12</span></span>. 12 = 6 × <span class="hl-purple">2</span>.</p>
+                <p style="margin:0.35rem 0;">Par combien multiplie-t-on 6 pour trouver 12 ? Par <span class="hl-purple">2</span>.</p>
+                <p style="margin:0.35rem 0;"><span class="frac"><span class="num-part">1</span><span class="den-part">6</span></span> = <span class="frac"><span class="num-part">1 × 2</span><span class="den-part">6 × 2</span></span> = <span class="frac"><span class="num-part">2</span><span class="den-part">12</span></span></p>
+                <div class="frac-line"><span class="frac"><span class="num-part">2</span><span class="den-part">12</span></span> + <span class="frac"><span class="num-part">1</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part">3</span><span class="den-part">12</span></span> = <span class="frac"><span class="num-part" style="color:#059669">1</span><span class="den-part">4</span></span> (÷ 3)</div>
+                <div class="solution-text">Sacha économise désormais <strong>1/4</strong> de son argent de poche.</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! Additions et soustractions de fractions n'ont plus de secrets pour toi !</footer>
+
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+
+</div>
+<script>
+    const TOTAL = 9;
+    const seenSet = new Set();
+    const openSet = new Set();
+
+    const SCORE_DATA = [
+        {min:9, emoji:'🏆', stars:'⭐⭐⭐', title:'Parfait !',     msg:'Tu as revu tous les exercices. Excellent travail sur les fractions !'},
+        {min:6, emoji:'🎉', stars:'⭐⭐⭐', title:'Très bien !',   msg:'Tu as vu la grande majorité des corrections. Jette un œil aux dernières !'},
+        {min:4, emoji:'👍', stars:'⭐⭐',   title:'Bien !',        msg:'Plus de la moitié vérifiée. Continue sur ta lancée !'},
+        {min:1, emoji:'💪', stars:'⭐',    title:"C'est un début !", msg:"Ouvre d'autres corrections pour progresser — tu es capable !"},
+    ];
+
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot';
+        d.id = `dot-ex${i}`;
+        d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge purple">📚 Feuille complète</span>`;
+        card.classList.add('visible');
+    }
+
+    function openCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        el.classList.add('show');
+    }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction);
+            btn.classList.remove('active');
+            btn.textContent = 'Voir la correction';
+            openSet.delete(exId);
+        } else {
+            openCorrection(correction);
+            btn.classList.add('active');
+            btn.textContent = 'Masquer la correction';
+            openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId);
+                dot.classList.add('done');
+                card.classList.add('seen');
+                updateProgress();
+            }
+        }
+    }
+
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+
+    document.querySelectorAll('.hint-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const ex  = this.dataset.ex;
+            const idx = parseInt(this.dataset.idx);
+            const hintId = `h${ex}-${idx}`;
+            document.getElementById(hintId).classList.add('revealed');
+            this.disabled = true;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

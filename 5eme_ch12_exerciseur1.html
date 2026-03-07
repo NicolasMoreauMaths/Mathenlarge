@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier : Géométrie du Triangle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif}
+:root{
+  --hdr:#0f172a; --sb:252px; --sand50:#faf8f5; --sand100:#f2efe8;
+  --sand200:#e4dfd5; --sand300:#cdc8bc; --sand700:#6b6459;
+}
+body{background:#e8e4de;display:flex;flex-direction:column;height:100vh}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{0%{opacity:0;transform:scale(.88)}60%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}45%{transform:translateY(-4px)}}
+
+/* HEADER */
+#hdr{display:flex;align-items:center;gap:8px;padding:0 16px;height:54px;background:var(--hdr);
+  border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;box-shadow:0 2px 20px rgba(0,0,0,.35);z-index:30}
+.hbrand{display:flex;align-items:center;gap:9px}
+.hlogo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#0891b2,#0d9488);
+  display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(8,145,178,.45)}
+.htitle{font-size:14px;font-weight:700;color:#f8fafc;letter-spacing:-.2px;line-height:1.2}
+.htitle span{font-size:10px;font-weight:400;color:#64748b;display:block;letter-spacing:.2px}
+.hsep{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 4px;flex-shrink:0}
+.hmid{flex:1;display:flex;align-items:center;justify-content:center;gap:3px}
+.hright{display:flex;align-items:center;gap:3px;margin-left:auto}
+.tgroup{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:3px}
+.tbtn{width:32px;height:32px;border-radius:7px;border:none;background:transparent;cursor:pointer;
+  font-size:15px;display:inline-flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.55);transition:all .15s;flex-shrink:0}
+.tbtn:hover{background:rgba(255,255,255,.12);color:rgba(255,255,255,.9)}
+.tbtn.on{background:rgba(255,255,255,.95);color:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.tbtn-sm{width:28px;height:28px;font-size:13px}
+.zdisplay{font-size:10px;color:rgba(255,255,255,.45);min-width:36px;text-align:center;font-family:monospace;font-weight:500}
+
+/* MAIN */
+#main{display:flex;flex:1;min-height:0;overflow:hidden}
+#cvwrap{flex:1;min-width:0;position:relative;overflow:hidden;touch-action:none}
+#cv{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+
+/* SIDEBAR */
+#sb{width:var(--sb);flex-shrink:0;display:flex;flex-direction:column;background:var(--sand50);
+  border-left:1px solid var(--sand200);overflow-y:auto;overflow-x:hidden;box-shadow:-4px 0 20px rgba(0,0,0,.05)}
+#sb::-webkit-scrollbar{width:4px}
+#sb::-webkit-scrollbar-thumb{background:var(--sand300);border-radius:4px}
+.sbsec{padding:14px 16px;border-bottom:1px solid var(--sand200)}
+.sblbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--sand300);
+  margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sblbl::after{content:'';flex:1;height:1px;background:var(--sand200)}
+
+/* MODE CARDS */
+.mcard{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--sand200);background:#fff;
+  cursor:pointer;display:flex;align-items:center;gap:9px;margin-bottom:5px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);transition:all .18s;text-align:left;position:relative;overflow:hidden}
+.mcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--mc)}
+.mcard:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateX(2px)}
+.mcard.active{border-color:var(--mc);background:color-mix(in srgb,var(--mc) 6%,#fff)}
+.mcard-ico{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.mcard-info strong{font-size:11.5px;font-weight:600;color:#1e1b16;display:block}
+.mcard-info span{font-size:10px;color:var(--sand700);display:block;margin-top:1px}
+.mbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--mc);color:#fff;flex-shrink:0;margin-left:auto}
+
+/* INSTRUMENTS */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ibtn{padding:10px 8px;border-radius:10px;border:1.5px solid var(--sand200);background:#fff;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s}
+.ibtn:hover{box-shadow:0 3px 12px rgba(0,0,0,.1);transform:translateY(-1px)}
+.ibtn.on{border-color:var(--ic);background:color-mix(in srgb,var(--ic) 8%,#fff)}
+.ibtn-ico{font-size:20px}
+.ibtn-lbl{font-size:10px;font-weight:600;color:#4a4640}
+.idot{width:5px;height:5px;border-radius:50%;background:var(--sand200);transition:background .15s}
+.ibtn.on .idot{background:var(--ic)}
+
+/* CARDS */
+.ccard{background:#fff;border-radius:14px;padding:13px 14px;border:1.5px solid var(--sand200);
+  box-shadow:0 1px 6px rgba(0,0,0,.06);animation:slideUp .22s ease;margin-bottom:8px}
+.cbadge{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;padding:3px 9px;
+  border-radius:20px;color:#fff;margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase}
+.ctext{font-size:11.5px;line-height:1.65;color:#4a4640;margin-bottom:6px}
+.crow{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.cval{font-family:monospace;font-size:13px;font-weight:700;background:var(--sand100);border-radius:6px;padding:3px 8px;color:#0f172a}
+.vcard{border-radius:10px;padding:10px 13px;font-size:11.5px;font-weight:600;line-height:1.45;animation:slideUp .18s;margin-bottom:8px}
+.vok{background:#d1fae5;color:#065f46;border:1.5px solid #6ee7b7}
+.verr{background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5}
+
+/* BUTTONS */
+.abtn{width:100%;padding:11px 14px;border-radius:10px;border:none;cursor:pointer;font-size:12.5px;
+  font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.14);transition:all .15s;margin-bottom:6px}
+.abtn:hover{box-shadow:0 4px 18px rgba(0,0,0,.2);transform:translateY(-1px)}
+.abtn-ghost{width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid var(--sand200);
+  background:#fff;cursor:pointer;font-size:12px;font-weight:600;color:var(--sand700);
+  margin-bottom:6px;transition:all .15s}
+.abtn-ghost:hover{border-color:var(--sand300);box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.bounce{animation:bounce 1.3s infinite}
+
+/* STATUS BAR */
+#sbar{display:flex;align-items:center;gap:10px;padding:0 14px;height:22px;background:var(--hdr);
+  border-top:1px solid rgba(255,255,255,.05);font-size:9px;color:rgba(255,255,255,.3);font-family:monospace;flex-shrink:0}
+.schip{padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);font-weight:500;font-size:9px}
+
+/* WELCOME */
+#welcome{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#f8f6f1,#ede9e0);z-index:10;animation:fadeIn .4s ease}
+.wbox{text-align:center;max-width:540px;padding:40px 32px}
+.wlogo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#0891b2,#0d9488);
+  display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 20px;
+  box-shadow:0 8px 28px rgba(8,145,178,.35)}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto}
+.wbtn{padding:14px 12px;border-radius:14px;cursor:pointer;background:#fff;text-align:left;
+  transition:all .18s;border:2px solid var(--mc)}
+.wbtn:hover{transform:translateY(-2px)}
+.wbtn-full{grid-column:span 2}
+.wbtn-title{font-size:12px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.wbtn-desc{font-size:10.5px;color:#786e63;margin-left:26px}
+
+/* HUD */
+#hud{position:absolute;top:12px;right:12px;background:rgba(15,23,42,.85);color:#fff;
+  border-radius:10px;padding:6px 13px;font-family:monospace;font-size:14px;font-weight:bold;
+  pointer-events:none;z-index:50;display:none;flex-direction:column;align-items:center;gap:2px;
+  backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.1)}
+#hud.show{display:flex}
+#hud-label{font-size:9px;opacity:.65;letter-spacing:1px;text-transform:uppercase}
+#hud-val{font-size:21px;line-height:1}
+
+/* MOBILE */
+#sbtoggle{display:none;position:fixed;bottom:16px;right:16px;z-index:100;width:48px;height:48px;
+  border-radius:50%;border:none;background:var(--hdr);color:#fff;font-size:20px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,.4)}
+@media(max-width:768px){
+  #hdr{height:46px;padding:0 8px;overflow-x:auto;gap:4px}
+  .htitle span{display:none}
+  #main{flex-direction:column}
+  #sbtoggle{display:flex;align-items:center;justify-content:center}
+  #sb{position:fixed;bottom:0;left:0;right:0;z-index:80;width:100%;max-height:65vh;
+    border-left:none;border-top:2px solid var(--sand200);border-radius:20px 20px 0 0;
+    box-shadow:0 -6px 28px rgba(0,0,0,.2);transform:translateY(100%);transition:transform .3s}
+  #sb.open{transform:translateY(0)}
+  #sbar{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="hbrand">
+    <div class="hlogo">△</div>
+    <div class="htitle">Géométrie du Triangle<span>atelier interactif</span></div>
+  </div>
+  <div class="hsep"></div>
+  <div class="hmid">
+    <div class="tgroup" id="toolgroup">
+      <button class="tbtn on" data-tool="pan" title="Déplacer">✋</button>
+      <button class="tbtn" data-tool="pen" title="Tracer">✏</button>
+      <button class="tbtn" data-tool="point" title="Poser un point">⊙</button>
+      <button class="tbtn" data-tool="arc" title="Tracer un arc (compas requis)" id="arctool">◜</button>
+      <button class="tbtn" data-tool="eraser" title="Gomme">⌫</button>
+    </div>
+    <div class="hsep"></div>
+    <div class="tgroup">
+      <button class="tbtn" id="stylbtn" title="Style de trait" style="width:auto;padding:0 10px;font-size:11px;font-family:monospace;color:rgba(255,255,255,.85)">——</button>
+    </div>
+    <div class="hsep"></div>
+    <div class="tgroup">
+      <button class="tbtn tbtn-sm" id="zoomin">+</button>
+      <span class="zdisplay" id="zdisp">100%</span>
+      <button class="tbtn tbtn-sm" id="zoomout">−</button>
+      <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 2px"></div>
+      <button class="tbtn tbtn-sm" id="refitbtn" title="Recentrer">⊙</button>
+    </div>
+    <div class="hsep"></div>
+    <div class="tgroup">
+      <button class="tbtn tbtn-sm" id="undobtn" style="opacity:.28" title="Annuler Ctrl+Z">↩</button>
+      <button class="tbtn tbtn-sm" id="redobtn" style="opacity:.28" title="Refaire Ctrl+Y">↪</button>
+    </div>
+  </div>
+  <div class="hright" id="hright"></div>
+</div>
+
+<div id="main">
+  <div id="cvwrap">
+    <div id="welcome">
+      <div class="wbox">
+        <div class="wlogo">△</div>
+        <h1 style="font-size:28px;font-weight:800;color:#0f172a;margin-bottom:8px;letter-spacing:-1px">Géométrie du Triangle</h1>
+        <p style="font-size:13px;color:#786e63;line-height:1.75;margin-bottom:24px">Construis des triangles avec règle, compas, équerre et rapporteur.</p>
+        <div class="wgrid" id="wgrid"></div>
+      </div>
+    </div>
+    <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="hud"><span id="hud-label">longueur</span><span id="hud-val">—</span></div>
+  </div>
+  <aside id="sb">
+    <div class="sbsec">
+      <div class="sblbl">Modes</div>
+      <div id="modelist"></div>
+    </div>
+    <div class="sbsec">
+      <div class="sblbl">Instruments</div>
+      <div class="igrid" id="instrlist"></div>
+    </div>
+    <div class="sbsec" id="challengesec" style="display:none">
+      <div class="sblbl">Données</div>
+      <div id="ccard"></div>
+      <div id="validmsg"></div>
+      <button class="abtn" id="verifbtn" style="background:#1d4ed8;color:#fff">✔ Vérifier ma construction</button>
+      <button class="abtn" id="replaybtn" style="display:none">↺ Nouvel exercice</button>
+      <button class="abtn-ghost" id="clearbtn">🗑 Effacer mes tracés</button>
+    </div>
+    <div class="sbsec" id="hintssec" style="display:none">
+      <div style="background:#fff;border-radius:10px;padding:11px 13px;border:1.5px solid var(--sand200)">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--sand300);margin-bottom:6px">Rappel</div>
+        <div id="hints" style="font-size:10px;color:#9a9087;line-height:1.7"></div>
+      </div>
+      <div id="statsbar" style="margin-top:8px;font-family:monospace;font-size:9px;color:var(--sand300);text-align:center"></div>
+    </div>
+  </aside>
+</div>
+
+<button id="sbtoggle">☰</button>
+
+<div id="sbar">
+  <span class="schip" id="schip-zoom">100%</span>
+  <span class="schip" id="schip-mode" style="display:none"></span>
+  <span style="margin-left:auto;opacity:.4">Ctrl+Z / Ctrl+Y</span>
+</div>
+
+<script>
+"use strict";
+// ═══ MATH ════════════════════════════════════════════════════
+const D2R=d=>d*Math.PI/180, R2D=r=>r*180/Math.PI;
+const V=(x,y)=>({x,y});
+const vadd=(a,b)=>V(a.x+b.x,a.y+b.y);
+const vsub=(a,b)=>V(a.x-b.x,a.y-b.y);
+const vscl=(v,s)=>V(v.x*s,v.y*s);
+const vlen=v=>Math.sqrt(v.x*v.x+v.y*v.y);
+const vdst=(a,b)=>vlen(vsub(a,b));
+const vunit=v=>{const l=vlen(v);return l<1e-10?V(1,0):V(v.x/l,v.y/l)};
+const vdot=(a,b)=>a.x*b.x+a.y*b.y;
+const vperp=v=>V(-v.y,v.x);
+const projRay=(p,pt,dir)=>vadd(pt,vscl(dir,vdot(vsub(p,pt),dir)));
+const dRay=(p,pt,dir)=>vdst(p,projRay(p,pt,dir));
+const RH=18, RH2=9;
+const IZ=4;
+
+function circCirc(x1,y1,r1,x2,y2,r2){
+  const d=vdst(V(x1,y1),V(x2,y2));
+  if(d<1e-9||d>r1+r2+.01||d<Math.abs(r1-r2)-.01)return[];
+  const a=(r1*r1-r2*r2+d*d)/(2*d),h2=r1*r1-a*a;if(h2<0)return[];
+  const h=Math.sqrt(Math.max(0,h2)),mx=x1+a*(x2-x1)/d,my=y1+a*(y2-y1)/d;
+  if(h<1e-6)return[V(mx,my)];
+  const px=h*(y2-y1)/d,py=h*(x2-x1)/d;
+  return[V(mx+px,my-py),V(mx-px,my+py)];
+}
+function linCirc(p1,p2,cx,cy,r){
+  const dx=p2.x-p1.x,dy=p2.y-p1.y,fx=p1.x-cx,fy=p1.y-cy,A=dx*dx+dy*dy;
+  if(A<1e-10)return[];
+  const B=2*(fx*dx+fy*dy),C=fx*fx+fy*fy-r*r,disc=B*B-4*A*C;
+  if(disc<0)return[];
+  const s=Math.sqrt(Math.max(0,disc));
+  return[(-B-s)/(2*A),(-B+s)/(2*A)].map(t=>V(p1.x+t*dx,p1.y+t*dy));
+}
+function arcStr(cx,cy,r,a1,a2){
+  let sw=((a2-a1)%360+360)%360;
+  if(sw<.05)return'';
+  if(sw>=359.95)return`M${cx-r} ${cy} A${r} ${r} 0 1 1 ${cx+r} ${cy} A${r} ${r} 0 1 1 ${cx-r} ${cy}`;
+  const R1=D2R(a1),R2=D2R(a1+sw);
+  return`M${cx+r*Math.cos(R1)} ${cy+r*Math.sin(R1)} A${r} ${r} 0 ${sw>180?1:0} 1 ${cx+r*Math.cos(R2)} ${cy+r*Math.sin(R2)}`;
+}
+function rulerG(r){
+  const a=D2R(r.angle),dir=V(Math.cos(a),Math.sin(a)),nor=V(dir.y,-dir.x);
+  const O=V(r.x,r.y),E=vadd(O,vscl(dir,r.length));
+  const cL=vadd(O,vscl(nor,RH2)),cR=vadd(E,vscl(nor,RH2));
+  return{O,E,dir,nor,cL,cR,top:[cL,cR],bot:[vadd(O,vscl(nor,-RH2)),vadd(E,vscl(nor,-RH2))],
+    corners:[cL,cR,vadd(E,vscl(nor,-RH2)),vadd(O,vscl(nor,-RH2))]};
+}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const rndi=(a,b)=>Math.round(rnd(a,b));
+const snap1=(v)=>Math.round(v*10)/10;
+
+// ═══ MODES ═══════════════════════════════════════════════════
+const MODES=[
+  {id:1,name:'3 Longueurs',icon:'△',desc:'Construire ABC avec AB, AC et BC',col:'#0891b2',
+   hint:'① Trace [AB]<br>② Arc rayon AC depuis A<br>③ Arc rayon BC depuis B<br>④ C = intersection'},
+  {id:2,name:'2 L. + 1 Angle',icon:'∠',desc:'Construire ABC avec AB, AC et Â',col:'#7c3aed',
+   hint:'① Trace [AB]<br>② Rapporteur en A, mesure Â<br>③ Règle : reporte AC sur la demi-droite'},
+  {id:3,name:'1 L. + 2 Angles',icon:'⌀',desc:'Construire ABC avec AB, Â et B̂',col:'#059669',
+   hint:'① Trace [AB]<br>② Demi-droite depuis A (angle Â)<br>③ Demi-droite depuis B (angle B̂)<br>④ C = intersection'},
+  {id:4,name:'Médiatrice',icon:'⊥',desc:'Tracer la médiatrice de [AB]',col:'#d97706',
+   hint:'① Compas &gt; AB/2, arcs depuis A<br>② Mêmes arcs depuis B<br>③ Relie les deux intersections'},
+  {id:5,name:'Hauteur',icon:'h',desc:'Tracer la hauteur depuis A dans ABC',col:'#dc2626',
+   hint:'① Équerre : angle droit sur [BC]<br>② Glisse l\'équerre jusqu\'à A<br>③ Trace la hauteur AH'},
+];
+
+function genChallenge(modeId){
+  const AB=snap1(rnd(30,60));
+  if(modeId===1){
+    let AC,BC;
+    do{AC=snap1(rnd(25,55));BC=snap1(rnd(25,55));}
+    while(AC+BC<=AB||AB+BC<=AC||AB+AC<=BC);
+    return{modeId,AB,AC,BC};
+  }
+  if(modeId===2) return{modeId,AB,AC:snap1(rnd(25,55)),angA:rndi(35,110)};
+  if(modeId===3){
+    let angA,angB;
+    do{angA=rndi(35,80);angB=rndi(35,80);}while(angA+angB>=175);
+    return{modeId,AB,angA,angB};
+  }
+  if(modeId===4) return{modeId,AB};
+  if(modeId===5){
+    const angB=rndi(40,75),BC=snap1(rnd(30,55));
+    return{modeId,AB,BC,angB};
+  }
+}
+
+function solveChallenge(c){
+  const A=V(0,0),B=V(c.AB,0);
+  if(c.modeId===1){
+    const pts=circCirc(0,0,c.AC,c.AB,0,c.BC);
+    if(!pts.length)return null;
+    const C=pts.find(p=>p.y<0)||pts[0]; // y<0 because SVG y-down means above baseline
+    return{A,B,C};
+  }
+  if(c.modeId===2){
+    const ang=D2R(c.angA);
+    // angle above AB line → negative y in SVG coords
+    const C=V(c.AC*Math.cos(ang),-c.AC*Math.sin(ang));
+    return{A,B,C};
+  }
+  if(c.modeId===3){
+    const dA=V(Math.cos(D2R(c.angA)),-Math.sin(D2R(c.angA)));
+    const dB=V(-Math.cos(D2R(c.angB)),-Math.sin(D2R(c.angB)));
+    const cr=dA.x*dB.y-dA.y*dB.x;
+    if(Math.abs(cr)<1e-9)return null;
+    const t=((B.x-A.x)*dB.y-(B.y-A.y)*dB.x)/cr;
+    const C=vadd(A,vscl(dA,t));
+    if(C.y>-5)return null; // degenerate
+    return{A,B,C};
+  }
+  if(c.modeId===4) return{A,B,C:null};
+  if(c.modeId===5){
+    const ang=D2R(c.angB);
+    const C=V(B.x-c.BC*Math.cos(ang),B.y-c.BC*Math.sin(ang));
+    return{A,B,C};
+  }
+  return null;
+}
+
+function fitPts(pts,W,H){
+  const valid=pts.filter(p=>p);
+  if(!valid.length)return{z:IZ,px:0,py:0};
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  valid.forEach(p=>{x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);});
+  const pad=22,fw=Math.max(x1-x0+pad*2,30),fh=Math.max(y1-y0+pad*2,30);
+  const z=Math.max(1.5,Math.min(W*0.60/fw,H*0.60/fh));
+  return{z,px:-(x0+x1)/2*z,py:-(y0+y1)/2*z};
+}
+
+// ═══ SVG HELPERS ═════════════════════════════════════════════
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs={}){
+  const e=document.createElementNS(NS,tag);
+  for(const[k,v]of Object.entries(attrs)) e.setAttribute(k,v);
+  return e;
+}
+function setAttrs(e,attrs){for(const[k,v]of Object.entries(attrs)) e.setAttribute(k,v);}
+
+// ═══ STATE ═══════════════════════════════════════════════════
+let zoom=IZ, panX=0, panY=0;
+let tool='pan', lstyle='solid';
+let segs=[], arcs=[], named=[];
+let hist=[], future=[];
+let drawing=null, compArc=null, snapPt=null;
+let challenge=null, solPts=null, offset=null;
+let rulerState={x:-50,y:0,angle:0,length:80};
+let sqState={x:10,y:-50,angle:0,size:60};
+let cmpState={cx:-30,cy:-50,radius:40,pencilAngle:30};
+let protState={cx:20,cy:20,baseAngle:0,R:45};
+let showR=false,showS=false,showC=false,showP=false;
+let protSnapped=false, sqSnapped=false, rSnap=null;
+let uid=0; const nextId=()=>++uid;
+const svgEl=document.getElementById('cv');
+const cvWrap=document.getElementById('cvwrap');
+
+function getW(){return cvWrap.clientWidth||900;}
+function getH(){return cvWrap.clientHeight||600;}
+
+// Screen → canvas coords
+function s2c(sx,sy){
+  const r=svgEl.getBoundingClientRect();
+  return V((sx-r.left-getW()/2-panX)/zoom,(sy-r.top-getH()/2-panY)/zoom);
+}
+
+// ═══ POOL / SNAP ═════════════════════════════════════════════
+const SNAP_R=14, CRAN_R=12;
+
+function buildPool(includeSegProj=false){
+  const p=[];
+  named.forEach(n=>p.push({x:n.x,y:n.y,kind:'named',label:n.label||''}));
+  segs.forEach(s=>{
+    p.push({x:s.x1,y:s.y1,kind:'end'});
+    p.push({x:s.x2,y:s.y2,kind:'end'});
+  });
+  // seg-seg intersections
+  for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){
+    const d1=vunit(vsub(V(segs[i].x2,segs[i].y2),V(segs[i].x1,segs[i].y1)));
+    const d2=vunit(vsub(V(segs[j].x2,segs[j].y2),V(segs[j].x1,segs[j].y1)));
+    const cr=d1.x*d2.y-d1.y*d2.x;if(Math.abs(cr)<1e-9)continue;
+    const p1=V(segs[i].x1,segs[i].y1),p2=V(segs[j].x1,segs[j].y1);
+    const t=((p2.x-p1.x)*d2.y-(p2.y-p1.y)*d2.x)/cr;
+    p.push({x:p1.x+t*d1.x,y:p1.y+t*d1.y,kind:'inter'});
+  }
+  // arc-arc
+  for(let i=0;i<arcs.length;i++)for(let j=i+1;j<arcs.length;j++)
+    circCirc(arcs[i].cx,arcs[i].cy,arcs[i].r,arcs[j].cx,arcs[j].cy,arcs[j].r).forEach(r=>p.push({x:r.x,y:r.y,kind:'inter'}));
+  // arc-seg
+  segs.forEach(s=>arcs.forEach(a=>linCirc(V(s.x1,s.y1),V(s.x2,s.y2),a.cx,a.cy,a.r).forEach(r=>p.push({x:r.x,y:r.y,kind:'inter'}))));
+  return p;
+}
+
+// Pool étendu incluant les points sur les segments (pour le snap de l'équerre sur les droites)
+function buildPoolWithSegPoints(queryPts){
+  const p=buildPool();
+  // Pour chaque point de requête, ajouter la projection sur chaque segment
+  if(queryPts){
+    segs.forEach(s=>{
+      const segDir=vsub(V(s.x2,s.y2),V(s.x1,s.y1));
+      const segLen=vlen(segDir);if(segLen<0.1)return;
+      const segU=vscl(segDir,1/segLen);
+      queryPts.forEach(qp=>{
+        const t=vdot(vsub(qp,V(s.x1,s.y1)),segU);
+        if(t>0&&t<segLen){
+          p.push({x:s.x1+segU.x*t,y:s.y1+segU.y*t,kind:'edge',onSeg:s.id});
+        }
+      });
+    });
+  }
+  return p;
+}
+
+function nearPt(pt,pool,r){
+  let best=null,bd=r;
+  for(const c of pool){const d=vdst(pt,V(c.x,c.y));if(d<bd){bd=d;best=c;}}
+  return best;
+}
+
+function getInstrEdges(){
+  const edges=[];
+  if(showR){const rG=rulerG(rulerState);edges.push(rG.top,rG.bot);}
+  if(showS){
+    const a=D2R(sqState.angle),U=V(Math.cos(a),Math.sin(a)),W=vperp(U);
+    const O=V(sqState.x,sqState.y),A=vadd(O,vscl(U,sqState.size)),B=vadd(O,vscl(W,sqState.size));
+    edges.push([O,A],[O,B]);
+  }
+  return edges;
+}
+
+function doSnap(raw){
+  const r=SNAP_R/zoom, pool=buildPool();
+  const n=nearPt(raw,pool,r);
+  if(n) return{pt:V(n.x,n.y),kind:n.kind};
+  return{pt:raw,kind:'none'};
+}
+
+// ═══ HISTORY ════════════════════════════════════════════════
+function saveHist(){hist.push({segs:[...segs],arcs:[...arcs],named:[...named]});future=[];updateUndoRedo();}
+function undo(){if(!hist.length)return;future.push({segs:[...segs],arcs:[...arcs],named:[...named]});const s=hist.pop();segs=s.segs;arcs=s.arcs;named=s.named;render();updateUndoRedo();}
+function redo(){if(!future.length)return;hist.push({segs:[...segs],arcs:[...arcs],named:[...named]});const s=future.pop();segs=s.segs;arcs=s.arcs;named=s.named;render();updateUndoRedo();}
+function updateUndoRedo(){
+  document.getElementById('undobtn').style.opacity=hist.length?'1':'0.28';
+  document.getElementById('redobtn').style.opacity=future.length?'1':'0.28';
+}
+
+// ═══ RENDER ═════════════════════════════════════════════════
+const SC={edge:'#059669',inter:'#7c3aed',end:'#2563eb',named:'#2563eb',none:'transparent'};
+
+function renderRuler(g){
+  const rG=rulerG(rulerState);
+  const pts=rG.corners.map(c=>`${c.x},${c.y}`).join(' ');
+  const poly=el('polygon',{points:pts,fill:rSnap?'#fffbeb':'#fffdf5',stroke:rSnap?'#d97706':'#b45309',
+    'stroke-width':rSnap?2:1.4,opacity:0.75,style:`cursor:${tool==='pan'?'move':'default'}`});
+  poly.addEventListener('mousedown',e=>{if(tool!=='pan')return;e.stopPropagation();startRulerDrag(e,'move');});
+  poly.addEventListener('touchstart',e=>{if(tool!=='pan')return;e.stopPropagation();e.preventDefault();startRulerDrag(e.touches[0],'move');},{passive:false});
+  g.appendChild(poly);
+  // Edge line
+  g.appendChild(el('line',{x1:rG.cL.x,y1:rG.cL.y,x2:rG.cR.x,y2:rG.cR.y,stroke:rSnap?'#d97706':'#b45309','stroke-width':1.6,'stroke-linecap':'round','pointer-events':'none'}));
+  // Ticks — 1 unité canvas = 1mm, donc on trace tous les mm
+  const PX=1/zoom;
+  const steps=Math.floor(rulerState.length); // nombre de mm total
+  for(let i=0;i<=steps;i++){
+    const isCm=i%10===0;   // tous les 10mm = 1cm
+    const is5mm=i%5===0&&!isCm; // tous les 5mm = 0.5cm
+    const isMm=!isCm&&!is5mm;   // tous les mm
+    const pt=vadd(rG.cL,vscl(rG.dir,i));
+    const dn=V(-rG.nor.x,-rG.nor.y); // vers le bas de la règle
+    // Hauteur des graduations en px écran
+    const th=(isCm?11:is5mm?7:4)*PX;
+    const end=vadd(pt,vscl(dn,th));
+    g.appendChild(el('line',{x1:pt.x,y1:pt.y,x2:end.x,y2:end.y,
+      stroke:isCm?'#5c3a0a':is5mm?'#92400e':'#b45309',
+      'stroke-width':(isCm?1.8:is5mm?1.1:0.55)*PX,'pointer-events':'none'}));
+    // Étiquettes cm (ex: 1, 2, 3…)
+    if(isCm&&i>0){
+      const lp=vadd(pt,vscl(dn,(th+13)*PX));
+      const t=el('text',{x:lp.x,y:lp.y,'font-size':12*PX,fill:'#5c3a0a','font-weight':'800',
+        'text-anchor':'middle','dominant-baseline':'middle','font-family':'monospace',
+        transform:`rotate(${rulerState.angle} ${lp.x} ${lp.y})`,'pointer-events':'none'});
+      t.textContent=i/10+'cm';
+      g.appendChild(t);
+    }
+    // Étiquettes demi-cm (ex: 0.5, 1.5…) — plus petites, en orange
+    if(is5mm){
+      const lp=vadd(pt,vscl(dn,(th+9)*PX));
+      const t=el('text',{x:lp.x,y:lp.y,'font-size':8.5*PX,fill:'#92400e','font-weight':'600',
+        'text-anchor':'middle','dominant-baseline':'middle','font-family':'monospace',
+        transform:`rotate(${rulerState.angle} ${lp.x} ${lp.y})`,'pointer-events':'none'});
+      t.textContent=i/10;
+      g.appendChild(t);
+    }
+  }
+  // Handles
+  const hR=9/zoom;
+  [[rG.cL,'startR','#b45309'],[rG.cR,'endR','#d97706']].forEach(([pt,type,col])=>{
+    const c=el('circle',{cx:pt.x,cy:pt.y,r:hR,fill:col,stroke:'white','stroke-width':2/zoom,style:`cursor:${tool==='pan'?'ew-resize':'default'}`});
+    c.addEventListener('mousedown',e=>{e.stopPropagation();startRulerDrag(e,type);});
+    c.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();startRulerDrag(e.touches[0],type);},{passive:false});
+    g.appendChild(c);
+  });
+}
+
+function renderSquare(g){
+  const a=D2R(sqState.angle),U=V(Math.cos(a),Math.sin(a)),W=vperp(U);
+  const O=V(sqState.x,sqState.y),A=vadd(O,vscl(U,sqState.size)),B=vadd(O,vscl(W,sqState.size));
+  const poly=el('polygon',{points:`${O.x},${O.y} ${A.x},${A.y} ${B.x},${B.y}`,
+    fill:sqSnapped?'#dbeafe':'#eff6ff',stroke:sqSnapped?'#1d4ed8':'#3b82f6','stroke-width':sqSnapped?2:1.4,
+    opacity:0.75,style:`cursor:${tool==='pan'?'move':'default'}`});
+  poly.addEventListener('mousedown',e=>{if(tool!=='pan')return;e.stopPropagation();startSqDrag(e,'move');});
+  poly.addEventListener('touchstart',e=>{if(tool!=='pan')return;e.stopPropagation();e.preventDefault();startSqDrag(e.touches[0],'move');},{passive:false});
+  g.appendChild(poly);
+  // right angle mark
+  const sz=12;
+  g.appendChild(el('path',{d:`M ${O.x+U.x*sz} ${O.y+U.y*sz} L ${O.x+U.x*sz+W.x*sz} ${O.y+U.y*sz+W.y*sz} L ${O.x+W.x*sz} ${O.y+W.y*sz}`,
+    fill:'none',stroke:'#1d4ed8','stroke-width':1.2,'pointer-events':'none'}));
+  const hR=9/zoom;
+  [[O,'move','#6366f1'],[A,'vtxA','#1d4ed8'],[B,'vtxB','#3b82f6']].forEach(([pt,type,col])=>{
+    // Anneau doré si ce sommet est le sommet fixé
+    const vtxName=type==='move'?'O':type==='vtxA'?'A':'B';
+    const isFixed=sqFixedVtx&&sqFixedVtx.vtx===vtxName;
+    if(isFixed){
+      g.appendChild(el('circle',{cx:pt.x,cy:pt.y,r:hR*1.6,fill:'none',stroke:'#f59e0b','stroke-width':2/zoom,'pointer-events':'none'}));
+    }
+    const c=el('circle',{cx:pt.x,cy:pt.y,r:hR,fill:isFixed?'#f59e0b':col,stroke:'white','stroke-width':2/zoom,style:'cursor:crosshair'});
+    c.addEventListener('mousedown',e=>{e.stopPropagation();startSqDrag(e,type);});
+    c.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();startSqDrag(e.touches[0],type);},{passive:false});
+    g.appendChild(c);
+  });
+}
+
+function renderCompass(g){
+  const{cx,cy,radius,pencilAngle}=cmpState;
+  const ang=D2R(pencilAngle);
+  const px=cx+radius*Math.cos(ang),py=cy+radius*Math.sin(ang);
+  // Only draw the pivot-to-pencil arm (red), no back arm
+  g.appendChild(el('line',{x1:cx,y1:cy,x2:px,y2:py,stroke:'#dc2626','stroke-width':2.2/zoom,'stroke-linecap':'round','pointer-events':'none'}));
+  // Needle tip at pencil end
+  g.appendChild(el('line',{x1:px,y1:py,x2:px+Math.cos(ang)*4/zoom,y2:py+Math.sin(ang)*4/zoom,stroke:'#1a1a2e','stroke-width':1.5/zoom,'stroke-linecap':'round','pointer-events':'none'}));
+  // radius label — taille lisible à l'écran
+  const mid=V(cx+(px-cx)*0.5+Math.cos(ang+Math.PI/2)*12/zoom,cy+(py-cy)*0.5+Math.sin(ang+Math.PI/2)*12/zoom);
+  const t=el('text',{x:mid.x,y:mid.y,'font-size':11/zoom,fill:'#b91c1c','text-anchor':'middle','pointer-events':'none','font-family':'monospace','font-weight':'700'});
+  t.textContent=snap1(radius/10)+'cm';
+  g.appendChild(t);
+  const hR=9/zoom;
+  // center handle (pivot)
+  const cc=el('circle',{cx,cy,r:hR,fill:'#dc2626',stroke:'white','stroke-width':2/zoom,style:`cursor:${tool==='pan'?'move':'default'}`});
+  cc.addEventListener('mousedown',e=>{e.stopPropagation();startCmpDrag(e,'center');});
+  cc.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();startCmpDrag(e.touches[0],'center');},{passive:false});
+  g.appendChild(cc);
+  // Pivot cross
+  g.appendChild(el('line',{x1:cx-5/zoom,y1:cy,x2:cx+5/zoom,y2:cy,stroke:'white','stroke-width':1.2/zoom,'pointer-events':'none'}));
+  g.appendChild(el('line',{x1:cx,y1:cy-5/zoom,x2:cx,y2:cy+5/zoom,stroke:'white','stroke-width':1.2/zoom,'pointer-events':'none'}));
+  // pencil handle
+  const cp=el('circle',{cx:px,cy:py,r:hR*0.8,fill:'#f97316',stroke:'white','stroke-width':1.5/zoom,style:'cursor:crosshair'});
+  cp.addEventListener('mousedown',e=>{e.stopPropagation();startCmpDrag(e,'radius');});
+  cp.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();startCmpDrag(e.touches[0],'radius');},{passive:false});
+  g.appendChild(cp);
+}
+
+// État du snap fixé du rapporteur (un côté ancré)
+let protFixedEnd=null; // {side:'L'|'R', pt:{x,y}}
+
+function renderProtractor(g){
+  const{cx,cy,baseAngle,R}=protState;
+  const ba=D2R(baseAngle),cosB=Math.cos(ba),sinB=Math.sin(ba);
+  const rx=(x,y)=>({x:cx+x*cosB-y*sinB,y:cy+x*sinB+y*cosB});
+  const flatL=rx(-R,0),flatR=rx(R,0);
+  const arcD=`M ${flatL.x} ${flatL.y} A ${R} ${R} 0 0 1 ${flatR.x} ${flatR.y} Z`;
+
+  // Corps (déplaçable en mode pan)
+  const body=el('path',{d:arcD,fill:'rgba(219,234,254,.18)',stroke:'#7c3aed',
+    'stroke-width':1.8/zoom,style:`cursor:${tool==='pan'?'move':'default'}`});
+  body.addEventListener('mousedown',e=>{if(tool!=='pan')return;e.stopPropagation();startProtDrag(e,'body');});
+  body.addEventListener('touchstart',e=>{if(tool!=='pan')return;e.stopPropagation();e.preventDefault();startProtDrag(e.touches[0],'body');},{passive:false});
+  g.appendChild(body);
+
+  // Ligne de base
+  g.appendChild(el('line',{x1:flatL.x,y1:flatL.y,x2:flatR.x,y2:flatR.y,
+    stroke:'#0f172a','stroke-width':2/zoom,'pointer-events':'none'}));
+
+  // Graduations
+  for(let deg=0;deg<=180;deg++){
+    const maj=deg%10===0,med=!maj&&deg%5===0;
+    const rad=D2R(deg),c=Math.cos(rad),s=Math.sin(rad);
+    // Ticks extérieurs (0→180)
+    const roOuter=maj?R*0.87:med?R*0.92:R*0.96;
+    const tO=rx(c*R,-s*R),tI=rx(c*roOuter,-s*roOuter);
+    g.appendChild(el('line',{x1:tO.x,y1:tO.y,x2:tI.x,y2:tI.y,stroke:'#1e1b4b',
+      'stroke-width':(maj?2:med?1.1:0.5)/zoom,'pointer-events':'none'}));
+    // Ticks intérieurs (180→0)
+    const roInner=maj?R*0.76:med?R*0.80:R*0.84;
+    if(maj||med){
+      const tOi=rx(c*R*0.73,-s*R*0.73),tIi=rx(c*roInner,-s*roInner);
+      g.appendChild(el('line',{x1:tOi.x,y1:tOi.y,x2:tIi.x,y2:tIi.y,stroke:'#7c3aed',
+        'stroke-width':(maj?1.5:0.7)/zoom,'pointer-events':'none'}));
+    }
+    if(maj){
+      // Étiquette extérieure 0→180
+      const tr=baseAngle+90-deg;
+      const lpO=rx(c*R*1.11,-s*R*1.11);
+      const tOut=el('text',{x:lpO.x,y:lpO.y,'font-size':13/zoom,fill:'#1e1b4b','font-weight':'700',
+        'text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none','font-family':'monospace',
+        transform:`rotate(${tr} ${lpO.x} ${lpO.y})`});
+      tOut.textContent=deg; g.appendChild(tOut);
+      // Étiquette intérieure 180→0
+      const lpI=rx(c*R*0.63,-s*R*0.63);
+      const tIn=el('text',{x:lpI.x,y:lpI.y,'font-size':10/zoom,fill:'#7c3aed','font-weight':'600',
+        'text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none','font-family':'monospace',
+        transform:`rotate(${tr} ${lpI.x} ${lpI.y})`});
+      tIn.textContent=180-deg; g.appendChild(tIn);
+    }
+  }
+
+  // Réticule central
+  g.appendChild(el('line',{x1:cx-9/zoom,y1:cy,x2:cx+9/zoom,y2:cy,stroke:'#0f172a','stroke-width':1.5/zoom,'pointer-events':'none'}));
+  g.appendChild(el('line',{x1:cx,y1:cy-9/zoom,x2:cx,y2:cy+9/zoom,stroke:'#0f172a','stroke-width':1.5/zoom,'pointer-events':'none'}));
+  g.appendChild(el('circle',{cx,cy,r:4/zoom,fill:'white',stroke:protSnapped?'#f59e0b':'#7c3aed','stroke-width':2/zoom,'pointer-events':'none'}));
+  if(protSnapped)g.appendChild(el('circle',{cx,cy,r:11/zoom,fill:'none',stroke:'#f59e0b','stroke-width':2.5/zoom,'pointer-events':'none'}));
+
+  // Poignées latérales (resize + rotate) — carrées pour les distinguer
+  const hR=10/zoom;
+  [['L',flatL],['R',flatR]].forEach(([side,pt])=>{
+    const isFixed=protFixedEnd&&protFixedEnd.side===side;
+    if(isFixed){
+      // Anneau doré si ce côté est ancré
+      g.appendChild(el('circle',{cx:pt.x,cy:pt.y,r:hR*1.7,fill:'none',stroke:'#f59e0b','stroke-width':2/zoom,'pointer-events':'none'}));
+    }
+    const col=isFixed?'#f59e0b':'#7c3aed';
+    // Carré orienté
+    const s2=hR*0.75;
+    const sq=el('rect',{x:pt.x-s2,y:pt.y-s2,width:s2*2,height:s2*2,
+      fill:col,stroke:'white','stroke-width':1.8/zoom,rx:2/zoom,
+      style:'cursor:grab',transform:`rotate(${baseAngle} ${pt.x} ${pt.y})`});
+    sq.addEventListener('mousedown',e=>{e.stopPropagation();startProtDrag(e,'side_'+side);});
+    sq.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();startProtDrag(e.touches[0],'side_'+side);},{passive:false});
+    g.appendChild(sq);
+    // Flèche de rotation
+    const arrow=el('text',{x:pt.x,y:pt.y,'font-size':hR*1.1,fill:'white',
+      'text-anchor':'middle','dominant-baseline':'middle',
+      transform:`rotate(${baseAngle+(side==='L'?180:0)} ${pt.x} ${pt.y})`,'pointer-events':'none'});
+    arrow.textContent='↔'; g.appendChild(arrow);
+  });
+}
+
+function render(){
+  // Build SVG
+  const W=getW(),H=getH();
+  svgEl.setAttribute('width',W); svgEl.setAttribute('height',H);
+  // Clear
+  while(svgEl.firstChild)svgEl.removeChild(svgEl.firstChild);
+
+  const tf=`translate(${W/2+panX} ${H/2+panY}) scale(${zoom})`;
+  const g=el('g',{transform:tf});
+  svgEl.appendChild(g);
+
+  // Background
+  const defs=el('defs');
+  const pat5=el('pattern',{id:'g5',width:5,height:5,patternUnits:'userSpaceOnUse'});
+  pat5.appendChild(el('path',{d:'M5 0L0 0 0 5',fill:'none',stroke:'#e3ddd6','stroke-width':0.4}));
+  defs.appendChild(pat5);
+  const pat50=el('pattern',{id:'g50',width:50,height:50,patternUnits:'userSpaceOnUse'});
+  const r50=el('rect',{width:50,height:50,fill:'url(#g5)'}); pat50.appendChild(r50);
+  pat50.appendChild(el('path',{d:'M50 0L0 0 0 50',fill:'none',stroke:'#d8d2c8','stroke-width':0.75}));
+  defs.appendChild(pat50);
+  g.appendChild(defs);
+  g.appendChild(el('rect',{x:-9000,y:-9000,width:18000,height:18000,fill:'#fafaf7'}));
+  g.appendChild(el('rect',{x:-9000,y:-9000,width:18000,height:18000,fill:'url(#g50)'}));
+  g.appendChild(el('rect',{x:-148.5,y:-105,width:297,height:210,fill:'none',stroke:'#cdc6ba','stroke-width':0.5,'stroke-dasharray':'4,4','pointer-events':'none'}));
+
+  // Segments
+  segs.forEach(s=>{
+    const dashArr=s.style==='constr'?'5,2.5':null;
+    const sw=s.isGiven?1.8:1.6;
+    const sc=s.isGiven?'#2563eb':'#1a1a2e';
+    const ln=el('line',{x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2,stroke:sc,'stroke-width':sw,
+      'stroke-linecap':'round',opacity:s.isGiven?0.9:1});
+    if(dashArr)ln.setAttribute('stroke-dasharray',dashArr);
+    if(!s.isGiven&&!s.locked&&tool==='eraser'){
+      ln.style.cursor='pointer';
+      ln.addEventListener('click',()=>{saveHist();segs=segs.filter(x=>x.id!==s.id);render();});
+    }
+    g.appendChild(ln);
+  });
+
+  // Arcs
+  arcs.forEach(a=>{
+    const d=arcStr(a.cx,a.cy,a.r,a.startAngle,a.endAngle);
+    if(!d)return;
+    const dashArr=a.style==='constr'?'5,2.5':null;
+    const p=el('path',{d,fill:'none',stroke:'#1a1a2e','stroke-width':1.6,'stroke-linecap':'round'});
+    if(dashArr)p.setAttribute('stroke-dasharray',dashArr);
+    if(tool==='eraser'){
+      p.style.cursor='pointer';
+      p.addEventListener('click',()=>{saveHist();arcs=arcs.filter(x=>x.id!==a.id);render();});
+    }
+    g.appendChild(p);
+  });
+
+  // Named points
+  named.forEach(p=>{
+    const col=p.locked?'#1d4ed8':'#374151';
+    g.appendChild(el('circle',{cx:p.x,cy:p.y,r:5/zoom,fill:col,stroke:'white','stroke-width':1.8/zoom}));
+    if(p.label){
+      const t=el('text',{x:p.x+10/zoom,y:p.y+6/zoom,'font-size':18/zoom,'font-weight':'bold',
+        'font-family':'Georgia,serif','font-style':'italic',fill:col,
+        stroke:'white','stroke-width':3.5/zoom,'paint-order':'stroke','pointer-events':'none'});
+      t.textContent=p.label; g.appendChild(t);
+    }
+    if(!p.locked&&tool==='eraser'){
+      const hit=el('circle',{cx:p.x,cy:p.y,r:10/zoom,fill:'transparent',style:'cursor:pointer'});
+      hit.addEventListener('click',()=>{saveHist();named=named.filter(x=>x.id!==p.id);render();});
+      g.appendChild(hit);
+    }
+  });
+
+  // Drawing preview
+  if(drawing){
+    const ln=el('line',{x1:drawing.x1,y1:drawing.y1,x2:drawing.x2,y2:drawing.y2,
+      stroke:'#2563eb','stroke-width':1.8,'stroke-linecap':'round',opacity:0.8,'pointer-events':'none'});
+    if(lstyle==='constr')ln.setAttribute('stroke-dasharray','5,2.5');
+    g.appendChild(ln);
+  }
+  if(compArc){
+    const d=arcStr(cmpState.cx,cmpState.cy,cmpState.radius,compArc.startAngle,cmpState.pencilAngle);
+    if(d){
+      const p=el('path',{d,fill:'none',stroke:'#2563eb','stroke-width':1.8,opacity:0.8,'stroke-linecap':'round','pointer-events':'none'});
+      if(lstyle==='constr')p.setAttribute('stroke-dasharray','5,2.5');
+      g.appendChild(p);
+    }
+  }
+
+  // Snap indicator
+  if(snapPt&&snapPt.kind!=='none'){
+    const col=SC[snapPt.kind]||'#aaa',r1=7/zoom;
+    if(snapPt.kind==='inter'){
+      g.appendChild(el('circle',{cx:snapPt.pt.x,cy:snapPt.pt.y,r:r1,fill:'none',stroke:col,'stroke-width':1.5/zoom,'pointer-events':'none'}));
+      g.appendChild(el('line',{x1:snapPt.pt.x-5/zoom,y1:snapPt.pt.y,x2:snapPt.pt.x+5/zoom,y2:snapPt.pt.y,stroke:col,'stroke-width':1.2/zoom,'pointer-events':'none'}));
+      g.appendChild(el('line',{x1:snapPt.pt.x,y1:snapPt.pt.y-5/zoom,x2:snapPt.pt.x,y2:snapPt.pt.y+5/zoom,stroke:col,'stroke-width':1.2/zoom,'pointer-events':'none'}));
+    } else {
+      g.appendChild(el('circle',{cx:snapPt.pt.x,cy:snapPt.pt.y,r:r1,fill:'none',stroke:col,'stroke-width':1.5/zoom,'pointer-events':'none'}));
+      g.appendChild(el('circle',{cx:snapPt.pt.x,cy:snapPt.pt.y,r:2.5/zoom,fill:col,'pointer-events':'none'}));
+    }
+  }
+
+  // Instruments (rendered last, on top) — dimmed during active drawing
+  const instrOp=drawing||compArc?0.7:1;
+  if(showP){const pg=el('g',{opacity:instrOp});renderProtractor(pg);g.appendChild(pg);}
+  if(showS){const sg=el('g',{opacity:instrOp});renderSquare(sg);g.appendChild(sg);}
+  if(showC){const cg=el('g',{opacity:instrOp});renderCompass(cg);g.appendChild(cg);}
+  if(showR){const rg=el('g',{opacity:instrOp});renderRuler(rg);g.appendChild(rg);}
+
+  // Compass arc preview (circle guide)
+  if(showC){
+    const guide=el('circle',{cx:cmpState.cx,cy:cmpState.cy,r:cmpState.radius,
+      fill:'none',stroke:'#fca5a5','stroke-width':0.7/zoom,'stroke-dasharray':`${3/zoom},${3/zoom}`,'pointer-events':'none'});
+    g.appendChild(guide);
+  }
+
+  updateStats();
+  updateZoomDisplay();
+}
+
+// ═══ INSTRUMENT DRAGGING ════════════════════════════════════
+let dragState=null;
+
+function startRulerDrag(e,type){
+  if(tool!=='pan')return;
+  const touchTgt=e.target;
+  const origC=s2c(e.clientX,e.clientY),init={...rulerState};
+  const snapR=SNAP_R*2/zoom;
+  function mv(me){
+    const cur=s2c(me.clientX||me.touches?.[0]?.clientX,me.clientY||me.touches?.[0]?.clientY);
+    if(type==='move'){
+      const raw={...init,x:init.x+(cur.x-origC.x),y:init.y+(cur.y-origC.y)};
+      const rawG=rulerG(raw);
+      const pool=buildPool();
+      const neL=nearPt(rawG.cL,pool,snapR);
+      const neR=nearPt(rawG.cR,pool,snapR);
+      if(neL||neR){
+        const useL=neL&&(!neR||vdst(rawG.cL,V(neL.x,neL.y))<=vdst(rawG.cR,V(neR.x,neR.y)));
+        const snapCorner=useL?rawG.cL:rawG.cR;
+        const targetPt=useL?V(neL.x,neL.y):V(neR.x,neR.y);
+        rulerState={...raw,x:raw.x+(targetPt.x-snapCorner.x),y:raw.y+(targetPt.y-snapCorner.y)};
+        rSnap={pt:targetPt};
+      } else {
+        rulerState=raw;
+        rSnap=null;
+      }
+    }
+    if(type==='endR'){
+      const rG=rulerG(init);
+      const ne=nearPt(cur,buildPool(),SNAP_R/zoom);
+      const tgt=ne?V(ne.x,ne.y):cur;
+      if(vdst(tgt,rG.cL)<1)return;
+      const nd=vunit(vsub(tgt,rG.cL));
+      const len=Math.max(15,vdst(tgt,rG.cL));
+      rulerState={...rulerState,angle:R2D(Math.atan2(nd.y,nd.x)),length:len};
+      showHUD(len);
+    }
+    if(type==='startR'){
+      const rG=rulerG(init);
+      const ne=nearPt(cur,buildPool(),SNAP_R/zoom);
+      const tgt=ne?V(ne.x,ne.y):cur;
+      if(vdst(tgt,rG.cR)<1)return;
+      const nd=vunit(vsub(rG.cR,tgt));
+      const nor=V(nd.y,-nd.x);
+      const len=Math.max(15,vdst(tgt,rG.cR));
+      rulerState={x:vsub(tgt,vscl(nor,RH2)).x,y:vsub(tgt,vscl(nor,RH2)).y,angle:R2D(Math.atan2(nd.y,nd.x)),length:len};
+      showHUD(len);
+    }
+    render();
+  }
+  function up(){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);hideHUD();}
+  function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
+}
+
+// State pour le snap fixé de l'équerre
+let sqFixedVtx=null; // {vtx:'O'|'A'|'B', pt:{x,y}} — sommet actuellement ancré
+
+function getSqVertices(s){
+  const a=D2R(s.angle),U=V(Math.cos(a),Math.sin(a)),W=vperp(U);
+  const O=V(s.x,s.y),A=vadd(O,vscl(U,s.size)),B=vadd(O,vscl(W,s.size));
+  return{O,A,B,U,W};
+}
+
+function startSqDrag(e,type){
+  if(tool!=='pan')return;
+  const touchTgt=e.target;
+  const origC=s2c(e.clientX,e.clientY),init={...sqState};
+  const snapR=SNAP_R*2.5/zoom;
+
+  // Si on commence un drag de type 'move' et qu'un sommet est fixé,
+  // on fait pivoter l'équerre autour de ce sommet fixé.
+  // Sinon, translation normale avec snap sur les 3 sommets.
+
+  function mv(me){
+    const cur=s2c(me.clientX||me.touches?.[0]?.clientX,me.clientY||me.touches?.[0]?.clientY);
+    if(type==='move'){
+      const dx=cur.x-origC.x,dy=cur.y-origC.y;
+      const raw={...init,x:init.x+dx,y:init.y+dy};
+
+      // ══ MODE 5 SPÉCIAL : équerre sur [BC] et accrochage à A ══
+      if(challenge&&challenge.modeId===5&&solPts){
+        const ptA=solPts.A,ptB=solPts.B,ptC=solPts.C;
+        if(ptB&&ptC){
+          const bcDir=vunit(vsub(ptC,ptB));
+          const bcNor=vperp(bcDir);
+          const sideA=vdot(vsub(ptA,ptB),bcNor);
+          const bcAngleBase=R2D(Math.atan2(bcDir.y,bcDir.x));
+          const bcAngle=sideA>=0 ? bcAngleBase : (bcAngleBase+180+360)%360;
+
+          // Pied de la hauteur H = projection de A sur la droite (BC)
+          const tH=vdot(vsub(ptA,ptB),bcDir); // paramètre de H sur BC
+          const ptH=vadd(ptB,vscl(bcDir,tH));  // coordonnées de H
+
+          // Position courante de O projetée sur [BC]
+          const rawO=V(raw.x,raw.y);
+          const tBC=vdot(vsub(rawO,ptB),bcDir); // pas de clamp encore
+
+          // Zone d'accrochage : aimante à H, désaimante un peu plus loin (hystérésis)
+          const snapDist=SNAP_R*1.5/zoom;
+          const unsnapDist=SNAP_R*2/zoom;
+          const wasSnapped=sqSnapped;
+          const distToH=Math.abs(tBC-tH);
+          const useSnap=(wasSnapped&&distToH<unsnapDist)||(distToH<snapDist);
+
+          let tFinal=useSnap ? tH : Math.max(0,Math.min(vdst(ptB,ptC),tBC));
+          const projO=vadd(ptB,vscl(bcDir,tFinal));
+          const snappedState={...raw,x:projO.x,y:projO.y,angle:bcAngle};
+          sqSnapped=useSnap;
+          sqState=snappedState;render();return;
+        }
+      }
+      // ══ FIN MODE 5 ══
+
+      const verts=getSqVertices(raw);
+      const dynPool=buildPoolWithSegPoints([verts.O,verts.A,verts.B]);
+      const candidates=[
+        {vtx:'O',pos:verts.O},{vtx:'A',pos:verts.A},{vtx:'B',pos:verts.B}
+      ];
+
+      // Si un sommet est déjà fixé, chercher un 2e sommet à accrocher
+      if(sqFixedVtx){
+        const fixedPt=sqFixedVtx.pt;
+        // On cherche parmi les 2 autres sommets
+        const others=candidates.filter(c=>c.vtx!==sqFixedVtx.vtx);
+        let bestSnap2=null,bestDist2=snapR;
+        for(const c of others){
+          const ne=nearPt(c.pos,dynPool,snapR);
+          if(ne){const d=vdst(c.pos,V(ne.x,ne.y));if(d<bestDist2){bestDist2=d;bestSnap2={vtx:c.vtx,ne,pos:c.pos};}}
+        }
+        if(bestSnap2){
+          // Faire pivoter l'équerre pour aligner les 2 sommets sur les 2 points
+          const snapTarget=V(bestSnap2.ne.x,bestSnap2.ne.y);
+          // Calculer l'angle entre les deux positions initiales dans l'espace de l'équerre
+          // puis aligner le vecteur fixedVtx→otherVtx sur fixedPt→snapTarget
+          const initVerts=getSqVertices(init);
+          const fixedPosInit=initVerts[sqFixedVtx.vtx];
+          const otherPosInit=initVerts[bestSnap2.vtx];
+          const localVec=vsub(otherPosInit,fixedPosInit);
+          const targetVec=vsub(snapTarget,fixedPt);
+          const scale=vlen(targetVec)/Math.max(0.01,vlen(localVec));
+          const newAngle=R2D(Math.atan2(targetVec.y,targetVec.x))-R2D(Math.atan2(localVec.y,localVec.x));
+          // Recalculer position O depuis le sommet fixé
+          const rotAngle=D2R(newAngle);
+          const cosR=Math.cos(rotAngle),sinR=Math.sin(rotAngle);
+          const rot2D=(v)=>V(v.x*cosR-v.y*sinR,v.x*sinR+v.y*cosR);
+          const localO=vsub(initVerts.O,fixedPosInit);
+          const newO=vadd(fixedPt,rot2D(localO));
+          const fullAngle=(init.angle+newAngle+360)%360;
+          sqState={...sqState,x:newO.x,y:newO.y,angle:fullAngle};
+          sqSnapped=true;render();return;
+        }
+        // Pas de 2e snap, juste maintenir le sommet fixé à sa position
+        const initVerts=getSqVertices(init);
+        const fixedPosInit=initVerts[sqFixedVtx.vtx];
+        const offset=vsub(fixedPt,fixedPosInit);
+        sqState={...raw,x:raw.x+offset.x,y:raw.y+offset.y};
+        sqSnapped=true;render();return;
+      }
+
+      // Pas de sommet fixé — snap normal sur O, A ou B
+      let bestNe=null,bestVtx=null,bestDist=snapR;
+      for(const c of candidates){
+        const ne=nearPt(c.pos,dynPool,snapR);
+        if(ne){const d=vdst(c.pos,V(ne.x,ne.y));if(d<bestDist){bestDist=d;bestNe=ne;bestVtx=c.vtx;}}
+      }
+      if(bestNe){
+        const target=V(bestNe.x,bestNe.y);
+        const vtxPos=verts[bestVtx];
+        sqState={...raw,x:raw.x+(target.x-vtxPos.x),y:raw.y+(target.y-vtxPos.y)};
+        sqSnapped=true;
+      } else {
+        sqState=raw;sqSnapped=false;
+      }
+    }
+    if(type==='vtxA'){
+      const O=V(sqState.x,sqState.y);
+      const dynPool=buildPool();
+      const ne=nearPt(cur,dynPool,SNAP_R/zoom);
+      const tgt=ne?V(ne.x,ne.y):cur;
+      sqState={...sqState,size:Math.max(15,vdst(tgt,O)),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))};
+    }
+    if(type==='vtxB'){
+      const O=V(sqState.x,sqState.y);
+      const dynPool=buildPool();
+      const ne=nearPt(cur,dynPool,SNAP_R/zoom);
+      const tgt=ne?V(ne.x,ne.y):cur;
+      sqState={...sqState,size:Math.max(15,vdst(tgt,O)),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))-90};
+    }
+    render();
+  }
+
+  function up(){
+    // Lors du relâchement, mémoriser quel sommet est le plus proche d'un point connu
+    const verts=getSqVertices(sqState);
+    const snapR2=SNAP_R*1.8/zoom;
+    const pool2=buildPoolWithSegPoints([verts.O,verts.A,verts.B]);
+    let found=null,foundDist=snapR2;
+    for(const vtx of['O','A','B']){
+      const ne=nearPt(verts[vtx],pool2,snapR2);
+      if(ne){const d=vdst(verts[vtx],V(ne.x,ne.y));if(d<foundDist){foundDist=d;found={vtx,pt:V(ne.x,ne.y)};}}
+    }
+    sqFixedVtx=found||null;
+    window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);
+    touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);
+  }
+  function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
+}
+
+function startCmpDrag(e,type){
+  // Center always draggable (it's the compass pivot), radius handle always draggable
+  const touchTgt=e.target;
+  const origC=s2c(e.clientX,e.clientY),init={...cmpState};
+  function mv(me){
+    const cur=s2c(me.clientX||me.touches?.[0]?.clientX,me.clientY||me.touches?.[0]?.clientY);
+    if(type==='center'){
+      const raw=V(init.cx+(cur.x-origC.x),init.cy+(cur.y-origC.y));
+      const ne=nearPt(raw,buildPool(),SNAP_R*2/zoom);
+      cmpState=ne?{...cmpState,cx:ne.x,cy:ne.y}:{...cmpState,cx:raw.x,cy:raw.y};
+    }
+    if(type==='radius'){
+      // Position courante du pivot (peut avoir bougé)
+      const pivotX=cmpState.cx,pivotY=cmpState.cy;
+      const r=Math.max(4,vdst(cur,V(pivotX,pivotY)));
+      const rawAngle=R2D(Math.atan2(cur.y-pivotY,cur.x-pivotX));
+      // Snap : chercher un point nommé/connu proche de la pointe crayon
+      const pencilTip=V(pivotX+r*Math.cos(D2R(rawAngle)),pivotY+r*Math.sin(D2R(rawAngle)));
+      const ne=nearPt(pencilTip,buildPool(),SNAP_R*2/zoom);
+      if(ne){
+        // Recalculer rayon et angle exact depuis ce point
+        const snapR2=vdst(V(ne.x,ne.y),V(pivotX,pivotY));
+        const snapAng=R2D(Math.atan2(ne.y-pivotY,ne.x-pivotX));
+        cmpState={...cmpState,radius:Math.max(4,snapR2),pencilAngle:snapAng};
+        snapPt={pt:V(ne.x,ne.y),kind:ne.kind};
+      } else {
+        cmpState={...cmpState,radius:r,pencilAngle:rawAngle};
+        snapPt=null;
+      }
+      showHUD(cmpState.radius);
+    }
+    render();
+  }
+  function up(){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);hideHUD();}
+  function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
+}
+
+function startProtDrag(e,type){
+  if(tool!=='pan'&&type==='body')return;
+  const touchTgt=e.target;
+  const origC=s2c(e.clientX,e.clientY),init={...protState};
+  const pool=buildPool();
+  const snapR=SNAP_R*2/zoom;
+
+  function getEndpts(s){
+    const ba=D2R(s.baseAngle),cosB=Math.cos(ba),sinB=Math.sin(ba);
+    const rx=(x,y)=>V(s.cx+x*cosB-y*sinB,s.cy+x*sinB+y*cosB);
+    return{L:rx(-s.R,0),R:rx(s.R,0)};
+  }
+
+  function mv(me){
+    const cur=s2c(me.clientX||me.touches?.[0]?.clientX,me.clientY||me.touches?.[0]?.clientY);
+
+    if(type==='body'){
+      const raw=V(init.cx+(cur.x-origC.x),init.cy+(cur.y-origC.y));
+      // Snap du centre sur les points
+      const ne=nearPt(raw,pool,snapR);
+      if(ne){
+        protState={...protState,cx:ne.x,cy:ne.y};
+        protSnapped=true;
+        protFixedEnd=null; // déverrouiller les côtés quand on déplace le corps
+      } else {
+        protState={...protState,cx:raw.x,cy:raw.y};
+        protSnapped=false;
+      }
+      render();return;
+    }
+
+    // Poignées latérales : resize + rotate autour du centre (ou du côté fixé)
+    if(type==='side_L'||type==='side_R'){
+      const isSideL=(type==='side_L');
+      const otherSide=isSideL?'R':'L';
+
+      // Si l'autre côté est fixé, on pivote autour de lui
+      if(protFixedEnd&&protFixedEnd.side===otherSide){
+        const fixedPt=protFixedEnd.pt;
+        // Snap du côté draggé sur un point
+        const ne=nearPt(cur,pool,snapR);
+        const tgt=ne?V(ne.x,ne.y):cur;
+        // Vecteur du côté fixé vers le côté draggé
+        const vec=vsub(tgt,fixedPt);
+        const newR=Math.max(20,vlen(vec)/2);
+        // Centre = milieu des deux extrémités
+        const midPt=vadd(fixedPt,vscl(vec,0.5));
+        // Angle : la ligne de base va de fixedPt vers tgt
+        const rawAngle=R2D(Math.atan2(vec.y,vec.x));
+        // Si côté fixé = L, le vecteur L→R = vec, donc baseAngle = rawAngle
+        // Si côté fixé = R, le vecteur R→L = vec, donc baseAngle = rawAngle+180
+        const newAngle=otherSide==='L'?rawAngle:(rawAngle+180+360)%360;
+        protState={...protState,cx:midPt.x,cy:midPt.y,baseAngle:newAngle,R:newR};
+        render();return;
+      }
+
+      // Pas de côté fixé : rotation + resize autour du centre
+      const vec=vsub(cur,V(init.cx,init.cy));
+      const newR=Math.max(20,vlen(vec));
+      const rawAngle=R2D(Math.atan2(vec.y,vec.x));
+      // Si on tire le côté L, L est à -R donc l'angle est rawAngle+180
+      // Si on tire le côté R, R est à +R donc l'angle est rawAngle
+      const newAngle=isSideL?(rawAngle+180+360)%360:rawAngle;
+      const ne=nearPt(cur,pool,snapR);
+      if(ne){
+        // Snap : calculer centre exact depuis la contrainte
+        const tgt=V(ne.x,ne.y);
+        const snapVec=vsub(tgt,V(init.cx,init.cy));
+        const snapR2=Math.max(20,vlen(snapVec));
+        const snapAngle=isSideL?(R2D(Math.atan2(snapVec.y,snapVec.x))+180+360)%360:R2D(Math.atan2(snapVec.y,snapVec.x));
+        protState={...protState,baseAngle:snapAngle,R:snapR2};
+      } else {
+        protState={...protState,baseAngle:newAngle,R:newR};
+      }
+      render();return;
+    }
+  }
+
+  function up(){
+    // Mémoriser quel côté est ancré sur un point
+    if(type==='body'){
+      window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);
+      touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);return;
+    }
+    if(type==='side_L'||type==='side_R'){
+      const ends=getEndpts(protState);
+      const snapR2=SNAP_R*1.8/zoom;
+      const side=type==='side_L'?'L':'R';
+      const pt=ends[side];
+      const ne=nearPt(pt,buildPool(),snapR2);
+      if(ne) protFixedEnd={side,pt:V(ne.x,ne.y)};
+      else if(protFixedEnd?.side===side) protFixedEnd=null;
+    }
+    window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);
+    touchTgt.removeEventListener('touchmove',mvT);touchTgt.removeEventListener('touchend',upT);
+  }
+  function mvT(te){te.preventDefault();mv(te.touches[0]);}
+  function upT(te){te.preventDefault();up();}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+  touchTgt.addEventListener('touchmove',mvT,{passive:false});touchTgt.addEventListener('touchend',upT,{passive:false});
+}
+
+// ═══ CANVAS EVENTS ═══════════════════════════════════════════
+let panDrag=null, pinch=null;
+
+function getEventPos(e){return{clientX:e.clientX??e.touches?.[0]?.clientX,clientY:e.clientY??e.touches?.[0]?.clientY};}
+
+svgEl.addEventListener('mousedown',onDown);
+svgEl.addEventListener('mousemove',onMove);
+svgEl.addEventListener('mouseup',onUp);
+svgEl.addEventListener('wheel',e=>{e.preventDefault();const f=e.deltaY>0?0.92:1.09;setZoom(zoom*f);},{passive:false});
+
+svgEl.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){
+    e.preventDefault();panDrag=null;drawing=null;compArc=null;
+    const[t1,t2]=[e.touches[0],e.touches[1]];
+    pinch={d0:Math.hypot(t1.clientX-t2.clientX,t1.clientY-t2.clientY),z0:zoom,
+      mx:(t1.clientX+t2.clientX)/2,my:(t1.clientY+t2.clientY)/2,
+      canvasMid:s2c((t1.clientX+t2.clientX)/2,(t1.clientY+t2.clientY)/2)};
+    return;
+  }
+  if(e.touches.length===1){
+    e.preventDefault();pinch=null;
+    const activeTarget=e.touches[0].target;
+    onDown(e.touches[0]);
+    function mvT(te){
+      if(te.touches.length===2&&pinch){
+        te.preventDefault();
+        const[t1,t2]=[te.touches[0],te.touches[1]];
+        const nd=Math.hypot(t1.clientX-t2.clientX,t1.clientY-t2.clientY);
+        const newZ=Math.max(0.1,Math.min(30,pinch.z0*(nd/pinch.d0)));
+        const mx=(t1.clientX+t2.clientX)/2,my=(t1.clientY+t2.clientY)/2;
+        const r=svgEl.getBoundingClientRect();
+        panX=(mx-r.left-getW()/2)-pinch.canvasMid.x*newZ;
+        panY=(my-r.top-getH()/2)-pinch.canvasMid.y*newZ;
+        setZoom(newZ);return;
+      }
+      if(te.touches.length===1&&!pinch){te.preventDefault();onMove(te.touches[0]);}
+    }
+    function upT(te){
+      te.preventDefault();
+      if(te.touches.length<2)pinch=null;
+      if(te.touches.length===0){
+        onUp();
+        activeTarget.removeEventListener('touchmove',mvT);
+        activeTarget.removeEventListener('touchend',upT);
+      }
+    }
+    activeTarget.addEventListener('touchmove',mvT,{passive:false});
+    activeTarget.addEventListener('touchend',upT,{passive:false});
+  }
+},{passive:false});
+
+// ═══ EDGE LOCK — projection orthogonale sur un bord d'instrument ═══
+// On stocke les coordonnées canvas du bord (pas une référence qui expire)
+// et on projette orthogonalement chaque position souris sur ce segment.
+
+function screenDistToEdge(clientX,clientY,edge){
+  // Distance écran (px) entre le curseur et le bord — pour le seuil d'accrochage
+  const r=svgEl.getBoundingClientRect();
+  // Convertir les deux extrémités du bord en coordonnées écran
+  const toScreen=(p)=>({
+    x:(p.x*zoom)+(getW()/2+panX)+r.left,
+    y:(p.y*zoom)+(getH()/2+panY)+r.top
+  });
+  const sA=toScreen(edge[0]),sB=toScreen(edge[1]);
+  const dx=sB.x-sA.x,dy=sB.y-sA.y;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  if(len<0.01)return Infinity;
+  const t=Math.max(0,Math.min(1,((clientX-sA.x)*dx+(clientY-sA.y)*dy)/(len*len)));
+  const px=sA.x+t*dx,py=sA.y+t*dy;
+  return Math.sqrt((clientX-px)*(clientX-px)+(clientY-py)*(clientY-py));
+}
+
+function projectOnEdge(canvasPt,edge){
+  // Projeter un point canvas orthogonalement sur le segment edge (clampé)
+  const dir=vunit(vsub(edge[1],edge[0]));
+  const segLen=vdst(edge[0],edge[1]);
+  const t=Math.max(0,Math.min(segLen,vdot(vsub(canvasPt,edge[0]),dir)));
+  return vadd(edge[0],vscl(dir,t));
+}
+
+function getActiveEdges(){
+  // Retourne tous les bords d'instruments avec leurs coordonnées canvas fraîches
+  const edges=[];
+  if(showR){
+    const rG=rulerG(rulerState);
+    edges.push({pts:[{x:rG.top[0].x,y:rG.top[0].y},{x:rG.top[1].x,y:rG.top[1].y}],isRuler:true});
+    edges.push({pts:[{x:rG.bot[0].x,y:rG.bot[0].y},{x:rG.bot[1].x,y:rG.bot[1].y}],isRuler:true});
+  }
+  if(showS){
+    const a=D2R(sqState.angle),U=V(Math.cos(a),Math.sin(a)),W=vperp(U);
+    const O=V(sqState.x,sqState.y),A=vadd(O,vscl(U,sqState.size)),B=vadd(O,vscl(W,sqState.size));
+    edges.push({pts:[{x:O.x,y:O.y},{x:A.x,y:A.y}],isRuler:false});
+    edges.push({pts:[{x:O.x,y:O.y},{x:B.x,y:B.y}],isRuler:false});
+  }
+  return edges;
+}
+
+// État du tracé avec verrouillage de bord
+// drawing = {x1,y1,x2,y2,lockedEdgePts:null|[{x,y},{x,y}],isRulerEdge:bool}
+
+function onDown(e){
+  if(e.target&&e.target.closest&&e.target.closest('[data-instr]'))return;
+  const raw=s2c(e.clientX,e.clientY);
+  if(tool==='pan'){panDrag={sx:e.clientX,sy:e.clientY,px:panX,py:panY};return;}
+
+  if(tool==='point'){
+    let finalPt=null;
+    const activeEdges=getActiveEdges();
+    for(const {pts} of activeEdges){
+      if(screenDistToEdge(e.clientX,e.clientY,pts)<12){
+        finalPt=projectOnEdge(raw,pts);break;
+      }
+    }
+    if(!finalPt){
+      const snap=doSnap(raw);finalPt=snap.pt;
+    }
+    // Snap au pool si proche
+    const ne=nearPt(finalPt,buildPool(),SNAP_R/zoom);
+    if(ne)finalPt=V(ne.x,ne.y);
+    saveHist();named.push({x:finalPt.x,y:finalPt.y,id:nextId()});
+    snapPt=null;render();return;
+  }
+
+  if(tool==='pen'){
+    // Chercher le bord le plus proche en pixels écran
+    const SNAP_PX=12; // seuil en pixels écran
+    const activeEdges=getActiveEdges();
+    let bestEdge=null,bestDist=SNAP_PX;
+    for(const ae of activeEdges){
+      const d=screenDistToEdge(e.clientX,e.clientY,ae.pts);
+      if(d<bestDist){bestDist=d;bestEdge=ae;}
+    }
+    if(bestEdge){
+      // Projeter le point de départ orthogonalement sur le bord
+      const startPt=projectOnEdge(raw,bestEdge.pts);
+      // Snap au pool si un point connu est proche sur ce bord
+      const dir=vunit(vsub(bestEdge.pts[1],bestEdge.pts[0]));
+      const pool=buildPool();
+      const onEdgePts=pool.filter(p=>dRay(V(p.x,p.y),bestEdge.pts[0],dir)<1.5/zoom);
+      const ne=nearPt(startPt,onEdgePts,CRAN_R/zoom);
+      const finalStart=ne?V(ne.x,ne.y):startPt;
+      drawing={x1:finalStart.x,y1:finalStart.y,x2:finalStart.x,y2:finalStart.y,
+               lockedEdgePts:[{x:bestEdge.pts[0].x,y:bestEdge.pts[0].y},{x:bestEdge.pts[1].x,y:bestEdge.pts[1].y}],
+               isRulerEdge:bestEdge.isRuler};
+    } else {
+      // Pas sur un bord — tracé libre avec snap classique
+      const snap=doSnap(raw);
+      drawing={x1:snap.pt.x,y1:snap.pt.y,x2:snap.pt.x,y2:snap.pt.y,lockedEdgePts:null,isRulerEdge:false};
+    }
+    snapPt=null;render();return;
+  }
+
+  if(tool==='arc'&&showC){
+    const a=R2D(Math.atan2(raw.y-cmpState.cy,raw.x-cmpState.cx));
+    compArc={startAngle:a};cmpState={...cmpState,pencilAngle:a};render();return;
+  }
+}
+
+function onMove(e){
+  const raw=s2c(e.clientX,e.clientY);
+  if(panDrag){
+    panX=panDrag.px+(e.clientX-panDrag.sx);
+    panY=panDrag.py+(e.clientY-panDrag.sy);
+    render();return;
+  }
+
+  if(drawing&&tool==='pen'){
+    if(drawing.lockedEdgePts){
+      // Projection orthogonale sur le bord verrouillé
+      const edge=drawing.lockedEdgePts;
+      let pt=projectOnEdge(raw,edge);
+      // Snap au mm si bord de règle
+      if(drawing.isRulerEdge){
+        const dir=vunit(vsub(edge[1],edge[0]));
+        const t=vdot(vsub(pt,edge[0]),dir);
+        pt=vadd(edge[0],vscl(dir,Math.round(t)));
+      }
+      // Snap aux points connus sur ce bord
+      const dir=vunit(vsub(edge[1],edge[0]));
+      const pool=buildPool();
+      const onEdgePts=pool.filter(p=>dRay(V(p.x,p.y),edge[0],dir)<2/zoom);
+      const ne=nearPt(pt,onEdgePts,SNAP_R/zoom);
+      if(ne)pt=V(ne.x,ne.y);
+      drawing={...drawing,x2:pt.x,y2:pt.y};
+      snapPt=ne?{pt,kind:ne.kind}:null;
+    } else {
+      const snap=doSnap(raw);
+      drawing={...drawing,x2:snap.pt.x,y2:snap.pt.y};
+      snapPt=snap.kind!=='none'?snap:null;
+    }
+    showHUD(vdst(V(drawing.x1,drawing.y1),V(drawing.x2,drawing.y2)));
+    render();return;
+  }
+
+  if(compArc&&tool==='arc'){
+    const a=R2D(Math.atan2(raw.y-cmpState.cy,raw.x-cmpState.cx));
+    const snapTarget=V(cmpState.cx+cmpState.radius*Math.cos(D2R(a)),cmpState.cy+cmpState.radius*Math.sin(D2R(a)));
+    const ne=nearPt(snapTarget,buildPool(),SNAP_R/zoom);
+    if(ne){cmpState={...cmpState,pencilAngle:R2D(Math.atan2(ne.y-cmpState.cy,ne.x-cmpState.cx))};snapPt={pt:V(ne.x,ne.y),kind:ne.kind};}
+    else{cmpState={...cmpState,pencilAngle:a};snapPt=null;}
+    render();return;
+  }
+
+  if(tool==='point'||tool==='pen'){
+    // Aperçu snap
+    const activeEdges=getActiveEdges();
+    for(const {pts} of activeEdges){
+      if(screenDistToEdge(e.clientX,e.clientY,pts)<12){
+        const pt=projectOnEdge(raw,pts);
+        snapPt={pt,kind:'edge'};render();return;
+      }
+    }
+    const snap=doSnap(raw);
+    snapPt=snap.kind!=='none'?snap:null;
+    render();return;
+  }
+  render();
+}
+
+function onUp(){
+  if(panDrag){panDrag=null;return;}
+  if(drawing&&tool==='pen'){
+    const len=vdst(V(drawing.x1,drawing.y1),V(drawing.x2,drawing.y2));
+    if(len>0.5){saveHist();segs.push({id:nextId(),x1:drawing.x1,y1:drawing.y1,x2:drawing.x2,y2:drawing.y2,style:lstyle});}
+    drawing=null;snapPt=null;hideHUD();render();return;
+  }
+  if(compArc&&tool==='arc'){
+    const sw=((cmpState.pencilAngle-compArc.startAngle)%360+360)%360;
+    if(sw>0.5){saveHist();arcs.push({id:nextId(),cx:cmpState.cx,cy:cmpState.cy,r:cmpState.radius,startAngle:compArc.startAngle,endAngle:compArc.startAngle+sw,style:lstyle});}
+    compArc=null;render();return;
+  }
+}
+
+// ═══ ZOOM ════════════════════════════════════════════════════
+function setZoom(z){zoom=Math.max(0.1,Math.min(30,z));render();}
+function updateZoomDisplay(){
+  const pct=Math.round(zoom/IZ*100)+'%';
+  document.getElementById('zdisp').textContent=pct;
+  document.getElementById('schip-zoom').textContent=pct;
+}
+
+// ═══ HUD ════════════════════════════════════════════════════
+function showHUD(lenMM){
+  const h=document.getElementById('hud'),v=document.getElementById('hud-val');
+  const lbl=document.getElementById('hud-label');
+  if(lenMM>=0){
+    h.classList.add('show');
+    const cm=(lenMM/10).toFixed(1);
+    const mm=lenMM.toFixed(0);
+    v.textContent=cm+' cm';
+    lbl.textContent=mm+' mm';
+  }
+}
+function hideHUD(){document.getElementById('hud').classList.remove('show');}
+
+// ═══ CHALLENGE ══════════════════════════════════════════════
+function startMode(modeId){
+  const c=genChallenge(modeId);
+  let sol=solveChallenge(c);
+  // Retry if solution invalid
+  let tries=0;
+  while((!sol||!sol.A)&&tries<20){const c2=genChallenge(modeId);sol=solveChallenge(c2);if(sol)Object.assign(c,c2);tries++;}
+  if(!sol)return;
+
+  // Center: place A slightly left, B right
+  const cx=-c.AB/2, cy=0;
+  offset=V(cx,cy);
+  const A=vadd(offset,sol.A),B=vadd(offset,sol.B),C=sol.C?vadd(offset,sol.C):null;
+
+  const ft=fitPts([A,B,C].filter(Boolean),getW(),getH());
+  zoom=ft.z;panX=ft.px;panY=ft.py;
+
+  named=[];segs=[];arcs=[];hist=[];future=[];
+  const pA={x:A.x,y:A.y,id:nextId(),locked:true,label:'A'};
+  const pB={x:B.x,y:B.y,id:nextId(),locked:true,label:'B'};
+  named.push(pA,pB);
+
+  if(modeId===4){
+    segs.push({id:nextId(),x1:A.x,y1:A.y,x2:B.x,y2:B.y,locked:true,isGiven:true,style:'solid'});
+  }
+  if(modeId===5&&C){
+    const pC={x:C.x,y:C.y,id:nextId(),locked:true,label:'C'};
+    named.push(pC);
+    segs.push({id:nextId(),x1:A.x,y1:A.y,x2:B.x,y2:B.y,locked:true,isGiven:true,style:'solid'});
+    segs.push({id:nextId(),x1:B.x,y1:B.y,x2:C.x,y2:C.y,locked:true,isGiven:true,style:'solid'});
+    segs.push({id:nextId(),x1:C.x,y1:C.y,x2:A.x,y2:A.y,locked:true,isGiven:true,style:'solid'});
+  }
+
+  challenge={...c,sol,offset};
+  solPts={A,B,C};
+  document.getElementById('welcome').style.display='none';
+  updateChallengeSec();
+  updateStats();
+  render();
+  updateUndoRedo();
+}
+
+function updateChallengeSec(){
+  const c=challenge;if(!c)return;
+  const m=MODES.find(x=>x.id===c.modeId);
+  document.getElementById('challengesec').style.display='';
+  document.getElementById('hintssec').style.display='';
+  document.getElementById('validmsg').innerHTML='';
+  document.getElementById('replaybtn').style.display='none';
+  document.getElementById('replaybtn').classList.remove('bounce');
+
+  // Badge + data
+  let html=`<div class="ccard"><span class="cbadge" style="background:${m.col}">${m.icon} Mode ${m.id} — ${m.name}</span>`;
+  html+=`<div class="ctext">${m.hint.replace(/\n/g,'<br>')}</div>`;
+  if(c.AB) html+=`<div class="crow"><span style="font-size:11px;color:#64748b;min-width:36px">AB =</span><span class="cval">${snap1(c.AB/10)} cm</span></div>`;
+  if(c.AC) html+=`<div class="crow"><span style="font-size:11px;color:#64748b;min-width:36px">AC =</span><span class="cval">${snap1(c.AC/10)} cm</span></div>`;
+  if(c.BC) html+=`<div class="crow"><span style="font-size:11px;color:#64748b;min-width:36px">BC =</span><span class="cval">${snap1(c.BC/10)} cm</span></div>`;
+  if(c.angA!=null) html+=`<div class="crow"><span style="font-size:11px;color:#64748b;min-width:36px">Â =</span><span class="cval">${c.angA}°</span></div>`;
+  if(c.angB!=null) html+=`<div class="crow"><span style="font-size:11px;color:#64748b;min-width:36px">B̂ =</span><span class="cval">${c.angB}°</span></div>`;
+  html+='</div>';
+  document.getElementById('ccard').innerHTML=html;
+
+  // Hints
+  const hintLines={
+    1:'① Trace [AB]<br>② Arc rayon AC depuis A<br>③ Arc rayon BC depuis B<br>④ C = intersection des arcs',
+    2:'① Trace [AB]<br>② Rapporteur en A, mesure Â<br>③ Règle : reporte AC sur la demi-droite',
+    3:'① Trace [AB]<br>② Demi-droite depuis A (angle Â)<br>③ Demi-droite depuis B (angle B̂)<br>④ C = intersection',
+    4:'① Ouvre le compas &gt; AB/2<br>② Deux arcs depuis A<br>③ Deux arcs depuis B<br>④ Relie les intersections',
+    5:'① Équerre : angle droit sur [BC]<br>② Glisse jusqu\'à A<br>③ Trace la hauteur AH',
+  };
+  document.getElementById('hints').innerHTML=hintLines[c.modeId]||'';
+
+  // Status chip
+  const chip=document.getElementById('schip-mode');
+  chip.style.display='';chip.textContent=`M${c.modeId} · ${m.icon} ${m.name}`;chip.style.color=m.col;
+
+  // Mode list highlight
+  document.querySelectorAll('.mcard').forEach(card=>{
+    card.classList.toggle('active',parseInt(card.dataset.mode)===c.modeId);
+  });
+}
+
+function updateStats(){
+  const el=document.getElementById('statsbar');
+  if(!el)return;
+  el.textContent=`${segs.filter(s=>!s.locked).length} seg · ${arcs.length} arcs · ${named.filter(n=>!n.locked).length} pts`;
+}
+
+// ═══ VALIDATION ═════════════════════════════════════════════
+function validate(){
+  const c=challenge;if(!c||!solPts)return;
+  const tol=SNAP_R/zoom*1.5;
+  const angTol=4;
+  const pool=buildPool();
+  const stuSegs=segs.filter(s=>!s.locked);
+
+  function hasPtNear(T){return pool.some(p=>vdst(V(p.x,p.y),T)<tol);}
+  function hasSegBetween(TA,TB){return stuSegs.some(s=>{const p1=V(s.x1,s.y1),p2=V(s.x2,s.y2);return(vdst(p1,TA)<tol&&vdst(p2,TB)<tol)||(vdst(p1,TB)<tol&&vdst(p2,TA)<tol);});}
+
+  const{A,B,C}=solPts;
+  const modeId=c.modeId;
+  const errors=[];
+
+  if(modeId===1||modeId===2||modeId===3){
+    if(!C){errors.push('Données invalides');} else {
+      if(!hasPtNear(C))errors.push('Point C manquant');
+      if(!hasSegBetween(A,B)&&!segs.some(s=>s.isGiven))errors.push('[AB] manquant');
+      if(!hasSegBetween(A,C))errors.push('[AC] manquant');
+      if(!hasSegBetween(B,C))errors.push('[BC] manquant');
+    }
+  }
+  if(modeId===4){
+    // Need segment passing through midpoint of AB and perpendicular to AB
+    const mid=V((A.x+B.x)/2,(A.y+B.y)/2);
+    const abDir=vunit(vsub(B,A));
+    let found=stuSegs.some(s=>{
+      const p1=V(s.x1,s.y1),p2=V(s.x2,s.y2);
+      const sd=vunit(vsub(p2,p1));
+      return dRay(mid,p1,sd)<tol&&Math.abs(vdot(sd,abDir))<Math.sin(D2R(angTol+2));
+    });
+    if(!found)errors.push('Médiatrice incorrecte (doit passer par le milieu et être ⊥ à [AB])');
+  }
+  if(modeId===5&&C){
+    const bcDir=vunit(vsub(C,B));
+    // Tolérance fixe en unités canvas (indépendante du zoom)
+    const tol5=8; // ~8mm de tolérance
+    // H = pied de la hauteur depuis A sur BC
+    const tH=vdot(vsub(A,B),bcDir);
+    const H=vadd(B,vscl(bcDir,tH));
+    let found=stuSegs.some(s=>{
+      const p1=V(s.x1,s.y1),p2=V(s.x2,s.y2);
+      const sd=vunit(vsub(p2,p1));
+      // 1. Le segment doit être perpendiculaire à BC (tolérance angulaire généreuse)
+      const isPerpBC=Math.abs(vdot(sd,bcDir))<Math.sin(D2R(angTol+5));
+      // 2. Le segment doit passer par A (distance de A à la droite portée par le segment)
+      const passesA=dRay(A,p1,sd)<tol5;
+      // 3. Le segment doit passer par H OU une extrémité doit être proche de H
+      const passesH=dRay(H,p1,sd)<tol5||vdst(p1,H)<tol5||vdst(p2,H)<tol5;
+      return isPerpBC&&passesA&&passesH;
+    });
+    if(!found){
+      // Message d'aide précis selon ce qui manque
+      const anyPerp=stuSegs.some(s=>{
+        const sd=vunit(vsub(V(s.x2,s.y2),V(s.x1,s.y1)));
+        return Math.abs(vdot(sd,bcDir))<Math.sin(D2R(angTol+5));
+      });
+      if(!anyPerp) errors.push('Le segment doit être perpendiculaire à [BC]');
+      else errors.push('La hauteur doit passer par A et rejoindre [BC]');
+    }
+  }
+
+  const ok=!errors.length;
+  const vm=document.getElementById('validmsg');
+  vm.innerHTML=`<div class="vcard ${ok?'vok':'verr'}">${ok?'🎉 Bravo ! Construction parfaite !':'❌ '+errors.join(', ')+'.'}</div>`;
+  if(ok){
+    const rb=document.getElementById('replaybtn');
+    rb.style.display='';rb.classList.add('bounce');
+  }
+}
+
+// ═══ TOOLBAR SETUP ══════════════════════════════════════════
+document.getElementById('toolgroup').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-tool]');if(!btn)return;
+  const t=btn.dataset.tool;
+  if(t==='arc'&&!showC)return;
+  tool=t;drawing=null;compArc=null;
+  document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));
+  svgEl.style.cursor={pan:'grab',pen:'crosshair',point:'cell',arc:'crosshair',eraser:'cell'}[tool]||'default';
+});
+document.getElementById('arctool').style.opacity='0.3';
+
+document.getElementById('stylbtn').addEventListener('click',()=>{
+  lstyle=lstyle==='solid'?'constr':'solid';
+  document.getElementById('stylbtn').textContent=lstyle==='solid'?'——':'- -';
+  document.getElementById('stylbtn').style.color=lstyle==='solid'?'rgba(255,255,255,.85)':'rgba(255,255,255,.45)';
+});
+
+document.getElementById('zoomin').addEventListener('click',()=>setZoom(zoom*1.25));
+document.getElementById('zoomout').addEventListener('click',()=>setZoom(zoom*0.8));
+document.getElementById('refitbtn').addEventListener('click',()=>{
+  if(challenge&&solPts){const ft=fitPts([solPts.A,solPts.B,solPts.C].filter(Boolean),getW(),getH());zoom=ft.z;panX=ft.px;panY=ft.py;}
+  else{zoom=IZ;panX=0;panY=0;}
+  render();
+});
+document.getElementById('undobtn').addEventListener('click',undo);
+document.getElementById('redobtn').addEventListener('click',redo);
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||e.key==='Z')){e.preventDefault();redo();}
+});
+
+// ═══ INSTRUMENTS SIDEBAR ════════════════════════════════════
+const INSTRS=[
+  {id:'ruler',ico:'📏',lbl:'Règle',col:'#b45309',
+   show:()=>showR,tog:()=>{
+    if(!showR){const cx=-panX/zoom,cy=-panY/zoom;const len=Math.round(280/zoom);rulerState={x:cx-len/2,y:cy,angle:0,length:len};rSnap=null;}
+    showR=!showR;tool='pan';render();updateInstrBtns();
+   }},
+  {id:'sq',ico:'📐',lbl:'Équerre',col:'#1d4ed8',
+   show:()=>showS,tog:()=>{
+    if(!showS){const cx=-panX/zoom,cy=-panY/zoom;sqState={x:cx,y:cy,angle:0,size:Math.round(180/zoom)};}
+    showS=!showS;if(!showS)sqFixedVtx=null;render();updateInstrBtns();
+   }},
+  {id:'prot',ico:'⌓',lbl:'Rapporteur',col:'#7c3aed',
+   show:()=>showP,tog:()=>{
+    if(!showP){const cx=-panX/zoom,cy=-panY/zoom;protState={cx,cy:cy+50/zoom,baseAngle:0,R:45};}
+    showP=!showP;if(!showP)protFixedEnd=null;render();updateInstrBtns();
+   }},
+  {id:'cmp',ico:'🧭',lbl:'Compas',col:'#dc2626',
+   show:()=>showC,tog:()=>{
+    if(!showC){const cx=-panX/zoom,cy=-panY/zoom;cmpState={cx,cy,radius:40,pencilAngle:30};}
+    showC=!showC;
+    // enable/disable arc tool
+    const arcBtn=document.getElementById('arctool');
+    arcBtn.style.opacity=showC?'1':'0.3';
+    if(!showC&&tool==='arc'){tool='pan';document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool==='pan'));}
+    render();updateInstrBtns();
+   }},
+];
+
+function updateInstrBtns(){
+  document.querySelectorAll('.ibtn').forEach(b=>{
+    const instr=INSTRS.find(i=>i.id===b.dataset.instr);
+    if(instr)b.classList.toggle('on',instr.show());
+  });
+}
+
+const il=document.getElementById('instrlist');
+INSTRS.forEach(instr=>{
+  const btn=document.createElement('button');
+  btn.className='ibtn'; btn.dataset.instr=instr.id;
+  btn.style.setProperty('--ic',instr.col);
+  btn.innerHTML=`<span class="ibtn-ico">${instr.ico}</span><span class="ibtn-lbl">${instr.lbl}</span><span class="idot"></span>`;
+  btn.addEventListener('click',instr.tog);
+  il.appendChild(btn);
+});
+
+// ═══ MODE LIST ═══════════════════════════════════════════════
+const ml=document.getElementById('modelist');
+MODES.forEach(m=>{
+  const btn=document.createElement('button');
+  btn.className='mcard'; btn.dataset.mode=m.id;
+  btn.style.setProperty('--mc',m.col);
+  btn.innerHTML=`<span class="mcard-ico">${m.icon}</span><span class="mcard-info"><strong>Mode ${m.id} — ${m.name}</strong><span>${m.desc}</span></span>`;
+  btn.addEventListener('click',()=>{startMode(m.id);document.getElementById('sb').classList.remove('open');});
+  ml.appendChild(btn);
+});
+
+// ═══ WELCOME GRID ════════════════════════════════════════════
+const wg=document.getElementById('wgrid');
+MODES.forEach((m,i)=>{
+  const btn=document.createElement('button');
+  btn.className='wbtn'+(m.id===5?' wbtn-full':'');
+  btn.style.cssText=`--mc:${m.col};box-shadow:0 4px 16px ${m.col}28;animation:popIn .35s ease ${i*0.07}s both`;
+  btn.innerHTML=`<div class="wbtn-title"><span>${m.icon}</span>Mode ${m.id} — ${m.name}</div><div class="wbtn-desc">${m.desc}</div>`;
+  btn.addEventListener('mouseenter',()=>{btn.style.transform='translateY(-2px)';btn.style.boxShadow=`0 8px 24px ${m.col}40`;});
+  btn.addEventListener('mouseleave',()=>{btn.style.transform='';btn.style.boxShadow=`0 4px 16px ${m.col}28`;});
+  btn.addEventListener('click',()=>startMode(m.id));
+  wg.appendChild(btn);
+});
+
+// ═══ SIDEBAR ACTIONS ════════════════════════════════════════
+document.getElementById('verifbtn').addEventListener('click',validate);
+document.getElementById('clearbtn').addEventListener('click',()=>{
+  saveHist();
+  segs=segs.filter(s=>s.locked);arcs=[];named=named.filter(n=>n.locked);
+  document.getElementById('validmsg').innerHTML='';
+  document.getElementById('replaybtn').style.display='none';
+  render();
+});
+document.getElementById('replaybtn').addEventListener('click',()=>{if(challenge)startMode(challenge.modeId);});
+document.getElementById('sbtoggle').addEventListener('click',()=>document.getElementById('sb').classList.toggle('open'));
+
+// ═══ RESIZE ══════════════════════════════════════════════════
+window.addEventListener('resize',()=>render());
+
+// ═══ INIT ════════════════════════════════════════════════════
+render();
+updateUndoRedo();
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

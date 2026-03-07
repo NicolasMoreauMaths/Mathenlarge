@@ -1,0 +1,2883 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Équations — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1d4ed8;
+    --blue-light: #3b82f6;
+    --blue-pale: rgba(59, 130, 246, 0.08);
+    --blue-border: rgba(59, 130, 246, 0.2);
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --purple-pale: rgba(124, 58, 237, 0.1);
+    --orange: #ea580c;
+    --orange-pale: rgba(234, 88, 12, 0.1);
+    --orange-border: rgba(234, 88, 12, 0.25);
+    --green: #16a34a;
+    --green-pale: rgba(22, 163, 74, 0.1);
+    --red: #dc2626;
+    --red-pale: rgba(220, 38, 38, 0.08);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image: 
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app {
+    max-width: 900px;
+    width: 100%;
+}
+
+.app-header {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(29, 78, 216, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 50%);
+    pointer-events: none;
+}
+
+.app-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-title::before {
+    content: '⚖️';
+    font-size: 1.2em;
+}
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+h1 {
+    font-size: 1.6em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.95em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-blue {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+    box-shadow: 0 2px 12px rgba(29, 78, 216, 0.2);
+}
+
+.btn-blue:hover:not(:disabled) {
+    background: var(--blue-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(29, 78, 216, 0.3);
+}
+
+.btn-green {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+}
+
+.btn-green:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-light);
+    border-color: var(--border);
+}
+
+.btn-ghost:hover {
+    background: var(--bg);
+    border-color: var(--text-light);
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+/* MENU */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover {
+    border-color: var(--blue);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--shadow);
+}
+
+.mc-icon {
+    font-size: 2em;
+    margin-bottom: 8px;
+}
+
+.mc-t {
+    font-size: 0.95em;
+    color: var(--blue);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.mc-d {
+    font-size: 0.8em;
+    color: var(--text-light);
+    line-height: 1.4;
+}
+
+.mc-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--orange-pale);
+    color: var(--orange);
+    font-size: 0.7em;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+/* EX HEADER */
+.ex-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ex-badge {
+    background: var(--blue-pale);
+    color: var(--blue);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+}
+
+.ex-score {
+    font-size: 0.9em;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.pbar {
+    width: 100%;
+    background: var(--border);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.pfill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    border-radius: 6px;
+    transition: width 0.4s;
+}
+
+/* BALANCE */
+.balance-container {
+    margin: 30px auto;
+    max-width: 650px;
+}
+
+.balance-beam {
+    position: relative;
+    background: linear-gradient(to bottom, #8b7355, #6b5d4f);
+    height: 12px;
+    border-radius: 6px;
+    margin: 0 auto 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.balance-pivot {
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 30px solid #555;
+    margin: 0 auto;
+    position: relative;
+}
+
+.balance-pivot::after {
+    content: '';
+    position: absolute;
+    bottom: -36px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+}
+
+.balance-sides {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.balance-side {
+    flex: 1;
+    min-height: 140px;
+    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.02));
+    border: 3px solid var(--blue-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+    justify-content: center;
+    align-content: flex-start;
+}
+
+.item {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Crimson Pro', serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    position: relative;
+}
+
+.item:hover:not(.selected) {
+    transform: scale(1.08);
+}
+
+.item.selected {
+    transform: scale(0.9);
+    opacity: 0.4;
+    filter: grayscale(0.5);
+}
+
+.item.removing {
+    animation: removeItem 0.5s ease-out forwards;
+}
+
+@keyframes removeItem {
+    to {
+        transform: scale(0) rotate(180deg);
+        opacity: 0;
+    }
+}
+
+.apple {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.5);
+    font-size: 1.8em;
+}
+
+.apple .var-label {
+    font-size: 0.45em;
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    margin-top: -4px;
+}
+
+.weight {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.5);
+    font-size: 1.6em;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.balance-info {
+    text-align: center;
+    margin: 20px 0 10px;
+    font-size: 0.9em;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.selection-count {
+    display: inline-flex;
+    gap: 20px;
+    margin-top: 8px;
+}
+
+.count-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--blue-pale);
+    border-radius: 20px;
+    font-weight: 600;
+    color: var(--blue);
+}
+
+.balance-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.balance-btn {
+    padding: 10px 20px;
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9em;
+    min-height: 44px;
+}
+
+.balance-btn:hover:not(:disabled) {
+    background: var(--purple-light);
+    transform: translateY(-2px);
+}
+
+.balance-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.balance-btn.divide-btn {
+    background: var(--orange);
+}
+
+.balance-btn.divide-btn:hover:not(:disabled) {
+    background: #fb923c;
+}
+
+/* EQUATION HISTORY */
+.equation-history {
+    margin: 30px auto;
+    max-width: 650px;
+}
+
+.equation-step-item {
+    margin-bottom: 10px;
+}
+
+.equation-line {
+    font-size: 1.5em;
+    text-align: center;
+    margin: 0.5rem 0;
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.equation-line i {
+    font-style: italic;
+}
+
+.circled {
+    display: inline-block;
+    border: 3px solid var(--red);
+    border-radius: 50%;
+    padding: 0.2em 0.6em;
+    color: var(--red);
+    font-weight: bold;
+    font-style: normal;
+}
+
+.arrow-section {
+    position: relative;
+    height: 80px;
+    margin: 1rem 0;
+}
+
+.arrow-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.left-operation {
+    position: absolute;
+    left: 25%;
+    top: 10px;
+    font-size: 1.2em;
+    color: var(--purple);
+    font-weight: 600;
+    font-family: 'Times New Roman', serif;
+    transform: translateX(-50%);
+}
+
+.right-operation {
+    position: absolute;
+    right: 25%;
+    top: 10px;
+    font-size: 1.2em;
+    color: var(--purple);
+    font-weight: 600;
+    font-family: 'Times New Roman', serif;
+    transform: translateX(50%);
+}
+
+/* ARROWS SYSTEM */
+.arrows-container {
+    margin: 30px auto;
+    max-width: 650px;
+}
+
+.operation-input {
+    position: absolute;
+    transform: translateY(-50%);
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1.1em;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 2px dashed var(--purple);
+    border-radius: 10px;
+    background: white;
+    text-align: center;
+    outline: none;
+    width: 100px;
+    transition: all 0.2s;
+}
+
+.operation-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-pale);
+}
+
+.operation-input.ok {
+    border-color: var(--green);
+    background: var(--green-pale);
+    color: var(--green);
+}
+
+.operation-input.err {
+    border-color: var(--red);
+    background: var(--red-pale);
+    animation: shake 0.3s;
+}
+
+.left-op {
+    left: 25%;
+    top: 10px;
+}
+
+.right-op {
+    right: 25%;
+    top: 10px;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    25% { transform: translateY(-50%) translateX(-8px); }
+    75% { transform: translateY(-50%) translateX(8px); }
+}
+
+.solution-input, .step-input {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1.5em;
+    font-weight: 600;
+    width: 200px;
+    padding: 10px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.solution-input:focus, .step-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px var(--blue-pale);
+}
+
+.solution-input.ok, .step-input.ok {
+    border-color: var(--green);
+    background: var(--green-pale);
+    color: var(--green);
+}
+
+.solution-input.err, .step-input.err {
+    border-color: var(--red);
+    background: var(--red-pale);
+    animation: shake 0.3s;
+}
+
+/* FEEDBACK */
+.fb {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.95em;
+    text-align: center;
+    display: none;
+    animation: fadeIn 0.3s;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.fb.ok {
+    display: block;
+    background: var(--green-pale);
+    color: var(--green);
+    border: 2px solid rgba(22, 163, 74, 0.2);
+}
+
+.fb.bad {
+    display: block;
+    background: var(--red-pale);
+    color: var(--red);
+    border: 2px solid rgba(220, 38, 38, 0.15);
+}
+
+/* RESULTS */
+.rc {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+    border: 6px solid;
+}
+
+.rc.good {
+    border-color: var(--green);
+    background: var(--green-pale);
+}
+
+.rc.mid {
+    border-color: var(--orange);
+    background: var(--orange-pale);
+}
+
+.rc.bad {
+    border-color: var(--red);
+    background: var(--red-pale);
+}
+
+.rp {
+    font-size: 2.2em;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.rm {
+    font-size: 1.1em;
+    text-align: center;
+    margin: 16px 0;
+    line-height: 1.5;
+}
+
+/* LIBRE EQUATION BUILDER */
+.libre-equation-builder {
+    margin: 28px auto;
+    max-width: 650px;
+    text-align: center;
+}
+
+.libre-eq-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 24px 20px 20px;
+    background: var(--blue-pale);
+    border: 2px dashed var(--blue-border);
+    border-radius: 16px;
+}
+
+.libre-coef-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.libre-input {
+    width: 64px;
+    height: 64px;
+    border: 3px solid var(--blue);
+    border-radius: 12px;
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    background: white;
+    color: var(--blue);
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    -moz-appearance: textfield;
+}
+
+.libre-input::-webkit-outer-spin-button,
+.libre-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.libre-input:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 4px var(--purple-pale);
+    color: var(--purple);
+}
+
+.libre-x-label {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--red);
+}
+
+.libre-op {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.libre-equals {
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--text);
+    padding: 0 4px;
+}
+
+/* Uniform cell layout: every element (input or symbol) gets the same column wrapper */
+.libre-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.libre-cell-label {
+    font-size: 0.65em;
+    color: var(--text-light);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    min-height: 1em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+/* Symbol cells: give same 64px height as inputs so they align perfectly */
+.libre-symbol {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 640px) {
+    .app-header {
+        padding: 14px 18px;
+    }
+    
+    .app-title {
+        font-size: 1.1em;
+    }
+    
+    .main {
+        padding: 24px 18px;
+    }
+    
+    h1 {
+        font-size: 1.3em;
+    }
+    
+    .menu-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .balance-side {
+        padding: 12px;
+    }
+    
+    .item {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3em;
+    }
+    
+    .apple {
+        font-size: 1.5em;
+    }
+    
+    .weight {
+        font-size: 1.3em;
+    }
+    
+    .equation-line {
+        font-size: 1.2em;
+    }
+    
+    .left-operation, .right-operation {
+        font-size: 1em;
+    }
+    
+    .operation-input {
+        width: 80px;
+        font-size: 1em;
+        padding: 6px 12px;
+    }
+    
+    .solution-input, .step-input {
+        width: 150px;
+        font-size: 1.2em;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Équations Interactives</div>
+        <button class="btn btn-ghost" onclick="show('S_menu')" style="color: white; border-color: rgba(255,255,255,0.3);">← Menu</button>
+    </div>
+    
+    <div class="main">
+        <!-- MENU -->
+        <div id="S_menu" class="screen active">
+            <h1>Apprends à résoudre les équations</h1>
+            <p class="sub">Choisis un type d'exercice pour t'entraîner</p>
+            
+            <div class="menu-grid">
+                <div class="mc" onclick="go(1)">
+                    <div class="mc-icon">⚖️</div>
+                    <div class="mc-t">Balance : Addition</div>
+                    <div class="mc-d">Équations du type <i>x</i> + 3 = 12</div>
+                </div>
+                
+                <div class="mc" onclick="go(2)">
+                    <div class="mc-icon">➡️</div>
+                    <div class="mc-t">Flèches : Addition</div>
+                    <div class="mc-d">Résolution avec flèches</div>
+                </div>
+                
+                <div class="mc" onclick="go(3)">
+                    <div class="mc-icon">⚖️</div>
+                    <div class="mc-t">Balance : Variable</div>
+                    <div class="mc-d">Équations du type 3<i>x</i> = 2<i>x</i> + 5</div>
+                </div>
+                
+                <div class="mc" onclick="go(4)">
+                    <div class="mc-icon">➡️</div>
+                    <div class="mc-t">Flèches : Variable</div>
+                    <div class="mc-d">Avec variables des deux côtés</div>
+                </div>
+                
+                <div class="mc" onclick="go(5)">
+                    <div class="mc-icon">⚖️</div>
+                    <div class="mc-t">Balance : Division</div>
+                    <div class="mc-d">Équations du type 2<i>x</i> = 8</div>
+                </div>
+                
+                <div class="mc" onclick="go(6)">
+                    <div class="mc-icon">➡️</div>
+                    <div class="mc-t">Flèches : Division</div>
+                    <div class="mc-d">Résolution par division</div>
+                </div>
+                
+                <div class="mc" onclick="go(7)">
+                    <div class="mc-badge">MIX</div>
+                    <div class="mc-icon">⚖️</div>
+                    <div class="mc-t">Balance : Mixte</div>
+                    <div class="mc-d">Équations complexes avec balance</div>
+                </div>
+                
+                <div class="mc" onclick="go(8)">
+                    <div class="mc-badge">MIX</div>
+                    <div class="mc-icon">➡️</div>
+                    <div class="mc-t">Flèches : Mixte</div>
+                    <div class="mc-d">Équations complexes avec flèches</div>
+                </div>
+                
+                <div class="mc" onclick="startLibre()" style="border-color: var(--purple); background: var(--purple-pale);">
+                    <div class="mc-badge" style="background:var(--purple-pale);color:var(--purple);">LIBRE</div>
+                    <div class="mc-icon">🎯</div>
+                    <div class="mc-t" style="color:var(--purple);">Crée ton équation (balance)</div>
+                    <div class="mc-d">Saisis tes propres coefficients et résous avec la balance</div>
+                </div>
+
+                <div class="mc" onclick="startLibreF()" style="border-color: var(--orange); background: var(--orange-pale);">
+                    <div class="mc-badge" style="background:var(--orange-pale);color:var(--orange);">LIBRE</div>
+                    <div class="mc-icon">✏️</div>
+                    <div class="mc-t" style="color:var(--orange);">Crée ton équation (flèches)</div>
+                    <div class="mc-d">Coefficients négatifs autorisés — résolution pas à pas avec flèches</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- EXERCISE -->
+        <div id="S_ex" class="screen">
+            <div class="ex-top">
+                <div class="ex-badge" id="badge">Niveau 1</div>
+                <div class="ex-score" id="scLbl">0 / 0</div>
+            </div>
+            <div class="pbar">
+                <div class="pfill" id="pfill" style="width: 0%"></div>
+            </div>
+            <div id="zone"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-blue" id="nxt" style="display:none" onclick="nxtQ()">Question suivante →</button>
+            </div>
+        </div>
+        
+        <!-- RESULTS -->
+        <div id="S_res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rCirc">
+                <div class="rp" id="rPct">0%</div>
+            </div>
+            <div class="rm" id="rMsg"></div>
+            <div class="controls">
+                <button class="btn btn-blue" onclick="show('S_menu')">← Retour au menu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<svg style="position: absolute; width: 0; height: 0;">
+    <defs>
+        <marker id="arrowhead-left" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+            <polygon points="0 0, 10 5, 0 10" fill="#7c3aed"/>
+        </marker>
+        <marker id="arrowhead-right" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+            <polygon points="10 0, 0 5, 10 10" fill="#7c3aed"/>
+        </marker>
+    </defs>
+</svg>
+
+<script>
+const LVNAMES = {
+    1: 'Balance : Addition',
+    2: 'Flèches : Addition',
+    3: 'Balance : Variable',
+    4: 'Flèches : Variable',
+    5: 'Balance : Division',
+    6: 'Flèches : Division',
+    7: 'Balance : Mixte',
+    8: 'Flèches : Mixte',
+    9: 'Balance : Libre',
+    10: 'Flèches : Libre'
+};
+
+let lv = 1;
+let qs = [];
+let qi = 0;
+let cq = null;
+let sc = 0;
+let selectedLeft = [];
+let selectedRight = [];
+
+function $(id) {
+    return document.getElementById(id);
+}
+
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+}
+
+function rnd(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function gcd(a, b) {
+    return b === 0 ? Math.abs(a) : gcd(b, a % b);
+}
+
+// ===== LEVEL 1: BALANCE ADDITION (x + a = b, ONLY POSITIVE) =====
+function genL1() {
+    const out = [];
+    for (let i = 0; i < 5; i++) {
+        const a = rnd(2, 10);
+        const x = rnd(a + 1, 20); // Ensure x > a so x - a > 0
+        const b = x + a;
+        
+        out.push({ 
+            type: 'add',
+            x, 
+            a, 
+            b
+        });
+    }
+    return out;
+}
+
+function renderL1(q) {
+    const eqText = `<i>x</i> + ${q.a} = ${q.b}`;
+    
+    const html = `
+        <div class="equation-history" id="eqHistory">
+            <div class="equation-step-item">
+                <div class="equation-line">${eqText}</div>
+            </div>
+        </div>
+        <div class="balance-container">
+            <div class="balance-sides">
+                <div class="balance-side" id="leftSide"></div>
+                <div class="balance-side" id="rightSide"></div>
+            </div>
+            <div class="balance-beam"></div>
+            <div class="balance-pivot"></div>
+        </div>
+        <div class="balance-info">
+            <div>Clique sur les éléments pour les sélectionner (enlève la même chose des deux côtés !)</div>
+            <div class="selection-count">
+                <div class="count-item">Gauche : <span id="leftCount">0</span></div>
+                <div class="count-item">Droite : <span id="rightCount">0</span></div>
+            </div>
+        </div>
+        <div class="balance-controls">
+            <button class="balance-btn" onclick="removeSelected()">Enlever la sélection</button>
+            <button class="balance-btn" onclick="resetSelection()">Réinitialiser sélection</button>
+            <button class="balance-btn" onclick="checkBalance()" id="checkBtn">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    const left = $('leftSide');
+    const right = $('rightSide');
+    
+    // x + a = b → left: 1 apple + a weights, right: b weights
+    left.innerHTML = '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this, \'left\')">🍎<div class="var-label"><i>x</i></div></div>';
+    for (let i = 0; i < q.a; i++) {
+        left.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this, 'left')">${1}</div>`;
+    }
+    for (let i = 0; i < q.b; i++) {
+        right.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this, 'right')">${1}</div>`;
+    }
+    
+    selectedLeft = [];
+    selectedRight = [];
+    updateCounts();
+}
+
+function toggleSelect(elem, side) {
+    if (elem.classList.contains('removing')) return;
+    
+    elem.classList.toggle('selected');
+    
+    const arr = side === 'left' ? selectedLeft : selectedRight;
+    const idx = arr.indexOf(elem);
+    
+    if (idx > -1) {
+        arr.splice(idx, 1);
+    } else {
+        arr.push(elem);
+    }
+    
+    updateCounts();
+}
+
+function updateCounts() {
+    $('leftCount').textContent = selectedLeft.length;
+    $('rightCount').textContent = selectedRight.length;
+}
+
+function resetSelection() {
+    selectedLeft.forEach(el => el.classList.remove('selected'));
+    selectedRight.forEach(el => el.classList.remove('selected'));
+    selectedLeft = [];
+    selectedRight = [];
+    updateCounts();
+}
+
+function removeSelected() {
+    if (selectedLeft.length === 0 && selectedRight.length === 0) return;
+    
+    if (selectedLeft.length !== selectedRight.length) {
+        showTempMessage('Tu dois enlever le même nombre d\'éléments de chaque côté !');
+        return;
+    }
+    
+    // Check if same types
+    const leftTypes = selectedLeft.map(el => el.dataset.type).sort();
+    const rightTypes = selectedRight.map(el => el.dataset.type).sort();
+    
+    if (JSON.stringify(leftTypes) !== JSON.stringify(rightTypes)) {
+        showTempMessage('Tu dois enlever les mêmes types d\'éléments de chaque côté !');
+        return;
+    }
+    
+    const countToRemove = selectedLeft.length;
+    
+    // Animate removal
+    selectedLeft.forEach(el => el.classList.add('removing'));
+    selectedRight.forEach(el => el.classList.add('removing'));
+    
+    setTimeout(() => {
+        selectedLeft.forEach(el => el.remove());
+        selectedRight.forEach(el => el.remove());
+        
+        const wasApple = leftTypes[0] === 'apple';
+        const op = wasApple ? 
+            (countToRemove === 1 ? '−<i>x</i>' : `−${countToRemove}<i>x</i>`) : 
+            `−${countToRemove}`;
+        
+        selectedLeft = [];
+        selectedRight = [];
+        updateCounts();
+        
+        // Update equation
+        updateBalanceEquation(op);
+        updateDivideButton();
+    }, 500);
+}
+
+function showTempMessage(msg) {
+    const fb = $('fb');
+    fb.className = 'fb bad';
+    fb.textContent = '⚠️ ' + msg;
+    setTimeout(() => {
+        fb.className = 'fb';
+    }, 2000);
+}
+
+function updateBalanceEquation(operation) {
+    const leftItems = $('leftSide').querySelectorAll('.item:not(.removing)');
+    const rightItems = $('rightSide').querySelectorAll('.item:not(.removing)');
+    
+    const leftApples = Array.from(leftItems).filter(el => el.dataset.type === 'apple').length;
+    const leftWeights = Array.from(leftItems).filter(el => el.dataset.type === 'weight').length;
+    const rightApples = Array.from(rightItems).filter(el => el.dataset.type === 'apple').length;
+    const rightWeights = Array.from(rightItems).filter(el => el.dataset.type === 'weight').length;
+    
+    // Build equation parts
+    let leftEq = '';
+    if (leftApples > 0) {
+        leftEq = leftApples === 1 ? '<i>x</i>' : `${leftApples}<i>x</i>`;
+    }
+    if (leftWeights > 0) {
+        if (leftEq) leftEq += ' + ';
+        leftEq += leftWeights;
+    }
+    if (!leftEq) leftEq = '0';
+    
+    let rightEq = '';
+    if (rightApples > 0) {
+        rightEq = rightApples === 1 ? '<i>x</i>' : `${rightApples}<i>x</i>`;
+    }
+    if (rightWeights > 0) {
+        if (rightEq) rightEq += ' + ';
+        rightEq += rightWeights;
+    }
+    if (!rightEq) rightEq = '0';
+    
+    const history = $('eqHistory');
+    
+    // Add arrow section and new equation
+    const arrowHtml = `
+        <div class="arrow-section">
+            <svg class="arrow-svg" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 80 10 Q 60 40 90 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-left)" />
+                <path d="M 320 10 Q 340 40 310 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-right)" />
+            </svg>
+            <div class="left-operation">${operation}</div>
+            <div class="right-operation">${operation}</div>
+        </div>
+        <div class="equation-step-item">
+            <div class="equation-line">${leftEq} = ${rightEq}</div>
+        </div>
+    `;
+    history.innerHTML += arrowHtml;
+}
+
+function updateDivideButton() {
+    const existingBtn = $('divideBtn');
+    if (existingBtn) existingBtn.remove();
+    
+    const leftItems = $('leftSide').querySelectorAll('.item:not(.removing)');
+    const rightItems = $('rightSide').querySelectorAll('.item:not(.removing)');
+    
+    const leftApples = Array.from(leftItems).filter(el => el.dataset.type === 'apple').length;
+    const leftWeights = Array.from(leftItems).filter(el => el.dataset.type === 'weight').length;
+    const rightApples = Array.from(rightItems).filter(el => el.dataset.type === 'apple').length;
+    const rightWeights = Array.from(rightItems).filter(el => el.dataset.type === 'weight').length;
+    
+    // Calculate GCD of all non-zero coefficients
+    const coefs = [];
+    if (leftApples > 0) coefs.push(leftApples);
+    if (leftWeights > 0) coefs.push(leftWeights);
+    if (rightApples > 0) coefs.push(rightApples);
+    if (rightWeights > 0) coefs.push(rightWeights);
+    
+    if (coefs.length >= 2) {
+        let divisor = coefs[0];
+        for (let i = 1; i < coefs.length; i++) {
+            divisor = gcd(divisor, coefs[i]);
+        }
+        
+        if (divisor > 1) {
+            const controls = document.querySelector('.balance-controls');
+            const btn = document.createElement('button');
+            btn.className = 'balance-btn divide-btn';
+            btn.id = 'divideBtn';
+            btn.textContent = `Partager en ${divisor}`;
+            btn.onclick = () => divideBy(divisor);
+            controls.insertBefore(btn, controls.firstChild);
+        }
+    }
+}
+
+function divideBy(divisor) {
+    const leftItems = Array.from($('leftSide').querySelectorAll('.item:not(.removing)'));
+    const rightItems = Array.from($('rightSide').querySelectorAll('.item:not(.removing)'));
+    
+    const leftApples = leftItems.filter(el => el.dataset.type === 'apple');
+    const leftWeights = leftItems.filter(el => el.dataset.type === 'weight');
+    const rightApples = rightItems.filter(el => el.dataset.type === 'apple');
+    const rightWeights = rightItems.filter(el => el.dataset.type === 'weight');
+    
+    const keepLeftA = Math.floor(leftApples.length / divisor);
+    const keepLeftW = Math.floor(leftWeights.length / divisor);
+    const keepRightA = Math.floor(rightApples.length / divisor);
+    const keepRightW = Math.floor(rightWeights.length / divisor);
+    
+    // Remove extras
+    for (let i = keepLeftA; i < leftApples.length; i++) {
+        leftApples[i].classList.add('removing');
+    }
+    for (let i = keepLeftW; i < leftWeights.length; i++) {
+        leftWeights[i].classList.add('removing');
+    }
+    for (let i = keepRightA; i < rightApples.length; i++) {
+        rightApples[i].classList.add('removing');
+    }
+    for (let i = keepRightW; i < rightWeights.length; i++) {
+        rightWeights[i].classList.add('removing');
+    }
+    
+    setTimeout(() => {
+        for (let i = keepLeftA; i < leftApples.length; i++) {
+            leftApples[i].remove();
+        }
+        for (let i = keepLeftW; i < leftWeights.length; i++) {
+            leftWeights[i].remove();
+        }
+        for (let i = keepRightA; i < rightApples.length; i++) {
+            rightApples[i].remove();
+        }
+        for (let i = keepRightW; i < rightWeights.length; i++) {
+            rightWeights[i].remove();
+        }
+        
+        updateBalanceEquation(`÷${divisor}`);
+        updateDivideButton();
+    }, 500);
+}
+
+function checkBalance() {
+    const leftItems = $('leftSide').querySelectorAll('.item:not(.removing)');
+    const rightItems = $('rightSide').querySelectorAll('.item:not(.removing)');
+    
+    const leftApples = Array.from(leftItems).filter(el => el.dataset.type === 'apple').length;
+    const leftWeights = Array.from(leftItems).filter(el => el.dataset.type === 'weight').length;
+    const rightApples = Array.from(rightItems).filter(el => el.dataset.type === 'apple').length;
+    const rightWeights = Array.from(rightItems).filter(el => el.dataset.type === 'weight').length;
+    
+    const q = cq;
+    
+    if (leftApples === 1 && leftWeights === 0 && rightApples === 0 && rightWeights === q.x) {
+        finish(true, `Excellent ! <i>x</i> = ${q.x}`);
+    } else {
+        finish(false, 'Continue à enlever les éléments pour isoler <i>x</i> !');
+    }
+}
+
+// ===== LEVEL 2: ARROWS ADDITION/SUBTRACTION =====
+function genL2() {
+    const out = [];
+    for (let i = 0; i < 5; i++) {
+        const isAdd = Math.random() < 0.5;
+        const a = rnd(2, 10);
+        
+        if (isAdd) {
+            // x + a = b
+            const x = rnd(a + 1, 20);
+            const b = x + a;
+            out.push({ type: 'add', x, a, b, isAdd: true });
+        } else {
+            // x - a = b
+            const b = rnd(2, 10);
+            const x = b + a;
+            out.push({ type: 'sub', x, a, b, isAdd: false });
+        }
+    }
+    return out;
+}
+
+function renderL2(q) {
+    const sign = q.isAdd ? '+' : '−';
+    const eqText = `<i>x</i> <span class="circled">${sign} ${q.a}</span> = ${q.b}`;
+    
+    const html = `
+        <div class="arrows-container">
+            <div class="equation-step-item">
+                <div class="equation-line">${eqText}</div>
+            </div>
+            <div class="arrow-section">
+                <svg class="arrow-svg" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 80 10 Q 60 40 90 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-left)"/>
+                    <path d="M 320 10 Q 340 40 310 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-right)"/>
+                </svg>
+                <input type="text" class="operation-input left-op" id="leftOp" placeholder="?">
+                <input type="text" class="operation-input right-op" id="rightOp" placeholder="?">
+            </div>
+            <div class="equation-step-item">
+                <div class="equation-line"><i>x</i> = <input type="text" class="solution-input" id="solInput" placeholder="?"></div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-green" onclick="checkL2()">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    // Add Enter key support
+    document.querySelectorAll('.operation-input, .solution-input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkL2();
+        });
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\//g, '÷');
+        });
+    });
+}
+
+function checkL2() {
+    const q = cq;
+    const leftOp = $('leftOp').value.trim();
+    const rightOp = $('rightOp').value.trim();
+    const sol = $('solInput').value.trim();
+    
+    let ok = true;
+    
+    // Check operations - inverse operation
+    const expectedOp = q.isAdd ? `−${q.a}` : `+${q.a}`;
+    const validOps = q.isAdd ? 
+        [`−${q.a}`, `-${q.a}`, `− ${q.a}`, `- ${q.a}`] :
+        [`+${q.a}`, `+ ${q.a}`];
+    
+    if (!validOps.some(v => leftOp === v || leftOp === v.replace(/\s/g, ''))) {
+        $('leftOp').classList.add('err');
+        ok = false;
+    } else {
+        $('leftOp').classList.add('ok');
+        $('leftOp').disabled = true;
+    }
+    
+    if (!validOps.some(v => rightOp === v || rightOp === v.replace(/\s/g, ''))) {
+        $('rightOp').classList.add('err');
+        ok = false;
+    } else {
+        $('rightOp').classList.add('ok');
+        $('rightOp').disabled = true;
+    }
+    
+    // Check solution
+    if (parseInt(sol) !== q.x) {
+        $('solInput').classList.add('err');
+        ok = false;
+    } else {
+        $('solInput').classList.add('ok');
+        $('solInput').disabled = true;
+    }
+    
+    if (ok) {
+        finish(true, `Parfait ! <i>x</i> = ${q.x}`);
+    } else {
+        const opSign = q.isAdd ? `+${q.a}` : `−${q.a}`;
+        finish(false, `Pour éliminer ${opSign}, il faut faire ${expectedOp} des deux côtés.`);
+    }
+}
+
+// ===== LEVEL 3: BALANCE VARIABLE (ax = bx + c, ONLY POSITIVE) =====
+function genL3() {
+    const out = [];
+    for (let i = 0; i < 5; i++) {
+        const x = rnd(3, 15);
+        const b = rnd(2, 5); // bx on the right
+        const a = b + 1; // ax on the left, so a - b = 1
+        const c = x; // After removing bx, we get x = c, so c = x
+        out.push({ type: 'var', x, a, b, c });
+    }
+    return out;
+}
+
+function renderL3(q) {
+    const bDisplay = q.b === 1 ? '<i>x</i>' : `${q.b}<i>x</i>`;
+    const html = `
+        <div class="equation-history" id="eqHistory">
+            <div class="equation-step-item">
+                <div class="equation-line">${q.a}<i>x</i> = ${bDisplay} + ${q.c}</div>
+            </div>
+        </div>
+        <div class="balance-container">
+            <div class="balance-sides">
+                <div class="balance-side" id="leftSide"></div>
+                <div class="balance-side" id="rightSide"></div>
+            </div>
+            <div class="balance-beam"></div>
+            <div class="balance-pivot"></div>
+        </div>
+        <div class="balance-info">
+            <div>Clique sur les éléments pour les sélectionner et les enlever</div>
+            <div class="selection-count">
+                <div class="count-item">Gauche : <span id="leftCount">0</span></div>
+                <div class="count-item">Droite : <span id="rightCount">0</span></div>
+            </div>
+        </div>
+        <div class="balance-controls">
+            <button class="balance-btn" onclick="removeSelected()">Enlever la sélection</button>
+            <button class="balance-btn" onclick="resetSelection()">Réinitialiser sélection</button>
+            <button class="balance-btn" onclick="checkBalance()" id="checkBtn">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    const left = $('leftSide');
+    const right = $('rightSide');
+    
+    // Left side: a apples
+    for (let i = 0; i < q.a; i++) {
+        left.innerHTML += '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this, \'left\')">🍎<div class="var-label"><i>x</i></div></div>';
+    }
+    
+    // Right side: b apples + c weights
+    for (let i = 0; i < q.b; i++) {
+        right.innerHTML += '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this, \'right\')">🍎<div class="var-label"><i>x</i></div></div>';
+    }
+    for (let i = 0; i < q.c; i++) {
+        right.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this, 'right')">${1}</div>`;
+    }
+    
+    selectedLeft = [];
+    selectedRight = [];
+    updateCounts();
+    updateDivideButton();
+}
+
+// ===== LEVEL 4: ARROWS VARIABLE =====
+function genL4() {
+    return genL3();
+}
+
+function renderL4(q) {
+    const bDisplay = q.b === 1 ? '<i>x</i>' : `${q.b}<i>x</i>`;
+    const html = `
+        <div class="arrows-container">
+            <div class="equation-step-item">
+                <div class="equation-line">${q.a}<i>x</i> = <span class="circled">${bDisplay}</span> + ${q.c}</div>
+            </div>
+            <div class="arrow-section">
+                <svg class="arrow-svg" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 80 10 Q 60 40 90 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-left)"/>
+                    <path d="M 320 10 Q 340 40 310 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-right)"/>
+                </svg>
+                <input type="text" class="operation-input left-op" id="leftOp1" placeholder="?">
+                <input type="text" class="operation-input right-op" id="rightOp1" placeholder="?">
+            </div>
+            <div class="equation-step-item">
+                <div class="equation-line"><i>x</i> = <input type="text" class="solution-input" id="solInput" placeholder="?"></div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-green" onclick="checkL4()">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    // Add Enter key support
+    document.querySelectorAll('.operation-input, .solution-input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkL4();
+        });
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\//g, '÷');
+        });
+    });
+}
+
+function checkL4() {
+    const q = cq;
+    let ok = true;
+    
+    const leftOp1 = $('leftOp1').value.trim().replace(/\s/g, '');
+    const rightOp1 = $('rightOp1').value.trim().replace(/\s/g, '');
+    
+    // Create all valid variations for -bx
+    const validOps = [];
+    if (q.b === 1) {
+        // For 1x, accept: -x, -1x
+        validOps.push('-x', '−x', '-1x', '−1x');
+    } else {
+        // For nx, accept: -nx, -n x
+        validOps.push(`−${q.b}x`, `-${q.b}x`, `−${q.b} x`, `-${q.b} x`);
+    }
+    
+    if (!validOps.some(v => leftOp1.includes(v.replace(/\s/g, '')))) {
+        $('leftOp1').classList.add('err');
+        ok = false;
+    } else {
+        $('leftOp1').classList.add('ok');
+        $('leftOp1').disabled = true;
+    }
+    
+    if (!validOps.some(v => rightOp1.includes(v.replace(/\s/g, '')))) {
+        $('rightOp1').classList.add('err');
+        ok = false;
+    } else {
+        $('rightOp1').classList.add('ok');
+        $('rightOp1').disabled = true;
+    }
+    
+    const sol = parseInt($('solInput').value.trim());
+    if (sol !== q.x) {
+        $('solInput').classList.add('err');
+        ok = false;
+    } else {
+        $('solInput').classList.add('ok');
+        $('solInput').disabled = true;
+    }
+    
+    if (ok) {
+        finish(true, `Parfait ! <i>x</i> = ${q.x}`);
+    } else {
+        const expectedOp = q.b === 1 ? '−<i>x</i>' : `−${q.b}<i>x</i>`;
+        finish(false, `Il faut faire ${expectedOp} des deux côtés.`);
+    }
+}
+
+// ===== LEVEL 5: BALANCE DIVISION (ax = b) =====
+function genL5() {
+    const out = [];
+    for (let i = 0; i < 5; i++) {
+        const x = rnd(2, 10);
+        const a = rnd(2, 5);
+        const b = a * x;
+        out.push({ type: 'div', x, a, b });
+    }
+    return out;
+}
+
+function renderL5(q) {
+    const html = `
+        <div class="equation-history" id="eqHistory">
+            <div class="equation-step-item">
+                <div class="equation-line">${q.a}<i>x</i> = ${q.b}</div>
+            </div>
+        </div>
+        <div class="balance-container">
+            <div class="balance-sides">
+                <div class="balance-side" id="leftSide"></div>
+                <div class="balance-side" id="rightSide"></div>
+            </div>
+            <div class="balance-beam"></div>
+            <div class="balance-pivot"></div>
+        </div>
+        <div class="balance-info">
+            <div>Utilise le bouton "Partager" pour diviser la balance</div>
+            <div class="selection-count">
+                <div class="count-item">Gauche : <span id="leftCount">0</span></div>
+                <div class="count-item">Droite : <span id="rightCount">0</span></div>
+            </div>
+        </div>
+        <div class="balance-controls">
+            <button class="balance-btn" onclick="checkBalance()" id="checkBtn">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    const left = $('leftSide');
+    const right = $('rightSide');
+    
+    // Left: a apples
+    for (let i = 0; i < q.a; i++) {
+        left.innerHTML += '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this, \'left\')">🍎<div class="var-label"><i>x</i></div></div>';
+    }
+    
+    // Right: b weights
+    for (let i = 0; i < q.b; i++) {
+        right.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this, 'right')">${1}</div>`;
+    }
+    
+    selectedLeft = [];
+    selectedRight = [];
+    updateCounts();
+    updateDivideButton();
+}
+
+// ===== LEVEL 6: ARROWS DIVISION =====
+function genL6() {
+    return genL5();
+}
+
+function renderL6(q) {
+    const html = `
+        <div class="arrows-container">
+            <div class="equation-step-item">
+                <div class="equation-line"><span class="circled">${q.a}</span><i>x</i> = ${q.b}</div>
+            </div>
+            <div class="arrow-section">
+                <svg class="arrow-svg" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 80 10 Q 60 40 90 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-left)"/>
+                    <path d="M 320 10 Q 340 40 310 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-right)"/>
+                </svg>
+                <input type="text" class="operation-input left-op" id="leftOp" placeholder="?">
+                <input type="text" class="operation-input right-op" id="rightOp" placeholder="?">
+            </div>
+            <div class="equation-step-item">
+                <div class="equation-line"><i>x</i> = <input type="text" class="solution-input" id="solInput" placeholder="?"></div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-green" onclick="checkL6()">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    // Add Enter key support
+    document.querySelectorAll('.operation-input, .solution-input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkL6();
+        });
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\//g, '÷');
+        });
+    });
+}
+
+function checkL6() {
+    const q = cq;
+    let ok = true;
+    
+    const leftOp = $('leftOp').value.trim();
+    const rightOp = $('rightOp').value.trim();
+    const validOps = [`÷${q.a}`, `/${q.a}`, `:${q.a}`];
+    
+    if (!validOps.some(v => leftOp.includes(v))) {
+        $('leftOp').classList.add('err');
+        ok = false;
+    } else {
+        $('leftOp').classList.add('ok');
+        $('leftOp').disabled = true;
+    }
+    
+    if (!validOps.some(v => rightOp.includes(v))) {
+        $('rightOp').classList.add('err');
+        ok = false;
+    } else {
+        $('rightOp').classList.add('ok');
+        $('rightOp').disabled = true;
+    }
+    
+    const sol = parseInt($('solInput').value.trim());
+    if (sol !== q.x) {
+        $('solInput').classList.add('err');
+        ok = false;
+    } else {
+        $('solInput').classList.add('ok');
+        $('solInput').disabled = true;
+    }
+    
+    if (ok) {
+        finish(true, `Parfait ! <i>x</i> = ${q.x}`);
+    } else {
+        finish(false, `Pour supprimer le coefficient ${q.a}, il faut diviser par ${q.a} des deux côtés.`);
+    }
+}
+
+// ===== LEVEL 7 & 8: MIXED (Complex equations, ONLY POSITIVE) =====
+function genL7() {
+    const out = [];
+    for (let i = 0; i < 5; i++) {
+        const x = rnd(2, 8);
+        const a = rnd(3, 6);
+        const b = rnd(1, a - 1);
+        const c = rnd(2, 8);
+        const d = (a - b) * x + c;
+        out.push({ type: 'complex', x, a, b, c, d, leftIsAdd: true, rightIsAdd: true });
+    }
+    return out;
+}
+
+function genL8() {
+    const out = [];
+    let attempts = 0;
+    while (out.length < 10 && attempts < 300) {
+        attempts++;
+        const a = rnd(3, 6);
+        const b = rnd(1, a - 1);
+        const coefDiff = a - b;            // always >= 1
+
+        // Pick c and d as small positive integers freely
+        const c = rnd(1, 9);
+        const d = rnd(1, 9);
+
+        const leftIsAdd  = Math.random() < 0.5;
+        const rightIsAdd = Math.random() < 0.5;
+
+        // Compute constantDiff = what coefDiff*x equals after moving constants
+        // equation:  ax ±c = bx ±d
+        // after -bx each side:  coefDiff·x ±c = ±d
+        // after moving ±c:      coefDiff·x    =  constantDiff
+        let constantDiff;
+        if (leftIsAdd  &&  rightIsAdd)  constantDiff =  d - c;   // ax+c=bx+d → coefDiff·x = d-c
+        if (leftIsAdd  && !rightIsAdd)  constantDiff = -d - c;   // ax+c=bx-d → coefDiff·x = -d-c
+        if (!leftIsAdd &&  rightIsAdd)  constantDiff =  d + c;   // ax-c=bx+d → coefDiff·x = d+c
+        if (!leftIsAdd && !rightIsAdd)  constantDiff =  c - d;   // ax-c=bx-d → coefDiff·x = c-d
+
+        if (constantDiff === 0) continue;          // x=0, skip
+
+        // Simplify the fraction x = constantDiff / coefDiff
+        const g    = gcd(Math.abs(constantDiff), coefDiff);
+        const xNum = constantDiff / g;
+        const xDen = coefDiff / g;
+        const x    = xNum / xDen;
+
+        out.push({ type: 'complex', x, xNum, xDen, a, b, c, d, coefDiff, constantDiff, leftIsAdd, rightIsAdd });
+    }
+    return out;
+}
+
+function renderL7(q) {
+    const bDisplay = q.b === 1 ? '<i>x</i>' : `${q.b}<i>x</i>`;
+    const leftSign = q.leftIsAdd ? '+' : '−';
+    const rightSign = q.rightIsAdd ? '+' : '−';
+    
+    const html = `
+        <div class="equation-history" id="eqHistory">
+            <div class="equation-step-item">
+                <div class="equation-line">${q.a}<i>x</i> ${leftSign} ${q.c} = ${bDisplay} ${rightSign} ${q.d}</div>
+            </div>
+        </div>
+        <div class="balance-container">
+            <div class="balance-sides">
+                <div class="balance-side" id="leftSide"></div>
+                <div class="balance-side" id="rightSide"></div>
+            </div>
+            <div class="balance-beam"></div>
+            <div class="balance-pivot"></div>
+        </div>
+        <div class="balance-info">
+            <div>Résous cette équation complexe en enlevant les éléments progressivement</div>
+            <div class="selection-count">
+                <div class="count-item">Gauche : <span id="leftCount">0</span></div>
+                <div class="count-item">Droite : <span id="rightCount">0</span></div>
+            </div>
+        </div>
+        <div class="balance-controls">
+            <button class="balance-btn" onclick="removeSelected()">Enlever la sélection</button>
+            <button class="balance-btn" onclick="resetSelection()">Réinitialiser sélection</button>
+            <button class="balance-btn" onclick="checkBalance()" id="checkBtn">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    const left = $('leftSide');
+    const right = $('rightSide');
+    
+    // Left: a apples + c weights
+    for (let i = 0; i < q.a; i++) {
+        left.innerHTML += '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this, \'left\')">🍎<div class="var-label"><i>x</i></div></div>';
+    }
+    for (let i = 0; i < q.c; i++) {
+        left.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this, 'left')">${1}</div>`;
+    }
+    
+    // Right: b apples + d weights
+    for (let i = 0; i < q.b; i++) {
+        right.innerHTML += '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this, \'right\')">🍎<div class="var-label"><i>x</i></div></div>';
+    }
+    for (let i = 0; i < q.d; i++) {
+        right.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this, 'right')">${1}</div>`;
+    }
+    
+    selectedLeft = [];
+    selectedRight = [];
+    updateCounts();
+    updateDivideButton();
+}
+
+function renderL8(q) {
+    const coefDiff = q.a - q.b;
+    const leftSign = q.leftIsAdd ? '+' : '−';
+    const rightSign = q.rightIsAdd ? '+' : '−';
+    const bDisplay = q.b === 1 ? '<i>x</i>' : `${q.b}<i>x</i>`;
+    
+    // Calculate constantDiff based on the operations
+    let constantDiff;
+    if (q.leftIsAdd && q.rightIsAdd) {
+        constantDiff = q.d - q.c;
+    } else if (q.leftIsAdd && !q.rightIsAdd) {
+        constantDiff = -q.d - q.c;
+    } else if (!q.leftIsAdd && q.rightIsAdd) {
+        constantDiff = q.d + q.c;
+    } else {
+        constantDiff = -q.d + q.c;
+    }
+    
+    const html = `
+        <div class="arrows-container">
+            <div class="equation-step-item">
+                <div class="equation-line">${q.a}<i>x</i> ${leftSign} ${q.c} = <span class="circled">${bDisplay}</span> ${rightSign} ${q.d}</div>
+            </div>
+            <div class="arrow-section">
+                <svg class="arrow-svg" viewBox="0 0 420 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 90 10 Q 70 40 100 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-left)"/>
+                    <path d="M 330 10 Q 350 40 320 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-right)"/>
+                </svg>
+                <input type="text" class="operation-input left-op" id="leftOp1" placeholder="?" style="left: 27%;">
+                <input type="text" class="operation-input right-op" id="rightOp1" placeholder="?" style="right: 27%;">
+            </div>
+            <div class="equation-step-item">
+                <div class="equation-line"><input type="text" class="step-input" id="step1" placeholder="Équation après 1ère étape" style="width: 300px;"></div>
+            </div>
+            <div class="arrow-section">
+                <svg class="arrow-svg" viewBox="0 0 420 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 90 10 Q 70 40 100 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-left)"/>
+                    <path d="M 330 10 Q 350 40 320 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-right)"/>
+                </svg>
+                <input type="text" class="operation-input left-op" id="leftOp2" placeholder="?" style="left: 27%;">
+                <input type="text" class="operation-input right-op" id="rightOp2" placeholder="?" style="right: 27%;">
+            </div>
+            ${coefDiff > 1 ? `
+            <div class="equation-step-item">
+                <div class="equation-line"><input type="text" class="step-input" id="step2" placeholder="Équation après 2ème étape" style="width: 300px;"></div>
+            </div>
+            <div class="arrow-section">
+                <svg class="arrow-svg" viewBox="0 0 420 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 90 10 Q 70 40 100 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-left)"/>
+                    <path d="M 330 10 Q 350 40 320 70" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#arrowhead-right)"/>
+                </svg>
+                <input type="text" class="operation-input left-op" id="leftOp3" placeholder="?" style="left: 27%;">
+                <input type="text" class="operation-input right-op" id="rightOp3" placeholder="?" style="right: 27%;">
+            </div>
+            ` : ''}
+            <div class="equation-step-item">
+                <div class="equation-line"><i>x</i> = <input type="text" class="solution-input" id="solInput" placeholder="?"></div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-green" onclick="checkL8()">Vérifier</button>
+        </div>
+    `;
+    
+    $('zone').innerHTML = html;
+    
+    // Add Enter key support
+    document.querySelectorAll('.operation-input, .solution-input, .step-input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkL8();
+        });
+    });
+    // Replace / with ÷ only in operation inputs (not solution input, which may need / for fractions)
+    document.querySelectorAll('.operation-input, .step-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\//g, '÷');
+        });
+    });
+}
+
+function checkL8() {
+    const q = cq;
+    let ok = true;
+    const coefDiff = q.a - q.b;
+    
+    // Calculate expected constantDiff based on operations
+    let constantDiff;
+    if (q.leftIsAdd && q.rightIsAdd) {
+        constantDiff = q.d - q.c;
+    } else if (q.leftIsAdd && !q.rightIsAdd) {
+        constantDiff = -q.d - q.c;
+    } else if (!q.leftIsAdd && q.rightIsAdd) {
+        constantDiff = q.d + q.c;
+    } else {
+        constantDiff = -q.d + q.c;
+    }
+    
+    // Check first operation (remove bx)
+    const validOps1 = [];
+    if (q.b === 1) {
+        validOps1.push('-x', '−x', '-1x', '−1x');
+    } else {
+        validOps1.push(`−${q.b}x`, `-${q.b}x`, `− ${q.b}x`, `- ${q.b}x`);
+    }
+    
+    if (!validOps1.some(v => $('leftOp1').value.trim().replace(/\s/g, '').includes(v.replace(/\s/g, '')))) {
+        $('leftOp1').classList.add('err');
+        ok = false;
+    } else {
+        $('leftOp1').classList.add('ok');
+        $('leftOp1').disabled = true;
+    }
+    
+    if (!validOps1.some(v => $('rightOp1').value.trim().replace(/\s/g, '').includes(v.replace(/\s/g, '')))) {
+        $('rightOp1').classList.add('err');
+        ok = false;
+    } else {
+        $('rightOp1').classList.add('ok');
+        $('rightOp1').disabled = true;
+    }
+    
+    // Check step 1 equation - should be coefDiff*x +/- c = +/- d
+    const step1 = $('step1').value.trim().replace(/\s/g, '');
+    const leftSign1 = q.leftIsAdd ? '+' : '-';
+    const rightSign1 = q.rightIsAdd ? '+' : '-';
+    // Build expected step1 options, accepting optional '+' sign for positive right side
+    const expected1Options = [];
+    const addStep1Variant = (lhs) => {
+        expected1Options.push(`${lhs}=${rightSign1}${q.d}`);
+        expected1Options.push(`${lhs}=${rightSign1}${q.d}`.replace(/-/g, '−'));
+        if (rightSign1 === '+') {
+            // '+' is optional: also accept without the sign
+            expected1Options.push(`${lhs}=${q.d}`);
+        }
+    };
+    if (coefDiff === 1) {
+        addStep1Variant(`x${leftSign1}${q.c}`);
+        addStep1Variant(`x${leftSign1}${q.c}`.replace(/-/g, '−'));
+        addStep1Variant(`1x${leftSign1}${q.c}`);
+    } else {
+        addStep1Variant(`${coefDiff}x${leftSign1}${q.c}`);
+        addStep1Variant(`${coefDiff}x${leftSign1}${q.c}`.replace(/-/g, '−'));
+    }
+    
+    if (!expected1Options.some(e => step1 === e.replace(/\s/g, '') || step1.includes(e.replace(/\s/g, '')))) {
+        $('step1').classList.add('err');
+        ok = false;
+    } else {
+        $('step1').classList.add('ok');
+        $('step1').disabled = true;
+    }
+    
+    // Check second operation (remove/add c based on leftIsAdd)
+    const validOps2 = q.leftIsAdd ? 
+        [`−${q.c}`, `-${q.c}`, `− ${q.c}`, `- ${q.c}`] :
+        [`+${q.c}`, `+ ${q.c}`];
+    
+    if (!validOps2.some(v => $('leftOp2').value.trim().includes(v))) {
+        $('leftOp2').classList.add('err');
+        ok = false;
+    } else {
+        $('leftOp2').classList.add('ok');
+        $('leftOp2').disabled = true;
+    }
+    
+    if (!validOps2.some(v => $('rightOp2').value.trim().includes(v))) {
+        $('rightOp2').classList.add('err');
+        ok = false;
+    } else {
+        $('rightOp2').classList.add('ok');
+        $('rightOp2').disabled = true;
+    }
+    
+    // Check third operation if needed (divide)
+    if (coefDiff > 1) {
+        const step2 = $('step2').value.trim().replace(/\s/g, '');
+        const expected2Base = `${coefDiff}x=${constantDiff}`;
+        const expected2Neg = expected2Base.replace('-', '−');
+        const step2Valid = [expected2Base, expected2Neg];
+        // If constantDiff is positive, also allow without explicit '+'
+        if (constantDiff > 0) {
+            // already no '+' in expected2Base, so this is already handled
+        }
+        if (!step2Valid.some(e => step2.includes(e))) {
+            $('step2').classList.add('err');
+            ok = false;
+        } else {
+            $('step2').classList.add('ok');
+            $('step2').disabled = true;
+        }
+        
+        const validOps3 = [`÷${coefDiff}`, `/${coefDiff}`, `:${coefDiff}`];
+        if (!validOps3.some(v => $('leftOp3').value.trim().includes(v))) {
+            $('leftOp3').classList.add('err');
+            ok = false;
+        } else {
+            $('leftOp3').classList.add('ok');
+            $('leftOp3').disabled = true;
+        }
+        
+        if (!validOps3.some(v => $('rightOp3').value.trim().includes(v))) {
+            $('rightOp3').classList.add('err');
+            ok = false;
+        } else {
+            $('rightOp3').classList.add('ok');
+            $('rightOp3').disabled = true;
+        }
+    }
+    
+    // Check solution – accept integers and fractions like "5/3" or "5÷3"
+    const parseSol = (str) => {
+        const s = str.trim().replace(/−/g, '-').replace(/÷/g, '/').replace(/,/g, '.');
+        const direct = Number(s);
+        if (!isNaN(direct) && s !== '') return direct;
+        const m = s.match(/^(-?\d+)[/:](-?\d+)$/);
+        if (m) return parseInt(m[1]) / parseInt(m[2]);
+        return NaN;
+    };
+    const solVal = parseSol($('solInput').value);
+    const solOk  = Math.abs(solVal - q.x) < 1e-9;
+    if (!solOk) {
+        $('solInput').classList.add('err');
+        ok = false;
+    } else {
+        $('solInput').classList.add('ok');
+        $('solInput').disabled = true;
+    }
+
+    // Pretty solution label
+    const xLabel = (q.xDen === undefined || q.xDen === 1)
+        ? `${q.xNum !== undefined ? q.xNum : q.x}`
+        : `${q.xNum}/${q.xDen}`;
+
+    if (ok) {
+        finish(true, `Excellent ! <i>x</i> = ${xLabel}`);
+    } else {
+        finish(false, 'Vérifie toutes les étapes de la résolution.');
+    }
+}
+
+// ===== LEVEL 9: LIBRE (Custom Equation Balance) =====
+let libreX = 0;
+
+function startLibre() {
+    lv = 9;
+    sc = 0;
+    qi = 0;
+    qs = [];
+    $('badge').textContent = LVNAMES[9];
+    show('S_ex');
+    renderLibreBuilder();
+}
+
+function renderLibreBuilder() {
+    cq = null;
+    $('scLbl').textContent = '';
+    $('pfill').style.width = '0%';
+    $('fb').className = 'fb';
+    $('nxt').style.display = 'none';
+
+    const html = `
+        <div style="text-align:center; margin: 10px 0 0;">
+            <h2 style="color:var(--purple); margin-bottom:8px; font-size:1.25em;">✏️ Construis ton équation</h2>
+            <p style="color:var(--text-light); margin-bottom:20px; font-size:0.9em;">
+                Saisis les coefficients, puis clique sur <strong>Créer la balance</strong>
+            </p>
+        </div>
+        <div class="libre-equation-builder">
+            <div class="libre-eq-row">
+                <!-- LEFT : coef·x + const -->
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="libA" min="0" max="12" value="3">
+                    <span class="libre-cell-label">Coef <i>x</i></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-x-label"><i>x</i></span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-op">+</span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="libB" min="0" max="15" value="5">
+                    <span class="libre-cell-label">Const.</span>
+                </div>
+
+                <!-- EQUALS -->
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-equals">=</span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+
+                <!-- RIGHT : coef·x + const -->
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="libC" min="0" max="12" value="1">
+                    <span class="libre-cell-label">Coef <i>x</i></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-x-label"><i>x</i></span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-op">+</span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="libD" min="0" max="15" value="9">
+                    <span class="libre-cell-label">Const.</span>
+                </div>
+            </div>
+            <div id="libreError" style="color:var(--red);text-align:center;margin:14px 0 0;font-weight:600;min-height:22px;font-size:0.9em;"></div>
+        </div>
+        <div style="text-align:center; margin-top:6px; color:var(--text-light); font-size:0.82em;">
+            Exemple : 3<i>x</i> + 5 = 1<i>x</i> + 9 → la balance aura 3 🍎 + 5 poids à gauche, 1 🍎 + 9 poids à droite
+        </div>
+        <div class="controls" style="margin-top:20px;">
+            <button class="btn btn-blue" onclick="buildLibreBalance()">⚖️ Créer la balance</button>
+        </div>
+    `;
+
+    $('zone').innerHTML = html;
+
+    ['libA','libB','libC','libD'].forEach(id => {
+        const el = $(id);
+        if (el) el.addEventListener('keypress', e => { if (e.key === 'Enter') buildLibreBalance(); });
+    });
+}
+
+function buildLibreBalance() {
+    const a = parseInt($('libA').value);
+    const b = parseInt($('libB').value);
+    const c = parseInt($('libC').value);
+    const d = parseInt($('libD').value);
+    const errEl = $('libreError');
+
+    // Validations
+    if ([a, b, c, d].some(v => isNaN(v) || v < 0)) {
+        errEl.textContent = '⚠️ Tous les coefficients doivent être des entiers positifs ou nuls !';
+        return;
+    }
+    if (a === 0 && b === 0) {
+        errEl.textContent = '⚠️ Le côté gauche ne peut pas être vide (a et b tous les deux à 0) !';
+        return;
+    }
+    if (c === 0 && d === 0) {
+        errEl.textContent = '⚠️ Le côté droit ne peut pas être vide (c et d tous les deux à 0) !';
+        return;
+    }
+    if (a === c) {
+        errEl.textContent = '⚠️ Les coefficients de x doivent être différents des deux côtés !';
+        return;
+    }
+    if (a + b > 15) {
+        errEl.textContent = '⚠️ Trop d\'éléments à gauche ! Choisis des valeurs plus petites (max 15).';
+        return;
+    }
+    if (c + d > 15) {
+        errEl.textContent = '⚠️ Trop d\'éléments à droite ! Choisis des valeurs plus petites (max 15).';
+        return;
+    }
+
+    // ax + b = cx + d  →  (a-c)x = d-b  →  x = (d-b)/(a-c)
+    const num = d - b;
+    const den = a - c;
+
+    if (num % den !== 0) {
+        errEl.textContent = `⚠️ Cette équation n'a pas de solution entière ! (${num} ÷ ${den} n'est pas un entier)`;
+        return;
+    }
+    const x = num / den;
+    if (x <= 0) {
+        errEl.textContent = `⚠️ La solution doit être positive (x > 0). Essaie d'autres valeurs !`;
+        return;
+    }
+
+    libreX = x;
+    cq = { x, a, b, c, d };
+
+    // Build equation text
+    const aDisp = a === 0 ? '' : (a === 1 ? '<i>x</i>' : `${a}<i>x</i>`);
+    const cDisp = c === 0 ? '' : (c === 1 ? '<i>x</i>' : `${c}<i>x</i>`);
+    const leftParts = [];
+    if (a > 0) leftParts.push(aDisp);
+    if (b > 0) leftParts.push(`${b}`);
+    const rightParts = [];
+    if (c > 0) rightParts.push(cDisp);
+    if (d > 0) rightParts.push(`${d}`);
+    const leftEq  = leftParts.join(' + ')  || '0';
+    const rightEq = rightParts.join(' + ') || '0';
+
+    const html = `
+        <div class="equation-history" id="eqHistory">
+            <div class="equation-step-item">
+                <div class="equation-line">${leftEq} = ${rightEq}</div>
+            </div>
+        </div>
+        <div class="balance-container">
+            <div class="balance-sides">
+                <div class="balance-side" id="leftSide"></div>
+                <div class="balance-side" id="rightSide"></div>
+            </div>
+            <div class="balance-beam"></div>
+            <div class="balance-pivot"></div>
+        </div>
+        <div class="balance-info">
+            <div>Enlève les mêmes éléments des deux côtés pour isoler 🍎 <i>x</i></div>
+            <div class="selection-count">
+                <div class="count-item">Gauche : <span id="leftCount">0</span></div>
+                <div class="count-item">Droite : <span id="rightCount">0</span></div>
+            </div>
+        </div>
+        <div class="balance-controls">
+            <button class="balance-btn" onclick="removeSelected()">Enlever la sélection</button>
+            <button class="balance-btn" onclick="resetSelection()">Réinitialiser sélection</button>
+            <button class="balance-btn" onclick="checkBalance()" id="checkBtn">Vérifier</button>
+        </div>
+    `;
+
+    $('zone').innerHTML = html;
+
+    const left  = $('leftSide');
+    const right = $('rightSide');
+
+    for (let i = 0; i < a; i++) {
+        left.innerHTML += '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this,\'left\')">🍎<div class="var-label"><i>x</i></div></div>';
+    }
+    for (let i = 0; i < b; i++) {
+        left.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this,'left')">1</div>`;
+    }
+    for (let i = 0; i < c; i++) {
+        right.innerHTML += '<div class="item apple" data-type="apple" data-value="x" onclick="toggleSelect(this,\'right\')">🍎<div class="var-label"><i>x</i></div></div>';
+    }
+    for (let i = 0; i < d; i++) {
+        right.innerHTML += `<div class="item weight" data-type="weight" data-value="1" onclick="toggleSelect(this,'right')">1</div>`;
+    }
+
+    selectedLeft  = [];
+    selectedRight = [];
+    updateCounts();
+    updateDivideButton();
+}
+
+// ===== LEVEL 10: LIBRE FLÈCHES (Custom Equation with Arrows) =====
+
+/* ── Display helpers ─────────────────────────────────────────────── */
+// Render one side of an equation as HTML (handles negatives, em‑dashes)
+function fmtSideHTML(coef, constant) {
+    const parts = [];
+    if (coef !== 0) {
+        if      (coef ===  1) parts.push('<i>x</i>');
+        else if (coef === -1) parts.push('−<i>x</i>');
+        else if (coef <   0)  parts.push('−' + Math.abs(coef) + '<i>x</i>');
+        else                  parts.push(coef + '<i>x</i>');
+    }
+    if (constant !== 0) {
+        if (parts.length === 0) {
+            parts.push(constant < 0 ? '−' + Math.abs(constant) : '' + constant);
+        } else {
+            if (constant > 0) parts.push('+ ' + constant);
+            else              parts.push('− ' + Math.abs(constant));
+        }
+    }
+    return parts.length ? parts.join(' ') : '0';
+}
+
+/* ── Validation helpers ──────────────────────────────────────────── */
+// Normalize a student's answer for comparison
+function normInput(str) {
+    return (str || '').trim()
+        .replace(/\s+/g, '')
+        .replace(/−/g, '-')   // em‑dash → hyphen
+        .replace(/÷/g, '/')
+        .toLowerCase();
+}
+
+// All accepted text forms of the equation  coef·x + const = rhs
+function validEqForms(coef, constant, rhs) {
+    const out = new Set();
+
+    const buildLHS = (c, n) => {
+        let s = '';
+        if      (c ===  1) s = 'x';
+        else if (c === -1) s = '-x';
+        else               s = c + 'x';
+        if      (n > 0) s += '+' + n;
+        else if (n < 0) s += ''  + n;   // appends  -N
+        return s;
+    };
+
+    const add = (lhs, r) => {
+        const rs = '' + r;
+        out.add(lhs + '=' + rs);
+        // em‑dash variant (will be normalised anyway, but let's be explicit)
+        out.add(lhs.replace(/-/g, '−') + '=' + rs.replace(/-/g, '−'));
+        // optional explicit '+' before positive rhs
+        if (r > 0) out.add(lhs + '=+' + r);
+    };
+
+    const lhs = buildLHS(coef, constant);
+    add(lhs, rhs);
+
+    // coef ±1 → also accept "1x…" / "-1x…"
+    if (coef ===  1) add('1x'  + (constant > 0 ? '+' + constant : constant < 0 ? '' + constant : ''), rhs);
+    if (coef === -1) add('-1x' + (constant > 0 ? '+' + constant : constant < 0 ? '' + constant : ''), rhs);
+
+    return [...out];
+}
+
+// Valid operations to cancel the bx term on both sides  (operation = −b·x)
+function validXOps(b) {
+    const op  = -b;                 // what we actually apply
+    const abs = Math.abs(op);
+    const f   = [];
+    if (op > 0) {
+        // adding x terms
+        if (abs === 1) f.push('+x', '+1x', '+ x', '+ 1x');
+        else           f.push(`+${abs}x`, `+ ${abs}x`, `+${abs} x`, `+ ${abs} x`);
+    } else {
+        // subtracting x terms
+        if (abs === 1) f.push('-x', '-1x', '−x', '−1x', '- x', '− x', '- 1x', '− 1x');
+        else           f.push(`-${abs}x`, `−${abs}x`, `- ${abs}x`, `− ${abs}x`,
+                               `-${abs} x`, `−${abs} x`);
+    }
+    return f;
+}
+
+// Valid operations to cancel the constant c on both sides  (operation = −c)
+function validConstOps(c) {
+    const op  = -c;
+    const abs = Math.abs(op);
+    const f   = [];
+    if (op > 0) f.push(`+${abs}`, `+ ${abs}`);
+    else        f.push(`-${abs}`, `−${abs}`, `- ${abs}`, `− ${abs}`);
+    return f;
+}
+
+/* ── Entry point ─────────────────────────────────────────────────── */
+function startLibreF() {
+    lv = 10;
+    sc = 0; qi = 0; qs = [];
+    $('badge').textContent = LVNAMES[10];
+    show('S_ex');
+    renderLibreFBuilder();
+}
+
+/* ── Step 1 : the input form ─────────────────────────────────────── */
+function renderLibreFBuilder() {
+    cq = null;
+    $('scLbl').textContent = '';
+    $('pfill').style.width = '0%';
+    $('fb').className = 'fb';
+    $('nxt').style.display = 'none';
+
+    $('zone').innerHTML = `
+        <div style="text-align:center;margin:10px 0 6px;">
+            <h2 style="color:var(--orange);margin-bottom:6px;font-size:1.2em;">✏️ Construis ton équation</h2>
+            <p style="color:var(--text-light);margin-bottom:4px;font-size:0.88em;">
+                Les <strong>nombres négatifs sont autorisés</strong> pour toutes les cases.
+            </p>
+            <p style="color:var(--text-light);margin-bottom:16px;font-size:0.82em;">
+                ⚠️ Le coefficient de <i>x</i> à <strong>gauche</strong> doit être <strong>plus grand</strong> que celui de droite.
+            </p>
+        </div>
+
+        <!-- Equation builder row -->
+        <div class="libre-equation-builder">
+            <div class="libre-eq-row" style="background:var(--orange-pale);border-color:var(--orange-border);">
+
+                <!-- LEFT : coef·x + const -->
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="lfA"
+                           style="border-color:var(--orange);color:var(--orange);"
+                           min="-9" max="9" value="4">
+                    <span class="libre-cell-label">Coef <i>x</i></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-x-label"><i>x</i></span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-op">+</span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="lfC"
+                           style="border-color:var(--orange);color:var(--orange);"
+                           min="-15" max="15" value="-3">
+                    <span class="libre-cell-label">Const.</span>
+                </div>
+
+                <!-- EQUALS -->
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-equals">=</span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+
+                <!-- RIGHT : coef·x + const -->
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="lfB"
+                           style="border-color:var(--orange);color:var(--orange);"
+                           min="-9" max="9" value="1">
+                    <span class="libre-cell-label">Coef <i>x</i></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-x-label"><i>x</i></span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <span class="libre-symbol libre-op">+</span>
+                    <span class="libre-cell-label" aria-hidden="true"></span>
+                </div>
+                <div class="libre-cell">
+                    <input type="number" class="libre-input" id="lfD"
+                           style="border-color:var(--orange);color:var(--orange);"
+                           min="-15" max="15" value="9">
+                    <span class="libre-cell-label">Const.</span>
+                </div>
+            </div>
+
+            <!-- Live equation preview -->
+            <div id="lfPreview" style="
+                margin:18px auto 0;max-width:480px;
+                background:var(--orange-pale);border:2px solid var(--orange-border);
+                border-radius:12px;padding:12px 20px;text-align:center;
+                font-family:'Times New Roman',serif;font-style:italic;font-size:1.3em;
+                color:var(--text);">
+            </div>
+
+            <div id="lfError" style="color:var(--red);text-align:center;margin:12px 0 0;
+                 font-weight:600;min-height:20px;font-size:0.9em;"></div>
+        </div>
+
+        <div class="controls" style="margin-top:18px;">
+            <button class="btn btn-blue"
+                    onclick="buildLibreF()"
+                    style="background:var(--orange);border-color:var(--orange);">
+                ➡️ Créer l'exercice
+            </button>
+        </div>
+    `;
+
+    // Live preview
+    const updatePreview = () => {
+        const a = parseInt($('lfA').value) || 0;
+        const b = parseInt($('lfB').value) || 0;
+        const c = parseInt($('lfC').value) || 0;
+        const d = parseInt($('lfD').value) || 0;
+        $('lfPreview').innerHTML = fmtSideHTML(a, c) + ' = ' + fmtSideHTML(b, d);
+    };
+
+    ['lfA','lfB','lfC','lfD'].forEach(id => {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener('input',   updatePreview);
+        el.addEventListener('keypress', e => { if (e.key === 'Enter') buildLibreF(); });
+    });
+    updatePreview();
+}
+
+/* ── Step 2 : validate form and build arrows interface ───────────── */
+function buildLibreF() {
+    const a = parseInt($('lfA').value);
+    const b = parseInt($('lfB').value);
+    const c = parseInt($('lfC').value);
+    const d = parseInt($('lfD').value);
+    const errEl = $('lfError');
+    errEl.textContent = '';
+
+    if ([a, b, c, d].some(v => isNaN(v))) {
+        errEl.textContent = '⚠️ Tous les champs doivent être des entiers !';
+        return;
+    }
+    if (a === b) {
+        errEl.textContent = '⚠️ Les coefficients de x doivent être différents (gauche ≠ droite) !';
+        return;
+    }
+    if (a <= b) {
+        errEl.textContent = `⚠️ Le coefficient de x à gauche (${a}) doit être strictement supérieur à celui de droite (${b}).`;
+        return;
+    }
+
+    const coefDiff     = a - b;
+    const constantDiff = d - c;
+
+    if (constantDiff === 0) {
+        errEl.textContent = "\u26a0\ufe0f La solution est x = 0 \u2014 essaie d'autres valeurs !";
+        return;
+    }
+
+    // x = constantDiff / coefDiff  (peut être une fraction)
+    const g     = gcd(Math.abs(constantDiff), Math.abs(coefDiff));
+    const xNum  = constantDiff / g;
+    const xDen  = coefDiff / g;
+    const xExact = xNum / xDen;
+
+    cq = {
+        a, b, c, d,
+        x: xExact, xNum, xDen,
+        coefDiff, constantDiff,
+        needStep1: b !== 0,
+        needStep2: c !== 0,
+        needDiv:   coefDiff > 1
+    };
+
+    _renderLibreFArrows();
+}
+
+function _arrowRow(n) {
+    return `
+        <div class="arrow-section">
+            <svg class="arrow-svg" viewBox="0 0 420 80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 90 10 Q 70 40 100 70" stroke="#7c3aed" stroke-width="3"
+                      fill="none" marker-end="url(#arrowhead-left)"/>
+                <path d="M 330 10 Q 350 40 320 70" stroke="#7c3aed" stroke-width="3"
+                      fill="none" marker-end="url(#arrowhead-right)"/>
+            </svg>
+            <input type="text" class="operation-input left-op"  id="lf_op${n}L" placeholder="?" style="left:27%;">
+            <input type="text" class="operation-input right-op" id="lf_op${n}R" placeholder="?" style="right:27%;">
+        </div>`;
+}
+
+function _stepInput(n, label) {
+    return `
+        <div class="equation-step-item">
+            <div class="equation-line">
+                <input type="text" class="step-input" id="lf_step${n}"
+                       placeholder="${label}" style="width:320px;">
+            </div>
+        </div>`;
+}
+
+/* ── Step 3 : render the arrows interface ────────────────────────── */
+function _renderLibreFArrows() {
+    const q = cq;
+    const {a, b, c, d, coefDiff, constantDiff} = q;
+
+    let html = `
+        <div style="display:flex;justify-content:center;margin-bottom:10px;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" style="font-size:0.82em;padding:6px 14px;"
+                    onclick="renderLibreFBuilder()">← Modifier l'équation</button>
+        </div>
+        <div class="arrows-container">
+            <!-- Initial equation -->
+            <div class="equation-step-item">
+                <div class="equation-line">${fmtSideHTML(a, c)} = ${fmtSideHTML(b, d)}</div>
+            </div>`;
+
+    // ── Step 1 : remove b·x ──────────────────────────────────────
+    if (q.needStep1) {
+        html += _arrowRow(1);
+        html += _stepInput(1, 'Équation après avoir déplacé les x');
+    }
+
+    // ── Step 2 : remove constant c ───────────────────────────────
+    if (q.needStep2) {
+        html += _arrowRow(2);
+        // Intermediate equation before division (only useful if we still need to divide)
+        if (q.needDiv) {
+            html += _stepInput(2, 'Équation après avoir déplacé les nombres');
+        }
+    }
+
+    // ── Step 3 : divide by coefDiff ──────────────────────────────
+    if (q.needDiv) {
+        html += _arrowRow(3);
+    }
+
+    // ── Final answer ─────────────────────────────────────────────
+    html += `
+            <div class="equation-step-item">
+                <div class="equation-line">
+                    <i>x</i> = <input type="text" class="solution-input" id="lf_sol" placeholder="?">
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-green" onclick="checkLibreF()">Vérifier</button>
+        </div>`;
+
+    $('zone').innerHTML = html;
+
+    document.querySelectorAll('.operation-input, .solution-input, .step-input').forEach(inp => {
+        inp.addEventListener('keypress', e => { if (e.key === 'Enter') checkLibreF(); });
+        inp.addEventListener('input',    e => { e.target.value = e.target.value.replace(/\//g, '÷'); });
+    });
+}
+
+/* ── Step 4 : check all fields ───────────────────────────────────── */
+function checkLibreF() {
+    const q = cq;
+    if (!q) return;
+    const {a, b, c, d, x, coefDiff, constantDiff} = q;
+    let ok = true;
+
+    // Mark a field correct / incorrect
+    const mark = (id, isOk) => {
+        const el = $(id);
+        if (!el) return;
+        el.classList.remove('ok', 'err');
+        el.classList.add(isOk ? 'ok' : 'err');
+        if (isOk) el.disabled = true;
+    };
+
+    // Check an operation input (accepts  val === norm  OR  val.includes(norm))
+    const chkOp = (id, forms) => {
+        const el = $(id);
+        if (!el) return true;       // element not shown → skip
+        const val = normInput(el.value);
+        const hit = forms.some(f => {
+            const fn = normInput(f);
+            return val === fn || val.includes(fn);
+        });
+        mark(id, hit);
+        if (!hit) ok = false;
+        return hit;
+    };
+
+    // Check an intermediate equation input (exact canonical match)
+    const chkEq = (id, forms) => {
+        const el = $(id);
+        if (!el) return true;
+        const val = normInput(el.value);
+        const hit = forms.some(f => normInput(f) === val);
+        mark(id, hit);
+        if (!hit) ok = false;
+        return hit;
+    };
+
+    // ── Step 1 : remove b·x ──────────────────────────────────────
+    if (q.needStep1) {
+        const ops1 = validXOps(b);
+        chkOp('lf_op1L', ops1);
+        chkOp('lf_op1R', ops1);
+        // Intermediate equation :  (a‑b)x + c = d
+        chkEq('lf_step1', validEqForms(coefDiff, c, d));
+    }
+
+    // ── Step 2 : remove constant c ───────────────────────────────
+    if (q.needStep2) {
+        const ops2 = validConstOps(c);
+        chkOp('lf_op2L', ops2);
+        chkOp('lf_op2R', ops2);
+        // Intermediate before division :  (a‑b)x = d−c
+        if (q.needDiv) {
+            chkEq('lf_step2', validEqForms(coefDiff, 0, constantDiff));
+        }
+    }
+
+    // ── Step 3 : divide by coefDiff ──────────────────────────────
+    if (q.needDiv) {
+        const ops3 = [`÷${coefDiff}`, `/${coefDiff}`, `:${coefDiff}`];
+        chkOp('lf_op3L', ops3);
+        chkOp('lf_op3R', ops3);
+    }
+
+    // ── Final solution ────────────────────────────────────────────
+    // Accept integers ("4"), fractions ("5/3", "5÷3"), negative fractions ("-2/3")
+    const solEl = $('lf_sol');
+    const parseSolInput = (str) => {
+        const s = normInput(str).replace(/,/g, '.');  // also accept comma decimals (−6,5 → -6.5)
+        const direct = Number(s);
+        if (!isNaN(direct)) return direct;       // plain integer or decimal
+        const m = s.match(/^(-?\d+)\/(-?\d+)$/);
+        if (m) return parseInt(m[1]) / parseInt(m[2]);
+        return NaN;
+    };
+    const solVal = parseSolInput(solEl.value);
+    const solOk  = Math.abs(solVal - q.x) < 1e-9;
+    mark('lf_sol', solOk);
+    if (!solOk) ok = false;
+
+    // Pretty-print the solution for the success message
+    const xLabel = q.xDen === 1 ? `${q.xNum}` : `${q.xNum}/${q.xDen}`;
+
+    if (ok) {
+        finish(true, `Excellent ! <i>x</i> = ${xLabel}`);
+    } else {
+        // Build a helpful hint message
+        let hint = 'Vérifie chaque étape.<br><small style="font-weight:400">';
+        if (q.needStep1) {
+            const opLabel = b > 0 ? `−${b === 1 ? '' : b}<i>x</i>` : `+${Math.abs(b) === 1 ? '' : Math.abs(b)}<i>x</i>`;
+            hint += `Étape 1 : retire les <i>x</i> (opération ${opLabel} des deux côtés). `;
+        }
+        if (q.needStep2) {
+            const opLabel = c > 0 ? `−${c}` : `+${Math.abs(c)}`;
+            hint += `Étape 2 : retire la constante (opération ${opLabel} des deux côtés). `;
+        }
+        if (q.needDiv) {
+            hint += `Étape 3 : divise par ${coefDiff} des deux côtés.`;
+        }
+        hint += '</small>';
+        finish(false, hint);
+    }
+}
+
+
+function go(l) {
+    lv = l;
+    sc = 0;
+    qi = 0;
+    
+    if (l === 1) qs = genL1();
+    else if (l === 2) qs = genL2();
+    else if (l === 3) qs = genL3();
+    else if (l === 4) qs = genL4();
+    else if (l === 5) qs = genL5();
+    else if (l === 6) qs = genL6();
+    else if (l === 7) qs = genL7();
+    else qs = genL8();
+    
+    $('badge').textContent = LVNAMES[l];
+    show('S_ex');
+    loadQ();
+}
+
+function loadQ() {
+    cq = qs[qi];
+    cq._mis = false;
+    
+    $('scLbl').textContent = `${sc} / ${qi}`;
+    $('pfill').style.width = (qi / qs.length * 100) + '%';
+    $('fb').className = 'fb';
+    $('nxt').style.display = 'none';
+    $('zone').innerHTML = '';
+    
+    if (lv === 1) renderL1(cq);
+    else if (lv === 2) renderL2(cq);
+    else if (lv === 3) renderL3(cq);
+    else if (lv === 4) renderL4(cq);
+    else if (lv === 5) renderL5(cq);
+    else if (lv === 6) renderL6(cq);
+    else if (lv === 7) renderL7(cq);
+    else renderL8(cq);
+}
+
+function finish(ok, msg) {
+    if (ok) sc++;
+    $('scLbl').textContent = (lv === 9 || lv === 10) ? '' : `${sc} / ${qi + 1}`;
+    
+    const fb = $('fb');
+    fb.className = ok ? 'fb ok' : 'fb bad';
+    fb.innerHTML = ok ? '✅ ' + msg : '❌ ' + msg;
+    
+    const nxtBtn = $('nxt');
+    nxtBtn.textContent = lv === 9 ? '🎯 Nouvelle équation (balance)' :
+                         lv === 10 ? '✏️ Nouvelle équation (flèches)' :
+                         'Question suivante →';
+    nxtBtn.style.display = '';
+}
+
+function nxtQ() {
+    if (lv === 9) { renderLibreBuilder(); return; }
+    if (lv === 10) { renderLibreFBuilder(); return; }
+    qi++;
+    if (qi >= qs.length) showRes();
+    else loadQ();
+}
+
+function showRes() {
+    const tot = qs.length;
+    const pct = tot > 0 ? Math.round(sc / tot * 100) : 0;
+    const tier = pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+    
+    $('rCirc').className = `rc ${tier}`;
+    const rp = $('rPct');
+    rp.textContent = `${pct}%`;
+    rp.style.color = tier === 'good' ? 'var(--green)' : tier === 'mid' ? 'var(--orange)' : 'var(--red)';
+    
+    $('rMsg').textContent = pct === 100 ? '🎉 Parfait ! Tu maîtrises les équations !' :
+                             pct >= 80 ? '👏 Très bien ! Continue comme ça !' :
+                             pct >= 60 ? '👍 Bon travail ! Tu progresses !' :
+                             '💪 Continue à t\'entraîner, tu vas y arriver !';
+    
+    show('S_res');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

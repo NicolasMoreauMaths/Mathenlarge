@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proportionnalité – Problèmes concrets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#0369a1; --primary-dark:#0c4a6e; --primary-light:#e0f2fe;
+            --orange:#ea580c; --orange-light:#fff7ed; --orange-border:#fed7aa;
+            --green:#15803d; --green-light:#f0fdf4; --green-border:#86efac;
+            --purple:#7c3aed; --purple-light:#faf5ff; --purple-border:#c4b5fd;
+            --red:#be123c; --red-light:#fff1f2; --red-border:#fda4af;
+            --success:#059669;
+            --bg-card:#ffffff; --border:#bae6fd; --text-dark:#0f172a; --text-medium:#475569;
+            --shadow:rgba(3,105,161,0.10);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#fce7f3 50%,#fef9c3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+
+        /* HEADER */
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--orange),var(--purple));}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+        /* RAPPEL */
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .recap-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+        .recap-card{border-radius:10px;padding:0.9rem 1.1rem;font-size:0.93rem;line-height:1.8;}
+        .rc-blue{background:var(--primary-light);border:2px solid #7dd3fc;}
+        .rc-orange{background:var(--orange-light);border:2px solid var(--orange-border);}
+        .rc-green{background:var(--green-light);border:2px solid var(--green-border);}
+        .rc-blue strong{color:var(--primary-dark);}
+        .rc-orange strong{color:var(--orange);}
+        .rc-green strong{color:var(--green);}
+        .formula-block{background:white;border-radius:8px;padding:0.5rem 0.9rem;margin:0.4rem 0;text-align:center;font-family:'Times New Roman',serif;font-size:1.05rem;border:1.5px solid #7dd3fc;}
+
+        /* PROGRESS */
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--orange));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+        /* SCORE */
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--orange));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.teal{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.orange{background:var(--orange-light);color:var(--orange);}
+
+        /* SECTION DIVIDER */
+        .section-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;}
+        .section-divider-line{flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent);}
+        .section-divider-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+
+        /* EXERCICE */
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-orange{background:var(--orange-light);color:var(--orange);border:1.5px solid var(--orange-border);}
+        .tag-green{background:var(--green-light);color:var(--green);border:1.5px solid var(--green-border);}
+        .tag-purple{background:var(--purple-light);color:var(--purple);border:1.5px solid var(--purple-border);}
+        .tag-red{background:var(--red-light);color:var(--red);border:1.5px solid var(--red-border);}
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(3,105,161,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+
+        /* HINTS */
+        .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:1rem 0;}
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--purple);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;}
+        .hint-btn{background:var(--purple-light);color:var(--purple);border:2px solid var(--purple-border);border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:normal;flex-shrink:0;text-align:left;}
+        .hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--purple);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--purple);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;word-break:break-word;}
+        .hint-text.revealed{max-height:400px;padding:0.5rem 0.85rem;opacity:1;}
+
+        /* CORRECTION */
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+
+        /* CONTENU EXERCICE */
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-row{display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.7rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:0.8rem;font-weight:700;width:1.5rem;height:1.5rem;border-radius:50%;text-align:center;line-height:1.5rem;flex-shrink:0;margin-top:0.2rem;}
+
+        /* BLOCS VISUELS */
+        .context-box{background:#eff6ff;border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0 1rem;font-size:0.97rem;line-height:1.8;}
+        .context-box strong{color:var(--primary-dark);}
+
+        .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin:0.75rem 0;}
+        .info-card{border-radius:10px;padding:0.9rem 1.1rem;font-size:0.93rem;line-height:1.7;}
+        .info-card.orange{background:var(--orange-light);border:2px solid var(--orange-border);}
+        .info-card.green{background:var(--green-light);border:2px solid var(--green-border);}
+        .info-card.purple{background:var(--purple-light);border:2px solid var(--purple-border);}
+        .info-card.blue{background:var(--primary-light);border:2px solid var(--border);}
+        .info-card .card-title{font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.4rem;}
+        .info-card.orange .card-title{color:var(--orange);}
+        .info-card.green .card-title{color:var(--green);}
+        .info-card.purple .card-title{color:var(--purple);}
+        .info-card.blue .card-title{color:var(--primary);}
+
+        .warn-box{background:#fefce8;border:2px solid #fde047;border-radius:10px;padding:0.8rem 1.25rem;margin:0.6rem 0;font-size:0.92rem;line-height:1.6;}
+        .rule-box{background:var(--purple-light);border:2px solid var(--purple-border);border-radius:10px;padding:0.9rem 1.25rem;margin:0.75rem 0;font-size:0.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--purple);}
+        .calcul-step{background:white;padding:1.25rem 1.5rem;border-radius:10px;margin:0.75rem 0;border-left:4px solid var(--primary);}
+        .calcul-step.orange-step{border-left-color:var(--orange);}
+        .calcul-step.green-step{border-left-color:var(--green);}
+        .calcul-step.purple-step{border-left-color:var(--purple);}
+        .calcul-line{font-size:1.1rem;text-align:center;margin:0.4rem 0;font-family:'Times New Roman',serif;font-style:italic;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .solution-text.orange{background:var(--orange-light);border-color:var(--orange);color:var(--orange);}
+        .solution-text.green{background:var(--green-light);border-color:var(--green);color:var(--green);}
+        .mini-section{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:700;color:var(--primary);margin:1.25rem 0 0.5rem;}
+        .mini-section.orange{color:var(--orange);}
+        .mini-section.green{color:var(--green);}
+
+        /* ILLUSTRATION */
+        .illus-frame{background:#f8fafc;border:2px solid var(--border);border-radius:12px;padding:1rem;margin:1rem 0;display:flex;justify-content:center;align-items:center;}
+
+        /* TABLEAU en lignes */
+        .prop-table{border-collapse:collapse;margin:0.6rem auto;font-size:1.02rem;width:100%;}
+        .prop-table th{background:var(--primary-light);color:var(--primary-dark);border:2px solid var(--border);padding:0.5rem 1rem;font-size:0.88rem;font-weight:700;text-align:left;white-space:nowrap;}
+        .prop-table td{border:2px solid var(--border);padding:0.55rem 1rem;text-align:center;font-family:'Times New Roman',serif;font-size:1.08rem;}
+        .prop-table td.unknown{background:#fef9c3;border:2.5px solid #d97706;font-weight:700;color:#92400e;font-size:1.05rem;font-style:italic;text-align:left;padding-left:1rem;}
+        .cross-arrows{display:flex;justify-content:center;align-items:center;margin:0.1rem 0;font-size:1.1rem;color:var(--orange);font-weight:700;letter-spacing:0.1em;}
+        .table-overflow{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0.5rem 0;}
+
+        /* ÉTAPES COLORÉES */
+        .steps-flow{display:flex;flex-direction:column;gap:0.5rem;margin:0.75rem 0;}
+        .step-item{display:flex;align-items:center;gap:0.75rem;background:white;border-radius:10px;padding:0.75rem 1rem;border:2px solid #e2e8f0;}
+        .step-num{width:1.8rem;height:1.8rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;color:white;}
+        .step-num.blue{background:var(--primary);}
+        .step-num.orange{background:var(--orange);}
+        .step-num.green{background:var(--green);}
+        .step-text{font-size:0.95rem;}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}.recap-grid{grid-template-columns:1fr;}.info-grid{grid-template-columns:1fr;}}
+        @media(max-width:600px){body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.hint-item{flex-direction:column;}.hint-btn{white-space:normal;width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🔢 Feuille d'exercices</h1>
+        <p class="subtitle">Proportionnalité – Problèmes concrets · Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">4ème</span>
+            <span class="header-chip">4 exercices</span>
+            <span class="header-chip">Problèmes · Contexte réel</span>
+        </div>
+    </header>
+
+    <!-- RAPPEL DE COURS -->
+    <div class="recap">
+        <div class="recap-title">📖 Ce qu'il faut savoir</div>
+        <div class="recap-grid">
+            <div class="recap-card rc-blue">
+                <strong>Tester la proportionnalité</strong>
+                <p style="font-size:0.9rem;margin-top:0.3rem;">Calculer le rapport <em>valeur B ÷ valeur A</em> pour chaque colonne. Si tous les rapports sont égaux → situation proportionnelle.</p>
+            </div>
+            <div class="recap-card rc-orange">
+                <strong>Trouver la valeur manquante</strong>
+                <p style="font-size:0.9rem;margin-top:0.3rem;">Produit en croix :</p>
+                <div class="formula-block" style="border-color:#fed7aa;font-size:1rem;"><em>a × d = b × c</em></div>
+                <!-- Tableau visuel produit en croix -->
+                <table style="border-collapse:collapse;margin:0.4rem auto;font-size:0.95rem;">
+                    <tbody>
+                        <tr>
+                            <td style="border:2px solid #fed7aa;padding:0.3rem 0.7rem;text-align:center;font-family:'Times New Roman',serif;background:var(--orange-light);">a</td>
+                            <td style="border:2px solid #fed7aa;padding:0.3rem 0.7rem;text-align:center;font-family:'Times New Roman',serif;background:#fef9c3;font-weight:700;color:#92400e;">?</td>
+                        </tr>
+                        <tr>
+                            <td style="border:2px solid #fed7aa;padding:0.3rem 0.7rem;text-align:center;font-family:'Times New Roman',serif;background:var(--orange-light);">b</td>
+                            <td style="border:2px solid #fed7aa;padding:0.3rem 0.7rem;text-align:center;font-family:'Times New Roman',serif;background:var(--orange-light);">d</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size:0.85rem;text-align:center;font-family:'Times New Roman',serif;font-style:italic;margin-top:0.2rem;">? = a × d ÷ b</p>
+            </div>
+            <div class="recap-card rc-green">
+                <strong>Méthode en 3 étapes</strong>
+                <p style="font-size:0.88rem;margin-top:0.3rem;">① Identifier ce qui est proportionnel<br>② Poser le tableau<br>③ Calculer et conclure avec une phrase</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 4</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ===== EX 1 – RECETTE ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">🍰</div>
+        <div class="section-divider-title">Problème 1 – La recette du gâteau</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 4</h2>
+                <span class="exercise-tag tag-orange">Recette · Ingrédients</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <!-- Illustration gâteau -->
+            <div class="illus-frame">
+                <svg width="460" height="130" viewBox="0 0 460 130" xmlns="http://www.w3.org/2000/svg" aria-label="Gâteau au chocolat">
+                    <!-- Assiette -->
+                    <ellipse cx="230" cy="112" rx="140" ry="14" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+                    <!-- Corps gâteau -->
+                    <rect x="110" y="60" width="240" height="50" rx="6" fill="#92400e"/>
+                    <rect x="110" y="55" width="240" height="12" rx="4" fill="#a16207"/>
+                    <!-- Glaçage chocolat -->
+                    <path d="M 110 60 Q 130 48 160 58 Q 180 50 210 56 Q 230 46 260 55 Q 290 48 320 58 Q 340 50 350 60" stroke="none" fill="#7c2d12" opacity="0.6"/>
+                    <!-- Déco cerise -->
+                    <circle cx="165" cy="52" r="8" fill="#dc2626"/>
+                    <line x1="165" y1="44" x2="168" y2="38" stroke="#15803d" stroke-width="2"/>
+                    <circle cx="230" cy="48" r="8" fill="#dc2626"/>
+                    <line x1="230" y1="40" x2="233" y2="34" stroke="#15803d" stroke-width="2"/>
+                    <circle cx="295" cy="52" r="8" fill="#dc2626"/>
+                    <line x1="295" y1="44" x2="298" y2="38" stroke="#15803d" stroke-width="2"/>
+                    <!-- Bougies -->
+                    <rect x="195" y="30" width="8" height="24" rx="2" fill="#fbbf24"/>
+                    <ellipse cx="199" cy="30" rx="4" ry="6" fill="#f97316" opacity="0.9"/>
+                    <rect x="255" y="25" width="8" height="28" rx="2" fill="#60a5fa"/>
+                    <ellipse cx="259" cy="25" rx="4" ry="6" fill="#f97316" opacity="0.9"/>
+                    <!-- Dimensions -->
+                    <line x1="110" y1="120" x2="350" y2="120" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,4"/>
+                    <text x="230" y="130" text-anchor="middle" font-size="11" fill="#64748b">Pour <tspan font-weight="bold" fill="#ea580c">6 personnes</tspan></text>
+                </svg>
+            </div>
+
+            <div class="context-box">
+                <strong>La situation :</strong> Une recette de gâteau au chocolat pour <strong>6 personnes</strong> nécessite les ingrédients suivants.
+            </div>
+
+            <!-- Ingrédients en grille colorée -->
+            <div class="info-grid">
+                <div class="info-card orange">
+                    <div class="card-title">🥚 Ingrédients (pour 6 pers.)</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>• <strong>200 g</strong> de chocolat noir</li>
+                        <li>• <strong>150 g</strong> de beurre</li>
+                        <li>• <strong>120 g</strong> de sucre</li>
+                        <li>• <strong>3</strong> œufs</li>
+                        <li>• <strong>80 g</strong> de farine</li>
+                    </ul>
+                </div>
+                <div class="info-card blue">
+                    <div class="card-title">📋 Ce qu'on cherche</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>➤ Adapter la recette pour <strong>10 personnes</strong></li>
+                        <li style="margin-top:0.5rem;">➤ Avec seulement <strong>2 œufs</strong>, combien de parts peut-on faire ?</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><span>Quelle quantité de chaque ingrédient faut-il pour 10 personnes ?</span></div>
+            <div class="q-row"><span class="qnum">2</span><span>Si on n'a que 2 œufs, pour combien de personnes peut-on faire ce gâteau ?</span></div>
+            <div class="q-row"><span class="qnum">3</span><span>Avec 2 œufs, quelle quantité de chocolat faut-il ?</span></div>
+        </div>
+
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice – Question 1 : adapter les quantités pour 10 personnes</button>
+                    <div class="hint-text" id="h1-1">Quelle relation y a-t-il entre le nombre de personnes et la quantité d'ingrédients ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Indice – Questions 1 et 2 : raisonner par proportionnalité</button>
+                    <div class="hint-text" id="h1-2">Comment passer de 6 personnes à 10 personnes ? Peut-on appliquer le même raisonnement aux ingrédients ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-3">💡 Indice – Question 3 : partir des œufs pour trouver le chocolat</button>
+                    <div class="hint-text" id="h1-3">Pour la question 2, essaie de raisonner à rebours : si tu connais les œufs, peux-tu retrouver le nombre de personnes ?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+
+            <div class="rule-box">🔑 La quantité d'ingrédients est <strong>proportionnelle</strong> au nombre de personnes. On utilise un tableau de proportionnalité et le produit en croix.</div>
+
+            <p class="mini-section">Question 1 – Ingrédients pour 10 personnes</p>
+            <div class="calcul-step orange-step" style="overflow-x:auto;">
+                <p style="font-size:0.9rem;margin-bottom:0.6rem;color:var(--orange);font-weight:600;">Tableau de proportionnalité (une ligne par ingrédient) :</p>
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Nb de personnes</th><td>6</td><td>10</td></tr>
+                        <tr><th>Chocolat (g)</th><td>200</td><td class="unknown">? = 200 × 10 ÷ 6 ≈ <strong>333 g</strong></td></tr>
+                        <tr><th>Beurre (g)</th><td>150</td><td class="unknown">? = 150 × 10 ÷ 6 = <strong>250 g</strong></td></tr>
+                        <tr><th>Sucre (g)</th><td>120</td><td class="unknown">? = 120 × 10 ÷ 6 = <strong>200 g</strong></td></tr>
+                        <tr><th>Œufs</th><td>3</td><td class="unknown">? = 3 × 10 ÷ 6 = <strong>5 œufs</strong></td></tr>
+                        <tr><th>Farine (g)</th><td>80</td><td class="unknown">? = 80 × 10 ÷ 6 ≈ <strong>133 g</strong></td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;font-size:0.9rem;">Produit en croix : <em>valeur cherchée = valeur connue × 10 ÷ 6</em></div>
+            </div>
+
+            <p class="mini-section green">Question 2 – Nombre de parts avec 2 œufs</p>
+            <div class="calcul-step green-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Œufs</th><td>3</td><td>2</td></tr>
+                        <tr><th>Personnes</th><td>6</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>2 × 6 ÷ 3</em> = <strong>4 personnes</strong></div>
+            </div>
+            <div class="solution-text green">Avec 2 œufs, on peut faire le gâteau pour <strong>4 personnes</strong>.</div>
+
+            <p class="mini-section">Question 3 – Chocolat pour 4 personnes</p>
+            <div class="calcul-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Personnes</th><td>6</td><td>4</td></tr>
+                        <tr><th>Chocolat (g)</th><td>200</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>200 × 4 ÷ 6</em> ≈ <strong>133 g de chocolat</strong></div>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <!-- ===== EX 2 – CARRELAGE ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">🏠</div>
+        <div class="section-divider-title">Problème 2 – Le carrelage de la cuisine</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 4</h2>
+                <span class="exercise-tag tag-green">Aire · Surface</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+
+            <!-- Illustration plan cuisine -->
+            <div class="illus-frame">
+                <svg width="460" height="160" viewBox="0 0 460 160" xmlns="http://www.w3.org/2000/svg" aria-label="Plan de cuisine">
+                    <!-- Pièce -->
+                    <rect x="60" y="10" width="340" height="130" rx="4" fill="#fef9c3" stroke="#854d0e" stroke-width="2.5"/>
+                    <!-- Carrelage grille -->
+                    <g stroke="#d97706" stroke-width="0.7" opacity="0.5">
+                        <line x1="94" y1="10" x2="94" y2="140"/><line x1="128" y1="10" x2="128" y2="140"/>
+                        <line x1="162" y1="10" x2="162" y2="140"/><line x1="196" y1="10" x2="196" y2="140"/>
+                        <line x1="230" y1="10" x2="230" y2="140"/><line x1="264" y1="10" x2="264" y2="140"/>
+                        <line x1="298" y1="10" x2="298" y2="140"/><line x1="332" y1="10" x2="332" y2="140"/>
+                        <line x1="366" y1="10" x2="366" y2="140"/>
+                        <line x1="60" y1="43" x2="400" y2="43"/><line x1="60" y1="76" x2="400" y2="76"/>
+                        <line x1="60" y1="109" x2="400" y2="109"/>
+                    </g>
+                    <!-- Quelques carreaux colorés pour le visuel -->
+                    <rect x="94" y="43" width="34" height="33" fill="#fbbf24" opacity="0.4"/>
+                    <rect x="162" y="76" width="34" height="33" fill="#fbbf24" opacity="0.4"/>
+                    <rect x="264" y="43" width="34" height="33" fill="#fbbf24" opacity="0.4"/>
+                    <rect x="332" y="109" width="34" height="31" fill="#fbbf24" opacity="0.4"/>
+                    <!-- Plan de travail (rectangle en L) -->
+                    <rect x="60" y="10" width="340" height="22" rx="0" fill="#a16207" opacity="0.3"/>
+                    <rect x="60" y="10" width="30" height="130" rx="0" fill="#a16207" opacity="0.3"/>
+                    <!-- Cotes -->
+                    <line x1="60" y1="150" x2="400" y2="150" stroke="#374151" stroke-width="1.5"/>
+                    <polygon points="60,147 52,150 60,153" fill="#374151"/>
+                    <polygon points="400,147 408,150 400,153" fill="#374151"/>
+                    <rect x="198" y="142" width="64" height="15" rx="3" fill="white"/>
+                    <text x="230" y="153" text-anchor="middle" font-size="12" font-weight="bold" fill="#854d0e">4,25 m</text>
+                    <line x1="415" y1="10" x2="415" y2="140" stroke="#374151" stroke-width="1.5"/>
+                    <polygon points="412,10 415,2 418,10" fill="#374151"/>
+                    <polygon points="412,140 415,148 418,140" fill="#374151"/>
+                    <rect x="420" y="67" width="34" height="15" rx="3" fill="white"/>
+                    <text x="437" y="78" text-anchor="middle" font-size="12" font-weight="bold" fill="#854d0e">3 m</text>
+                </svg>
+            </div>
+
+            <div class="context-box">
+                <strong>La situation :</strong> Léa veut carreler le sol de sa cuisine qui mesure <strong>4,25 m de long</strong> et <strong>3 m de large</strong>.
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card green">
+                    <div class="card-title">🏪 Informations du vendeur</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>• Les carreaux mesurent <strong>30 cm × 30 cm</strong></li>
+                        <li>• 1 boîte contient <strong>10 carreaux</strong></li>
+                        <li>• 1 boîte coûte <strong>22,50 €</strong></li>
+                        <li>• Prévoir <strong>10 % de carreaux en plus</strong> (découpes)</li>
+                    </ul>
+                </div>
+                <div class="info-card orange">
+                    <div class="card-title">📋 Ce qu'on cherche</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>➤ Aire du sol à carreler</li>
+                        <li>➤ Nombre de carreaux nécessaires</li>
+                        <li>➤ Nombre de boîtes à acheter</li>
+                        <li>➤ Coût total de la pose</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="warn-box">⚠️ Attention aux unités ! Les dimensions de la pièce sont en <strong>mètres</strong>, celles des carreaux en <strong>centimètres</strong>. Il faudra convertir avant de calculer.</div>
+
+            <div class="q-row"><span class="qnum">1</span><span>Quelle est l'aire du sol à carreler (en cm²) ?</span></div>
+            <div class="q-row"><span class="qnum">2</span><span>Combien de carreaux faut-il pour couvrir ce sol, en prenant en compte les 10 % de marge ?</span></div>
+            <div class="q-row"><span class="qnum">3</span><span>Combien de boîtes Léa doit-elle acheter ? Quel sera le coût total ?</span></div>
+        </div>
+
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Indice – Question 1 : calculer l'aire, attention aux unités</button>
+                    <div class="hint-text" id="h2-1">Quelles grandeurs faut-il calculer pour comparer le sol et les carreaux ? Attention aux unités.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2">💡 Indice – Question 2 : déduire le nombre de carreaux (+ 10 %)</button>
+                    <div class="hint-text" id="h2-2">Comment déduit-on un nombre de carreaux à partir d'une aire ? Et que signifie « prévoir 10 % de marge » ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-3">💡 Indice – Question 3 : arrondir à l'entier supérieur pour les boîtes</button>
+                    <div class="hint-text" id="h2-3">Peut-on acheter un nombre non entier de boîtes ? Que faire si le résultat n'est pas un nombre entier ?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+
+            <p class="mini-section" style="margin-top:0;">Question 1 – Aire du sol</p>
+            <div class="calcul-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Dimension</th><td>Longueur</td><td>Largeur</td></tr>
+                        <tr><th>En mètres</th><td>4,25 m</td><td>3 m</td></tr>
+                        <tr><th>En centimètres</th><td><strong>425 cm</strong></td><td><strong>300 cm</strong></td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Aire du sol = 425 × 300 = <strong>127 500 cm²</strong></div>
+                <div class="calcul-line">Aire d'un carreau = 30 × 30 = <strong>900 cm²</strong></div>
+            </div>
+
+            <p class="mini-section orange">Question 2 – Nombre de carreaux exact</p>
+            <div class="calcul-step orange-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Surface couverte (cm²)</th><td>900</td><td>127 500</td></tr>
+                        <tr><th>Nb de carreaux</th><td>1</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>127 500 × 1 ÷ 900</em> ≈ 141,67 → <strong>142 carreaux</strong> (arrondi supérieur)</div>
+            </div>
+
+            <p class="mini-section orange">Question 2 – Ajout des 10 % de marge (deux méthodes)</p>
+
+            <!-- MÉTHODE 1 -->
+            <div class="calcul-step orange-step" style="overflow-x:auto;">
+                <p style="font-size:0.88rem;font-weight:700;color:var(--orange);margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.04em;">✦ Méthode 1 — Trouver 10 %, puis additionner</p>
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Pourcentage</th><td>100 %</td><td>10 %</td></tr>
+                        <tr><th>Nb de carreaux</th><td>142</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.5rem;">Produit en croix : ? = <em>142 × 10 ÷ 100</em> = <strong>14,2 → 15 carreaux</strong> (10 %)</div>
+                <div class="calcul-line" style="margin-top:0.3rem;">Total = 142 + 15 = <strong>157 carreaux</strong></div>
+            </div>
+
+            <!-- MÉTHODE 2 -->
+            <div class="calcul-step orange-step" style="overflow-x:auto;">
+                <p style="font-size:0.88rem;font-weight:700;color:var(--orange);margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.04em;">✦ Méthode 2 — Passer directement à 110 %</p>
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Pourcentage</th><td>100 %</td><td>110 %</td></tr>
+                        <tr><th>Nb de carreaux</th><td>142</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.5rem;">Produit en croix : ? = <em>142 × 110 ÷ 100</em> = 156,2 → <strong>157 carreaux</strong></div>
+            </div>
+            <div class="solution-text orange">Il faut prévoir <strong>157 carreaux</strong> minimum (les deux méthodes donnent le même résultat ✓).</div>
+
+            <p class="mini-section green">Question 3 – Nombre de boîtes</p>
+            <div class="calcul-step green-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Nb de carreaux</th><td>10</td><td>157</td></tr>
+                        <tr><th>Nb de boîtes</th><td>1</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>157 × 1 ÷ 10</em> = 15,7 → <strong>16 boîtes</strong> (arrondi supérieur — on ne peut pas acheter une demi-boîte)</div>
+            </div>
+
+            <p class="mini-section green">Question 3 – Coût total</p>
+            <div class="calcul-step green-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Nb de boîtes</th><td>1</td><td>16</td></tr>
+                        <tr><th>Prix (€)</th><td>22,50</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>16 × 22,50 ÷ 1</em> = <strong>360 €</strong></div>
+            </div>
+            <div class="solution-text">Léa devra acheter <strong>16 boîtes</strong> pour un coût total de <strong>360 €</strong>.</div>
+
+        </div></div></div>
+    </div>
+
+    <!-- ===== EX 3 – VOITURE ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">⛽</div>
+        <div class="section-divider-title">Problème 3 – Le plein d'essence</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 4</h2>
+                <span class="exercise-tag tag-purple">Consommation · Distance</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+
+            <!-- Illustration voiture -->
+            <div class="illus-frame">
+                <svg width="460" height="130" viewBox="0 0 460 130" xmlns="http://www.w3.org/2000/svg" aria-label="Voiture sur route">
+                    <!-- Route -->
+                    <rect x="0" y="95" width="460" height="35" fill="#475569"/>
+                    <rect x="0" y="108" width="460" height="5" fill="#64748b"/>
+                    <!-- Marquages route -->
+                    <rect x="30" y="110" width="50" height="4" rx="2" fill="#fef08a"/>
+                    <rect x="120" y="110" width="50" height="4" rx="2" fill="#fef08a"/>
+                    <rect x="210" y="110" width="50" height="4" rx="2" fill="#fef08a"/>
+                    <rect x="300" y="110" width="50" height="4" rx="2" fill="#fef08a"/>
+                    <rect x="390" y="110" width="50" height="4" rx="2" fill="#fef08a"/>
+                    <!-- Carrosserie voiture -->
+                    <rect x="90" y="60" width="220" height="40" rx="8" fill="#3b82f6"/>
+                    <!-- Toit -->
+                    <path d="M 140 60 Q 160 30 220 28 Q 270 26 300 60 Z" fill="#2563eb"/>
+                    <!-- Vitres -->
+                    <path d="M 152 58 Q 165 38 215 36 Q 255 34 275 58 Z" fill="#bfdbfe" opacity="0.7"/>
+                    <!-- Roues -->
+                    <circle cx="145" cy="98" r="20" fill="#1e293b"/>
+                    <circle cx="145" cy="98" r="10" fill="#64748b"/>
+                    <circle cx="305" cy="98" r="20" fill="#1e293b"/>
+                    <circle cx="305" cy="98" r="10" fill="#64748b"/>
+                    <!-- Phares -->
+                    <rect x="88" y="72" width="10" height="14" rx="3" fill="#fef08a"/>
+                    <rect x="302" y="72" width="10" height="14" rx="3" fill="#fca5a5"/>
+                    <!-- Distance -->
+                    <line x1="30" y1="20" x2="430" y2="20" stroke="#0369a1" stroke-width="1.5" stroke-dasharray="6,4"/>
+                    <polygon points="30,17 22,20 30,23" fill="#0369a1"/>
+                    <polygon points="430,17 438,20 430,23" fill="#0369a1"/>
+                    <rect x="185" y="12" width="90" height="16" rx="3" fill="white"/>
+                    <text x="230" y="23" text-anchor="middle" font-size="12" font-weight="bold" fill="#0369a1">450 km</text>
+                    <!-- Pompe à essence -->
+                    <rect x="400" y="45" width="30" height="45" rx="3" fill="#16a34a"/>
+                    <rect x="405" y="50" width="20" height="12" rx="2" fill="#bbf7d0"/>
+                    <text x="415" y="80" text-anchor="middle" font-size="9" font-weight="bold" fill="white">1,72€</text>
+                    <text x="415" y="90" text-anchor="middle" font-size="8" fill="#bbf7d0">/litre</text>
+                </svg>
+            </div>
+
+            <div class="context-box">
+                <strong>La situation :</strong> La voiture de famille consomme <strong>6,5 litres aux 100 km</strong>. La famille part en vacances à <strong>450 km</strong> de leur domicile. Le prix de l'essence est de <strong>1,72 € le litre</strong>.
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card purple">
+                    <div class="card-title">🚗 Données de la voiture</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>• Consommation : <strong>6,5 L / 100 km</strong></li>
+                        <li>• Distance trajet aller : <strong>450 km</strong></li>
+                        <li>• Prix essence : <strong>1,72 € / litre</strong></li>
+                        <li>• Réservoir : <strong>55 litres</strong> maximum</li>
+                    </ul>
+                </div>
+                <div class="info-card blue">
+                    <div class="card-title">📋 Questions</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>➤ Litres nécessaires pour l'aller</li>
+                        <li>➤ Coût du trajet aller-retour</li>
+                        <li>➤ Nombre d'arrêts au minimum</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><span>Combien de litres d'essence sont nécessaires pour faire les 450 km ?</span></div>
+            <div class="q-row"><span class="qnum">2</span><span>Quel sera le coût total en essence pour le trajet aller-retour ?</span></div>
+            <div class="q-row"><span class="qnum">3</span><span>Le réservoir est plein au départ (55 L). La famille devra-t-elle s'arrêter au moins une fois pour faire le plein sur le trajet aller ? Justifier.</span></div>
+        </div>
+
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-1">💡 Indice – Question 1 : consommation pour 450 km</button>
+                    <div class="hint-text" id="h3-1">Que signifie « consommer 6,5 L aux 100 km » ? Peut-on en déduire la consommation pour une autre distance ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-2">💡 Indice – Question 2 : coût de l'aller-retour (× 2)</button>
+                    <div class="hint-text" id="h3-2">Qu'est-ce qu'un aller-retour en termes de distance ? Une fois la distance connue, quelles étapes pour trouver le coût ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-3">💡 Indice – Question 3 : comparer besoins et capacité du réservoir</button>
+                    <div class="hint-text" id="h3-3">Compare ce que le réservoir peut contenir avec ce que le trajet exige. Que peut-on conclure ?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+
+            <p class="mini-section" style="margin-top:0;">Question 1 – Litres pour 450 km</p>
+            <div class="calcul-step purple-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Distance (km)</th><td>100</td><td>450</td></tr>
+                        <tr><th>Litres d'essence</th><td>6,5</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>6,5 × 450 ÷ 100</em> = <strong>29,25 L</strong></div>
+            </div>
+            <div class="solution-text">Il faut <strong>29,25 litres</strong> pour faire l'aller.</div>
+
+            <p class="mini-section orange">Question 2 – Coût aller-retour</p>
+            <div class="calcul-step orange-step" style="overflow-x:auto;">
+                <p style="font-size:0.9rem;margin-bottom:0.5rem;color:var(--orange);font-weight:600;">Étape 1 : litres pour 900 km (aller-retour = 2 × 450)</p>
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Distance (km)</th><td>100</td><td>900</td></tr>
+                        <tr><th>Litres d'essence</th><td>6,5</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.5rem;">? = <em>6,5 × 900 ÷ 100</em> = <strong>58,5 L</strong></div>
+            </div>
+            <div class="calcul-step orange-step" style="overflow-x:auto;">
+                <p style="font-size:0.9rem;margin-bottom:0.5rem;color:var(--orange);font-weight:600;">Étape 2 : coût de 58,5 litres</p>
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Litres</th><td>1</td><td>58,5</td></tr>
+                        <tr><th>Prix (€)</th><td>1,72</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.5rem;">Produit en croix : ? = <em>58,5 × 1,72 ÷ 1</em> = <strong>100,62 €</strong></div>
+            </div>
+            <div class="solution-text orange">Le coût total aller-retour est de <strong>100,62 €</strong>.</div>
+
+            <p class="mini-section green">Question 3 – Arrêt nécessaire ?</p>
+            <div class="calcul-step green-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Litres nécessaires (450 km)</th><td>29,25 L</td></tr>
+                        <tr><th>Capacité du réservoir</th><td>55 L</td></tr>
+                        <tr><th>Réservoir restant à l'arrivée</th><td><strong>55 − 29,25 = 25,75 L</strong></td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">29,25 L &lt; 55 L → le réservoir suffit !</div>
+            </div>
+            <div class="solution-text green">29,25 L &lt; 55 L → <strong>Aucun arrêt nécessaire</strong> pour l'aller !</div>
+
+        </div></div></div>
+    </div>
+
+    <!-- ===== EX 4 – JARDIN (moins détaillé) ===== -->
+    <div class="section-divider">
+        <div style="font-size:1.3rem;">🌿</div>
+        <div class="section-divider-title">Problème 4 – L'arrosage du jardin</div>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 4</h2>
+                <span class="exercise-tag tag-red">Défi · Moins guidé</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+
+            <!-- Illustration jardin -->
+            <div class="illus-frame">
+                <svg width="460" height="140" viewBox="0 0 460 140" xmlns="http://www.w3.org/2000/svg" aria-label="Jardin potager">
+                    <!-- Sol -->
+                    <rect x="20" y="60" width="420" height="70" rx="4" fill="#92400e" opacity="0.2"/>
+                    <!-- Pelouse -->
+                    <rect x="20" y="50" width="420" height="20" rx="4" fill="#15803d" opacity="0.3"/>
+                    <!-- Parterres potager -->
+                    <rect x="40" y="65" width="80" height="55" rx="4" fill="#a16207" opacity="0.3" stroke="#854d0e" stroke-width="1.5"/>
+                    <rect x="140" y="65" width="80" height="55" rx="4" fill="#a16207" opacity="0.3" stroke="#854d0e" stroke-width="1.5"/>
+                    <rect x="240" y="65" width="80" height="55" rx="4" fill="#a16207" opacity="0.3" stroke="#854d0e" stroke-width="1.5"/>
+                    <rect x="340" y="65" width="80" height="55" rx="4" fill="#a16207" opacity="0.3" stroke="#854d0e" stroke-width="1.5"/>
+                    <!-- Légumes stylisés -->
+                    <text x="80" y="100" text-anchor="middle" font-size="22">🥕</text>
+                    <text x="180" y="100" text-anchor="middle" font-size="22">🥦</text>
+                    <text x="280" y="100" text-anchor="middle" font-size="22">🍅</text>
+                    <text x="380" y="100" text-anchor="middle" font-size="22">🥬</text>
+                    <!-- Arroseur -->
+                    <circle cx="230" cy="30" r="12" fill="#0ea5e9"/>
+                    <text x="230" y="34" text-anchor="middle" font-size="14">💧</text>
+                    <!-- Tuyau -->
+                    <path d="M 230 42 Q 230 60 230 65" stroke="#0ea5e9" stroke-width="2.5" fill="none"/>
+                    <!-- Cotes jardins -->
+                    <line x1="20" y1="128" x2="440" y2="128" stroke="#374151" stroke-width="1.2"/>
+                    <text x="230" y="139" text-anchor="middle" font-size="11" font-weight="bold" fill="#374151">4 parterres · surface totale : 14 m²</text>
+                </svg>
+            </div>
+
+            <div class="context-box">
+                <strong>La situation :</strong> Manon arrose son jardin potager composé de <strong>4 parterres</strong> d'une surface totale de <strong>14 m²</strong>. Son arroseur débite <strong>8 litres par minute</strong> et il faut apporter <strong>6 litres d'eau par m²</strong> à chaque arrosage.
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card green">
+                    <div class="card-title">💧 Données</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>• Débit arroseur : <strong>8 L / min</strong></li>
+                        <li>• Besoin en eau : <strong>6 L / m²</strong></li>
+                        <li>• Surface totale : <strong>14 m²</strong></li>
+                        <li>• Fréquence : arrosage <strong>3 fois par semaine</strong></li>
+                        <li>• Coût eau : <strong>0,003 € / litre</strong></li>
+                    </ul>
+                </div>
+                <div class="info-card blue">
+                    <div class="card-title">📋 Questions</div>
+                    <ul style="list-style:none;font-size:0.93rem;">
+                        <li>➤ Volume d'eau total par arrosage</li>
+                        <li>➤ Durée d'un arrosage</li>
+                        <li>➤ Coût de l'eau sur 4 semaines</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="q-row"><span class="qnum">1</span><span>Quel volume d'eau (en litres) faut-il apporter à chaque arrosage pour les 14 m² ?</span></div>
+            <div class="q-row"><span class="qnum">2</span><span>Combien de minutes dure un arrosage complet, sachant que l'arroseur débite 8 L/min ?</span></div>
+            <div class="q-row"><span class="qnum">3</span><span>Quel est le coût de l'eau sur 4 semaines ?</span></div>
+        </div>
+
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-1">💡 Indice – Questions 1 et 2 : volume et durée d'un arrosage</button>
+                    <div class="hint-text" id="h4-1">Quelles sont les deux grandeurs qui varient ensemble dans chaque question ? Sont-elles proportionnelles ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-2">💡 Indice – Question 3 : nombre total d'arrosages sur 4 semaines</button>
+                    <div class="hint-text" id="h4-2">Pour la question 3, combien y a-t-il d'arrosages en tout sur 4 semaines ? Comment passer du nombre d'arrosages à un coût total ?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+
+            <p class="mini-section" style="margin-top:0;">Question 1 – Volume par arrosage</p>
+            <div class="calcul-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Surface (m²)</th><td>1</td><td>14</td></tr>
+                        <tr><th>Volume d'eau (L)</th><td>6</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>6 × 14 ÷ 1</em> = <strong>84 litres par arrosage</strong></div>
+            </div>
+
+            <p class="mini-section orange">Question 2 – Durée d'un arrosage</p>
+            <div class="calcul-step orange-step" style="overflow-x:auto;">
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Litres débités</th><td>8</td><td>84</td></tr>
+                        <tr><th>Durée (min)</th><td>1</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.6rem;">Produit en croix : ? = <em>84 × 1 ÷ 8</em> = <strong>10,5 min</strong> (soit 10 min 30 s)</div>
+            </div>
+
+            <p class="mini-section green">Question 3 – Coût sur 4 semaines</p>
+            <div class="calcul-step green-step" style="overflow-x:auto;">
+                <p style="font-size:0.9rem;margin-bottom:0.5rem;color:var(--green);font-weight:600;">Étape 1 : volume total sur 4 semaines (3 arrosages/sem × 4 sem = 12 arrosages)</p>
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Nb d'arrosages</th><td>1</td><td>12</td></tr>
+                        <tr><th>Volume total (L)</th><td>84</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.5rem;">? = <em>84 × 12 ÷ 1</em> = <strong>1 008 litres</strong></div>
+            </div>
+            <div class="calcul-step green-step" style="overflow-x:auto;">
+                <p style="font-size:0.9rem;margin-bottom:0.5rem;color:var(--green);font-weight:600;">Étape 2 : coût de 1 008 litres</p>
+                <table class="prop-table">
+                    <tbody>
+                        <tr><th>Litres</th><td>1</td><td>1 008</td></tr>
+                        <tr><th>Coût (€)</th><td>0,003</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table>
+                <div class="calcul-line" style="margin-top:0.5rem;">Produit en croix : ? = <em>1 008 × 0,003 ÷ 1</em> = <strong>3,024 € ≈ 3,02 €</strong></div>
+            </div>
+            <div class="solution-text">L'arrosage du jardin coûte environ <strong>3,02 €</strong> sur 4 semaines.</div>
+
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! Penser à toujours identifier les grandeurs proportionnelles avant de se lancer dans les calculs.</footer>
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    const TOTAL = 4, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 4, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as revu tous les exercices. Excellent travail !' },
+        { min: 3, emoji: '🎉', stars: '⭐⭐⭐', title: 'Très bien !', msg: 'Presque tout vérifié. Jette un œil au dernier !' },
+        { min: 2, emoji: '👍', stars: '⭐⭐', title: 'Bien !', msg: 'La moitié vérifiée. Continue !' },
+        { min: 1, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir les autres corrections !" },
+    ];
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge teal">📚 Feuille complète</span>` +
+            `<span class="score-badge orange">🔢 Proportionnalité 5ème</span>`;
+        card.classList.add('visible');
+    }
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction); btn.classList.remove('active');
+            btn.textContent = 'Voir la correction'; openSet.delete(exId);
+        } else {
+            openCorrection(correction); btn.classList.add('active');
+            btn.textContent = 'Masquer la correction'; openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId); dot.classList.add('done');
+                card.classList.add('seen'); updateProgress();
+            }
+        }
+    }
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+    // Indices indépendants
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled = true;
+            this.textContent = '✓ ' + this.textContent.replace(/^💡 /, '');
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

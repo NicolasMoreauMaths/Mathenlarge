@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Pizzeria des Fractions</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#fdf6ec;--grid:rgba(215,165,100,.18);
+  --card:#fffdf8;--card-border:#f0d9b5;
+  --rust:#c0392b;--rust-light:#e74c3c;--rust-pale:rgba(231,76,60,.1);--rust-border:rgba(231,76,60,.25);
+  --orange:#e67e22;--orange-light:#f39c12;--orange-pale:rgba(230,126,34,.1);
+  --green:#27ae60;--green-pale:rgba(39,174,96,.1);--green-border:rgba(39,174,96,.3);
+  --brown:#7f4f24;--brown-light:#a0693a;--brown-pale:rgba(127,79,36,.08);
+  --cream:#fef9f0;--dough:#faebd7;
+  --text:#3d2000;--text-light:#8a6040;--border:#e8d5b5;--shadow:rgba(127,79,36,.12);
+  --blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.08);
+  --red-err:#dc2626;--red-pale:rgba(220,38,38,.08);
+}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;background:var(--bg);
+  background-image:radial-gradient(circle, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent
+}
+.app{max-width:780px;width:100%}
+
+/* ── HEADER ── */
+.app-header{
+  background:linear-gradient(135deg,#c0392b 0%,#e67e22 100%);
+  color:#fff;padding:14px 22px;border-radius:16px 16px 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 20px rgba(192,57,43,.3);position:relative;overflow:hidden
+}
+.app-header::before{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.08);pointer-events:none
+}
+.app-header::after{
+  content:'';position:absolute;bottom:-20px;left:60px;
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(255,255,255,.06);pointer-events:none
+}
+.app-title{font-family:'Fredoka One',cursive;font-size:1.2em;letter-spacing:.5px;position:relative}
+.app-emoji{font-size:1.5em;position:relative}
+.main{
+  background:var(--card);border:2px solid var(--card-border);border-top:none;
+  border-radius:0 0 16px 16px;padding:28px 24px;
+  box-shadow:0 10px 40px var(--shadow);min-height:60vh
+}
+
+/* ── SCREENS ── */
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── TYPOGRAPHY ── */
+h1{font-family:'Fredoka One',cursive;font-size:1.6em;text-align:center;color:var(--rust);margin-bottom:6px;letter-spacing:.3px}
+.sub{text-align:center;font-size:.93em;color:var(--text-light);margin-bottom:22px;line-height:1.5}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:'Nunito',sans-serif;padding:11px 26px;border-radius:12px;
+  font-size:.92em;font-weight:700;cursor:pointer;transition:all .2s;border:2px solid;
+  min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;gap:6px
+}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-primary{background:var(--rust);color:#fff;border-color:var(--rust);box-shadow:0 3px 12px rgba(192,57,43,.2)}
+.btn-primary:hover:not(:disabled){background:var(--rust-light);transform:translateY(-2px);box-shadow:0 5px 18px rgba(192,57,43,.3)}
+.btn-orange{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 3px 12px rgba(230,126,34,.2)}
+.btn-orange:hover:not(:disabled){background:var(--orange-light);transform:translateY(-2px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border);font-weight:600}
+.btn-ghost:hover{background:var(--dough);border-color:var(--brown-light);color:var(--text)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+
+/* ── MENU CARDS ── */
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+@media(max-width:680px){.menu-grid{grid-template-columns:1fr}}
+.mc{
+  background:var(--cream);border:2.5px solid var(--card-border);border-radius:16px;
+  padding:20px 14px 16px;text-align:center;cursor:pointer;transition:all .25s;
+  min-height:130px;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden
+}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--grad,linear-gradient(90deg,var(--rust),var(--orange)))}
+.mc:hover{border-color:var(--rust);transform:translateY(-4px);box-shadow:0 8px 24px var(--shadow)}
+.mc-icon{font-size:2em;margin-bottom:8px;line-height:1}
+.mc-t{font-family:'Fredoka One',cursive;font-size:1em;color:var(--rust);margin-bottom:4px;letter-spacing:.2px}
+.mc-d{font-size:.75em;color:var(--text-light);line-height:1.4}
+
+/* ── EXERCISE HEADER ── */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.ex-badge{background:var(--rust-pale);color:var(--rust);padding:5px 16px;border-radius:20px;font-size:.85em;font-weight:700;font-family:'Fredoka One',cursive;letter-spacing:.3px}
+.ex-score{font-size:.88em;color:var(--text-light);font-weight:700}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:5px;overflow:hidden;margin-bottom:18px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--rust),var(--orange));border-radius:4px;transition:width .4s}
+
+/* ── FRACTION DISPLAY ── */
+.frac{
+  display:inline-flex;flex-direction:column;align-items:center;
+  font-family:'Kalam',cursive;font-weight:700;
+  line-height:1.1;vertical-align:middle;margin:0 4px
+}
+.frac .num{border-bottom:2.5px solid currentColor;padding:1px 6px;min-width:28px;text-align:center}
+.frac .den{padding:1px 6px;min-width:28px;text-align:center}
+.frac-lg{font-size:2em;color:var(--rust)}
+.frac-md{font-size:1.5em;color:var(--brown)}
+
+/* ── INPUTS ── */
+.frac-input{
+  display:inline-flex;flex-direction:column;align-items:center;
+  font-family:'Kalam',cursive;font-weight:700;font-size:1.6em;margin:0 4px;vertical-align:middle
+}
+.frac-input .fi-bar{width:52px;height:3px;background:var(--text);margin:3px 0;border-radius:2px}
+.fi{
+  font-family:'Kalam',cursive;font-size:1em;width:52px;text-align:center;
+  border:2.5px dashed var(--border);border-radius:10px;background:#fff;
+  padding:5px 2px;outline:none;color:var(--text);font-weight:700;
+  transition:all .2s;min-height:42px;touch-action:manipulation;letter-spacing:1px
+}
+.fi:focus{border-color:var(--rust);border-style:solid;box-shadow:0 0 0 3px var(--rust-pale)}
+.fi.ok{border-color:var(--green)!important;border-style:solid!important;background:var(--green-pale)!important;color:var(--green)!important}
+.fi.err{border-color:var(--red-err)!important;border-style:solid!important;background:var(--red-pale)!important;animation:shake .35s}
+
+/* ── SVG SHAPES ── */
+.shape-wrap{display:flex;justify-content:center;align-items:center;margin:16px 0;user-select:none}
+.shape-part{transition:fill .18s,filter .12s;cursor:default}
+.shape-part.clickable{cursor:pointer}
+.shape-part.clickable:hover{filter:brightness(.92)}
+.shape-label{text-align:center;font-size:.8em;color:var(--text-light);margin-top:4px;font-weight:600}
+
+/* ── PROMPT BOX ── */
+.prompt-box{
+  background:var(--orange-pale);border:2px solid rgba(230,126,34,.3);
+  border-radius:14px;padding:14px 20px;margin-bottom:16px;
+  text-align:center;font-size:1.05em;line-height:1.6;font-weight:600
+}
+.prompt-box .hl{color:var(--rust);font-family:'Kalam',cursive;font-size:1.15em}
+.trap-hint{
+  background:rgba(241,196,15,.15);border:2px dashed rgba(241,196,15,.5);
+  border-radius:10px;padding:10px 14px;margin-top:10px;font-size:.82em;
+  color:#7d6608;text-align:center;font-weight:700
+}
+
+/* ── PHASE INDICATOR ── */
+.phase-row{display:flex;gap:8px;justify-content:center;margin-bottom:16px;align-items:center}
+.phase-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78em;font-weight:800;border:2.5px solid;transition:all .3s}
+.phase-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.phase-dot.active{background:var(--rust);border-color:var(--rust);color:#fff;box-shadow:0 0 0 3px var(--rust-pale)}
+.phase-dot.todo{background:#fff;border-color:var(--border);color:var(--text-light)}
+.phase-line{flex:1;max-width:40px;height:2.5px;background:var(--border);border-radius:2px}
+.phase-line.done{background:var(--green)}
+
+/* ── INPUT ZONE EX3 ── */
+.cut-zone{
+  background:var(--cream);border:2px solid var(--card-border);
+  border-radius:14px;padding:16px 20px;margin:14px 0;text-align:center
+}
+.cut-zone label{display:block;font-size:.88em;font-weight:700;color:var(--brown);margin-bottom:8px}
+.cut-input{
+  font-family:'Kalam',cursive;font-size:1.8em;font-weight:700;width:80px;
+  text-align:center;border:3px solid var(--border);border-radius:12px;
+  background:#fff;padding:6px;outline:none;color:var(--text);
+  transition:all .2s;min-height:52px
+}
+.cut-input:focus{border-color:var(--rust);box-shadow:0 0 0 3px var(--rust-pale)}
+.cut-input.ok{border-color:var(--green);background:var(--green-pale);color:var(--green)}
+.cut-input.err{border-color:var(--red-err);animation:shake .35s}
+
+/* ── FEEDBACK ── */
+.fb{
+  margin-top:14px;padding:12px 18px;border-radius:12px;font-size:.93em;
+  text-align:center;display:none;animation:fadeIn .25s;font-weight:700;line-height:1.5
+}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:2px solid var(--green-border)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red-err);border:2px solid rgba(220,38,38,.2)}
+.fb.info{display:block;background:var(--orange-pale);color:#7d5000;border:2px solid rgba(230,126,34,.3)}
+
+/* ── RESULTS ── */
+.rc{
+  width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:18px auto;border:5px solid;
+  font-family:'Fredoka One',cursive
+}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:var(--orange);background:var(--orange-pale)}
+.rc.bad{border-color:var(--red-err);background:var(--red-pale)}
+.rp{font-size:2.2em;font-weight:700;line-height:1}
+.rm{font-size:1.05em;text-align:center;margin:14px 0;font-weight:700;color:var(--text)}
+.medals{text-align:center;font-size:2.5em;letter-spacing:4px;margin:8px 0}
+
+/* ── INSTRUCTION BOX ── */
+.instr{
+  background:var(--blue-pale);border:2px solid rgba(59,130,246,.2);
+  border-radius:12px;padding:12px 16px;margin-bottom:14px;
+  font-size:.88em;color:#1e3a8a;font-weight:600;line-height:1.5
+}
+.instr::before{content:'💡 ';font-size:1.1em}
+
+/* ── COLORING COUNTER ── */
+.color-counter{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--cream);border:2px solid var(--card-border);
+  border-radius:12px;padding:8px 16px;margin:10px auto;
+  font-weight:700;font-size:.95em
+}
+.color-counter .cc-val{font-family:'Kalam',cursive;font-size:1.5em;color:var(--rust);min-width:28px;text-align:center}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+/* ── INTRO DECORATION ── */
+.intro-deco{
+  display:flex;justify-content:center;align-items:center;gap:16px;
+  margin:20px 0;font-size:2.5em;
+}
+.intro-frac{
+  font-family:'Kalam',cursive;font-size:2em;color:var(--rust);font-weight:700;
+  text-align:center;line-height:1.1;padding:10px 20px;
+  background:var(--rust-pale);border-radius:12px;border:2px dashed var(--rust-border)
+}
+.intro-frac span{display:block;border-bottom:3px solid var(--rust);padding-bottom:2px;margin-bottom:2px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:680px){
+  .mc{min-height:90px;flex-direction:row;gap:12px;text-align:left;padding:14px 16px}
+  .mc::before{width:4px;height:100%;top:0;right:auto;left:0}
+  .mc-icon{font-size:1.6em;margin-bottom:0}
+  .mc-t{font-size:.95em}.mc-d{font-size:.74em}
+}
+@media(max-width:560px){
+  .main{padding:20px 14px}
+  h1{font-size:1.35em}
+  .app-title{font-size:1em}
+  .shape-wrap svg{max-width:260px;height:auto}
+}
+@media(max-width:420px){
+  .main{padding:16px 10px}
+  .fi{width:46px;font-size:.9em;min-height:38px}
+  .frac-input .fi-bar{width:46px}
+  .cut-input{width:70px;font-size:1.5em}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+  <span class="app-title">🍕 La Pizzeria des Fractions</span>
+  <span class="app-emoji">🧮</span>
+</div>
+<div class="main">
+
+<!-- INTRO -->
+<div class="screen active" id="S_intro">
+  <h1>Les Fractions</h1>
+  <p class="sub">Lis, colorie et découpe des figures — du CM1 au CM2</p>
+  <div class="intro-deco">
+    <div class="intro-frac"><span>3</span>4</div>
+    <div style="font-size:1em">🍕</div>
+    <div class="intro-frac"><span>1</span>2</div>
+  </div>
+  <p class="sub">Choisis un exercice pour t'entraîner !</p>
+  <div class="controls"><button class="btn btn-primary" onclick="show('S_menu')">🚀 C'est parti !</button></div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="S_menu">
+  <h1>Choisis ton exercice</h1>
+  <p class="sub">3 types d'activités pour maîtriser les fractions</p>
+  <div class="menu-grid">
+    <div class="mc" style="--grad:linear-gradient(90deg,#c0392b,#e74c3c)" onclick="go(1)">
+      <div class="mc-icon">🔍</div>
+      <div>
+        <div class="mc-t">Lire une fraction</div>
+        <div class="mc-d">Une figure est coloriée → écris la fraction correspondante</div>
+      </div>
+    </div>
+    <div class="mc" style="--grad:linear-gradient(90deg,#e67e22,#f39c12)" onclick="go(2)">
+      <div class="mc-icon">🎨</div>
+      <div>
+        <div class="mc-t">Colorier une fraction</div>
+        <div class="mc-d">On te donne une fraction → colorie le bon nombre de parts</div>
+      </div>
+    </div>
+    <div class="mc" style="--grad:linear-gradient(90deg,#27ae60,#2ecc71)" onclick="go(3)">
+      <div class="mc-icon">✂️</div>
+      <div>
+        <div class="mc-t">Découper et colorier</div>
+        <div class="mc-d">Découpe la figure toi-même, puis colorie la bonne part</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div class="screen" id="S_ex">
+  <div class="ex-top">
+    <div class="ex-badge" id="badge">—</div>
+    <div class="ex-score" id="scLbl">0 / 0</div>
+  </div>
+  <div class="pbar"><div class="pfill" id="pfill"></div></div>
+  <div id="zone"></div>
+  <div class="fb" id="fb"></div>
+  <div class="controls">
+    <button class="btn btn-primary" id="nxt" style="display:none" onclick="nxtQ()">Suivant →</button>
+    <button class="btn btn-ghost" onclick="show('S_menu')">← Menu</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="S_res">
+  <h1>Résultats 🎉</h1>
+  <div class="rc" id="rCirc"><div class="rp" id="rPct">0%</div><div style="font-size:.72em;color:var(--text-light);margin-top:2px">de réussite</div></div>
+  <div class="medals" id="medals"></div>
+  <div class="rm" id="rMsg"></div>
+  <div class="controls">
+    <button class="btn btn-primary" onclick="show('S_menu')">← Menu</button>
+    <button class="btn btn-orange" onclick="replayLevel()">🔄 Rejouer</button>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+const ri = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const rv = a => a[Math.floor(Math.random()*a.length)];
+const sh = a => { for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]} return a };
+const $ = id => document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let lv=0, sc=0, qi=0, qs=[], cq=null, coloredParts=new Set(), ex3Phase=1, ex3N=0;
+const LVNAMES = {1:'🔍 Lire une fraction', 2:'🎨 Colorier une fraction', 3:'✂️ Découper & Colorier'};
+
+// ══════════════════════════════════════════
+// SVG SHAPES
+// ══════════════════════════════════════════
+const FILL_EMPTY='#fef9f0';
+const FILL_COLOR_EX1='#e74c3c';
+const FILL_COLOR_EX2='#f39c12';
+const FILL_COLOR_EX3='#27ae60';
+const STROKE='#7f4f24';
+
+function piePathD(cx,cy,r,startDeg,endDeg){
+  const s=startDeg*Math.PI/180, e=endDeg*Math.PI/180;
+  const x1=cx+r*Math.cos(s), y1=cy+r*Math.sin(s);
+  const x2=cx+r*Math.cos(e), y2=cy+r*Math.sin(e);
+  const large=endDeg-startDeg>180?1:0;
+  return `M${cx},${cy} L${x1},${y1} A${r},${r},0,${large},1,${x2},${y2} Z`;
+}
+
+function makePieSVG(n, coloredSet, fillColor, interactive, size=220){
+  const cx=size/2, cy=size/2, r=size/2-8;
+  const step=360/n;
+  let paths='';
+  for(let i=0;i<n;i++){
+    const start=-90+i*step, end=start+step;
+    const filled=coloredSet.has(i);
+    const clk=interactive?`onclick="partClick(this,${i})" `:'';
+    paths+=`<path d="${piePathD(cx,cy,r,start,end)}"
+      fill="${filled?fillColor:FILL_EMPTY}" stroke="${STROKE}" stroke-width="2.5"
+      class="shape-part${interactive?' clickable':''}" data-idx="${i}" data-fill="${fillColor}" ${clk}/>`;
+  }
+  // Outer circle border
+  paths+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${STROKE}" stroke-width="2.5"/>`;
+  paths+=`<circle cx="${cx}" cy="${cy}" r="3" fill="${STROKE}"/>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}</svg>`;
+}
+
+function makeRectSVG(n, coloredSet, fillColor, orientation, interactive, W=280, H=160){
+  let rects='';
+  if(orientation==='v'){
+    const pw=W/n;
+    for(let i=0;i<n;i++){
+      const clk=interactive?`onclick="partClick(this,${i})" `:'';
+      rects+=`<rect x="${i*pw}" y="0" width="${pw}" height="${H}"
+        fill="${coloredSet.has(i)?fillColor:FILL_EMPTY}" stroke="${STROKE}" stroke-width="2.5"
+        class="shape-part${interactive?' clickable':''}" data-idx="${i}" data-fill="${fillColor}" ${clk}/>`;
+    }
+  } else {
+    const ph=H/n;
+    for(let i=0;i<n;i++){
+      const clk=interactive?`onclick="partClick(this,${i})" `:'';
+      rects+=`<rect x="0" y="${i*ph}" width="${W}" height="${ph}"
+        fill="${coloredSet.has(i)?fillColor:FILL_EMPTY}" stroke="${STROKE}" stroke-width="2.5"
+        class="shape-part${interactive?' clickable':''}" data-idx="${i}" data-fill="${fillColor}" ${clk}/>`;
+    }
+  }
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${rects}</svg>`;
+}
+
+function makeGridSVG(n, coloredSet, fillColor, interactive, W=240){
+  // Grid configs
+  const configs={4:[2,2],6:[2,3],8:[2,4],9:[3,3]};
+  const [rows,cols]=configs[n]||[2,Math.ceil(n/2)];
+  const H=W*rows/cols;
+  const pw=W/cols, ph=H/rows;
+  let rects='';
+  for(let i=0;i<n;i++){
+    const row=Math.floor(i/cols), col=i%cols;
+    const clk=interactive?`onclick="partClick(this,${i})" `:'';
+    rects+=`<rect x="${col*pw}" y="${row*ph}" width="${pw}" height="${ph}"
+      fill="${coloredSet.has(i)?fillColor:FILL_EMPTY}" stroke="${STROKE}" stroke-width="2.5"
+      class="shape-part${interactive?' clickable':''}" data-idx="${i}" data-fill="${fillColor}" ${clk}/>`;
+  }
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${rects}</svg>`;
+}
+
+function renderShape(n, coloredSet, fillColor, shapeType, interactive){
+  switch(shapeType){
+    case 'pie': return makePieSVG(n, coloredSet, fillColor, interactive);
+    case 'rect-v': return makeRectSVG(n, coloredSet, fillColor, 'v', interactive);
+    case 'rect-h': return makeRectSVG(n, coloredSet, fillColor, 'h', interactive);
+    case 'grid': return makeGridSVG(n, coloredSet, fillColor, interactive);
+    default: return makePieSVG(n, coloredSet, fillColor, interactive);
+  }
+}
+
+function shapeLabel(shapeType, n){
+  const names={pie:'camembert','rect-v':'rectangle','rect-h':'rectangle','grid':'carré'};
+  return `Figure : ${names[shapeType]||'figure'} découpé${shapeType==='pie'?'':shapeType==='grid'?' en grille':''} en <strong>${n}</strong> part${n>1?'s':'s'} égales`;
+}
+
+function fracHTML(num, den, cls='frac-lg'){
+  return `<span class="frac ${cls}"><span class="num">${num}</span><span class="den">${den}</span></span>`;
+}
+
+// ══════════════════════════════════════════
+// INTERACTIVE PART CLICKING
+// ══════════════════════════════════════════
+function partClick(el, idx){
+  if(coloredParts.has(idx)){
+    coloredParts.delete(idx);
+    el.setAttribute('fill', FILL_EMPTY);
+  } else {
+    coloredParts.add(idx);
+    el.setAttribute('fill', el.dataset.fill);
+    el.style.animation='pop .25s ease';
+    setTimeout(()=>el.style.animation='',300);
+  }
+  updateColorCounter();
+}
+
+function updateColorCounter(){
+  const cc=$('colorCounter');
+  if(cc) cc.textContent=coloredParts.size;
+}
+
+// ══════════════════════════════════════════
+// EXERCISE 1 — READ A FRACTION
+// ══════════════════════════════════════════
+function genEx1(){
+  const shapes=['pie','pie','rect-v','rect-h','grid','pie','rect-v','rect-h'];
+  const out=[];
+  for(let i=0;i<8;i++){
+    const shapeType=shapes[i];
+    let n;
+    if(shapeType==='grid') n=rv([4,6,9]);
+    else if(shapeType==='pie') n=rv([2,3,4,5,6,8,10,12]);
+    else n=rv([2,3,4,5,6,8]);
+    const k=ri(1,n-1);
+    // Possibly non-contiguous coloring for variety
+    const indices=[...Array(n).keys()];
+    sh(indices);
+    const coloredSet=new Set(indices.slice(0,k));
+    out.push({shapeType, n, k, coloredSet});
+  }
+  return out;
+}
+
+function renderEx1(q){
+  coloredParts = new Set(q.coloredSet);
+  const Z=$('zone');
+  const svgHTML=renderShape(q.n, coloredParts, FILL_COLOR_EX1, q.shapeType, false);
+  Z.innerHTML=`
+    <div class="instr">Observe la figure ci-dessous et écris la fraction représentée par les parts coloriées en rouge.</div>
+    <div class="shape-wrap">${svgHTML}</div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:6px;margin:8px 0">
+      <span style="font-weight:700;font-size:1.05em;color:var(--text-light)">La fraction coloriée est :</span>
+      <div class="frac-input">
+        <input class="fi" id="inNum" inputmode="numeric" placeholder="?" maxlength="3" autocomplete="off">
+        <div class="fi-bar"></div>
+        <input class="fi" id="inDen" inputmode="numeric" placeholder="?" maxlength="3" autocomplete="off">
+      </div>
+    </div>
+    <div class="controls"><button class="btn btn-primary" onclick="valEx1()">✓ Valider</button></div>`;
+  setTimeout(()=>{const e=$('inNum');if(e)e.focus()},60);
+  // Enter key support
+  setTimeout(()=>{
+    [$('inNum'),$('inDen')].forEach(e=>{if(e)e.addEventListener('keydown',ev=>{if(ev.key==='Enter')valEx1()})});
+  },100);
+}
+
+function valEx1(){
+  const q=cq;
+  const nEl=$('inNum'), dEl=$('inDen');
+  const n=parseInt(nEl.value.trim()), d=parseInt(dEl.value.trim());
+  nEl.classList.remove('ok','err'); dEl.classList.remove('ok','err');
+
+  // Accept any equivalent fraction: n/d == q.k/q.n
+  // Use cross-multiplication to avoid float issues: n*q.n === d*q.k
+  const valid = !isNaN(n) && !isNaN(d) && d>=1 && n>=0 && n<=d && (n*q.n === d*q.k);
+
+  if(valid){
+    nEl.classList.add('ok'); dEl.classList.add('ok');
+    nEl.disabled=true; dEl.disabled=true;
+    finish(true, '');
+  } else {
+    if(isNaN(d)||d<1) dEl.classList.add('err');
+    if(isNaN(n)||n<0||(!isNaN(d)&&d>=1&&n*q.n!==d*q.k)) nEl.classList.add('err');
+    setTimeout(()=>{
+      [nEl,dEl].forEach(e=>{
+        if(e.classList.contains('err')){e.classList.remove('err');e.value='';e.disabled=false;}
+      });
+      const firstErr=[nEl,dEl].find(e=>!e.disabled&&!e.classList.contains('ok'));
+      if(firstErr)firstErr.focus();
+    },500);
+    if(!isNaN(n)&&!isNaN(d)){
+      showFbTemp(`Pas tout à fait… réessaie ! (ex : ${q.k}/${q.n} ou une fraction équivalente)`);
+    }
+  }
+}
+
+function showFbTemp(msg){
+  const fb=$('fb');fb.className='fb info';fb.textContent='💬 '+msg;
+  setTimeout(()=>{if(fb.classList.contains('info'))fb.className='fb'},2200);
+}
+
+// ══════════════════════════════════════════
+// EXERCISE 2 — COLOR A FRACTION
+// ══════════════════════════════════════════
+function genEx2(){
+  // Mix of normal and trap questions
+  // trap: figure parts != fraction denominator
+  const items=[
+    // Normal questions
+    {shapeType:'pie',   n:3, fracN:1, fracD:3, correct:1, trap:false},
+    {shapeType:'rect-v',n:4, fracN:3, fracD:4, correct:3, trap:false},
+    {shapeType:'pie',   n:5, fracN:2, fracD:5, correct:2, trap:false},
+    {shapeType:'rect-h',n:6, fracN:5, fracD:6, correct:5, trap:false},
+    // Trap questions: n_parts ≠ fracD
+    {shapeType:'rect-v',n:4, fracN:1, fracD:2, correct:2, trap:true},  // 1/2 → color 2/4
+    {shapeType:'rect-h',n:6, fracN:1, fracD:3, correct:2, trap:true},  // 1/3 → color 2/6
+    {shapeType:'pie',   n:8, fracN:3, fracD:4, correct:6, trap:true},  // 3/4 → color 6/8
+    {shapeType:'grid',  n:6, fracN:2, fracD:3, correct:4, trap:true},  // 2/3 → color 4/6
+    {shapeType:'rect-v',n:8, fracN:1, fracD:4, correct:2, trap:true},  // 1/4 → color 2/8
+  ];
+  return sh([...items]).slice(0,8);
+}
+
+function renderEx2(q){
+  coloredParts = new Set();
+  const Z=$('zone');
+  const trapNote=q.trap
+    ?`<div class="trap-hint">⚠️ Attention ! La figure n'est pas découpée en ${q.fracD} parts, mais en ${q.n} parts.</div>`:'';
+  Z.innerHTML=`
+    <div class="prompt-box">
+      Colorie <span class="hl">${fracHTML(q.fracN,q.fracD,'frac-md')}</span> de cette figure.
+      ${trapNote}
+    </div>
+    <div class="instr">Clique sur les parts pour les colorier en orange. Tu peux cliquer à nouveau pour décolorier.</div>
+    <div class="shape-wrap" id="shapeZone">${renderShape(q.n, coloredParts, FILL_COLOR_EX2, q.shapeType, true)}</div>
+    <p style="text-align:center;font-size:.8em;color:var(--text-light);margin-bottom:8px">${shapeLabel(q.shapeType, q.n)}</p>
+    <div style="text-align:center">
+      <div class="color-counter">
+        🎨 Parts coloriées : <span class="cc-val" id="colorCounter">0</span>
+      </div>
+    </div>
+    <div class="controls"><button class="btn btn-orange" onclick="valEx2()">✓ Valider</button></div>`;
+}
+
+function valEx2(){
+  const q=cq;
+  if(coloredParts.size===0){
+    showFbTemp('Colorie d\'abord le bon nombre de parts !');return;
+  }
+  if(coloredParts.size===q.correct){
+    // Disable all parts
+    document.querySelectorAll('.shape-part.clickable').forEach(p=>{p.classList.remove('clickable');p.style.cursor='default'});
+    finish(true,'');
+  } else {
+    const msg=coloredParts.size<q.correct
+      ? `Tu en as colorié ${coloredParts.size}, mais il en faut ${q.correct}. (${q.fracN}/${q.fracD} de ${q.n} parts = ${q.correct} parts)`
+      : `Tu en as colorié trop : ${coloredParts.size} au lieu de ${q.correct}.`;
+    finish(false, msg);
+    document.querySelectorAll('.shape-part.clickable').forEach(p=>{p.classList.remove('clickable');p.style.cursor='default'});
+    // Highlight correct answer: color first q.correct parts green
+    const allParts=document.querySelectorAll('.shape-part');
+    let cnt=0;
+    allParts.forEach(p=>{
+      if(cnt<q.correct){p.setAttribute('fill','#27ae60');cnt++;}
+      else p.setAttribute('fill',FILL_EMPTY);
+    });
+  }
+}
+
+// ══════════════════════════════════════════
+// EXERCISE 3 — DIVIDE THEN COLOR
+// ══════════════════════════════════════════
+function genEx3(){
+  const items=[
+    {shapeType:'pie',   fracN:1, fracD:4},
+    {shapeType:'pie',   fracN:1, fracD:12},
+    {shapeType:'pie',   fracN:3, fracD:8},
+    {shapeType:'rect-v',fracN:2, fracD:5},
+    {shapeType:'rect-h',fracN:3, fracD:6},
+    {shapeType:'pie',   fracN:2, fracD:6},
+    {shapeType:'rect-v',fracN:1, fracD:3},
+    {shapeType:'pie',   fracN:5, fracD:10},
+  ];
+  return sh([...items]).slice(0,6);
+}
+
+function renderEx3Phase1(q){
+  coloredParts=new Set(); ex3Phase=1;
+  const Z=$('zone');
+  // Draw whole undivided shape
+  const wholeSVG = q.shapeType==='pie'
+    ? `<svg width="220" height="220" viewBox="0 0 220 220">
+        <circle cx="110" cy="110" r="102" fill="${FILL_EMPTY}" stroke="${STROKE}" stroke-width="2.5"/>
+        <circle cx="110" cy="110" r="3" fill="${STROKE}"/>
+       </svg>`
+    : `<svg width="280" height="160" viewBox="0 0 280 160">
+        <rect x="1" y="1" width="278" height="158" fill="${FILL_EMPTY}" stroke="${STROKE}" stroke-width="2.5" rx="4"/>
+       </svg>`;
+
+  Z.innerHTML=`
+    <div class="phase-row">
+      <div class="phase-dot active">1</div>
+      <div class="phase-line"></div>
+      <div class="phase-dot todo">2</div>
+    </div>
+    <div class="prompt-box">
+      Colorie <span class="hl">${fracHTML(q.fracN,q.fracD,'frac-md')}</span> de cette figure.
+    </div>
+    <div class="instr">D'abord, choisis en combien de parts égales tu veux découper la figure, puis tape ce nombre ci-dessous.</div>
+    <div class="shape-wrap">${wholeSVG}</div>
+    <div class="cut-zone">
+      <label>En combien de parts égales veux-tu découper ?</label>
+      <input class="cut-input" id="cutInput" type="number" min="1" max="20" placeholder="?" inputmode="numeric">
+    </div>
+    <div class="controls"><button class="btn btn-primary" onclick="valEx3Phase1()">✂️ Découper !</button></div>`;
+  setTimeout(()=>{const e=$('cutInput');if(e){e.focus();e.addEventListener('keydown',ev=>{if(ev.key==='Enter')valEx3Phase1()})}},60);
+}
+
+function valEx3Phase1(){
+  const q=cq;
+  const ci=$('cutInput');
+  const val=parseInt(ci.value);
+  ci.classList.remove('ok','err');
+  if(isNaN(val)||val<2||val>20){ci.classList.add('err');setTimeout(()=>ci.classList.remove('err'),500);return;}
+  // Accept any val where val*fracN/fracD is a positive integer (equivalent fraction)
+  const partsToColor = val * q.fracN / q.fracD;
+  if(!Number.isInteger(partsToColor)||partsToColor<1||partsToColor>=val){
+    ci.classList.add('err');
+    showFbTemp(`En découpant en ${val} parts, tu ne peux pas colorier exactement ${q.fracN}/${q.fracD}. Cherche un nombre de parts qui convient !`);
+    setTimeout(()=>{ci.classList.remove('err');ci.value='';ci.focus()},800);
+    return;
+  }
+  ci.classList.add('ok');
+  ex3N=val;
+  // Store the number of parts to color for phase 2
+  q._partsToColor=partsToColor;
+  setTimeout(()=>renderEx3Phase2(q),400);
+}
+
+function renderEx3Phase2(q){
+  coloredParts=new Set(); ex3Phase=2;
+  const Z=$('zone');
+  const n=ex3N; // actual number of parts chosen by student
+  const ptc=q._partsToColor; // how many to color
+  const svgHTML=renderShape(n, coloredParts, FILL_COLOR_EX3, q.shapeType, true);
+  const equivNote = n!==q.fracD
+    ? ` <span style="font-size:.82em;color:var(--text-light)">(= ${ptc}/${n} avec ta découpe)</span>` : '';
+  Z.innerHTML=`
+    <div class="phase-row">
+      <div class="phase-dot done">✓</div>
+      <div class="phase-line done"></div>
+      <div class="phase-dot active">2</div>
+    </div>
+    <div class="prompt-box">
+      Super ! Maintenant, colorie <span class="hl">${fracHTML(q.fracN,q.fracD,'frac-md')}</span>${equivNote} de la figure découpée.
+    </div>
+    <div class="instr">Clique sur les parts pour les colorier en vert.</div>
+    <div class="shape-wrap" id="shapeZone">${svgHTML}</div>
+    <div style="text-align:center">
+      <div class="color-counter">
+        🎨 Parts coloriées : <span class="cc-val" id="colorCounter">0</span>
+      </div>
+    </div>
+    <div class="controls"><button class="btn btn-green" onclick="valEx3Phase2()">✓ Valider</button></div>`;
+}
+
+function valEx3Phase2(){
+  const q=cq;
+  const ptc=q._partsToColor;
+  if(coloredParts.size===0){showFbTemp("Colorie d'abord des parts !");return;}
+  if(coloredParts.size===ptc){
+    document.querySelectorAll('.shape-part.clickable').forEach(p=>{p.classList.remove('clickable');p.style.cursor='default'});
+    finish(true,'');
+  } else {
+    const msg=`Il fallait colorier ${ptc} part${ptc>1?'s':''}, pas ${coloredParts.size}.`;
+    document.querySelectorAll('.shape-part.clickable').forEach(p=>{p.classList.remove('clickable');p.style.cursor='default'});
+    let cnt=0;
+    document.querySelectorAll('.shape-part').forEach(p=>{
+      if(cnt<ptc){p.setAttribute('fill','#27ae60');cnt++;}
+      else p.setAttribute('fill',FILL_EMPTY);
+    });
+    finish(false, msg);
+  }
+}
+
+
+// ══════════════════════════════════════════
+// FLOW MANAGEMENT
+// ══════════════════════════════════════════
+function go(l){
+  lv=l; sc=0; qi=0; coloredParts=new Set();
+  if(l===1) qs=genEx1();
+  else if(l===2) qs=genEx2();
+  else qs=genEx3();
+  $('badge').textContent=LVNAMES[l];
+  show('S_ex'); loadQ();
+}
+
+function replayLevel(){if(lv>0)go(lv);else show('S_menu')}
+
+function loadQ(){
+  cq=qs[qi]; coloredParts=new Set();
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';
+  $('nxt').style.display='none';
+  $('zone').innerHTML='';
+  if(lv===1) renderEx1(cq);
+  else if(lv===2) renderEx2(cq);
+  else renderEx3Phase1(cq);
+}
+
+function finish(ok, msg){
+  if(ok) sc++;
+  $('scLbl').textContent=`${sc} / ${qi+1}`;
+  const fb=$('fb');
+  if(ok){
+    fb.className='fb ok';
+    fb.textContent='✅ Bravo, c\'est correct !';
+  } else {
+    fb.className='fb bad';
+    fb.textContent=`❌ ${msg||'Ce n\'est pas tout à fait ça.'}`;
+  }
+  $('nxt').style.display='';
+}
+
+function nxtQ(){
+  qi++;
+  if(qi>=qs.length) showResults();
+  else loadQ();
+}
+
+function showResults(){
+  const tot=qs.length, pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className=`rc ${tier}`;
+  $('rPct').textContent=`${pct}%`;
+  $('rPct').style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red-err)';
+  $('medals').textContent=pct===100?'🏆🌟🏆':pct>=80?'🥇⭐':pct>=60?'🥈':'🥉';
+  $('rMsg').textContent=
+    pct===100?'Parfait ! Tu maîtrises les fractions comme un champion !' :
+    pct>=80?'Très bien ! Tu as bien compris les fractions !' :
+    pct>=60?'Bien ! Continue à t\'entraîner.' :
+    'Encore un peu de practice et tu vas y arriver !';
+  show('S_res');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

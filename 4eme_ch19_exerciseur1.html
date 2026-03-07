@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repérage — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#f7f2e8;--grid:#ebe3cc;--card:#fffef9;
+--forest:#1a4a2e;--forest2:#2d6a4f;
+--sage:#2d7a52;--sage-l:#3d9a6a;--sage-pale:rgba(45,122,82,.08);--sage-b:rgba(45,122,82,.22);
+--amber:#b86820;--amber-pale:rgba(184,104,32,.09);--amber-b:rgba(184,104,32,.25);
+--green:#16a34a;--green-pale:rgba(22,163,74,.1);
+--red:#dc2626;--red-pale:rgba(220,38,38,.08);
+--purple:#6d28d9;--purple-pale:rgba(109,40,217,.08);--purple-b:rgba(109,40,217,.22);
+--text:#18291a;--text-l:#556655;--border:#d5ccb0;--shadow:rgba(26,74,46,.1);
+}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:var(--bg);
+background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+background-size:22px 22px;display:flex;justify-content:center;padding:14px 10px 60px;color:var(--text);
+-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.app{max-width:760px;width:100%}
+.app-header{background:linear-gradient(135deg,var(--forest) 0%,var(--forest2) 100%);color:#fff;
+padding:13px 20px;border-radius:14px 14px 0 0;display:flex;align-items:center;
+justify-content:space-between;box-shadow:0 4px 18px rgba(26,74,46,.28);position:relative;overflow:hidden}
+.app-header::after{content:'';position:absolute;inset:0;
+background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 55%);pointer-events:none}
+.app-title{font-size:1.05em;font-weight:800;letter-spacing:.3px;position:relative}
+.hdr-menu{background:rgba(255,255,255,.18);border:none;color:#fff;padding:6px 14px;
+border-radius:8px;font-family:'Nunito',sans-serif;font-size:.82em;font-weight:700;
+cursor:pointer;transition:all .2s;position:relative;display:none}
+.hdr-menu:hover{background:rgba(255,255,255,.32)}
+.main{background:var(--card);border:1px solid var(--border);border-top:none;
+border-radius:0 0 14px 14px;padding:26px 22px;box-shadow:0 8px 30px var(--shadow);min-height:52vh}
+.screen{display:none;animation:fadeIn .28s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+h1{font-size:1.4em;font-weight:800;text-align:center;margin-bottom:5px;color:var(--forest)}
+.sub{text-align:center;font-size:.91em;color:var(--text-l);margin-bottom:18px;line-height:1.5}
+.btn{font-family:'Nunito',sans-serif;padding:10px 22px;border-radius:10px;font-size:.9em;
+font-weight:700;cursor:pointer;transition:all .2s;border:2px solid;
+min-height:42px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-sage{background:var(--sage);color:#fff;border-color:var(--sage);box-shadow:0 2px 8px rgba(45,122,82,.2)}
+.btn-sage:hover:not(:disabled){background:var(--sage-l);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover:not(:disabled){background:#15803d;transform:translateY(-1px)}
+.btn-amber{background:var(--amber);color:#fff;border-color:var(--amber)}
+.btn-amber:hover:not(:disabled){background:#a05a18;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-l);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-l)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* MENU CARDS */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:13px;
+padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;position:relative;
+min-height:105px;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mc:hover{border-color:var(--sage);transform:translateY(-3px);box-shadow:0 8px 22px var(--shadow)}
+.mc-icon{font-size:1.7em;margin-bottom:5px}
+.mc-t{font-size:.9em;color:var(--sage);font-weight:800;margin-bottom:2px}
+.mc-d{font-size:.76em;color:var(--text-l)}
+.mc-badge{position:absolute;top:7px;right:7px;font-size:.62em;font-weight:800;
+padding:2px 7px;border-radius:8px;background:var(--purple-pale);color:var(--purple)}
+.mc-badge.lvl4{background:var(--amber-pale);color:var(--amber)}
+.sub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}
+.sc{background:var(--card);border:2px solid var(--border);border-radius:11px;
+padding:14px 10px;text-align:center;cursor:pointer;transition:all .22s;
+min-height:88px;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sc:hover{border-color:var(--sage);transform:translateY(-2px);box-shadow:0 6px 16px var(--shadow)}
+.sc-icon{font-size:1.45em;margin-bottom:4px}
+.sc-t{font-size:.82em;color:var(--forest);font-weight:800;margin-bottom:1px}
+.sc-d{font-size:.72em;color:var(--text-l);line-height:1.3}
+
+/* EXERCISE */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.ex-badge{background:var(--sage-pale);color:var(--sage);padding:4px 13px;border-radius:18px;font-size:.84em;font-weight:800}
+.ex-score{font-size:.87em;color:var(--text-l);font-weight:700}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:14px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--sage),var(--purple));border-radius:4px;transition:width .4s}
+.prompt{font-size:.98em;text-align:center;margin:10px 0 12px;line-height:1.5;font-weight:600}
+.prompt .hl{color:var(--sage);font-weight:800}
+.prompt .ho{color:var(--amber);font-weight:800}
+.kbox{background:var(--sage-pale);border:2px solid var(--sage-b);border-radius:12px;
+padding:12px 16px;margin:10px auto;text-align:center;max-width:380px}
+.kbox .katex{font-size:1.3em!important}
+
+/* SVG containers */
+.svg-wrap{overflow-x:auto;margin:12px 0;-webkit-overflow-scrolling:touch;text-align:center}
+.nl-svg,.plane-svg,.box-svg{display:block;max-width:100%;height:auto;cursor:default}
+.nl-svg.interactive{cursor:crosshair}
+.place-tip{font-size:.8em;color:var(--text-l);text-align:center;margin-bottom:4px;font-style:italic}
+
+/* INPUTS */
+.inp{font-family:'Caveat',cursive;font-size:1.15em;text-align:center;
+border:2px dashed var(--sage-b);border-radius:8px;background:#fff;
+padding:6px 4px;outline:none;color:var(--text);font-weight:700;
+transition:all .2s;min-height:40px;touch-action:manipulation;width:64px}
+.inp:focus{border-color:var(--sage);box-shadow:0 0 0 3px var(--sage-pale);border-style:solid}
+.inp.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;border-style:solid!important}
+.inp.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s;border-style:solid!important}
+.inp.wide{width:90px}
+.inp-frac{font-family:'Caveat',cursive;font-size:1.1em;width:72px}
+.inp-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0;flex-wrap:wrap}
+.inp-row .sep{font-family:'Caveat',cursive;font-size:1.2em;font-weight:700;color:var(--text-l)}
+.write-block{background:var(--bg);border:2px solid var(--border);border-radius:12px;
+padding:14px 16px;margin:10px 0}
+.write-row{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}
+.write-lbl{font-family:'Caveat',cursive;font-size:1.1em;font-weight:700;min-width:24px;color:var(--forest)}
+.write-lbl-k{display:inline-block;min-width:50px}
+
+/* FEEDBACK */
+.fb{margin-top:12px;padding:11px 15px;border-radius:10px;font-size:.9em;text-align:center;
+display:none;animation:fadeIn .22s;font-weight:700;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,.2)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+
+/* RESULTS */
+.rc{width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:16px auto;border:6px solid;
+animation:popIn .4s ease;box-shadow:0 6px 20px var(--shadow)}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:var(--amber);background:var(--amber-pale)}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2.1em;font-weight:900;line-height:1}
+.rm{font-size:1.03em;text-align:center;margin:12px 0;font-weight:700}
+.res-breakdown{display:flex;gap:14px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+.res-stat{text-align:center;background:var(--bg);border:2px solid var(--border);border-radius:10px;padding:8px 16px}
+.res-stat-n{font-size:1.4em;font-weight:900;color:var(--forest)}
+.res-stat-l{font-size:.7em;color:var(--text-l);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+
+/* METHOD CARD */
+.method-section{background:var(--bg);border:2px solid var(--border);border-radius:13px;
+padding:14px 16px;margin:12px 0}
+.method-title{font-size:.8em;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;
+color:var(--sage);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.method-def{font-size:.88em;line-height:1.6;color:var(--text)}
+.method-def strong{color:var(--forest)}
+.method-def .term{display:inline-block;background:var(--sage-pale);border:1px solid var(--sage-b);
+border-radius:5px;padding:1px 6px;font-weight:700;color:var(--sage)}
+
+/* MODULE 5 — CHOICE BUTTONS */
+.choices5-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.btn5-choice{font-family:'Nunito',sans-serif;font-size:.88em;font-weight:700;
+  padding:12px 10px;border-radius:11px;border:2px solid var(--border);
+  background:var(--card);color:var(--text);cursor:pointer;text-align:left;
+  transition:all .2s;line-height:1.4;touch-action:manipulation}
+.btn5-choice:hover:not(:disabled){border-color:var(--sage);background:var(--sage-pale);transform:translateY(-1px)}
+.btn5-choice:disabled{cursor:not-allowed}
+.btn5-choice.ch5-correct{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.btn5-choice.ch5-wrong{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important}
+@media(max-width:480px){.choices5-grid{grid-template-columns:1fr}}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+.pop{animation:popIn .35s ease forwards}
+
+/* PLACE FEEDBACK */
+.placed-indicator{font-size:.82em;text-align:center;margin:6px 0;font-weight:700;min-height:20px}
+.placed-indicator.set{color:var(--sage)}
+
+/* Back link */
+.back-link{font-size:.82em;color:var(--text-l);cursor:pointer;text-decoration:underline;
+display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;background:none;border:none;
+font-family:'Nunito',sans-serif;font-weight:600}
+.back-link:hover{color:var(--sage)}
+
+/* 3D vertex circles */
+.vx-circle{cursor:pointer;transition:all .15s;r:10px}
+.vx-circle:hover{r:12px}
+.vx-circle.selected{stroke:var(--amber);stroke-width:3;fill:#fff5e0}
+.vx-circle.correct{fill:var(--green-pale);stroke:var(--green);stroke-width:3}
+.vx-circle.wrong{fill:var(--red-pale);stroke:var(--red);stroke-width:3}
+
+/* Responsive */
+@media(max-width:760px){
+.main{padding:22px 16px}.menu-grid{grid-template-columns:1fr 1fr;gap:8px}
+.sub-grid{grid-template-columns:1fr 1fr;gap:8px}
+}
+@media(max-width:540px){
+body{padding:12px 6px 60px}.app-header{padding:11px 16px}.app-title{font-size:.95em}
+.main{padding:18px 12px}h1{font-size:1.25em}.sub{font-size:.87em}
+.menu-grid{grid-template-columns:1fr}
+.sub-grid{grid-template-columns:1fr 1fr}
+.mc{min-height:85px;padding:14px 10px}.btn{padding:9px 18px;font-size:.86em;min-height:40px}
+.inp{width:54px;font-size:1.05em;min-height:38px}.inp.wide{width:76px}
+}
+@media(max-width:400px){
+.sub-grid{grid-template-columns:1fr}
+.mc-t{font-size:.84em}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+  <span class="app-title">📐 Repérage</span>
+  <button class="hdr-menu" id="menuBtn" onclick="goMenu()">☰ Menu</button>
+</div>
+<div class="main">
+
+<!-- INTRO -->
+<div class="screen active" id="S_intro">
+<h1>Repérage</h1>
+<p class="sub">Droites graduées · Repères · Espace<br>Lis, place et écris des coordonnées !</p>
+
+<div class="method-section">
+  <div class="method-title">📏 La droite graduée</div>
+  <div style="text-align:center;overflow-x:auto;-webkit-overflow-scrolling:touch">
+  <svg viewBox="0 0 500 100" style="max-width:500px;width:100%;display:block;margin:0 auto">
+    <defs><marker id="ar1" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#2d7a52"/></marker>
+    <marker id="ar2" markerWidth="8" markerHeight="8" refX="1" refY="3" orient="auto"><path d="M8,0 L8,6 L0,3z" fill="#2d7a52"/></marker></defs>
+    <line x1="30" y1="40" x2="470" y2="40" stroke="#2d7a52" stroke-width="2.2" marker-end="url(#ar1)" marker-start="url(#ar2)"/>
+    <!-- ticks and labels -4 to 4 -->
+    <script type="text/plain">generated below</script>
+    <!-- Generated inline ticks -->
+    <g id="nl-method-ticks" font-family="Caveat,cursive" font-size="14" fill="#18291a" text-anchor="middle">
+      <!-- O and ticks: range -4 to 4, center at 250, unit=50 -->
+      <!-- x = 250 + n*50 -->
+    </g>
+  </svg>
+  </div>
+  <script>
+  (function(){
+    const g=document.getElementById('nl-method-ticks');
+    const O=250,U=50,H=40;
+    for(let n=-4;n<=4;n++){
+      const px=O+n*U;
+      const tick=document.createElementNS('http://www.w3.org/2000/svg','line');
+      tick.setAttribute('x1',px);tick.setAttribute('y1',H-8);
+      tick.setAttribute('x2',px);tick.setAttribute('y2',H+8);
+      tick.setAttribute('stroke',n===0?'#1a4a2e':'#2d7a52');
+      tick.setAttribute('stroke-width',n===0?'2.5':'1.8');
+      g.appendChild(tick);
+      const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+      lbl.setAttribute('x',px);lbl.setAttribute('y',H+22);
+      lbl.setAttribute('font-family','Caveat,cursive');lbl.setAttribute('font-size','13');
+      lbl.setAttribute('fill','#18291a');lbl.setAttribute('text-anchor','middle');
+      lbl.textContent=n===0?'O':n;
+      g.appendChild(lbl);
+    }
+    // Point A at x=2
+    const px2=O+2*U;
+    const circ=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circ.setAttribute('cx',px2);circ.setAttribute('cy',H);circ.setAttribute('r','5');
+    circ.setAttribute('fill','#b86820');g.appendChild(circ);
+    // label A
+    const la=document.createElementNS('http://www.w3.org/2000/svg','text');
+    la.setAttribute('x',px2);la.setAttribute('y',H-12);
+    la.setAttribute('font-family','Caveat,cursive');la.setAttribute('font-size','14');
+    la.setAttribute('fill','#b86820');la.setAttribute('text-anchor','middle');
+    la.setAttribute('font-weight','bold');la.textContent='A';g.appendChild(la);
+    // brace / arrow for abscisse
+    const arr=document.createElementNS('http://www.w3.org/2000/svg','line');
+    arr.setAttribute('x1',px2);arr.setAttribute('y1',H+10);
+    arr.setAttribute('x2',px2);arr.setAttribute('y2',H+30);
+    arr.setAttribute('stroke','#b86820');arr.setAttribute('stroke-width','1.5');
+    arr.setAttribute('stroke-dasharray','3,2');g.appendChild(arr);
+    const at=document.createElementNS('http://www.w3.org/2000/svg','text');
+    at.setAttribute('x',px2+2);at.setAttribute('y',H+42);
+    at.setAttribute('font-family','Nunito,sans-serif');at.setAttribute('font-size','10');
+    at.setAttribute('fill','#b86820');at.setAttribute('font-weight','700');
+    at.textContent='abscisse de A = 2';g.appendChild(at);
+    // Origin label
+    const ot=document.createElementNS('http://www.w3.org/2000/svg','text');
+    ot.setAttribute('x',O);ot.setAttribute('y',H-12);
+    ot.setAttribute('font-family','Nunito,sans-serif');ot.setAttribute('font-size','9');
+    ot.setAttribute('fill','#1a4a2e');ot.setAttribute('text-anchor','middle');ot.setAttribute('font-weight','700');
+    ot.textContent='Origine';g.appendChild(ot);
+  })();
+  </script>
+  <div class="method-def" style="margin-top:28px;font-size:.84em">
+    <span class="term">Abscisse</span> : position d'un point sur la droite graduée.
+    L'<span class="term">origine O</span> a pour abscisse <strong>0</strong>.
+  </div>
+</div>
+
+<div class="method-section">
+  <div class="method-title">🗺️ Le repère orthonormé</div>
+  <div style="text-align:center;overflow-x:auto;-webkit-overflow-scrolling:touch">
+  <svg viewBox="0 0 300 280" style="max-width:300px;width:90%;display:block;margin:0 auto" id="method-plane-svg">
+  </svg>
+  </div>
+  <script>
+  (function(){
+    const svg=document.getElementById('method-plane-svg');
+    const W=300,H=280,OX=120,OY=160,U=38;
+    const ns='http://www.w3.org/2000/svg';
+    function el(tag,attrs){const e=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
+    // grid
+    for(let i=-3;i<=4;i++){
+      const px=OX+i*U;
+      svg.appendChild(el('line',{x1:px,y1:10,x2:px,y2:H-10,stroke:'#ece5d0','stroke-width':'1'}));
+    }
+    for(let j=-4;j<=3;j++){
+      const py=OY+j*U;
+      svg.appendChild(el('line',{x1:10,y1:py,x2:W-10,y2:py,stroke:'#ece5d0','stroke-width':'1'}));
+    }
+    // axes
+    const defs=el('defs',{});
+    const m1=el('marker',{id:'mp1',markerWidth:'7',markerHeight:'7',refX:'6',refY:'3',orient:'auto'});
+    const p1=el('path',{d:'M0,0 L0,6 L7,3z',fill:'#1a4a2e'});m1.appendChild(p1);defs.appendChild(m1);
+    const m2=el('marker',{id:'mp2',markerWidth:'7',markerHeight:'7',refX:'6',refY:'3',orient:'auto'});
+    const p2=el('path',{d:'M0,0 L0,6 L7,3z',fill:'#1a4a2e'});m2.appendChild(p2);defs.appendChild(m2);
+    svg.appendChild(defs);
+    svg.appendChild(el('line',{x1:10,y1:OY,x2:W-12,y2:OY,stroke:'#1a4a2e','stroke-width':'2','marker-end':'url(#mp1)'}));
+    svg.appendChild(el('line',{x1:OX,y1:H-10,x2:OX,y2:12,stroke:'#1a4a2e','stroke-width':'2','marker-end':'url(#mp2)'}));
+    // axis labels
+    const xL=el('text',{x:W-8,y:OY+14,'font-family':'Caveat,cursive','font-size':'14',fill:'#1a4a2e','font-weight':'bold'});xL.textContent='x';svg.appendChild(xL);
+    const yL=el('text',{x:OX+6,y:16,'font-family':'Caveat,cursive','font-size':'14',fill:'#1a4a2e','font-weight':'bold'});yL.textContent='y';svg.appendChild(yL);
+    // ticks x
+    for(let i=-3;i<=4;i++){if(i===0)continue;const px=OX+i*U;
+      svg.appendChild(el('line',{x1:px,y1:OY-4,x2:px,y2:OY+4,stroke:'#1a4a2e','stroke-width':'1.5'}));
+      const t=el('text',{x:px,y:OY+16,'font-family':'Caveat,cursive','font-size':'11',fill:'#18291a','text-anchor':'middle'});t.textContent=i;svg.appendChild(t);}
+    // ticks y
+    for(let j=-4;j<=3;j++){if(j===0)continue;const py=OY-j*U;
+      svg.appendChild(el('line',{x1:OX-4,y1:py,x2:OX+4,y2:py,stroke:'#1a4a2e','stroke-width':'1.5'}));
+      const t=el('text',{x:OX-8,y:py+4,'font-family':'Caveat,cursive','font-size':'11',fill:'#18291a','text-anchor':'end'});t.textContent=j;svg.appendChild(t);}
+    // O label
+    const ol=el('text',{x:OX-10,y:OY+15,'font-family':'Caveat,cursive','font-size':'13',fill:'#1a4a2e','text-anchor':'end','font-weight':'bold'});ol.textContent='O';svg.appendChild(ol);
+    // Origine annotation — dot at O + dashed leader line + label
+    svg.appendChild(el('circle',{cx:OX,cy:OY,r:'3.5',fill:'none',stroke:'#1a4a2e','stroke-width':'2.2'}));
+    const oArrow=el('line',{x1:OX-5,y1:OY-5,x2:OX-34,y2:OY-34,stroke:'#1a4a2e','stroke-width':'1.3','stroke-dasharray':'3,2'});
+    svg.appendChild(oArrow);
+    const oLbl=el('text',{x:OX-38,y:OY-42,'font-family':'Nunito,sans-serif','font-size':'9.5',fill:'#1a4a2e','text-anchor':'middle','font-weight':'700'});oLbl.textContent='Origine O';svg.appendChild(oLbl);
+    // Point M(3,2)
+    const mx=OX+3*U,my=OY-2*U;
+    svg.appendChild(el('line',{x1:mx,y1:OY,x2:mx,y2:my,stroke:'#b86820','stroke-width':'1.5','stroke-dasharray':'4,3'}));
+    svg.appendChild(el('line',{x1:OX,y1:my,x2:mx,y2:my,stroke:'#b86820','stroke-width':'1.5','stroke-dasharray':'4,3'}));
+    svg.appendChild(el('circle',{cx:mx,cy:my,r:'5',fill:'#b86820'}));
+    const ml=el('text',{x:mx+8,y:my-4,'font-family':'Caveat,cursive','font-size':'13',fill:'#b86820','font-weight':'bold'});ml.textContent='M(3 ; 2)';svg.appendChild(ml);
+    // abscisse arrow label
+    const ab=el('text',{x:mx,y:OY+24,'font-family':'Nunito,sans-serif','font-size':'9.5',fill:'#b86820','text-anchor':'middle','font-weight':'700'});ab.textContent='abscisse';svg.appendChild(ab);
+    // ordonnée arrow label
+    const or=el('text',{x:OX-28,y:my,'font-family':'Nunito,sans-serif','font-size':'9.5',fill:'#b86820','text-anchor':'middle','font-weight':'700','transform':`rotate(-90,${OX-28},${my})`});or.textContent='ordonnée';svg.appendChild(or);
+  })();
+  </script>
+  <div class="method-def" style="margin-top:8px;font-size:.84em">
+    <span class="term">Abscisse</span> : distance sur l'axe <strong>horizontal (x)</strong>. 
+    <span class="term">Ordonnée</span> : distance sur l'axe <strong>vertical (y)</strong>. 
+    On écrit les coordonnées d'un point M : <strong>M(x ; y)</strong>.
+  </div>
+</div>
+
+<div class="controls"><button class="btn btn-sage" onclick="show('S_menu');$('menuBtn').style.display=''">C'est parti ! →</button></div>
+</div>
+
+<!-- MAIN MENU -->
+<div class="screen" id="S_menu">
+<h1>Choisir un thème</h1>
+<p class="sub">5 domaines du repérage à maîtriser</p>
+<div class="menu-grid">
+  <div class="mc" onclick="openSub(1)"><div class="mc-icon">🔢</div><div class="mc-t">Droite graduée</div><div class="mc-d">Entiers et décimaux</div></div>
+  <div class="mc" onclick="openSub(2)"><div class="mc-icon">½</div><div class="mc-t">Droite graduée</div><div class="mc-d">Fractions</div></div>
+  <div class="mc" onclick="openSub(3)"><div class="mc-icon">🗺️</div><div class="mc-t">Repère plan</div><div class="mc-d">Coordonnées (x ; y)</div></div>
+  <div class="mc" onclick="openSub(4)"><div class="mc-icon">📦</div><div class="mc-t">Pavé droit</div><div class="mc-d">Coordonnées 3D</div><div class="mc-badge lvl4">4ème</div></div>
+  <div class="mc" onclick="openSub(5)" style="grid-column:1/-1"><div class="mc-icon">🌍</div><div class="mc-t">Repérage sur la sphère</div><div class="mc-d">Latitude &amp; Longitude</div><div class="mc-badge">3ème</div></div>
+</div>
+<div style="text-align:center;margin-top:10px">
+  <button class="back-link" onclick="show('S_intro')">← Fiche méthode</button>
+</div>
+</div>
+
+<!-- SUB MENU -->
+<div class="screen" id="S_sub">
+<button class="back-link" onclick="show('S_menu')">← Menu principal</button>
+<h1 id="sub-title">Sous-menu</h1>
+<p class="sub" id="sub-desc"></p>
+<div class="sub-grid" id="sub-grid"></div>
+</div>
+
+<!-- EXERCISE -->
+<div class="screen" id="S_ex">
+<div class="ex-top">
+  <div class="ex-badge" id="badge">—</div>
+  <div class="ex-score" id="scLbl">0 / 0</div>
+</div>
+<div class="pbar"><div class="pfill" id="pfill"></div></div>
+<div id="zone"></div>
+<div class="fb" id="fb"></div>
+<div class="controls" style="margin-top:14px">
+  <button class="btn btn-sage" id="nxt" style="display:none" onclick="nxtQ()">Suivant →</button>
+  <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+</div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="S_res">
+<h1>Résultats</h1>
+<div class="rc" id="rCirc"><div class="rp" id="rPct">0%</div><div style="font-size:.72em;color:var(--text-l);margin-top:2px">réussite</div></div>
+<div class="res-breakdown">
+  <div class="res-stat"><div class="res-stat-n" id="rScore">0</div><div class="res-stat-l">✅ Correct</div></div>
+  <div class="res-stat"><div class="res-stat-n" id="rTotal">0</div><div class="res-stat-l">Questions</div></div>
+</div>
+<div class="rm" id="rMsg"></div>
+<div class="controls">
+  <button class="btn btn-sage" onclick="goMenu()">← Menu</button>
+  <button class="btn btn-amber" onclick="replay()">🔄 Rejouer</button>
+</div>
+</div>
+
+</div><!--main-->
+</div><!--app-->
+
+<script>
+// ═══════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const rv=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=id=>document.getElementById(id);
+const ns='http://www.w3.org/2000/svg';
+function elSvg(tag,attrs){const e=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function pN(s){if(!s||!s.trim())return NaN;return parseFloat(s.trim().replace(',','.').replace(/\s/g,''))}
+function pFrac(s){
+  if(!s||!s.trim())return NaN;
+  s=s.trim().replace(',','.');
+  if(s.includes('/')){const[a,b]=s.split('/');const p=parseFloat(a),q=parseFloat(b);if(isNaN(p)||isNaN(q)||q===0)return NaN;return p/q;}
+  return parseFloat(s);
+}
+function eq(a,b){if(isNaN(a)||isNaN(b))return false;return Math.abs(a-b)<0.011}
+function setOk(id){const e=$(id);if(e){e.classList.remove('ok','err');e.classList.add('ok');e.disabled=true}}
+function foc(id){setTimeout(()=>{const e=$(id);if(e&&!e.disabled)e.focus()},80)}
+function tex(el,s,display=false){if(typeof el==='string')el=$(el);if(el)katex.render(s,el,{throwOnError:false,displayMode:display})}
+function addEnter(ids,fn){ids.forEach(id=>{const e=$(id);if(e)e.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();fn()}})})}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
+function fracTex(p,q){if(q===1)return String(p);if(p===0)return'0';const g=gcd(Math.abs(p),Math.abs(q));const rp=p/g,rq=q/g;if(rp<0)return`-\\frac{${-rp}}{${rq}}`;return`\\frac{${rp}}{${rq}}`;}
+function fracStr(p,q){const g=gcd(Math.abs(p),Math.abs(q));return`${p/g}/${q/g}`}
+
+// ═══════════════════════════════════════
+//  NAVIGATION / FLOW
+// ═══════════════════════════════════════
+let curModule=1,curType='A',sc=0,qi=0,qs=[],cq=null,lastMod=1;
+const SUBLABELS={1:'Droite — Entiers & décimaux',2:'Droite — Fractions',3:'Repère plan',4:'Pavé droit 3D',5:'Sphère — Latitude & Longitude'};
+const TYPELABELS={A:'Définitions',B:'Lecture',C:'Quiz'};
+
+function goMenu(){show('S_menu');$('menuBtn').style.display='none'}
+
+function openSub(mod){
+  lastMod=mod;
+  $('sub-title').textContent=SUBLABELS[mod];
+  const descs={1:'Droite graduée avec entiers et nombres décimaux (0,5)',2:'Droite graduée avec des fractions',3:'Repère orthonormé (x ; y)',4:'Repérage dans le pavé droit (x ; y ; z)',5:'Latitude et longitude sur le globe terrestre'};
+  $('sub-desc').textContent=descs[mod];
+  const icons={A:'🎯',B:'👁️',C:'✏️'};
+  const txts={A:'Placer',B:'Lire',C:'Écrire'};
+  const dscs={
+    1:{A:'Place un entier sur la droite',B:'Lis l\'abscisse d\'un point',C:'Écris les coordonnées'},
+    2:{A:'Place une fraction sur la droite',B:'Lis l\'abscisse fractionnaire',C:'Écris les coordonnées'},
+    3:{A:'Place un point dans le repère',B:'Lis les coordonnées d\'un point',C:'Écris les coordonnées de plusieurs points'},
+    4:{A:'Identifie le bon sommet',B:'Lis les coordonnées d\'un sommet',C:'Écris les coordonnées de plusieurs sommets'},
+    5:{A:'Questions sur la latitude',B:'Questions sur la longitude',C:'Quiz mixte latitude & longitude'},
+  };
+  const g=$('sub-grid');g.innerHTML='';
+  const types=mod===5?['A','B','C']:['A','B','C'];
+  const icons5={A:'🌐',B:'🧭',C:'🗺️'};
+  const txts5={A:'Latitude',B:'Longitude',C:'Quiz mixte'};
+  types.forEach(t=>{
+    const d=document.createElement('div');d.className='sc';
+    const ic=mod===5?icons5[t]:icons[t];
+    const tx=mod===5?txts5[t]:txts[t];
+    d.innerHTML=`<div class="sc-icon">${ic}</div><div class="sc-t">${tx}</div><div class="sc-d">${dscs[mod][t]}</div>`;
+    d.onclick=()=>go(mod,t);
+    g.appendChild(d);
+  });
+  show('S_sub');$('menuBtn').style.display='block';
+}
+
+function go(mod,type){
+  curModule=mod;curType=type;sc=0;qi=0;
+  $('badge').textContent=`${SUBLABELS[mod]} — ${TYPELABELS[type]}`;
+  const generators={
+    '1A':gen1A,'1B':gen1B,'1C':gen1C,
+    '2A':gen2A,'2B':gen2B,'2C':gen2C,
+    '3A':gen3A,'3B':gen3B,'3C':gen3C,
+    '4A':gen4A,'4B':gen4B,'4C':gen4C,
+    '5A':gen5A,'5B':gen5B,'5C':gen5C,
+  };
+  qs=generators[`${mod}${type}`]();
+  show('S_ex');$('menuBtn').style.display='block';loadQ();
+}
+
+function replay(){go(curModule,curType)}
+
+function loadQ(){
+  cq=qs[qi];cq._mis=false;
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';$('nxt').style.display='none';$('zone').innerHTML='';
+  const renderers={
+    '1A':render1A,'1B':render1B,'1C':render1C,
+    '2A':render2A,'2B':render2B,'2C':render2C,
+    '3A':render3A,'3B':render3B,'3C':render3C,
+    '4A':render4A,'4B':render4B,'4C':render4C,
+    '5A':render5Q,'5B':render5Q,'5C':render5Q,
+  };
+  renderers[`${curModule}${curType}`](cq);
+}
+
+function finish(ok,msg){if(ok)sc++;$('scLbl').textContent=`${sc}/${qi+1}`;
+const fb=$('fb');fb.className=ok?'fb ok':'fb bad';
+fb.textContent=ok?'✅ Correct !':`❌ ${msg||'Réponse incorrecte. Réessaie !'}`;
+$('nxt').style.display=''}
+
+function nxtQ(){qi++;if(qi>=qs.length)showRes();else loadQ()}
+
+function showRes(){const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+const tier=pct>=80?'good':pct>=50?'mid':'bad';
+$('rCirc').className=`rc ${tier}`;
+$('rPct').textContent=`${pct}%`;
+$('rPct').style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--amber)':'var(--red)';
+$('rScore').textContent=sc;$('rTotal').textContent=tot;
+$('rMsg').textContent=pct===100?'Parfait ! 🎉 Bravo !':pct>=80?'Très bien ! Continue !':pct>=60?'Bonne progression, continue tes efforts !':'Reprends la fiche méthode et réessaie.';
+show('S_res')}
+
+// ═══════════════════════════════════════
+//  SVG — DROITE GRADUÉE
+// ═══════════════════════════════════════
+const NL={W:560,H:90,Y:44,L:42,R:518};
+
+function nlX(val,min,max){return NL.L+(val-min)/(max-min)*(NL.R-NL.L)}
+
+function makeDefs(svgId){
+  return `<defs>
+    <marker id="marL_${svgId}" markerWidth="8" markerHeight="8" refX="1" refY="3" orient="auto">
+      <path d="M8,0 L8,6 L0,3z" fill="#1a4a2e"/></marker>
+    <marker id="marR_${svgId}" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3z" fill="#1a4a2e"/></marker>
+  </defs>`
+}
+
+function buildNumberLineSVG({min,max,denom=1,pts=[],interactive=false,ghostX=null,svgId='nl'}){
+  const U=(NL.R-NL.L)/(max-min);
+  let s=`<svg id="${svgId}" viewBox="0 0 ${NL.W} ${NL.H}" class="nl-svg${interactive?' interactive':''}" style="touch-action:none">`;
+  s+=makeDefs(svgId);
+  // line
+  s+=`<line x1="${NL.L}" y1="${NL.Y}" x2="${NL.R}" y2="${NL.Y}" stroke="#1a4a2e" stroke-width="2.2" marker-end="url(#marR_${svgId})" marker-start="url(#marL_${svgId})"/>`;
+  // ticks
+  for(let i=min*denom;i<=max*denom;i++){
+    const v=i/denom;const px=nlX(v,min,max);
+    const isInt=(i%denom===0);
+    s+=`<line x1="${px}" y1="${NL.Y-(isInt?9:5)}" x2="${px}" y2="${NL.Y+(isInt?9:5)}" stroke="#2d7a52" stroke-width="${isInt?2:1.2}"/>`;
+    if(isInt){
+      const lbl=v===0?'O':String(v);
+      s+=`<text x="${px}" y="${NL.Y+22}" font-family="Caveat,cursive" font-size="13" fill="#18291a" text-anchor="middle" font-weight="${v===0?'bold':'normal'}">${lbl}</text>`;
+    }
+  }
+  // ghost snap position
+  if(interactive&&ghostX!==null){
+    const gx=nlX(ghostX,min,max);
+    s+=`<circle cx="${gx}" cy="${NL.Y}" r="7" fill="rgba(184,104,32,0.2)" stroke="#b86820" stroke-width="2" stroke-dasharray="3,2"/>`;
+  }
+  // points
+  pts.forEach(p=>{
+    const px=nlX(p.val,min,max);
+    s+=`<circle cx="${px}" cy="${NL.Y}" r="6" fill="${p.color||'#b86820'}"/>`;
+    if(p.label){
+      s+=`<text x="${px}" y="${NL.Y-10}" font-family="Caveat,cursive" font-size="14" fill="${p.color||'#b86820'}" text-anchor="middle" font-weight="bold">${p.label}</text>`;
+    }
+  });
+  // interactive overlay
+  if(interactive){
+    s+=`<rect id="${svgId}_overlay" x="${NL.L}" y="${NL.Y-20}" width="${NL.R-NL.L}" height="40" fill="transparent" style="cursor:crosshair"/>`;
+  }
+  s+='</svg>';
+  return s;
+}
+
+// ═══════════════════════════════════════
+//  SVG — REPÈRE 2D
+// ═══════════════════════════════════════
+const PL={W:400,H:400,OX:200,OY:200,U:38};
+
+function plX(x){return PL.OX+x*PL.U}
+function plY(y){return PL.OY-y*PL.U}
+
+function buildPlaneSVG({xMin=-5,xMax=5,yMin=-5,yMax=5,pts=[],interactive=false,svgId='pl'}){
+  let s=`<svg id="${svgId}" viewBox="0 0 ${PL.W} ${PL.H}" class="plane-svg${interactive?' interactive':''}" style="max-height:380px;touch-action:none">`;
+  s+=`<defs><marker id="pmar_${svgId}_x" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#1a4a2e"/></marker>
+  <marker id="pmar_${svgId}_y" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#1a4a2e"/></marker></defs>`;
+  // grid
+  for(let i=xMin;i<=xMax;i++){const px=plX(i);s+=`<line x1="${px}" y1="${plY(yMax)+4}" x2="${px}" y2="${plY(yMin)-4}" stroke="#ece5d0" stroke-width="1"/>`;}
+  for(let j=yMin;j<=yMax;j++){const py=plY(j);s+=`<line x1="${plX(xMin)-4}" y1="${py}" x2="${plX(xMax)+4}" y2="${py}" stroke="#ece5d0" stroke-width="1"/>`;}
+  // axes
+  s+=`<line x1="${plX(xMin)-6}" y1="${PL.OY}" x2="${plX(xMax)+10}" y2="${PL.OY}" stroke="#1a4a2e" stroke-width="2" marker-end="url(#pmar_${svgId}_x)"/>`;
+  s+=`<line x1="${PL.OX}" y1="${plY(yMin)+6}" x2="${PL.OX}" y2="${plY(yMax)-10}" stroke="#1a4a2e" stroke-width="2" marker-end="url(#pmar_${svgId}_y)"/>`;
+  // axis labels
+  s+=`<text x="${plX(xMax)+14}" y="${PL.OY+5}" font-family="Caveat,cursive" font-size="15" fill="#1a4a2e" font-weight="bold">x</text>`;
+  s+=`<text x="${PL.OX+6}" y="${plY(yMax)-12}" font-family="Caveat,cursive" font-size="15" fill="#1a4a2e" font-weight="bold">y</text>`;
+  // ticks & numbers
+  for(let i=xMin;i<=xMax;i++){if(i===0)continue;const px=plX(i);
+    s+=`<line x1="${px}" y1="${PL.OY-4}" x2="${px}" y2="${PL.OY+4}" stroke="#1a4a2e" stroke-width="1.5"/>`;
+    s+=`<text x="${px}" y="${PL.OY+16}" font-family="Caveat,cursive" font-size="11" fill="#18291a" text-anchor="middle">${i}</text>`;}
+  for(let j=yMin;j<=yMax;j++){if(j===0)continue;const py=plY(j);
+    s+=`<line x1="${PL.OX-4}" y1="${py}" x2="${PL.OX+4}" y2="${py}" stroke="#1a4a2e" stroke-width="1.5"/>`;
+    s+=`<text x="${PL.OX-7}" y="${py+4}" font-family="Caveat,cursive" font-size="11" fill="#18291a" text-anchor="end">${j}</text>`;}
+  // O
+  s+=`<text x="${PL.OX-9}" y="${PL.OY+14}" font-family="Caveat,cursive" font-size="13" fill="#1a4a2e" text-anchor="end" font-weight="bold">O</text>`;
+  // points
+  pts.forEach(p=>{
+    const px=plX(p.x),py=plY(p.y);
+    const col=p.color||'#b86820';
+    if(p.dotted){
+      s+=`<line x1="${px}" y1="${PL.OY}" x2="${px}" y2="${py}" stroke="${col}" stroke-width="1.3" stroke-dasharray="4,3"/>`;
+      s+=`<line x1="${PL.OX}" y1="${py}" x2="${px}" y2="${py}" stroke="${col}" stroke-width="1.3" stroke-dasharray="4,3"/>`;
+    }
+    s+=`<circle cx="${px}" cy="${py}" r="5.5" fill="${col}"/>`;
+    if(p.label){
+      const ox=p.x>=0?9:-9;const oy=p.y>=0?-9:14;
+      s+=`<text x="${px+ox}" y="${py+oy}" font-family="Caveat,cursive" font-size="14" fill="${col}" font-weight="bold" text-anchor="${p.x>=0?'start':'end'}">${p.label}</text>`;}
+  });
+  // interactive overlay
+  if(interactive){
+    s+=`<rect id="${svgId}_overlay" x="${plX(xMin)}" y="${plY(yMax)}" width="${(xMax-xMin)*PL.U}" height="${(yMax-yMin)*PL.U}" fill="transparent" style="cursor:crosshair"/>`;
+  }
+  s+='</svg>';
+  return s;
+}
+
+// ═══════════════════════════════════════
+//  SVG — PAVÉ DROIT 3D
+// ═══════════════════════════════════════
+function proj3d(x,y,z,a,b,c){
+  // Origin at (90, 310), X→right, Y→oblique(28,-14), Z→up
+  const ox=90,oy=310;
+  const xu=42,yu_x=22,yu_y=-13,zu=40;
+  const px=ox+x*xu+y*yu_x;
+  const py=oy+y*yu_y-z*zu;
+  return{px,py};
+}
+
+function buildBoxSVG({a=4,b=3,c=2,highlight=null,interactive=false,selected=null,showCoords=false,svgId='bx'}){
+  const W=460,H=360;
+  const verts={
+    A:[0,0,0],B:[a,0,0],C:[a,b,0],D:[0,b,0],
+    E:[0,0,c],F:[a,0,c],G:[a,b,c],H:[0,b,c]
+  };
+  const projected={};
+  for(const[k,[x,y,z]] of Object.entries(verts)){projected[k]=proj3d(x,y,z,a,b,c);}
+  let s=`<svg id="${svgId}" viewBox="0 0 ${W} ${H}" class="box-svg">`;
+  // Hidden edges dashed
+  const hiddenEdges=[['A','D'],['D','C'],['D','H']];
+  hiddenEdges.forEach(([v1,v2])=>{
+    const p1=projected[v1],p2=projected[v2];
+    s+=`<line x1="${p1.px}" y1="${p1.py}" x2="${p2.px}" y2="${p2.py}" stroke="#2d7a52" stroke-width="1.5" stroke-dasharray="5,4"/>`;
+  });
+  // Visible edges
+  const visEdges=[['A','B'],['B','C'],['C','G'],['G','H'],['H','E'],['E','A'],['B','F'],['F','G'],['E','F']];
+  visEdges.forEach(([v1,v2])=>{
+    const p1=projected[v1],p2=projected[v2];
+    s+=`<line x1="${p1.px}" y1="${p1.py}" x2="${p2.px}" y2="${p2.py}" stroke="#1a4a2e" stroke-width="2"/>`;
+  });
+  // Axis indicators at A — arrows go exactly to B, D, E vertices
+  s+=`<defs><marker id="ax_${svgId}" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5 L0,5.5 L6,3z" fill="#b86820"/></marker></defs>`;
+  const pA=projected.A,pB=projected.B,pD=projected.D,pE=projected.E;
+  // x arrow: A → B (full edge, arrowhead at B)
+  s+=`<line x1="${pA.px}" y1="${pA.py}" x2="${pB.px}" y2="${pB.py}" stroke="#b86820" stroke-width="2" marker-end="url(#ax_${svgId})"/>`;
+  s+=`<text x="${pB.px+8}" y="${pB.py+5}" font-family="Caveat,cursive" font-size="13" fill="#b86820" font-weight="bold">x</text>`;
+  // y arrow: A → D (full edge, arrowhead at D)
+  s+=`<line x1="${pA.px}" y1="${pA.py}" x2="${pD.px}" y2="${pD.py}" stroke="#b86820" stroke-width="2" marker-end="url(#ax_${svgId})"/>`;
+  s+=`<text x="${pD.px-4}" y="${pD.py-8}" font-family="Caveat,cursive" font-size="13" fill="#b86820" font-weight="bold">y</text>`;
+  // z arrow: A → E (full edge, arrowhead at E)
+  s+=`<line x1="${pA.px}" y1="${pA.py}" x2="${pE.px}" y2="${pE.py}" stroke="#b86820" stroke-width="2" marker-end="url(#ax_${svgId})"/>`;
+  s+=`<text x="${pE.px-16}" y="${pE.py-6}" font-family="Caveat,cursive" font-size="13" fill="#b86820" font-weight="bold">z</text>`;
+  // Vertex dots and labels
+  for(const[k,[x,y,z]] of Object.entries(verts)){
+    const{px,py}=projected[k];
+    const isHL=k===highlight;
+    const isSel=k===selected;
+    const col=isHL?'#b86820':isSel?'#2d7a52':'#1a4a2e';
+    const r=isHL||isSel?7:5;
+    if(interactive){
+      s+=`<circle class="vx-circle${isSel?' selected':''}" id="${svgId}_v_${k}" cx="${px}" cy="${py}" r="${r}" fill="${isHL?'#fff5e0':isSel?'#e8f5ee':'#fff'}" stroke="${col}" stroke-width="2" style="cursor:pointer" data-key="${k}"/>`;
+    } else {
+      s+=`<circle cx="${px}" cy="${py}" r="${r}" fill="${isHL?'#b86820':'#2d7a52'}" stroke="${isHL?'#a05a18':'#1a4a2e'}" stroke-width="2"/>`;
+    }
+    // label placement adjustments
+    const offs={A:{dx:-14,dy:10},B:{dx:8,dy:10},C:{dx:12,dy:6},D:{dx:-2,dy:-8},
+                 E:{dx:-14,dy:-6},F:{dx:8,dy:-6},G:{dx:10,dy:-8},H:{dx:-14,dy:-8}};
+    const off=offs[k]||{dx:8,dy:-6};
+    s+=`<text x="${px+off.dx}" y="${py+off.dy}" font-family="Caveat,cursive" font-size="13" fill="${col}" font-weight="bold">${k}</text>`;
+    if(showCoords){
+      s+=`<text x="${px+off.dx}" y="${py+off.dy+12}" font-family="Caveat,cursive" font-size="9" fill="${col}">(${x};${y};${z})</text>`;
+    }
+  }
+  // Dimensions labels
+  const dimCol='#2d7a52';
+  const midAB=projected.A,midB=projected.B;
+  const dmx=(projected.A.px+projected.B.px)/2;const dmy=projected.A.py+16;
+  s+=`<text x="${dmx}" y="${dmy}" font-family="Caveat,cursive" font-size="11" fill="${dimCol}" text-anchor="middle">${a}</text>`;
+  const dmx2=(projected.A.px+projected.D.px)/2+4;const dmy2=(projected.A.py+projected.D.py)/2+12;
+  s+=`<text x="${dmx2}" y="${dmy2}" font-family="Caveat,cursive" font-size="11" fill="${dimCol}" text-anchor="middle">${b}</text>`;
+  const dmx3=projected.A.px-12;const dmy3=(projected.A.py+projected.E.py)/2;
+  s+=`<text x="${dmx3}" y="${dmy3}" font-family="Caveat,cursive" font-size="11" fill="${dimCol}" text-anchor="middle">${c}</text>`;
+  s+='</svg>';
+  return s;
+}
+
+// ═══════════════════════════════════════
+//  MODULE 1A — PLACER ENTIER ou DÉCIMAL
+// ═══════════════════════════════════════
+function makeNLConfig(){
+  // Randomly choose integer or 0.5-step droite
+  if(Math.random()<0.5){
+    // Integer-only, range −4 to 8, fewer ticks (not all labeled)
+    const range=rv([[-4,8],[-3,6],[-2,6],[0,8]]);
+    return{min:range[0],max:range[1],step:1,denom:1};
+  } else {
+    // 0.5 step, smaller range so it's readable
+    const range=rv([[0,5],[-1,4],[-2,4],[0,4],[-1,5]]);
+    return{min:range[0],max:range[1],step:0.5,denom:2};
+  }
+}
+function makeNLValue(cfg){
+  if(cfg.step===1){
+    return ri(cfg.min+1,cfg.max-1);
+  } else {
+    // multiple of 0.5, avoid the extremes, avoid whole integers to keep it interesting
+    const halves=[];
+    for(let v=cfg.min+0.5;v<cfg.max;v+=0.5){
+      if(v!==Math.floor(v)) halves.push(v); // only true half-values like 0.5, 1.5...
+    }
+    // sometimes also include integers mixed in
+    const pool=[...halves];
+    for(let v=cfg.min+1;v<cfg.max;v++) pool.push(v);
+    return rv(pool);
+  }
+}
+function fmtDecimal(v){
+  // format 1.5 as "1,5" etc.
+  return String(v).replace('.',',');
+}
+function gen1A(){
+  const labels=['A','B','M','N','P','K','T','S'];
+  return sh(labels.map(lbl=>{
+    const cfg=makeNLConfig();
+    const x=makeNLValue(cfg);
+    return{x,lbl,...cfg};
+  })).slice(0,8);
+}
+function render1A(q){
+  const Z=$('zone');
+  const valTex=q.step===1?String(q.x):fmtDecimal(q.x);
+  Z.innerHTML=`<div class="prompt">Place le point <span class="ho">${q.lbl}</span> d'abscisse <span class="hl">${valTex}</span> sur la droite.</div>
+  <div class="place-tip">👆 Clique ou touche la droite pour placer le point</div>
+  <div class="svg-wrap">${buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:[],interactive:true,svgId:'nl1a'})}</div>
+  <div class="placed-indicator" id="pi1a">Aucun point placé</div>
+  <div class="controls"><button class="btn btn-sage" id="val1a" onclick="chk1A()" disabled>✓ Valider</button></div>`;
+  let placed=null;
+  function getSnap(svgX){
+    const valRaw=q.min+(svgX-NL.L)/(NL.R-NL.L)*(q.max-q.min);
+    return Math.round(valRaw/q.step)*q.step;
+  }
+  function placeAt(svgX){
+    const v=getSnap(svgX);
+    if(v<q.min||v>q.max)return;
+    placed=v;
+    Z.querySelector('.svg-wrap').innerHTML=buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:[{val:v,label:q.lbl,color:'#b86820'}],interactive:true,svgId:'nl1a'});
+    $('pi1a').textContent=`${q.lbl} placé en ${fmtDecimal(v)}`;$('pi1a').className='placed-indicator set';
+    $('val1a').disabled=false;reattach();
+  }
+  function reattach(){const s=$('nl1a');if(!s)return;s.addEventListener('click',handler);s.addEventListener('touchend',touchHandler,{passive:false});}
+  function handler(e){const rect=$('nl1a').getBoundingClientRect();const svgX=(e.clientX-rect.left)*(NL.W/rect.width);placeAt(svgX);}
+  function touchHandler(e){e.preventDefault();const t=e.changedTouches[0];const rect=$('nl1a').getBoundingClientRect();const svgX=(t.clientX-rect.left)*(NL.W/rect.width);placeAt(svgX);}
+  $('nl1a').addEventListener('click',handler);$('nl1a').addEventListener('touchend',touchHandler,{passive:false});
+  cq._placed=()=>placed;
+}
+function chk1A(){
+  const placed=cq._placed();if(placed===null)return;
+  const ok=Math.abs(placed-cq.x)<0.01;
+  if(ok)finish(true);
+  else{cq._mis=true;finish(false,`L'abscisse de ${cq.lbl} est ${fmtDecimal(cq.x)}, pas ${fmtDecimal(placed)}.`);}
+}
+
+// ═══════════════════════════════════════
+//  MODULE 1B — LIRE ABSCISSE ENTIER/DÉCIMAL
+// ═══════════════════════════════════════
+function gen1B(){
+  const labels=['A','B','M','N','P','K','T','S'];
+  return sh(labels.map(lbl=>{
+    const cfg=makeNLConfig();
+    const x=makeNLValue(cfg);
+    return{x,lbl,...cfg};
+  })).slice(0,8);
+}
+function render1B(q){
+  const Z=$('zone');
+  Z.innerHTML=`<div class="svg-wrap">${buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:[{val:q.x,label:q.lbl}],svgId:'nl1b'})}</div>
+  <div class="prompt">Quelle est l'abscisse du point <span class="hl">${q.lbl}</span> ?${q.step===0.5?'<br><small style="color:var(--text-l)">Tape 1,5 ou 1.5 pour les demi-graduations</small>':''}</div>
+  <div class="inp-row"><span class="sep">${q.lbl}( </span><input class="inp" id="inp1b" inputmode="decimal" placeholder="?"><span class="sep"> )</span></div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk1B()">✓ Valider</button></div>`;
+  foc('inp1b');addEnter(['inp1b'],chk1B);
+}
+function chk1B(){
+  const inp=$('inp1b');inp.classList.remove('ok','err');
+  const v=pN(inp.value);
+  if(eq(v,cq.x)){setOk('inp1b');finish(true);}
+  else{cq._mis=true;inp.classList.add('err');setTimeout(()=>{inp.classList.remove('err');inp.value='';inp.focus()},500);finish(false,`L'abscisse est ${fmtDecimal(cq.x)}.`);}
+}
+
+// ═══════════════════════════════════════
+//  MODULE 1C — ÉCRIRE COORDONNÉES ENTIERS/DÉCIMAUX
+// ═══════════════════════════════════════
+function gen1C(){
+  const labelSets=[['A','B','C'],['M','N','P'],['K','L','T'],['P','Q','R'],['A','M','K'],['B','N','T']];
+  return sh(labelSets.map(lbls=>{
+    const cfg=makeNLConfig();
+    const pts=lbls.map(lbl=>({lbl,val:makeNLValue(cfg)}));
+    // ensure distinct positions
+    const seen=new Set();
+    pts.forEach(p=>{while(seen.has(p.val)){p.val=makeNLValue(cfg);}seen.add(p.val);});
+    return{pts,...cfg};
+  })).slice(0,8);
+}
+function render1C(q){
+  const Z=$('zone');
+  const svgPts=q.pts.map((p,i)=>({val:p.val,label:p.lbl,color:['#b86820','#2d7a52','#6d28d9'][i]}));
+  let rows='';
+  q.pts.forEach((p,i)=>{
+    rows+=`<div class="write-row"><span class="write-lbl" style="color:${['#b86820','#2d7a52','#6d28d9'][i]}">${p.lbl}</span><span class="sep">( </span><input class="inp" id="wc1c_${i}" inputmode="decimal" placeholder="?"><span class="sep"> )</span></div>`;
+  });
+  Z.innerHTML=`<div class="svg-wrap">${buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:svgPts,svgId:'nl1c'})}</div>
+  <div class="prompt">Écris les coordonnées de chaque point :</div>
+  ${q.step===0.5?'<p style="text-align:center;font-size:.8em;color:var(--text-l);margin-bottom:6px">Tape 1,5 ou 1.5 pour les demi-graduations</p>':''}
+  <div class="write-block">${rows}</div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk1C()">✓ Valider</button></div>`;
+  foc('wc1c_0');
+  addEnter(q.pts.map((_,i)=>`wc1c_${i}`),chk1C);
+}
+function chk1C(){
+  let ok=true;
+  cq.pts.forEach((p,i)=>{
+    const inp=$(`wc1c_${i}`);inp.classList.remove('ok','err');
+    const v=pN(inp.value);
+    if(eq(v,p.val)){setOk(`wc1c_${i}`);}
+    else{cq._mis=true;inp.classList.add('err');ok=false;}
+  });
+  if(ok)finish(true);
+  else finish(false,'Certaines réponses sont incorrectes.');
+}
+
+// ═══════════════════════════════════════
+//  MODULE 2A — PLACER FRACTION
+// ═══════════════════════════════════════
+const FRAC_SETS=[
+  {denom:2,values:[1,3,5,-1,-3],base_min:-2,base_max:4},
+  {denom:3,values:[1,2,4,5,-1,-2],base_min:-1,base_max:3},
+  {denom:4,values:[1,3,5,7,-1,-3],base_min:-1,base_max:3},
+];
+
+function gen2A(){
+  const labels=['A','B','M','N','P','K','T','S'];
+  const out=[];
+  FRAC_SETS.forEach(fs=>{
+    sh([...fs.values]).slice(0,3).forEach(num=>{
+      const denom=fs.denom;
+      const val=num/denom;
+      const min=fs.base_min,max=fs.base_max;
+      const lbl=labels[out.length%labels.length];
+      out.push({num,denom,val,lbl,min,max});
+    });
+  });
+  return sh(out).slice(0,8);
+}
+function render2A(q){
+  const Z=$('zone');
+  Z.innerHTML=`<div class="prompt">Place le point <span class="ho">${q.lbl}</span> d'abscisse <span class="hl" id="q2a-val"></span> sur la droite.</div>
+  <div class="place-tip">👆 Clique ou touche la droite pour placer le point</div>
+  <div class="svg-wrap">${buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:[],interactive:true,svgId:'nl2a'})}</div>
+  <div class="placed-indicator" id="pi2a">Aucun point placé</div>
+  <div class="controls"><button class="btn btn-sage" id="val2a" onclick="chk2A()" disabled>✓ Valider</button></div>`;
+  tex('q2a-val',fracTex(q.num,q.denom));
+  let placed=null;
+  function getSnap(svgX){
+    const valRaw=q.min+(svgX-NL.L)/(NL.R-NL.L)*(q.max-q.min);
+    return Math.round(valRaw*q.denom)/q.denom;
+  }
+  function placeAt(svgX){
+    const v=getSnap(svgX);
+    if(v<q.min||v>q.max)return;
+    placed=v;
+    Z.querySelector('.svg-wrap').innerHTML=buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:[{val:v,label:q.lbl,color:'#b86820'}],interactive:true,svgId:'nl2a'});
+    const rn=Math.round(v*q.denom);
+    const g=gcd(Math.abs(rn),q.denom);
+    const dispTex=fracTex(rn/g,q.denom/g);
+    const pi=$('pi2a');pi.innerHTML=`${q.lbl} placé en `;
+    const sp=document.createElement('span');katex.render(dispTex,sp,{throwOnError:false});pi.appendChild(sp);
+    pi.className='placed-indicator set';
+    $('val2a').disabled=false;reattach();
+  }
+  function reattach(){const s=$('nl2a');if(!s)return;s.addEventListener('click',handler);s.addEventListener('touchend',touchHandler,{passive:false});}
+  function handler(e){const rect=$('nl2a').getBoundingClientRect();const svgX=(e.clientX-rect.left)*(NL.W/rect.width);placeAt(svgX);}
+  function touchHandler(e){e.preventDefault();const t=e.changedTouches[0];const rect=$('nl2a').getBoundingClientRect();const svgX=(t.clientX-rect.left)*(NL.W/rect.width);placeAt(svgX);}
+  $('nl2a').addEventListener('click',handler);$('nl2a').addEventListener('touchend',touchHandler,{passive:false});
+  cq._placed=()=>placed;
+}
+function chk2A(){
+  const placed=cq._placed();if(placed===null)return;
+  const ok=Math.abs(placed-cq.val)<0.01;
+  const rt=[];katex.renderToString&&(rt[0]=katex.renderToString(fracTex(cq.num,cq.denom),{throwOnError:false}));
+  if(ok)finish(true);
+  else{cq._mis=true;finish(false,`La bonne position est ${fracStr(cq.num,cq.denom)}.`);}
+}
+
+// ═══════════════════════════════════════
+//  MODULE 2B — LIRE FRACTION
+// ═══════════════════════════════════════
+function gen2B(){return gen2A();}
+function render2B(q){
+  const Z=$('zone');
+  Z.innerHTML=`<div class="svg-wrap">${buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:[{val:q.val,label:q.lbl}],svgId:'nl2b'})}</div>
+  <div class="prompt">Quelle est l'abscisse du point <span class="hl">${q.lbl}</span> ?<br><small style="color:var(--text-l)">(Ex : tape 3/2 ou -1/4)</small></div>
+  <div class="inp-row"><span class="sep">${q.lbl}( </span><input class="inp wide" id="inp2b" inputmode="text" placeholder="?"><span class="sep"> )</span></div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk2B()">✓ Valider</button></div>`;
+  foc('inp2b');addEnter(['inp2b'],chk2B);
+}
+function chk2B(){
+  const inp=$('inp2b');inp.classList.remove('ok','err');
+  const v=pFrac(inp.value);
+  if(eq(v,cq.val)){setOk('inp2b');finish(true);}
+  else{cq._mis=true;inp.classList.add('err');setTimeout(()=>{inp.classList.remove('err');inp.value='';inp.focus()},500);finish(false,`L'abscisse est ${fracStr(cq.num,cq.denom)}.`);}
+}
+
+// ═══════════════════════════════════════
+//  MODULE 2C — ÉCRIRE COORDONNÉES FRACTIONS
+// ═══════════════════════════════════════
+function gen2C(){
+  const out=[];
+  for(let i=0;i<8;i++){
+    const fs=rv(FRAC_SETS);
+    const nums=sh([...fs.values]).slice(0,2);
+    const pts=[
+      {lbl:'A',num:nums[0],denom:fs.denom,val:nums[0]/fs.denom},
+      {lbl:'B',num:nums[1],denom:fs.denom,val:nums[1]/fs.denom},
+    ];
+    out.push({pts,min:fs.base_min,max:fs.base_max,denom:fs.denom});
+  }
+  return out;
+}
+function render2C(q){
+  const Z=$('zone');
+  const svgPts=q.pts.map((p,i)=>({val:p.val,label:p.lbl,color:['#b86820','#2d7a52'][i]}));
+  let rows='';
+  q.pts.forEach((p,i)=>{
+    rows+=`<div class="write-row"><span class="write-lbl" style="color:${['#b86820','#2d7a52'][i]}">${p.lbl}</span><span class="sep">( </span><input class="inp wide" id="wc2c_${i}" inputmode="text" placeholder="?"><span class="sep"> )</span></div>`;
+  });
+  Z.innerHTML=`<div class="svg-wrap">${buildNumberLineSVG({min:q.min,max:q.max,denom:q.denom,pts:svgPts,svgId:'nl2c'})}</div>
+  <div class="prompt">Écris les coordonnées de chaque point :</div>
+  <div class="write-block">${rows}</div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk2C()">✓ Valider</button></div>`;
+  foc('wc2c_0');addEnter(q.pts.map((_,i)=>`wc2c_${i}`),chk2C);
+}
+function chk2C(){
+  let ok=true;
+  cq.pts.forEach((p,i)=>{
+    const inp=$(`wc2c_${i}`);inp.classList.remove('ok','err');
+    const v=pFrac(inp.value);
+    if(eq(v,p.val)){setOk(`wc2c_${i}`);}
+    else{cq._mis=true;inp.classList.add('err');ok=false;}
+  });
+  if(ok)finish(true);
+  else finish(false,'Certaines réponses sont incorrectes.');
+}
+
+// ═══════════════════════════════════════
+//  MODULE 3A — PLACER POINT REPÈRE
+// ═══════════════════════════════════════
+function gen3A(){
+  const labels=['A','B','M','N','P','K','T','S'];
+  return sh(labels.map(lbl=>{
+    const x=ri(-4,4),y=ri(-4,4);return{x,y,lbl};
+  })).slice(0,8);
+}
+function render3A(q){
+  const Z=$('zone');
+  Z.innerHTML=`<div class="prompt">Place le point <span class="ho">${q.lbl}</span> de coordonnées <span class="hl" id="q3a-c"></span></div>
+  <div class="place-tip">👆 Clique ou touche le repère</div>
+  <div class="svg-wrap">${buildPlaneSVG({pts:[],interactive:true,svgId:'pl3a'})}</div>
+  <div class="placed-indicator" id="pi3a">Aucun point placé</div>
+  <div class="controls"><button class="btn btn-sage" id="val3a" onclick="chk3A()" disabled>✓ Valider</button></div>`;
+  tex('q3a-c',`${q.lbl}(${q.x}\\,;\\,${q.y})`);
+  let placed=null;
+  function getSnap(svgX,svgY){
+    const dx=(svgX-PL.OX)/PL.U;const dy=-(svgY-PL.OY)/PL.U;
+    return{x:Math.round(dx),y:Math.round(dy)};
+  }
+  function placeAt(svgX,svgY){
+    const{x,y}=getSnap(svgX,svgY);
+    if(x<-5||x>5||y<-5||y>5)return;
+    placed={x,y};
+    Z.querySelector('.svg-wrap').innerHTML=buildPlaneSVG({pts:[{x,y,label:q.lbl,color:'#b86820',dotted:true}],interactive:true,svgId:'pl3a'});
+    $('pi3a').textContent=`${q.lbl} placé en (${x} ; ${y})`;$('pi3a').className='placed-indicator set';
+    $('val3a').disabled=false;reattach();
+  }
+  function reattach(){const s=$('pl3a');if(!s)return;s.addEventListener('click',handler);s.addEventListener('touchend',touchHandler,{passive:false});}
+  function handler(e){const r=$('pl3a').getBoundingClientRect();const svgX=(e.clientX-r.left)*(PL.W/r.width);const svgY=(e.clientY-r.top)*(PL.H/r.height);placeAt(svgX,svgY);}
+  function touchHandler(e){e.preventDefault();const t=e.changedTouches[0];const r=$('pl3a').getBoundingClientRect();const svgX=(t.clientX-r.left)*(PL.W/r.width);const svgY=(t.clientY-r.top)*(PL.H/r.height);placeAt(svgX,svgY);}
+  $('pl3a').addEventListener('click',handler);$('pl3a').addEventListener('touchend',touchHandler,{passive:false});
+  cq._placed=()=>placed;
+}
+function chk3A(){
+  const p=cq._placed();if(!p)return;
+  const ok=(p.x===cq.x&&p.y===cq.y);
+  if(ok)finish(true);
+  else{cq._mis=true;finish(false,`Les coordonnées de ${cq.lbl} sont (${cq.x} ; ${cq.y}).`);}
+}
+
+// ═══════════════════════════════════════
+//  MODULE 3B — LIRE COORDONNÉES REPÈRE
+// ═══════════════════════════════════════
+function gen3B(){return gen3A();}
+function render3B(q){
+  const Z=$('zone');
+  Z.innerHTML=`<div class="svg-wrap">${buildPlaneSVG({pts:[{x:q.x,y:q.y,label:q.lbl,dotted:true}],svgId:'pl3b'})}</div>
+  <div class="prompt">Quelles sont les coordonnées du point <span class="hl">${q.lbl}</span> ?</div>
+  <div class="inp-row"><span class="sep">${q.lbl}(</span><input class="inp" id="inp3bx" inputmode="decimal" placeholder="x"><span class="sep"> ; </span><input class="inp" id="inp3by" inputmode="decimal" placeholder="y"><span class="sep">)</span></div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk3B()">✓ Valider</button></div>`;
+  foc('inp3bx');addEnter(['inp3bx','inp3by'],chk3B);
+}
+function chk3B(){
+  const ix=$('inp3bx'),iy=$('inp3by');[ix,iy].forEach(e=>e.classList.remove('ok','err'));
+  const vx=pN(ix.value),vy=pN(iy.value);let ok=true;
+  if(eq(vx,cq.x)){setOk('inp3bx');}else{cq._mis=true;ix.classList.add('err');ok=false;}
+  if(eq(vy,cq.y)){setOk('inp3by');}else{cq._mis=true;iy.classList.add('err');ok=false;}
+  if(ok)finish(true);else finish(false,`Les coordonnées sont (${cq.x} ; ${cq.y}).`);
+}
+
+// ═══════════════════════════════════════
+//  MODULE 3C — ÉCRIRE COORDONNÉES REPÈRE
+// ═══════════════════════════════════════
+function gen3C(){
+  const labelSets=[['A','B','C'],['M','N','P'],['K','L','T']];
+  const out=[];
+  for(let i=0;i<8;i++){
+    const lbls=rv(labelSets);
+    const pts=lbls.map(lbl=>({lbl,x:ri(-4,4),y:ri(-4,4)}));
+    out.push({pts});
+  }
+  return out;
+}
+function render3C(q){
+  const Z=$('zone');
+  const colors=['#b86820','#2d7a52','#6d28d9'];
+  const svgPts=q.pts.map((p,i)=>({x:p.x,y:p.y,label:p.lbl,color:colors[i]}));
+  let rows='';
+  q.pts.forEach((p,i)=>{
+    rows+=`<div class="write-row"><span class="write-lbl" style="color:${colors[i]}">${p.lbl}</span><span class="sep">( </span><input class="inp" id="wc3c_${i}_x" inputmode="decimal" placeholder="x"><span class="sep"> ; </span><input class="inp" id="wc3c_${i}_y" inputmode="decimal" placeholder="y"><span class="sep"> )</span></div>`;
+  });
+  Z.innerHTML=`<div class="svg-wrap">${buildPlaneSVG({pts:svgPts,svgId:'pl3c'})}</div>
+  <div class="prompt">Écris les coordonnées de chaque point :</div>
+  <div class="write-block">${rows}</div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk3C()">✓ Valider</button></div>`;
+  foc('wc3c_0_x');
+  const allIds=[];q.pts.forEach((_,i)=>{allIds.push(`wc3c_${i}_x`,`wc3c_${i}_y`);});
+  addEnter(allIds,chk3C);
+}
+function chk3C(){
+  let ok=true;
+  cq.pts.forEach((p,i)=>{
+    const ix=$(`wc3c_${i}_x`),iy=$(`wc3c_${i}_y`);[ix,iy].forEach(e=>e.classList.remove('ok','err'));
+    const vx=pN(ix.value),vy=pN(iy.value);
+    if(eq(vx,p.x)){setOk(`wc3c_${i}_x`);}else{cq._mis=true;ix.classList.add('err');ok=false;}
+    if(eq(vy,p.y)){setOk(`wc3c_${i}_y`);}else{cq._mis=true;iy.classList.add('err');ok=false;}
+  });
+  if(ok)finish(true);else finish(false,'Certaines coordonnées sont incorrectes.');
+}
+
+
+// ═══════════════════════════════════════
+//  MODULE 5 — REPÉRAGE SUR LA SPHÈRE
+// ═══════════════════════════════════════
+
+const DEF_LAT=`<div class="method-section" style="margin:10px 0 14px">
+  <div class="method-title">🌐 Rappel — Latitude</div>
+  <div class="method-def" style="font-size:.85em">
+    La <span class="term">latitude</span> mesure la distance angulaire <strong>nord–sud</strong> par rapport à l'<span class="term">équateur</span> (0°).<br>
+    Elle varie de <strong>90° S</strong> (pôle Sud) à <strong>90° N</strong> (pôle Nord).<br>
+    Les lignes de même latitude s'appellent des <span class="term">parallèles</span>.
+  </div>
+</div>`;
+
+const DEF_LON=`<div class="method-section" style="margin:10px 0 14px">
+  <div class="method-title">🧭 Rappel — Longitude</div>
+  <div class="method-def" style="font-size:.85em">
+    La <span class="term">longitude</span> mesure la distance angulaire <strong>est–ouest</strong> par rapport au <span class="term">méridien de Greenwich</span> (0°).<br>
+    Elle varie de <strong>180° O</strong> à <strong>180° E</strong>.<br>
+    Les lignes de même longitude s'appellent des <span class="term">méridiens</span>.
+  </div>
+</div>`;
+
+const DEF_BOTH=`<div class="method-section" style="margin:10px 0 14px">
+  <div class="method-title">🌍 Rappel — Latitude &amp; Longitude</div>
+  <div class="method-def" style="font-size:.85em">
+    <span class="term">Latitude</span> : angle <strong>nord–sud</strong> depuis l'équateur (–90° S à +90° N).<br>
+    <span class="term">Longitude</span> : angle <strong>est–ouest</strong> depuis Greenwich (–180° à +180°).<br>
+    On repère un point sur le globe par ses coordonnées <strong>(latitude ; longitude)</strong>.
+  </div>
+</div>`;
+
+// Questions module 5A — Latitude
+const Q5A = [
+  {q:"Qu'est-ce que la <strong>latitude</strong> d'un point ?",
+   choices:["L'angle nord–sud depuis l'équateur","L'angle est–ouest depuis Greenwich","La distance au pôle Nord en km","La hauteur au-dessus du sol"],
+   ans:0, def:DEF_LAT},
+  {q:"Quelle est la latitude de l'<strong>équateur</strong> ?",
+   choices:["90° N","45° N","0°","180°"],
+   ans:2, def:DEF_LAT},
+  {q:"La latitude du <strong>pôle Nord</strong> vaut :",
+   choices:["0°","45° N","90° N","180° N"],
+   ans:2, def:DEF_LAT},
+  {q:"La latitude du <strong>pôle Sud</strong> vaut :",
+   choices:["0°","90° S","45° S","180° S"],
+   ans:1, def:DEF_LAT},
+  {q:"Comment appelle-t-on les lignes de même <strong>latitude</strong> ?",
+   choices:["Méridiens","Parallèles","Tropiques","Longitudes"],
+   ans:1, def:DEF_LAT},
+  {q:"Paris est à environ <strong>49° N</strong> de latitude. Cela signifie que Paris est :",
+   choices:["Au sud de l'équateur","À 49° au nord de l'équateur","À 49° à l'est de Greenwich","À 49 km du pôle Nord"],
+   ans:1, def:DEF_LAT},
+  {q:"Une latitude <strong>négative</strong> (−30°) correspond à :",
+   choices:["30° dans l'hémisphère Nord","30° dans l'hémisphère Sud","30° à l'est de Greenwich","Une erreur impossible"],
+   ans:1, def:DEF_LAT},
+  {q:"Quel est l'intervalle possible des valeurs de latitude ?",
+   choices:["0° à 360°","−180° à 180°","−90° à 90°","0° à 90°"],
+   ans:2, def:DEF_LAT},
+];
+
+// Questions module 5B — Longitude
+const Q5B = [
+  {q:"Qu'est-ce que la <strong>longitude</strong> d'un point ?",
+   choices:["L'angle nord–sud depuis l'équateur","L'angle est–ouest depuis le méridien de Greenwich","La distance à l'équateur","La hauteur au-dessus du niveau de la mer"],
+   ans:1, def:DEF_LON},
+  {q:"Quelle est la longitude du <strong>méridien de Greenwich</strong> ?",
+   choices:["90° E","45° E","180°","0°"],
+   ans:3, def:DEF_LON},
+  {q:"Comment appelle-t-on les lignes de même <strong>longitude</strong> ?",
+   choices:["Parallèles","Tropiques","Méridiens","Latitudes"],
+   ans:2, def:DEF_LON},
+  {q:"Une longitude de <strong>90° E</strong> signifie :",
+   choices:["90° à l'ouest de Greenwich","90° à l'est de Greenwich","90° au nord de l'équateur","Le pôle Est"],
+   ans:1, def:DEF_LON},
+  {q:"Quel est l'intervalle possible des valeurs de longitude ?",
+   choices:["0° à 360°","−90° à 90°","−180° à 180°","0° à 180°"],
+   ans:2, def:DEF_LON},
+  {q:"Le <strong>méridien opposé</strong> à celui de Greenwich (anti-méridien) a pour longitude :",
+   choices:["90° E","90° O","180°","270°"],
+   ans:2, def:DEF_LON},
+  {q:"New York est à environ <strong>74° O</strong> de longitude. Cela signifie qu'elle est :",
+   choices:["À 74° à l'est de Greenwich","À 74° au nord de l'équateur","À 74° à l'ouest de Greenwich","À 74° au sud du pôle"],
+   ans:2, def:DEF_LON},
+  {q:"Deux villes ont la même <strong>longitude</strong>. Elles se trouvent :",
+   choices:["Sur le même parallèle","Sur le même méridien","À la même distance de l'équateur","À la même altitude"],
+   ans:1, def:DEF_LON},
+];
+
+// Questions module 5C — Quiz mixte
+const Q5C = [
+  {q:"Un point a pour coordonnées <strong>(45° N ; 0°)</strong>. Que peut-on dire ?",
+   choices:["Il est sur l'équateur et le méridien de Greenwich","Il est à 45° au nord de l'équateur et sur le méridien de Greenwich","Il est à 45° à l'est de Greenwich","Il est au pôle Nord"],
+   ans:1, def:DEF_BOTH},
+  {q:"Deux villes ont la <strong>même latitude</strong>. Elles sont sur :",
+   choices:["Le même méridien","Le même parallèle","Le même hémisphère est ou ouest","La même ligne de longitude"],
+   ans:1, def:DEF_BOTH},
+  {q:"L'<strong>équateur</strong> est la ligne de latitude :",
+   choices:["90° N","45° N","0°","180°"],
+   ans:2, def:DEF_BOTH},
+  {q:"Le <strong>méridien de Greenwich</strong> est la ligne de longitude :",
+   choices:["90° E","0°","180°","45° O"],
+   ans:1, def:DEF_BOTH},
+  {q:"Repérer un point sur le globe nécessite :",
+   choices:["Seulement la latitude","Seulement la longitude","La latitude ET la longitude","La hauteur et la distance"],
+   ans:2, def:DEF_BOTH},
+  {q:"La <strong>latitude</strong> mesure un angle par rapport à :",
+   choices:["Au méridien de Greenwich","À l'équateur","Au pôle Nord","Au centre de la Terre"],
+   ans:1, def:DEF_BOTH},
+  {q:"La <strong>longitude</strong> mesure un angle par rapport à :",
+   choices:["L'équateur","Le pôle Nord","Le méridien de Greenwich","Le tropique du Cancer"],
+   ans:2, def:DEF_BOTH},
+  {q:"Un point en <strong>hémisphère Sud</strong> a une latitude :",
+   choices:["Positive","Nulle","Négative (ou notée S)","Supérieure à 90°"],
+   ans:2, def:DEF_BOTH},
+];
+
+function gen5A(){return sh([...Q5A]).slice(0,8);}
+function gen5B(){return sh([...Q5B]).slice(0,8);}
+function gen5C(){return sh([...Q5C]).slice(0,8);}
+
+function render5Q(q){
+  const Z=$('zone');
+  // Shuffle choices keeping track of correct answer
+  const indices=[0,1,2,3];
+  sh(indices);
+  const newAns=indices.indexOf(q.ans);
+  const shuffledChoices=indices.map(i=>q.choices[i]);
+
+  let btns='';
+  shuffledChoices.forEach((c,i)=>{
+    btns+=`<button class="btn5-choice" id="ch5_${i}" onclick="chk5(${i},${newAns})">${c}</button>`;
+  });
+
+  Z.innerHTML=`${q.def}
+  <div class="prompt">${q.q}</div>
+  <div class="choices5-grid">${btns}</div>`;
+}
+
+function chk5(chosen, correct){
+  // Disable all buttons
+  for(let i=0;i<4;i++){
+    const b=$(`ch5_${i}`);
+    if(!b)continue;
+    b.disabled=true;
+    if(i===correct){b.classList.add('ch5-correct');}
+    else if(i===chosen&&chosen!==correct){b.classList.add('ch5-wrong');}
+  }
+  if(chosen===correct){finish(true);}
+  else{cq._mis=true;finish(false,'Ce n\'est pas la bonne réponse.');}
+}
+
+// ═══════════════════════════════════════
+const BOXES=[{a:4,b:3,c:2},{a:5,b:2,c:3},{a:3,b:4,c:2},{a:4,b:2,c:3}];
+const BOX_VERTS_COORDS={A:[0,0,0],B:'a00',C:'ab0',D:'0b0',E:'00c',F:'a0c',G:'abc',H:'0bc'};
+
+function boxCoords(key,box){
+  const{a,b,c}=box;
+  const t={A:[0,0,0],B:[a,0,0],C:[a,b,0],D:[0,b,0],E:[0,0,c],F:[a,0,c],G:[a,b,c],H:[0,b,c]};
+  return t[key];
+}
+
+function gen4A(){
+  return sh('ABCDEFGH'.split('').map(k=>{
+    const box=rv(BOXES);
+    const[x,y,z]=boxCoords(k,box);
+    return{k,x,y,z,box};
+  })).slice(0,8);
+}
+function render4A(q){
+  const Z=$('zone');
+  Z.innerHTML=`<div class="prompt">Clique sur le sommet de coordonnées <span class="hl" id="q4a-c"></span></div>
+  <div class="place-tip">👆 Clique sur le bon sommet du pavé</div>
+  <div class="svg-wrap" id="wrap4a">${buildBoxSVG({...q.box,interactive:true,svgId:'bx4a'})}</div>
+  <div class="placed-indicator" id="pi4a">Aucun sommet sélectionné</div>
+  <div class="controls"><button class="btn btn-sage" id="val4a" onclick="chk4A()" disabled>✓ Valider</button></div>`;
+  tex('q4a-c',`(${q.x}\\,;\\,${q.y}\\,;\\,${q.z})`);
+  let selected=null;
+  // Event delegation on the svg-wrap
+  $('wrap4a').addEventListener('click',function(e){
+    const circ=e.target.closest('[data-key]');if(!circ)return;
+    const k=circ.getAttribute('data-key');
+    selected=k;
+    $('wrap4a').innerHTML=buildBoxSVG({...q.box,interactive:true,selected:k,svgId:'bx4a'});
+    $('pi4a').textContent=`Sommet ${k} sélectionné`;$('pi4a').className='placed-indicator set';
+    $('val4a').disabled=false;
+  });
+  cq._selected=()=>selected;
+}
+function chk4A(){
+  const s=cq._selected();if(!s)return;
+  const ok=(s===cq.k);
+  if(ok)finish(true);
+  else{cq._mis=true;finish(false,`Le sommet cherché est ${cq.k}(${cq.x} ; ${cq.y} ; ${cq.z}).`);}
+}
+
+function gen4B(){return gen4A();}
+function render4B(q){
+  const Z=$('zone');
+  Z.innerHTML=`<div class="svg-wrap">${buildBoxSVG({...q.box,highlight:q.k,svgId:'bx4b'})}</div>
+  <div class="prompt">Quelles sont les coordonnées du sommet <span class="hl">${q.k}</span> en orange ?</div>
+  <div class="inp-row"><span class="sep">${q.k}(</span><input class="inp" id="inp4bx" inputmode="decimal" placeholder="x"><span class="sep"> ; </span><input class="inp" id="inp4by" inputmode="decimal" placeholder="y"><span class="sep"> ; </span><input class="inp" id="inp4bz" inputmode="decimal" placeholder="z"><span class="sep">)</span></div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk4B()">✓ Valider</button></div>`;
+  foc('inp4bx');addEnter(['inp4bx','inp4by','inp4bz'],chk4B);
+}
+function chk4B(){
+  const ix=$('inp4bx'),iy=$('inp4by'),iz=$('inp4bz');
+  [ix,iy,iz].forEach(e=>e.classList.remove('ok','err'));
+  let ok=true;
+  if(eq(pN(ix.value),cq.x)){setOk('inp4bx');}else{cq._mis=true;ix.classList.add('err');ok=false;}
+  if(eq(pN(iy.value),cq.y)){setOk('inp4by');}else{cq._mis=true;iy.classList.add('err');ok=false;}
+  if(eq(pN(iz.value),cq.z)){setOk('inp4bz');}else{cq._mis=true;iz.classList.add('err');ok=false;}
+  if(ok)finish(true);else finish(false,`Les coordonnées sont (${cq.x} ; ${cq.y} ; ${cq.z}).`);
+}
+
+function gen4C(){
+  const keyGroups=[['A','B','F','G'],['A','C','E','G'],['B','D','E','H'],['A','F','G','D']];
+  return sh(keyGroups.map(keys=>{
+    const box=rv(BOXES);
+    const pts=keys.map(k=>{const[x,y,z]=boxCoords(k,box);return{k,x,y,z};});
+    return{pts,box};
+  })).concat(sh(keyGroups.map(keys=>{const box=rv(BOXES);const pts=keys.map(k=>{const[x,y,z]=boxCoords(k,box);return{k,x,y,z};});return{pts,box};}))).slice(0,8);
+}
+function render4C(q){
+  const Z=$('zone');
+  const colors=['#b86820','#2d7a52','#6d28d9','#dc2626'];
+  let rows='';
+  q.pts.forEach((p,i)=>{
+    rows+=`<div class="write-row"><span class="write-lbl" style="color:${colors[i]}">${p.k}</span><span class="sep">( </span><input class="inp" id="wc4_${i}_x" inputmode="decimal" placeholder="x"><span class="sep">; </span><input class="inp" id="wc4_${i}_y" inputmode="decimal" placeholder="y"><span class="sep">; </span><input class="inp" id="wc4_${i}_z" inputmode="decimal" placeholder="z"><span class="sep"> )</span></div>`;
+  });
+  Z.innerHTML=`<div class="svg-wrap">${buildBoxSVG({...q.box,showCoords:false,svgId:'bx4c'})}</div>
+  <div class="prompt">Écris les coordonnées des sommets indiqués :</div>
+  <div class="write-block">${rows}</div>
+  <div class="controls"><button class="btn btn-sage" onclick="chk4C()">✓ Valider</button></div>`;
+  foc('wc4_0_x');
+  const allIds=[];q.pts.forEach((_,i)=>{allIds.push(`wc4_${i}_x`,`wc4_${i}_y`,`wc4_${i}_z`);});
+  addEnter(allIds,chk4C);
+}
+function chk4C(){
+  let ok=true;
+  cq.pts.forEach((p,i)=>{
+    ['x','y','z'].forEach(c=>{
+      const id=`wc4_${i}_${c}`;const inp=$(id);if(!inp)return;inp.classList.remove('ok','err');
+      if(eq(pN(inp.value),p[c])){setOk(id);}else{cq._mis=true;inp.classList.add('err');ok=false;}
+    });
+  });
+  if(ok)finish(true);else finish(false,'Certaines coordonnées sont incorrectes.');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

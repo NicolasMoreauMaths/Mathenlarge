@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&#39;Enquête des Nombres</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0f14;--bg2:#13161e;--bg3:#1a1e2a;
+  --gold:#c9a84c;--gold2:#e8c96a;
+  --gold-pale:rgba(201,168,76,.12);--gold-border:rgba(201,168,76,.3);
+  --red:#e05252;--red-pale:rgba(224,82,82,.12);
+  --green:#4caf7d;--green-pale:rgba(76,175,125,.12);
+  --blue-pale:rgba(91,155,213,.1);--blue-border:rgba(91,155,213,.25);
+  --text:#e8e2d4;--text-dim:#8a8070;--text-mid:#b5aa96;
+  --border:rgba(201,168,76,.18);
+}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px 10px 40px;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 50%,rgba(201,168,76,.04),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(91,155,213,.04),transparent 50%);}
+.app{max-width:700px;width:100%;position:relative;z-index:1;}
+.app-header{background:var(--bg2);border:1px solid var(--border);border-bottom:3px solid var(--gold);border-radius:10px 10px 0 0;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;}
+.app-header::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold2),transparent);}
+.header-left{display:flex;align-items:center;gap:10px}
+.badge-detective{background:var(--gold-pale);border:1px solid var(--gold-border);color:var(--gold);padding:3px 10px;border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:.7em;letter-spacing:2px;}
+.app-title{font-family:'Special Elite',cursive;font-size:1.1em;color:var(--gold2);letter-spacing:.05em;}
+.hdr-menu{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:6px;font-family:'Rajdhani',sans-serif;font-size:.82em;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.05em;}
+.hdr-menu:hover{border-color:var(--gold);color:var(--gold)}
+.main{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:30px 28px;min-height:55vh;position:relative;}
+.main::before,.main::after{content:'';position:absolute;width:20px;height:20px;border-color:var(--gold);border-style:solid;opacity:.4;}
+.main::before{top:10px;left:10px;border-width:1px 0 0 1px}
+.main::after{bottom:10px;right:10px;border-width:0 1px 1px 0}
+.screen{display:none;animation:fadeIn .35s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{font-family:'Special Elite',cursive;font-size:1.7em;text-align:center;color:var(--gold2);margin-bottom:6px;letter-spacing:.03em;}
+.sub{text-align:center;font-size:.92em;color:var(--text-dim);margin-bottom:6px;line-height:1.5;}
+.case-file{border:1px solid var(--border);border-radius:8px;padding:22px 24px;margin:22px 0;background:var(--bg3);position:relative;}
+.case-file::before{content:'DOSSIER CONFIDENTIEL';position:absolute;top:-10px;left:20px;background:var(--bg2);padding:0 8px;font-family:'Share Tech Mono',monospace;font-size:.65em;color:var(--gold);letter-spacing:2px;}
+.case-stamp{position:absolute;top:12px;right:16px;font-family:'Special Elite',cursive;font-size:1.8em;color:var(--red);opacity:.25;transform:rotate(-12deg);border:3px solid var(--red);padding:2px 8px;border-radius:4px;letter-spacing:2px;line-height:1;}
+.case-text{font-size:1em;color:var(--text-mid);line-height:1.7;}
+.case-text .hl{color:var(--gold2);font-weight:700}.case-text .suspect{color:var(--red);font-weight:700}
+.btn{font-family:'Rajdhani',sans-serif;font-weight:700;padding:11px 26px;border-radius:6px;font-size:.95em;cursor:pointer;transition:all .2s;border:1px solid;min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;gap:7px;letter-spacing:.06em;-webkit-tap-highlight-color:transparent;}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-gold{background:linear-gradient(135deg,#a8803a,#c9a84c);color:#0d0f14;border-color:var(--gold);box-shadow:0 2px 12px rgba(201,168,76,.2);}
+.btn-gold:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-dim);border-color:var(--border)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.progress-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.progress-track{flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.progress-label{font-family:'Share Tech Mono',monospace;font-size:.72em;color:var(--gold);white-space:nowrap;}
+.score-display{font-family:'Share Tech Mono',monospace;font-size:.72em;color:var(--text-dim);white-space:nowrap;}
+.story-banner{background:var(--bg3);border-left:3px solid var(--gold);padding:12px 16px;margin-bottom:20px;border-radius:0 6px 6px 0;font-size:.88em;color:var(--text-mid);line-height:1.6;font-style:italic;}
+.story-banner .who{color:var(--gold);font-style:normal;font-weight:700}
+.q-num{font-family:'Share Tech Mono',monospace;font-size:.72em;color:var(--gold);letter-spacing:2px;margin-bottom:10px;}
+.q-text{font-size:1.15em;font-weight:600;line-height:1.6;color:var(--text);margin-bottom:22px;}
+.q-text .math{font-family:'Share Tech Mono',monospace;background:var(--gold-pale);border:1px solid var(--gold-border);color:var(--gold2);padding:1px 6px;border-radius:4px;}
+.answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
+.ans-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .22s;display:flex;align-items:center;gap:10px;text-align:left;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.ans-btn:hover:not(.locked){border-color:var(--gold);background:var(--gold-pale);transform:translateY(-2px);}
+.ans-letter{font-family:'Share Tech Mono',monospace;font-size:.8em;color:var(--gold);border:1px solid var(--gold-border);width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--gold-pale);}
+.ans-text{font-size:.97em;font-weight:600;color:var(--text-mid);line-height:1.3}
+.ans-btn.correct{border-color:var(--green)!important;background:var(--green-pale)!important;animation:popRight .4s ease;}
+.ans-btn.correct .ans-letter{border-color:var(--green);background:rgba(76,175,125,.2);color:var(--green)}
+.ans-btn.correct .ans-text{color:var(--green)}
+.ans-btn.wrong{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s;}
+.ans-btn.wrong .ans-letter{border-color:var(--red);background:var(--red-pale);color:var(--red)}
+.ans-btn.wrong .ans-text{color:var(--red)}
+.ans-btn.reveal{border-color:var(--green)!important;background:var(--green-pale)!important;opacity:.6}
+.ans-btn.reveal .ans-letter{border-color:var(--green);color:var(--green)}
+.ans-btn.reveal .ans-text{color:var(--green)}
+.ans-btn.eliminated{opacity:.22;pointer-events:none}
+.ans-btn.locked{cursor:default;pointer-events:none}
+@keyframes popRight{0%{transform:scale(.97)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.jokers-bar{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;}
+.joker-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;font-family:'Rajdhani',sans-serif;font-size:.82em;font-weight:700;color:var(--text-dim);-webkit-tap-highlight-color:transparent;}
+.joker-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+.joker-btn:disabled{opacity:.2;cursor:not-allowed}
+.joker-count{background:var(--gold-pale);color:var(--gold);border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:.75em;font-family:'Share Tech Mono',monospace;}
+.hint-box{background:var(--blue-pale);border:1px solid var(--blue-border);border-radius:6px;padding:12px 16px;margin:14px 0;font-size:.9em;color:#8ab4d4;line-height:1.6;}
+.fb{margin-top:16px;padding:13px 18px;border-radius:8px;font-size:.95em;display:none;font-weight:600;line-height:1.5;animation:fadeIn .25s;}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(76,175,125,.25)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(224,82,82,.2)}
+.resolution-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:24px;margin:18px 0;text-align:center;position:relative;overflow:hidden;}
+.resolution-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.08),transparent 60%);pointer-events:none;}
+.big-score{font-family:'Special Elite',cursive;font-size:3.5em;color:var(--gold2);text-shadow:0 0 30px rgba(201,168,76,.3);margin:10px 0;}
+.verdict{font-family:'Special Elite',cursive;font-size:1.3em;margin-bottom:12px;}
+.verdict.solved{color:var(--green)}.verdict.partial{color:var(--gold)}.verdict.failed{color:var(--red)}
+.story-progress{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:10px 0;}
+.sp{font-size:.72em;font-family:'Share Tech Mono',monospace;padding:3px 10px;border-radius:20px;}
+.sp.done{background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.3)}
+.sp.fail{background:var(--red-pale);color:var(--red);border:1px solid rgba(224,82,82,.2)}
+/* CLUE REVEAL */
+.clue-reveal{margin:18px 0;border-radius:10px;overflow:hidden;}
+.clue-header{padding:10px 16px;font-family:'Share Tech Mono',monospace;font-size:.72em;letter-spacing:2px;display:flex;align-items:center;gap:8px;}
+.clue-header.unlocked{background:rgba(201,168,76,.15);color:var(--gold);border:1px solid var(--gold-border);}
+.clue-header.locked{background:var(--red-pale);color:var(--red);border:1px solid rgba(224,82,82,.25);}
+.clue-body{padding:14px 16px;font-size:.95em;line-height:1.65;border:1px solid;border-top:none;border-radius:0 0 10px 10px;}
+.clue-body.unlocked{background:rgba(201,168,76,.06);color:var(--text-mid);border-color:var(--gold-border);}
+.clue-body.locked{background:rgba(0,0,0,.2);color:var(--text-dim);border-color:rgba(224,82,82,.2);font-style:italic;}
+.clue-body .hl{color:var(--gold2);font-weight:700;}
+/* MENU */
+.levels-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:20px 0}
+.level-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px 18px;cursor:pointer;transition:all .22s;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent;}
+.level-card:hover{border-color:var(--gold);background:var(--gold-pale);transform:translateX(4px)}
+.level-card.completed{border-color:rgba(76,175,125,.4);}
+.level-num{font-family:'Share Tech Mono',monospace;font-size:.85em;color:var(--gold);border:1px solid var(--gold-border);padding:4px 10px;border-radius:4px;background:var(--gold-pale);white-space:nowrap;min-width:60px;text-align:center;}
+.level-info .lt{font-weight:700;font-size:1em;color:var(--text);margin-bottom:2px}
+.level-info .ld{font-size:.82em;color:var(--text-dim)}
+.level-status{margin-left:auto;font-size:1.2em;}
+/* ACCUSATION */
+.clues-recap{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+.clue-mini{padding:11px 14px;border-radius:8px;font-size:.88em;line-height:1.55;display:flex;gap:10px;align-items:flex-start;}
+.clue-mini.got{background:rgba(201,168,76,.08);border:1px solid var(--gold-border);color:var(--text-mid);}
+.clue-mini.missed{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);color:var(--text-dim);font-style:italic;}
+.clue-mini .clue-icon{font-size:1.1em;flex-shrink:0;margin-top:1px;}
+.clue-mini .clue-case{font-family:'Share Tech Mono',monospace;font-size:.7em;color:var(--gold);display:block;margin-bottom:3px;letter-spacing:1px;}
+.suspects-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:20px 0;}
+.suspect-card{background:var(--bg3);border:2px solid var(--border);border-radius:10px;padding:18px;cursor:pointer;transition:all .22s;-webkit-tap-highlight-color:transparent;}
+.suspect-card:hover{border-color:var(--gold);background:var(--gold-pale);}
+.suspect-card.correct-pick{border-color:var(--green)!important;background:var(--green-pale)!important;animation:popRight .4s ease;}
+.suspect-card.wrong-pick{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .4s;}
+.suspect-name{font-family:'Special Elite',cursive;font-size:1.15em;color:var(--gold2);margin-bottom:6px;}
+.suspect-desc{font-size:.88em;color:var(--text-mid);line-height:1.55;}
+.final-verdict{text-align:center;padding:20px;background:var(--bg3);border-radius:10px;margin:16px 0;border:1px solid var(--border);}
+.final-verdict .fv-title{font-family:'Special Elite',cursive;font-size:1.5em;margin-bottom:10px;}
+.final-verdict.win .fv-title{color:var(--green);}
+.final-verdict.lose .fv-title{color:var(--red);}
+.final-verdict .fv-text{font-size:.95em;color:var(--text-mid);line-height:1.6;}
+.keypad-hint{text-align:center;font-family:'Share Tech Mono',monospace;font-size:.68em;color:var(--text-dim);letter-spacing:1px;margin-top:8px;}
+@media(max-width:600px){.main{padding:22px 16px}.answers-grid{grid-template-columns:1fr;gap:8px}h1{font-size:1.35em}.big-score{font-size:2.5em}}
+@media(max-width:400px){.main{padding:18px 12px}.q-text{font-size:1.05em}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="header-left">
+      <span class="badge-detective">DÉTECTIVE</span>
+      <span class="app-title">L&#39;Enquête des Nombres</span>
+    </div>
+    <button class="hdr-menu" id="menuBtn" style="display:none">&#9776; MENU</button>
+  </div>
+  <div class="main">
+
+    <div class="screen active" id="S_intro">
+      <h1>L&#39;Enquête des Nombres</h1>
+      <p class="sub">Un vol mystérieux. Une seule piste&#160;: les mathématiques.</p>
+      <div class="case-file">
+        <div class="case-stamp">URGENT</div>
+        <p class="case-text">
+          <span class="hl">Paris, 23h47.</span> Le diamant &#171;&#160;Le Nombre d&#39;Or&#160;&#187; a disparu du musée des Sciences.<br><br>
+          Trois suspects sont dans le viseur. Pour les confondre, résous <span class="hl">3 affaires mathématiques</span>. Chaque affaire réussie te donne un <span class="hl">indice sur le coupable</span>.<br><br>
+          À la fin, tu choisiras qui accuser. Mais si tu ratesMais si tu rates une affaire&#160;: <span class="suspect">pas d&#39;indice</span>. À toi de jouer&#160;!
+        </p>
+      </div>
+      <div class="controls">
+        <button class="btn btn-gold" id="btnStart">&#128269; Ouvrir le dossier</button>
+      </div>
+    </div>
+
+    <div class="screen" id="S_menu">
+      <h1>Choisir une affaire</h1>
+      <p class="sub">Résous les 3 affaires pour collecter tous les indices.</p>
+      <div class="levels-grid">
+        <div class="level-card" id="case0">
+          <div class="level-num">AFF. 01</div>
+          <div class="level-info"><div class="lt">Le Vol du Musée</div><div class="ld">Calcul mental &#183; Multiplication &#183; Logique</div></div>
+          <div class="level-status" id="status0"></div>
+        </div>
+        <div class="level-card" id="case1">
+          <div class="level-num">AFF. 02</div>
+          <div class="level-info"><div class="lt">La Fuite du Bandit</div><div class="ld">Périmètres &#183; Aires &#183; Géométrie</div></div>
+          <div class="level-status" id="status1"></div>
+        </div>
+        <div class="level-card" id="case2">
+          <div class="level-num">AFF. 03</div>
+          <div class="level-info"><div class="lt">Le Code Secret</div><div class="ld">Multiples &#183; Diviseurs &#183; Calculs malins</div></div>
+          <div class="level-status" id="status2"></div>
+        </div>
+      </div>
+      <div id="allDoneZone"></div>
+    </div>
+
+    <div class="screen" id="S_quiz">
+      <div class="progress-bar">
+        <div class="score-display" id="scoreLbl">0/0</div>
+        <div class="progress-track"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+        <div class="progress-label" id="qLbl">Q 1/7</div>
+      </div>
+      <div class="jokers-bar">
+        <button class="joker-btn" id="jok50"><span>&#9889;</span> 50/50 <span class="joker-count" id="j50c">1</span></button>
+        <button class="joker-btn" id="jokHint"><span>&#128269;</span> INDICE <span class="joker-count" id="jhc">1</span></button>
+        <button class="joker-btn" id="jokSkip"><span>&#9197;</span> PASSER <span class="joker-count" id="jsc">1</span></button>
+      </div>
+      <div class="story-banner" id="storyBanner"></div>
+      <div id="zone"></div>
+      <div class="hint-box" id="hintBox" style="display:none"></div>
+      <div class="fb" id="fb"></div>
+      <div class="controls">
+        <button class="btn btn-gold" id="nxt" style="display:none">Suivant &#8594;</button>
+        <button class="btn btn-ghost" id="btnAbandon">&#8592; Abandonner</button>
+      </div>
+      <div class="keypad-hint">APPUIE SUR ENTRÉE POUR PASSER À LA SUITE</div>
+    </div>
+
+    <div class="screen" id="S_res">
+      <h1>Rapport d&#39;enquête</h1>
+      <div class="resolution-card">
+        <div class="big-score" id="resBigScore">0/7</div>
+        <div class="verdict" id="resVerdict"></div>
+      </div>
+      <div class="story-progress" id="storyProgress"></div>
+      <div class="clue-reveal" id="clueReveal"></div>
+      <div class="controls">
+        <button class="btn btn-gold" id="btnBackMenu">&#8592; Retour au menu</button>
+      </div>
+    </div>
+
+    <div class="screen" id="S_accuse">
+      <h1>&#128269; Qui est coupable&#160;?</h1>
+      <p class="sub">Voici les indices récoltés. Lis-les, puis désigne le coupable.</p>
+      <div class="clues-recap" id="cluesRecap"></div>
+      <div style="border-top:1px solid var(--border);margin:20px 0 16px"></div>
+      <p style="font-family:'Share Tech Mono',monospace;font-size:.75em;color:var(--gold);letter-spacing:2px;text-align:center;margin-bottom:16px">— LES SUSPECTS —</p>
+      <div class="suspects-grid" id="suspectsGrid"></div>
+      <div id="accuseVerdict"></div>
+      <div class="controls" id="accuseControls" style="display:none">
+        <button class="btn btn-gold" id="btnRestart">&#8635; Rejouer depuis le début</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+(function(){
+
+function $(id){ return document.getElementById(id); }
+function showScreen(id){ document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); }); $(id).classList.add('active'); }
+function goMenu(){ showScreen('S_menu'); $('menuBtn').style.display=''; updateMenuStatuses(); }
+
+var CASES = [
+  {
+    title: 'Le Vol du Museum',
+    story: [
+      {who:'Inspecteur', text:'Vous arrivez au musee. Une vitrine brisee. Le voleur a laisse un message code.'},
+      {who:'Technicien Luc', text:'La camera filme une image toutes les 5 secondes. Comptez les images pour savoir quand le voleur est entre.'},
+      {who:'Temoin Mme Rosa', text:'J\'ai vu quelqu\'un sortir avec un gros sac. Il portait un numero bizarre sur sa veste...'},
+      {who:'Informateur', text:'Le receleur habite dans un immeuble. Son numero de rue est un multiple de 7.'},
+      {who:'Inspecteur', text:'Un ticket de caisse froisse sur le sol. Calculez le total pour retrouver la transaction suspecte.'},
+      {who:'Analyste', text:'Le coffre du suspect est protege par un code. Trouvez le bon nombre.'},
+      {who:'Inspecteur', text:'Derniere enigme. Si tu la resous, le coupable est identifie !'},
+    ],
+    questions: [
+      { text:'Le message dit : <span class="math">8 x 7</span>. Quel est ce nombre ?', answers:['54','56','63','48'], correct:1, hint:'Table de 8 : 8, 16, 24, 32, 40, 48, 56... ou table de 7 : 7, 14... 49, 56 !', story_ok:'56. C\'est peut-etre une adresse...', story_bad:'Mauvaise piste. Le voleur vous a eu.' },
+      { text:'La camera fait 1 image toutes les <span class="math">5 secondes</span>. En <span class="math">2 minutes</span>, combien d\'images ?', answers:['12','20','24','60'], correct:2, hint:'2 minutes = 120 secondes. 120 divise par 5 = ?', story_ok:'24 images ! Assez pour voir le suspect.', story_bad:'Calcul rate. L\'alibi du suspect tient encore.' },
+      { text:'Le numero sur la veste est <span class="math">12</span>. Lequel de ces nombres divise 12 exactement ?', answers:['5','7','4','9'], correct:2, hint:'12 divise par 5 = 2,4 (non) - 12 divise par 4 = 3 (oui !)', story_ok:'4 divise 12 exactement. Ca correspond au suspect n4.', story_bad:'Ce nombre ne divise pas 12 exactement.' },
+      { text:'Le receleur habite au <span class="math">8eme multiple de 7</span>. Quel est ce nombre ?', answers:['49','54','56','63'], correct:2, hint:'Compte : 7, 14, 21, 28, 35, 42, 49, 56... Le 8eme ?', story_ok:'56 est le 8eme multiple de 7. Vous frappez a la bonne porte !', story_bad:'Mauvaise adresse. Recompte les multiples de 7.' },
+      { text:'Le ticket : <span class="math">3 articles a 8 euros</span> et <span class="math">2 articles a 5 euros</span>. Total ?', answers:['30 euros','34 euros','38 euros','26 euros'], correct:1, hint:'3 x 8 = 24 et 2 x 5 = 10. Additionne les deux.', story_ok:'34 euros, exactement le montant de la transaction suspecte.', story_bad:'Erreur dans le calcul. Le lien financier reste flou.' },
+      { text:'Code du coffre : <span class="math">le double de 36, moins 15</span>.', answers:['57','63','51','72'], correct:0, hint:'Double de 36 = 36 x 2 = 72. Puis 72 moins 15 = ?', story_ok:'57 ! Le coffre s\'ouvre. Des preuves accablantes.', story_bad:'Mauvais code. Le coffre reste ferme.' },
+      { text:'De <span class="math">23h15</span> a <span class="math">minuit</span>, combien de minutes ?', answers:['35 min','45 min','55 min','25 min'], correct:1, hint:'De 23h15 a 24h00. 60 moins 15 = ?', story_ok:'45 minutes. L\'heure colle avec le trajet du suspect.', story_bad:'Erreur. Le suspect a pu preparer un alibi.' }
+    ],
+    clue: 'Le coupable <span class="hl">n\'a pas d\'alibi entre 23h15 et minuit</span>. La Comtesse Zero pretend etre a l\'opera a 23h30 — mais la salle etait fermee ce soir-la.',
+    clue_locked: 'Tu n\'as pas resolu cette affaire. L\'indice sur le comportement du coupable reste secret.'
+  },
+  {
+    title: 'La Fuite du Bandit',
+    story: [
+      {who:'Dispatch', text:'Un bandit court a travers la ville ! Analysez les plans pour couper sa route.'},
+      {who:'Agent Marco', text:'Il traverse une grande place carree. Calcule le perimetre pour poster des agents.'},
+      {who:'Drone', text:'Il longe une facade rectangulaire. Calcule le perimetre pour bloquer les sorties.'},
+      {who:'Inspecteur', text:'Il se cache dans un entrepot. Calcule la surface pour savoir combien d\'agents envoyer.'},
+      {who:'Analyste GPS', text:'Son trajet forme un triangle. Additionne les 3 cotes pour la distance totale.'},
+      {who:'Agent Marco', text:'Il se faufile dans un couloir rectangulaire. Quelle est sa surface ?'},
+      {who:'Inspecteur', text:'Derniere chance ! Trouve la surface de ce triangle pour localiser sa cachette.'},
+    ],
+    questions: [
+      { text:'Place carree de <span class="math">15 m de cote</span>. Perimetre ?', answers:['45 m','60 m','30 m','225 m'], correct:1, hint:'Perimetre d\'un carre = 4 x cote = 4 x 15 = ?', story_ok:'60 m ! Agents places aux 4 coins.', story_bad:'Calcul rate. Le bandit franchit le perimetre.' },
+      { text:'Rectangle : <span class="math">longueur 20 m</span>, <span class="math">largeur 8 m</span>. Perimetre ?', answers:['56 m','28 m','160 m','48 m'], correct:0, hint:'Perimetre rectangle = 2 x (longueur + largeur) = 2 x (20 + 8) = ?', story_ok:'56 m. Facade encerclee. Le bandit recule.', story_bad:'Il passe entre les mailles de votre filet.' },
+      { text:'Entrepot rectangulaire : <span class="math">12 m x 9 m</span>. Surface ?', answers:['21 m2','42 m2','108 m2','96 m2'], correct:2, hint:'Surface rectangle = longueur x largeur = 12 x 9 = ?', story_ok:'108 m2 ! Toute la surface securisee.', story_bad:'Mauvaise surface. Une sortie reste libre.' },
+      { text:'Triangle de cotes <span class="math">5 m</span>, <span class="math">7 m</span> et <span class="math">4 m</span>. Distance totale ?', answers:['14 m','16 m','18 m','11 m'], correct:1, hint:'Perimetre triangle = somme des 3 cotes = 5 + 7 + 4 = ?', story_ok:'16 m. Le trajet est cartographie !', story_bad:'Une partie du trajet reste mysterieuse.' },
+      { text:'Couloir rectangulaire : <span class="math">14 m x 3 m</span>. Surface ?', answers:['34 m2','42 m2','40 m2','17 m2'], correct:1, hint:'Surface = longueur x largeur = 14 x 3 = ?', story_ok:'42 m2 ! Zone securisee.', story_bad:'Calcul incorrect. Zone vulnerable.' },
+      { text:'Carre de surface <span class="math">36 m2</span>. Quel est son cote ?', answers:['4 m','6 m','8 m','9 m'], correct:1, hint:'Surface carre = cote x cote. Quel nombre x lui-meme = 36 ?', story_ok:'6 m ! La cachette est localisee.', story_bad:'La cachette reste introuvable.' },
+      { text:'Triangle de base <span class="math">6 m</span> et hauteur <span class="math">4 m</span>. Surface ?', answers:['24 m2','10 m2','12 m2','48 m2'], correct:2, hint:'Surface triangle = (base x hauteur) divise par 2 = (6 x 4) divise par 2 = ?', story_ok:'12 m2 ! Cachette localisee. Arrestation !', story_bad:'Il disparait dans la nuit.' }
+    ],
+    clue: 'Le coupable <span class="hl">connait parfaitement les ruelles du quartier</span>. Monsieur Ombre a travaille comme livreur dans ce quartier pendant 3 ans — il en connait chaque passage.',
+    clue_locked: 'Tu n\'as pas resolu cette affaire. L\'indice sur le parcours du coupable reste secret.'
+  },
+  {
+    title: 'Le Code Secret',
+    story: [
+      {who:'Cryptanalyste', text:'Un message code a ete intercepte. Resous ces calculs pour le dechiffrer.'},
+      {who:'Agent Kim', text:'Premier bloc : tables de multiplication. Trouve le bon multiple.'},
+      {who:'Ordinateur', text:'Deuxieme bloc : certains nombres n\'ont aucun diviseur sauf 1 et eux-memes.'},
+      {who:'Inspecteur', text:'Troisieme bloc : attention a l\'ordre des calculs. On fait d\'abord x et divise, puis + et -.'},
+      {who:'Cryptanalyste', text:'Quatrieme couche : trouve le plus grand nombre qui divise exactement deux nombres a la fois.'},
+      {who:'Agent Kim', text:'Avant-derniere couche : un nombre au carre. C\'est juste une multiplication !'},
+      {who:'Inspecteur', text:'Derniere couche. Decode ce calcul et le coupable est demasque !'},
+    ],
+    questions: [
+      { text:'Parmi ces nombres, lequel est un <span class="math">multiple de 6</span> ?', answers:['14','21','42','50'], correct:2, hint:'Table de 6 : 6, 12, 18, 24, 30, 36, 42... Lequel reconnais-tu ?', story_ok:'42 est dans la table de 6 (6 x 7). Premier bloc decode !', story_bad:'Ce nombre n\'est pas dans la table de 6.' },
+      { text:'Lequel est un <span class="math">nombre premier</span> ? (divisible uniquement par 1 et lui-meme)', answers:['15','21','27','17'], correct:3, hint:'15 = 3x5, 21 = 3x7, 27 = 3x9. Et 17 ? Essaie 2, 3, 5... impossible !', story_ok:'17 est premier. Deuxieme bloc dechiffre !', story_bad:'Ce nombre peut etre divise par autre chose.' },
+      { text:'Calcule dans le bon ordre : <span class="math">3 + 4 x 5</span>', answers:['35','23','32','20'], correct:1, hint:'Regle : x AVANT +. D\'abord 4 x 5 = 20, puis 3 + 20 = ?', story_ok:'23 ! Tu maitrises l\'ordre des calculs.', story_bad:'Attention : on fait x avant +. D\'abord 4 x 5 !' },
+      { text:'Quel est le plus grand nombre qui divise exactement <span class="math">12</span> et <span class="math">18</span> a la fois ?', answers:['2','3','6','9'], correct:2, hint:'Diviseurs de 12 : 1,2,3,4,6,12. Diviseurs de 18 : 1,2,3,6,9,18. Le plus grand en commun ?', story_ok:'6 divise 12 ET 18. Le plus grand. Quatrieme bloc ouvert !', story_bad:'Il existe un nombre plus grand qui divise les deux.' },
+      { text:'Combien vaut <span class="math">4 au carre</span> (4 x 4) ?', answers:['8','12','16','20'], correct:2, hint:'4 au carre = 4 x 4. Ce n\'est pas 4 x 2 !', story_ok:'4 x 4 = 16. Cinquieme bloc deverrouille !', story_bad:'4 au carre = 4 x 4, pas 4 x 2.' },
+      { text:'Calcule : <span class="math">(2 + 3) x 4</span>', answers:['14','20','24','10'], correct:1, hint:'Parentheses D\'ABORD : 2 + 3 = 5. Ensuite 5 x 4 = ?', story_ok:'(2+3) x 4 = 20. Avant-derniere couche percee !', story_bad:'Calcule d\'abord ce qui est entre parentheses !' },
+      { text:'Le double de 24, moins le triple de 5. Resultat ?', answers:['33','48','43','38'], correct:0, hint:'Double de 24 = 2 x 24 = 48. Triple de 5 = 3 x 5 = 15. Puis 48 - 15 = ?', story_ok:'48 - 15 = 33. Code dechiffre. Coupable identifie !', story_bad:'Calcul incorrect. Le code resiste encore.' }
+    ],
+    clue: 'Le coupable <span class="hl">maitrise l\'informatique et les codes chiffres</span>. Le Hackeur Mystere a ete renvoye du musee il y a 6 mois apres avoir tente d\'acceder a des fichiers secrets.',
+    clue_locked: 'Tu n\'as pas resolu cette affaire. L\'indice sur le profil du coupable reste secret.'
+  }
+];
+
+var SUSPECTS = [
+  {
+    name: 'La Comtesse Zero',
+    desc: 'Collectionneuse de bijoux de luxe. Pretend etre a l\'opera le soir du vol, mais la salle etait fermee. Aucune competence technique particuliere.',
+    guilty: true
+  },
+  {
+    name: 'Monsieur Ombre',
+    desc: 'Ancien livreur dans le quartier du musee pendant 3 ans. Connait les ruelles, mais n\'a aucun lien avec l\'informatique ni les bijoux de luxe.',
+    guilty: false
+  },
+  {
+    name: 'Le Hackeur Mystere',
+    desc: 'Ex-employe du musee, renvoye pour acces non autorise a des fichiers. Maitrise les codes. Alibi verifie et solide pour la nuit du vol.',
+    guilty: false
+  }
+];
+
+var caseIdx=0, qi=0, sc=0, curCase=null;
+var joker50=1, jokerHint=1, jokerSkip=1;
+var answered=false, results=[];
+var caseScores=[null,null,null];
+var cluesEarned=[false,false,false];
+
+function updateMenuStatuses(){
+  for(var i=0;i<3;i++){
+    var el=$('status'+i), card=$('case'+i);
+    if(caseScores[i]===null){ el.textContent=''; card.classList.remove('completed'); }
+    else{
+      var pct=Math.round(caseScores[i]/CASES[i].questions.length*100);
+      el.textContent=pct>=70?'✅':'🔁';
+      if(pct>=70) card.classList.add('completed');
+    }
+  }
+  var allPlayed=caseScores.every(function(s){ return s!==null; });
+  var zone=$('allDoneZone');
+  if(allPlayed){
+    var n=cluesEarned.filter(Boolean).length;
+    zone.innerHTML='<div style="background:var(--bg3);border:1px solid var(--gold-border);border-radius:10px;padding:16px 18px;margin-top:6px">'
+      +'<div style="font-family:Share Tech Mono,monospace;font-size:.72em;color:var(--gold);letter-spacing:2px;margin-bottom:8px">INDICES RECOLTES : '+n+'/3</div>'
+      +'<p style="font-size:.88em;color:var(--text-mid);margin-bottom:14px;line-height:1.55">Tu as assez d\'elements pour accuser quelqu\'un. Mais as-tu les bons indices ?</p>'
+      +'<button class="btn btn-gold" id="btnAccuse" style="width:100%">Accuser le coupable</button>'
+      +'</div>';
+    $('btnAccuse').addEventListener('click', showAccusation);
+  } else { zone.innerHTML=''; }
+}
+
+function startCase(idx){
+  caseIdx=idx; curCase=CASES[idx];
+  qi=0; sc=0; results=[];
+  joker50=1; jokerHint=1; jokerSkip=1;
+  updateJokerUI();
+  showScreen('S_quiz');
+  $('menuBtn').style.display='';
+  loadQ();
+}
+
+function loadQ(){
+  answered=false;
+  $('fb').className='fb'; $('nxt').style.display='none'; $('hintBox').style.display='none';
+  var total=curCase.questions.length;
+  $('pfill').style.width=(qi/total*100)+'%';
+  $('qLbl').textContent='Q '+(qi+1)+'/'+total;
+  $('scoreLbl').textContent=sc+'/'+qi;
+  var sb=curCase.story[qi];
+  $('storyBanner').innerHTML='<span class="who">&#9658; '+sb.who+' :</span> '+sb.text;
+  var q=curCase.questions[qi], letters=['A','B','C','D'];
+  var h='<div class="q-num">INDICE '+String(qi+1).padStart(2,'0')+'</div>';
+  h+='<div class="q-text">'+q.text+'</div>';
+  h+='<div class="answers-grid" id="answersGrid">';
+  for(var i=0;i<q.answers.length;i++){
+    h+='<button class="ans-btn" id="ans'+i+'" data-idx="'+i+'">';
+    h+='<div class="ans-letter">'+letters[i]+'</div>';
+    h+='<div class="ans-text">'+q.answers[i]+'</div>';
+    h+='</button>';
+  }
+  h+='</div>';
+  $('zone').innerHTML=h;
+  for(var j=0;j<4;j++){
+    (function(idx){
+      var btn=$('ans'+idx);
+      if(btn) btn.addEventListener('click',function(){ choose(idx); });
+    })(j);
+  }
+  document.onkeydown=function(e){ if(e.key==='Enter'&&answered&&$('nxt').style.display!=='none'){ e.preventDefault(); nextQ(); } };
+}
+
+function choose(i){
+  if(answered) return;
+  answered=true;
+  var q=curCase.questions[qi];
+  var isOk=(i===q.correct);
+  if(isOk) sc++;
+  results.push(isOk);
+  document.querySelectorAll('.ans-btn').forEach(function(b){ b.classList.add('locked'); });
+  $('ans'+i).classList.add(isOk?'correct':'wrong');
+  if(!isOk) $('ans'+q.correct).classList.add('reveal');
+  var fb=$('fb');
+  fb.className=isOk?'fb ok':'fb bad';
+  fb.textContent=(isOk?'✅ ':'❌ ')+(isOk?q.story_ok:q.story_bad);
+  $('nxt').style.display=''; $('nxt').focus();
+  $('scoreLbl').textContent=sc+'/'+(qi+1);
+}
+
+function nextQ(){ qi++; if(qi>=curCase.questions.length) showResults(); else loadQ(); }
+
+function updateJokerUI(){
+  $('j50c').textContent=joker50; $('jhc').textContent=jokerHint; $('jsc').textContent=jokerSkip;
+  $('jok50').disabled=(joker50<=0||answered);
+  $('jokHint').disabled=(jokerHint<=0);
+  $('jokSkip').disabled=(jokerSkip<=0||answered);
+}
+function useJoker50(){
+  if(joker50<=0||answered) return; joker50--;
+  var q=curCase.questions[qi], elim=0;
+  for(var i=0;i<4&&elim<2;i++){ if(i!==q.correct){ $('ans'+i).classList.add('eliminated'); elim++; } }
+  updateJokerUI();
+}
+function useJokerHint(){
+  if(jokerHint<=0) return; jokerHint--;
+  $('hintBox').style.display='block';
+  $('hintBox').innerHTML='&#128269; <strong>Indice :</strong> '+curCase.questions[qi].hint;
+  updateJokerUI();
+}
+function useJokerSkip(){
+  if(jokerSkip<=0||answered) return; jokerSkip--;
+  answered=true; results.push(null);
+  var q=curCase.questions[qi];
+  document.querySelectorAll('.ans-btn').forEach(function(b){ b.classList.add('locked'); });
+  $('ans'+q.correct).classList.add('reveal');
+  var fb=$('fb'); fb.className='fb bad';
+  fb.textContent='Question passee. Bonne reponse : '+q.answers[q.correct];
+  $('nxt').style.display=''; $('nxt').focus();
+  $('scoreLbl').textContent=sc+'/'+(qi+1);
+  updateJokerUI();
+}
+
+function showResults(){
+  var total=curCase.questions.length;
+  var pct=Math.round(sc/total*100);
+  var solved=(pct>=70);
+  caseScores[caseIdx]=sc;
+  cluesEarned[caseIdx]=solved;
+  $('resBigScore').textContent=sc+' / '+total;
+  var v=$('resVerdict');
+  if(sc===total){ v.className='verdict solved'; v.textContent='Parfait — Affaire resoue !'; }
+  else if(solved){ v.className='verdict solved'; v.textContent='Affaire resolue !'; }
+  else if(pct>=40){ v.className='verdict partial'; v.textContent='Partiellement resolu...'; }
+  else { v.className='verdict failed'; v.textContent='Affaire non resolue.'; }
+  var sp=$('storyProgress'); sp.innerHTML='';
+  results.forEach(function(r,i){
+    var p=document.createElement('span');
+    p.className=(r===true)?'sp done':'sp fail';
+    p.textContent=(r===true)?('Q'+(i+1)+' ok'):('Q'+(i+1)+' rate');
+    sp.appendChild(p);
+  });
+  var cr=$('clueReveal');
+  if(solved){
+    cr.innerHTML='<div class="clue-header unlocked">&#128274; INDICE DEBLOQUE — '+curCase.title.toUpperCase()+'</div>'
+      +'<div class="clue-body unlocked">'+curCase.clue+'</div>';
+  } else {
+    cr.innerHTML='<div class="clue-header locked">&#128274; INDICE VERROUILLE</div>'
+      +'<div class="clue-body locked">'+curCase.clue_locked+' Rejoue pour le debloquer.</div>';
+  }
+  showScreen('S_res'); $('menuBtn').style.display=''; document.onkeydown=null;
+}
+
+function showAccusation(){
+  var recap=$('cluesRecap'); recap.innerHTML='';
+  CASES.forEach(function(c,i){
+    var div=document.createElement('div');
+    if(cluesEarned[i]){
+      div.className='clue-mini got';
+      div.innerHTML='<span class="clue-icon">&#128274;</span><div><span class="clue-case">AFF.0'+(i+1)+' — '+c.title.toUpperCase()+'</span>'+c.clue+'</div>';
+    } else {
+      div.className='clue-mini missed';
+      div.innerHTML='<span class="clue-icon">&#128275;</span><div><span class="clue-case">AFF.0'+(i+1)+' — '+c.title.toUpperCase()+'</span>Indice non debloque — tu as rate cette affaire.</div>';
+    }
+    recap.appendChild(div);
+  });
+  var grid=$('suspectsGrid'); grid.innerHTML='';
+  SUSPECTS.forEach(function(s,i){
+    var card=document.createElement('div');
+    card.className='suspect-card'; card.id='susp'+i;
+    card.innerHTML='<div class="suspect-name">'+s.name+'</div><div class="suspect-desc">'+s.desc+'</div>';
+    card.addEventListener('click',function(){ accuseSuspect(i); });
+    grid.appendChild(card);
+  });
+  $('accuseVerdict').innerHTML='';
+  $('accuseControls').style.display='none';
+  showScreen('S_accuse'); $('menuBtn').style.display=''; document.onkeydown=null;
+}
+
+function accuseSuspect(i){
+  document.querySelectorAll('.suspect-card').forEach(function(c){ c.style.pointerEvents='none'; });
+  var isGuilty=SUSPECTS[i].guilty;
+  $('susp'+i).classList.add(isGuilty?'correct-pick':'wrong-pick');
+  if(!isGuilty){ SUSPECTS.forEach(function(s,j){ if(s.guilty) $('susp'+j).classList.add('correct-pick'); }); }
+  var n=cluesEarned.filter(Boolean).length;
+  var av=$('accuseVerdict');
+  if(isGuilty){
+    av.innerHTML='<div class="final-verdict win">'
+      +'<div class="fv-title">Bonne arrestation !</div>'
+      +'<div class="fv-text">La Comtesse Zero est arretee. Le diamant est retrouve dans sa demeure.<br><br>'
+      +'Tu avais <strong>'+n+'/3 indice(s)</strong>. '+(n===3?'Enqueteur parfait !':n>=2?'Beau travail !':'Tu as trouve malgre tout !')+'</div>'
+      +'</div>';
+  } else {
+    av.innerHTML='<div class="final-verdict lose">'
+      +'<div class="fv-title">Mauvaise arrestation !</div>'
+      +'<div class="fv-text">Ce n\'est pas le bon suspect. La Comtesse Zero s\'est enfuie...<br><br>Rejoue les affaires pour collecter tous les indices !</div>'
+      +'</div>';
+  }
+  $('accuseControls').style.display='';
+}
+
+function restartAll(){ caseScores=[null,null,null]; cluesEarned=[false,false,false]; goMenu(); }
+
+function init(){
+  $('btnStart').addEventListener('click',function(){ showScreen('S_menu'); $('menuBtn').style.display=''; updateMenuStatuses(); });
+  $('menuBtn').addEventListener('click',goMenu);
+  $('case0').addEventListener('click',function(){ startCase(0); });
+  $('case1').addEventListener('click',function(){ startCase(1); });
+  $('case2').addEventListener('click',function(){ startCase(2); });
+  $('jok50').addEventListener('click',useJoker50);
+  $('jokHint').addEventListener('click',useJokerHint);
+  $('jokSkip').addEventListener('click',useJokerSkip);
+  $('nxt').addEventListener('click',nextQ);
+  $('btnAbandon').addEventListener('click',goMenu);
+  $('btnBackMenu').addEventListener('click',goMenu);
+  $('btnRestart').addEventListener('click',restartAll);
+}
+
+init();
+})();
+</script>
+</body>
+</html>

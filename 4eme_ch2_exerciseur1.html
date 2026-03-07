@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proportionnalité — Exerciseur complet</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+--blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.2);
+--orange:#ea580c;--orange-pale:rgba(234,88,12,.1);--orange-border:rgba(234,88,12,.25);
+--green:#16a34a;--green-pale:rgba(22,163,74,.1);
+--red:#dc2626;--red-pale:rgba(220,38,38,.08);
+--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.08);
+}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);
+background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.app{max-width:760px;width:100%}
+.app-header{background:var(--blue);color:#fff;padding:14px 22px;border-radius:14px 14px 0 0;
+display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 16px rgba(29,78,216,.2);position:relative;overflow:hidden}
+.app-header::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%);pointer-events:none}
+.app-title{font-size:1.1em;font-weight:700;position:relative}
+.main{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;
+padding:28px 24px;box-shadow:0 8px 28px var(--shadow);min-height:50vh}
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:1.45em;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:.92em;color:var(--text-light);margin-bottom:20px;line-height:1.5}
+.btn{font-family:'DM Sans',sans-serif;padding:11px 24px;border-radius:10px;font-size:.92em;font-weight:600;
+cursor:pointer;transition:all .2s;border:2px solid;-webkit-tap-highlight-color:transparent;
+min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(29,78,216,.15)}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+/* MENU */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:12px;
+padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;position:relative;
+min-height:100px;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mc:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 8px 20px var(--shadow)}
+.mc-icon{font-size:1.6em;margin-bottom:4px}.mc-t{font-size:.93em;color:var(--blue);font-weight:700;margin-bottom:2px}
+.mc-d{font-size:.78em;color:var(--text-light)}
+.mc-badge{position:absolute;top:8px;right:8px;background:var(--orange-pale);color:var(--orange);
+font-size:.65em;font-weight:700;padding:2px 8px;border-radius:10px}
+/* EX HEADER */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.ex-badge{background:var(--blue-pale);color:var(--blue);padding:5px 14px;border-radius:20px;font-size:.85em;font-weight:700}
+.ex-score{font-size:.88em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:16px}
+.pfill{height:100%;background:var(--blue);border-radius:4px;transition:width .4s}
+/* TABLE */
+.tw{overflow-x:auto;margin:0 auto 16px;-webkit-overflow-scrolling:touch}
+.pt{border-collapse:collapse;margin:0 auto;font-family:'Kalam',cursive}
+.pt th{background:var(--blue);color:#fff;padding:10px 14px;font-size:.86em;font-weight:600;
+border:2px solid var(--blue);text-align:center;min-width:58px}
+.pt td{padding:10px 12px;border:2px solid var(--blue-border);text-align:center;
+font-size:1.08em;font-weight:700;background:#fff;min-width:58px}
+.pt .rl{background:var(--blue-pale);color:var(--blue);font-size:.76em;font-weight:600;
+font-family:'DM Sans',sans-serif;text-align:right;padding:8px 10px;min-width:auto}
+.pt .unk{background:var(--orange-pale);color:var(--orange);border-color:var(--orange-border)}
+/* INPUTS */
+.ci{font-family:'Kalam',cursive;font-size:1.05em;width:54px;text-align:center;
+border:2px dashed var(--blue-border);border-radius:8px;background:#fff;padding:6px 2px;
+outline:none;color:var(--text);font-weight:700;transition:all .2s;min-height:40px;touch-action:manipulation}
+.ci:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale)}
+.ci.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.ci.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s}
+.ci.or{border-color:var(--orange);color:var(--orange)}
+.ci.or:focus{box-shadow:0 0 0 3px var(--orange-pale)}
+/* QUOTIENT ROW */
+.qrc{background:var(--bg)!important;border-style:dashed!important;padding:8px 4px!important;vertical-align:middle}
+.qfr{display:inline-flex;flex-direction:column;align-items:center}
+.qfr .qbar{display:block;height:2px;background:var(--text);margin:2px 0;min-width:46px}
+.qfr input{width:46px;font-size:.88em;padding:3px 2px}
+.qeq{font-size:1.1em;margin:0 3px;vertical-align:middle}
+/* STEP ZONE */
+.sz{background:var(--bg);border:2px solid var(--border);border-radius:14px;
+padding:16px 18px;margin:14px 0;text-align:center}
+.sz-t{font-size:.76em;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+color:var(--blue);margin-bottom:10px}
+.sl{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 0;
+font-family:'Kalam',cursive;font-size:1.2em;font-weight:700;flex-wrap:wrap}
+.sl .t{color:var(--text)}.sl .bl{color:var(--blue)}.sl .or{color:var(--orange)}
+.sl input{font-family:'Kalam',cursive;font-size:1em;width:62px;text-align:center;
+border:2px dashed var(--blue-border);border-radius:8px;background:#fff;padding:7px;
+outline:none;color:var(--text);font-weight:700;min-height:40px;touch-action:manipulation}
+.sl input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale)}
+.sl input.ok{border-color:var(--green);background:var(--green-pale);color:var(--green)}
+.sl input.err{border-color:var(--red);background:var(--red-pale);animation:shake .35s}
+/* CHOICE */
+.cr{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.cb{font-family:'DM Sans',sans-serif;font-size:1em;font-weight:700;
+padding:13px 28px;border-radius:12px;cursor:pointer;border:3px solid;transition:all .2s;-webkit-tap-highlight-color:transparent;
+min-height:48px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center}
+.cb.p{background:#fff;color:var(--green);border-color:var(--green)}.cb.p:hover{background:var(--green-pale)}
+.cb.n{background:#fff;color:var(--red);border-color:var(--red)}.cb.n:hover{background:var(--red-pale)}
+.cb.cok{color:#fff!important}.cb.cok.p{background:var(--green)!important}.cb.cok.n{background:var(--red)!important}
+.cb.cbad{opacity:.35}.cb:disabled{cursor:not-allowed;transform:none!important}
+/* WORD PROBLEM */
+.wp{background:var(--blue-pale);border:2px solid var(--blue-border);
+border-radius:12px;padding:16px 18px;margin-bottom:14px;font-size:1em;line-height:1.6}
+.wp .hl{color:var(--blue);font-weight:700}.wp .ho{color:var(--orange);font-weight:700}
+.prompt{font-size:1em;text-align:center;margin:10px 0;line-height:1.5}
+.prompt .hl{color:var(--blue);font-weight:700}
+/* FEEDBACK */
+.fb{margin-top:14px;padding:12px 16px;border-radius:10px;font-size:.92em;text-align:center;
+display:none;animation:fadeIn .25s;font-weight:600;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,.2)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+/* GRAPH */
+.gw{text-align:center;margin:14px 0}.gw canvas{border:2px solid var(--border);border-radius:12px;background:#fff;max-width:100%}
+/* RESULTS */
+.rc{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:16px auto;border:5px solid}
+.rc.good{border-color:var(--green);background:var(--green-pale)}.rc.mid{border-color:var(--orange);background:var(--orange-pale)}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2em;font-weight:700;line-height:1}
+.rm{font-size:1.05em;text-align:center;margin:14px 0}
+/* PHASE DOTS */
+.pd{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border)}.dot.a{background:var(--blue)}.dot.d{background:var(--green)}
+/* CALC */
+#cBt{position:fixed;bottom:20px;right:20px;width:50px;height:50px;border-radius:50%;
+background:var(--blue);color:#fff;font-size:1.4em;border:none;cursor:pointer;
+box-shadow:0 4px 16px rgba(29,78,216,.3);z-index:100;display:none;transition:all .2s}
+#cBt:hover{transform:scale(1.1)}#cBt.open{background:var(--red);transform:rotate(45deg)}
+#cPn{position:fixed;bottom:80px;right:16px;background:var(--card);border:2px solid var(--border);
+border-radius:14px;padding:14px;box-shadow:0 8px 28px var(--shadow);z-index:100;display:none;width:240px}
+.clr{display:flex;align-items:center;gap:6px;margin:6px 0;font-family:'Kalam',cursive;font-size:1.1em;font-weight:700}
+.clr input{font-family:'Kalam',cursive;font-size:1em;width:56px;text-align:center;border:2px solid var(--border);border-radius:8px;padding:5px;outline:none}
+.clr input:focus{border-color:var(--blue)}
+.cres{min-height:24px;font-size:1.05em;color:var(--blue);text-align:center;margin-top:4px;font-family:'Kalam',cursive;font-weight:700}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* ==================== RESPONSIVE ==================== */
+@media(max-width:768px){
+body{padding:16px 8px 60px}
+.app-header{padding:12px 18px}
+.app-title{font-size:1.05em}
+.main{padding:24px 18px}
+h1{font-size:1.35em}
+.sub{font-size:.9em}
+.menu-grid{grid-template-columns:1fr;gap:10px}
+.mc{padding:16px 12px;min-height:90px}
+.mc-icon{font-size:1.5em}
+.mc-t{font-size:.9em}
+.mc-d{font-size:.76em}
+.btn{padding:10px 22px;font-size:.9em;min-height:42px}
+.controls{gap:9px}
+.tw{margin:0 auto 14px}
+.pt th,.pt td{padding:9px 10px;min-width:52px;font-size:1em}
+.ci{width:50px;font-size:1em;padding:6px 2px;min-height:38px}
+.qfr input{width:44px;font-size:.85em}
+.sz{padding:14px 16px}
+.sl{font-size:1.15em}
+.sl input{width:58px;font-size:.95em;padding:7px;min-height:38px}
+.cb{padding:12px 24px;font-size:.98em;min-height:46px}
+.wp{padding:14px 16px;font-size:.98em}
+.fb{padding:11px 14px;font-size:.9em}
+.rc{width:110px;height:110px;border:4px solid}
+.rp{font-size:1.9em}
+#cPn{right:10px;left:10px;width:auto}
+}
+
+@media(max-width:600px){
+body{padding:14px 6px 60px}
+.app-header{padding:11px 16px}
+.app-title{font-size:1em}
+.main{padding:20px 14px}
+h1{font-size:1.25em}
+.sub{font-size:.88em;margin-bottom:18px}
+.menu-grid{grid-template-columns:1fr;max-width:280px;margin:16px auto;gap:8px}
+.mc{padding:14px 10px;min-height:85px}
+.mc-icon{font-size:1.4em;margin-bottom:3px}
+.mc-t{font-size:.88em}
+.mc-d{font-size:.74em}
+.btn{padding:10px 20px;font-size:.88em;min-height:40px}
+.controls{gap:8px}
+.ex-badge{padding:4px 12px;font-size:.82em}
+.ex-score{font-size:.85em}
+.pbar{height:3px;margin-bottom:14px}
+.pt th,.pt td{padding:8px 6px;min-width:44px;font-size:.92em}
+.pt th{font-size:.82em;padding:8px 8px}
+.ci{width:44px;font-size:.95em;padding:5px 2px;min-height:36px}
+.qfr input{width:40px;font-size:.82em}
+.qfr .qbar{min-width:40px}
+.sz{padding:12px 14px;margin:12px 0}
+.sz-t{font-size:.72em}
+.sl{font-size:1.05em;gap:5px;margin:7px 0}
+.sl input{width:52px;font-size:.92em;padding:6px;min-height:36px}
+.cb{padding:11px 22px;font-size:.96em;min-height:44px}
+.cr{gap:10px}
+.wp{padding:13px 14px;font-size:.96em}
+.prompt{font-size:.98em}
+.fb{padding:10px 13px;font-size:.88em}
+.gw canvas{max-width:100%;height:auto}
+.rc{width:100px;height:100px}
+.rp{font-size:1.8em}
+.rm{font-size:1em}
+#cBt{bottom:16px;right:16px;width:46px;height:46px;font-size:1.3em}
+#cPn{right:8px;left:8px;width:auto;padding:12px;bottom:70px}
+.clr{font-size:1.05em;margin:5px 0}
+.clr input{width:50px;font-size:.95em;padding:4px}
+.cres{font-size:1em}
+}
+
+@media(max-width:480px){
+.app-header{padding:10px 14px}
+.app-title{font-size:.95em}
+.main{padding:18px 12px}
+h1{font-size:1.15em}
+.sub{font-size:.85em}
+.menu-grid{max-width:260px;gap:7px}
+.mc{padding:13px 9px;min-height:80px}
+.mc-icon{font-size:1.3em}
+.mc-t{font-size:.85em}
+.mc-d{font-size:.72em}
+.btn{padding:9px 18px;font-size:.85em;min-height:38px}
+.pt th,.pt td{padding:7px 5px;min-width:40px;font-size:.88em}
+.pt th{font-size:.78em}
+.ci{width:40px;font-size:.9em;min-height:34px}
+.qfr input{width:36px;font-size:.78em}
+.qfr .qbar{min-width:36px}
+.sz{padding:11px 12px}
+.sl{font-size:1em;gap:4px}
+.sl input{width:48px;font-size:.88em;padding:5px;min-height:34px}
+.cb{padding:10px 20px;font-size:.94em;min-height:42px}
+.wp{padding:12px 13px;font-size:.94em}
+.fb{padding:9px 12px;font-size:.86em}
+.rc{width:90px;height:90px}
+.rp{font-size:1.7em}
+#cBt{width:44px;height:44px;font-size:1.2em}
+#cPn{padding:11px}
+.clr{font-size:1em}
+.clr input{width:46px}
+}
+
+@media(max-width:380px){
+.app-header{padding:9px 12px}
+.main{padding:16px 10px}
+h1{font-size:1.1em}
+.menu-grid{max-width:240px}
+.mc{padding:12px 8px;min-height:75px}
+.mc-icon{font-size:1.2em}
+.btn{padding:8px 16px;font-size:.82em}
+.pt th,.pt td{padding:6px 4px;min-width:38px;font-size:.85em}
+.ci{width:38px;font-size:.88em}
+.sl input{width:45px;font-size:.85em}
+.cb{padding:9px 18px;font-size:.92em}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header"><span class="app-title">Proportionnalité — Complet</span><span style="font-size:1.25em">📐</span></div>
+<div class="main">
+
+<div class="screen active" id="S_intro">
+<h1>La Proportionnalité</h1>
+<p class="sub">De la 5ème à la 3ème — Maîtrise toutes les méthodes !</p>
+<div style="text-align:center;font-size:1.5em;margin:18px 0;color:var(--blue);letter-spacing:2px;font-family:'Kalam',cursive">× 3 → × 3</div>
+<div class="controls"><button class="btn btn-blue" onclick="show('S_menu')">C'est parti !</button></div>
+</div>
+
+<div class="screen" id="S_menu">
+<h1>Choisis ton exercice</h1><p class="sub">6 compétences à travailler</p>
+<div class="menu-grid">
+<div class="mc" onclick="go(1)"><div class="mc-icon">📊</div><div class="mc-t">Tableau proportionnel ?</div><div class="mc-d">Calcule les quotients et décide</div></div>
+<div class="mc" onclick="go(2)"><div class="mc-icon">✖️</div><div class="mc-t">Produit en croix</div><div class="mc-d">Trouve la valeur manquante</div></div>
+<div class="mc" onclick="go(3)"><div class="mc-icon">🔑</div><div class="mc-t">Coefficient</div><div class="mc-d">Trouve le coefficient et utilise-le</div></div>
+<div class="mc" onclick="go(4)"><div class="mc-icon">🧠</div><div class="mc-t">Passage à l'unité</div><div class="mc-d">Calcule de tête en passant par 1</div></div>
+<div class="mc" onclick="go(5)"><div class="mc-icon">🏗️</div><div class="mc-t">Construire un tableau</div><div class="mc-d">Lis l'énoncé, construis, résous</div></div>
+<div class="mc" onclick="go(6)"><div class="mc-icon">📈</div><div class="mc-t">Lire un graphique</div><div class="mc-d">Le graphique est-il proportionnel ?</div><div class="mc-badge">Niveau 4ème</div></div>
+</div>
+</div>
+
+<div class="screen" id="S_ex">
+<div class="ex-top"><div class="ex-badge" id="badge">—</div><div class="ex-score" id="scLbl">0 / 0</div></div>
+<div class="pbar"><div class="pfill" id="pfill"></div></div>
+<div id="zone"></div>
+<div class="fb" id="fb"></div>
+<div class="controls"><button class="btn btn-blue" id="nxt" style="display:none" onclick="nxtQ()">Suivant →</button>
+<button class="btn btn-ghost" onclick="show('S_menu');calcHide()">← Menu</button></div>
+</div>
+
+<div class="screen" id="S_res">
+<h1>Résultats</h1>
+<div class="rc" id="rCirc"><div class="rp" id="rPct">0%</div><div style="font-size:.75em;color:var(--text-light);margin-top:2px">de réussite</div></div>
+<div class="rm" id="rMsg"></div>
+<div class="controls"><button class="btn btn-blue" onclick="show('S_menu')">Retour au menu</button></div>
+</div>
+
+</div></div>
+
+<button id="cBt" onclick="calcToggle()">🧮</button>
+<div id="cPn">
+<div class="clr"><input id="cA" inputmode="decimal" placeholder="a"><span>×</span><input id="cB" inputmode="decimal" placeholder="b"></div>
+<div class="clr"><button class="btn btn-blue" style="padding:5px 14px;font-size:.82em" onclick="calcMul()">Calculer ×</button></div>
+<div class="cres" id="cRM"></div>
+<hr style="border:none;border-top:1px solid var(--border);margin:8px 0">
+<div class="clr"><input id="cC" inputmode="decimal" placeholder="a"><span>÷</span><input id="cD" inputmode="decimal" placeholder="b"></div>
+<div class="clr"><button class="btn btn-blue" style="padding:5px 14px;font-size:.82em" onclick="calcDiv()">Calculer ÷</button></div>
+<div class="cres" id="cRD"></div>
+</div>
+
+<script>
+// ===== UTILS =====
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const rv=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function fmt(n){if(Number.isInteger(n))return String(n);let s=n.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');return s.replace('.',',')}
+function pN(s){if(!s||!s.trim())return NaN;return parseFloat(s.trim().replace(',','.').replace(/\s/g,''))}
+function eq(a,b){return Math.abs(a-b)<0.015}
+function $(id){return document.getElementById(id)}
+function cls(id,...c){const e=$(id);if(e){e.classList.remove('ok','err');c.forEach(x=>e.classList.add(x))}}
+function setOk(id){cls(id,'ok');const e=$(id);if(e)e.disabled=true}
+function setErr(id){cls(id,'err');setTimeout(()=>{const e=$(id);if(e){e.classList.remove('err');e.value='';e.focus()}},400)}
+function foc(id){setTimeout(()=>{const e=$(id);if(e)e.focus()},60)}
+
+// ===== CALCULATOR =====
+let calcOn=false;
+function calcToggle(){calcOn=!calcOn;$('cBt').classList.toggle('open',calcOn);$('cPn').style.display=calcOn?'block':'none';
+if(calcOn){['cA','cB','cC','cD'].forEach(id=>$(id).value='');$('cRM').textContent='';$('cRD').textContent='';}}
+function calcHide(){calcOn=false;$('cBt').style.display='none';$('cBt').classList.remove('open');$('cPn').style.display='none'}
+function calcShow(){$('cBt').style.display='block'}
+function calcMul(){const a=pN($('cA').value),b=pN($('cB').value);if(isNaN(a)||isNaN(b))return;$('cRM').textContent=fmt(a*b)}
+function calcDiv(){const a=pN($('cC').value),b=pN($('cD').value);if(isNaN(a)||isNaN(b)||b===0)return;
+const r=a/b;$('cRD').textContent=Number.isInteger(r)?fmt(r):fmt(Math.round(r*1000)/1000)}
+
+// ===== STATE =====
+let lv=1,sc=0,qi=0,qs=[],cq=null;
+const COUNTS={1:6,2:6,3:6,4:8,5:4,6:6};
+const LVNAMES={1:'Tableau proportionnel ?',2:'Produit en croix',3:'Coefficient',4:'Passage à l\'unité',5:'Construire un tableau',6:'Graphique (4ème)'};
+const CTX=[{r1:'Quantité',r2:'Prix (€)'},{r1:'Distance (km)',r2:'Temps (min)'},
+{r1:'Portions',r2:'Farine (g)'},{r1:'Longueur (cm)',r2:'Masse (g)'},
+{r1:'Objets',r2:'Prix total (€)'},{r1:'Temps (h)',r2:'Distance (km)'}];
+const ITEMS=[{s:'stylo',p:'stylos'},{s:'cahier',p:'cahiers'},{s:'croissant',p:'croissants'},
+{s:'pomme',p:'pommes'},{s:'baguette',p:'baguettes'},{s:'livre',p:'livres'},{s:'ticket',p:'tickets'}];
+
+// ===== L1: TABLE CHECK =====
+function genL1(){
+const out=[];
+for(let i=0;i<6;i++){
+    const isProp=i<3,cols=rv([3,4]),ctx=rv(CTX),k=rv([2,3,4,5,6,8,10]);
+    const r1=[],r2=[];
+    for(let c=0;c<cols;c++){const v=ri(2,12);r1.push(v);r2.push(isProp?k*v:(c===0?k:rv([2,3,4,5,6,8].filter(x=>x!==k)))*v)}
+    if(!isProp){const t=r2.map((y,j)=>y/r1[j]);if(t.every(x=>x===t[0]))r2[r2.length-1]+=1}
+    out.push({r1,r2,isProp,ctx})
+}
+return sh(out);
+}
+
+function renderL1(q){
+const Z=$('zone'),cols=q.r1.length;
+const quots=q.r2.map((y,i)=>y/q.r1[i]);
+cq._quots=quots;cq._cols=cols;cq._mis=false;
+
+let h=`<div class="tw"><table class="pt"><tr><th></th>`;
+for(let c=0;c<cols;c++)h+=`<th>Val.${c+1}</th>`;
+h+=`</tr><tr><td class="rl">${q.ctx.r1}</td>`;
+for(let c=0;c<cols;c++)h+=`<td>${fmt(q.r1[c])}</td>`;
+h+=`</tr><tr><td class="rl">${q.ctx.r2}</td>`;
+for(let c=0;c<cols;c++)h+=`<td>${fmt(q.r2[c])}</td>`;
+h+=`</tr><tr><td class="rl" style="font-size:.7em">Quotient</td>`;
+for(let c=0;c<cols;c++){
+    h+=`<td class="qrc"><div style="display:flex;align-items:center;justify-content:center;gap:3px">
+    <span class="qfr"><input class="ci" id="qn${c}" inputmode="decimal" placeholder="?" style="width:46px;font-size:.86em;padding:3px">
+    <span class="qbar"></span>
+    <input class="ci" id="qd${c}" inputmode="decimal" placeholder="?" style="width:46px;font-size:.86em;padding:3px"></span>
+    <span class="qeq">=</span>
+    <input class="ci" id="qr${c}" inputmode="decimal" placeholder="?" style="width:50px">
+    </div></td>`;
+}
+h+=`</tr></table></div>`;
+h+=`<div class="controls"><button class="btn btn-blue" id="valQ" onclick="valL1()">Valider les quotients</button></div>`;
+h+=`<div class="cr" id="l1ch" style="display:none">
+<button class="cb p" id="bP" onclick="chkL1(true)">✓ Proportionnel</button>
+<button class="cb n" id="bN" onclick="chkL1(false)">✗ Non proportionnel</button></div>`;
+Z.innerHTML=h;calcShow();foc('qn0');
+}
+
+function valL1(){
+const q=cq,cols=q._cols;let ok=true;
+for(let c=0;c<cols;c++){
+    const nI=$(`qn${c}`),dI=$(`qd${c}`),rI=$(`qr${c}`);
+    [nI,dI,rI].forEach(e=>e.classList.remove('err','ok'));
+    if(!eq(pN(nI.value),q.r2[c])){nI.classList.add('err');ok=false;q._mis=true}else nI.classList.add('ok');
+    if(!eq(pN(dI.value),q.r1[c])){dI.classList.add('err');ok=false;q._mis=true}else dI.classList.add('ok');
+    if(!eq(pN(rI.value),q._quots[c])){rI.classList.add('err');ok=false;q._mis=true}else rI.classList.add('ok');
+}
+if(ok){document.querySelectorAll('.qrc input').forEach(i=>i.disabled=true);$('valQ').disabled=true;$('l1ch').style.display='flex'}
+}
+
+function chkL1(chose){
+$('bP').disabled=true;$('bN').disabled=true;
+const ok=chose===cq.isProp;
+if(ok)$(chose?'bP':'bN').classList.add('cok');
+else{$(chose?'bP':'bN').classList.add('cbad');$(cq.isProp?'bP':'bN').classList.add('cok')}
+const fb=$('fb');
+if(ok){sc++;fb.className='fb ok';
+fb.textContent=cq.isProp?'✅ Les quotients sont tous égaux → c\'est proportionnel.':'✅ Les quotients ne sont pas tous égaux → ce n\'est pas proportionnel.';}
+else{fb.className='fb bad';
+fb.textContent=cq.isProp?'❌ Les quotients sont tous égaux → c\'est proportionnel.':'❌ Les quotients ne sont pas tous égaux → ce n\'est pas proportionnel.';}
+$('scLbl').textContent=`${sc} / ${qi+1}`;$('nxt').style.display='';
+}
+
+// ===== L2: CROSS PRODUCT =====
+function genL2(){
+const out=[];let att=0;
+while(out.length<6&&att<300){att++;
+    const a=ri(2,12),b=ri(2,12),c=ri(2,12);
+    const d=b*c/a;if(!Number.isInteger(d)||d<1||d>200)continue;
+    out.push({a,b,c,d})}
+return out;
+}
+
+function renderL2(q){
+const Z=$('zone');
+let h=`<div class="tw"><table class="pt">
+<tr><th></th><th>Col. 1</th><th>Col. 2</th></tr>
+<tr><td class="rl">Ligne 1</td><td>${q.a}</td><td>${q.b}</td></tr>
+<tr><td class="rl">Ligne 2</td><td>${q.c}</td><td class="unk">?</td></tr></table></div>`;
+h+=`<div class="sz"><div class="sz-t">Produit en croix</div>
+<div class="sl"><span class="or">?</span><span class="t">=</span>
+<input id="p2a" inputmode="decimal" placeholder="..">
+<span class="t">×</span><input id="p2b" inputmode="decimal" placeholder="..">
+<span class="t">÷</span><input id="p2c" inputmode="decimal" placeholder="..">
+</div>
+<div class="sl" style="margin-top:10px"><span class="or">?</span><span class="t">=</span>
+<input id="p2r" inputmode="decimal" placeholder="résultat"></div>
+<div class="controls"><button class="btn btn-green" onclick="chkL2()">Valider</button></div></div>`;
+Z.innerHTML=h;cq._mis=false;calcShow();foc('p2a');
+}
+
+function chkL2(){
+const q=cq;
+const va=pN($('p2a').value),vb=pN($('p2b').value),vc=pN($('p2c').value),vr=pN($('p2r').value);
+['p2a','p2b','p2c','p2r'].forEach(id=>$(id).classList.remove('err','ok'));
+// Accept c×b/a or b×c/a (any order for numerator)
+const numOk=(eq(va,q.c)&&eq(vb,q.b))||(eq(va,q.b)&&eq(vb,q.c));
+const denOk=eq(vc,q.a);
+const resOk=eq(vr,q.d);
+let allOk=true;
+if(!numOk){$('p2a').classList.add('err');$('p2b').classList.add('err');allOk=false;q._mis=true}
+if(!denOk){$('p2c').classList.add('err');allOk=false;q._mis=true}
+if(!resOk){$('p2r').classList.add('err');allOk=false;q._mis=true}
+if(allOk){['p2a','p2b','p2c','p2r'].forEach(id=>setOk(id));finish(!q._mis,`? = ${fmt(q.d)}`)}
+}
+
+// ===== L3: COEFFICIENT =====
+function genL3(){
+const out=[];
+for(let i=0;i<6;i++){
+    const k=rv([2,3,4,5,6,7,8,10]),r1=[],r2=[];
+    for(let c=0;c<3;c++){const v=ri(2,12);r1.push(v);r2.push(k*v)}
+    const hc=rv([1,2]),hr=rv([0,1]);
+    out.push({r1,r2,k,hc,hr,ans:hr===0?r1[hc]:r2[hc]})}
+return out;
+}
+
+function renderL3(q){
+const Z=$('zone'),ctx=rv(CTX);
+let h=`<div class="tw"><table class="pt"><tr><th></th>`;
+for(let c=0;c<3;c++)h+=`<th>Val.${c+1}</th>`;
+h+=`</tr><tr><td class="rl">${ctx.r1}</td>`;
+for(let c=0;c<3;c++) h+=(c===q.hc&&q.hr===0)?`<td class="unk">?</td>`:`<td>${fmt(q.r1[c])}</td>`;
+h+=`</tr><tr><td class="rl">${ctx.r2}</td>`;
+for(let c=0;c<3;c++) h+=(c===q.hc&&q.hr===1)?`<td class="unk">?</td>`:`<td>${fmt(q.r2[c])}</td>`;
+h+=`</tr></table></div>`;
+// Step 1: k = [__] ÷ [__] = [__]
+h+=`<div class="sz"><div class="sz-t">Étape 1 : Coefficient de proportionnalité</div>
+<div class="sl"><span class="t">k</span><span class="t">=</span>
+<input id="kn" inputmode="decimal" placeholder="..">
+<span class="t">÷</span><input id="kd" inputmode="decimal" placeholder="..">
+<span class="t">=</span><input id="kr" inputmode="decimal" placeholder="k"></div>
+<div class="controls"><button class="btn btn-blue" id="kBtn" onclick="chkL3K()">Valider k</button></div></div>`;
+// Step 2: ? = [__] op [__] = [__]
+h+=`<div class="sz" id="l3s2" style="display:none"><div class="sz-t">Étape 2 : Valeur manquante</div>
+<div class="sl"><span class="or">?</span><span class="t">=</span>
+<input id="va" inputmode="decimal" placeholder="..">
+<span class="t" id="vop">${q.hr===1?'×':'÷'}</span>
+<input id="vb" inputmode="decimal" placeholder="..">
+<span class="t">=</span><input id="vr" inputmode="decimal" placeholder="?"></div>
+<div class="controls"><button class="btn btn-green" onclick="chkL3V()">Valider</button></div></div>`;
+Z.innerHTML=h;cq._mis=false;calcShow();foc('kn');
+}
+
+function chkL3K(){
+const q=cq;
+const vn=pN($('kn').value),vd=pN($('kd').value),vr=pN($('kr').value);
+['kn','kd','kr'].forEach(id=>$(id).classList.remove('err','ok'));
+// Accept any column's row2/row1
+let pairOk=false;for(let c=0;c<3;c++){if(eq(vn,q.r2[c])&&eq(vd,q.r1[c]))pairOk=true}
+let ok=true;
+if(!pairOk){$('kn').classList.add('err');$('kd').classList.add('err');ok=false;q._mis=true}
+if(!eq(vr,q.k)){$('kr').classList.add('err');ok=false;q._mis=true}
+if(ok){['kn','kd','kr'].forEach(id=>setOk(id));$('kBtn').disabled=true;$('l3s2').style.display='';foc('va')}
+}
+
+function chkL3V(){
+const q=cq;
+const va=pN($('va').value),vb=pN($('vb').value),vr=pN($('vr').value);
+['va','vb','vr'].forEach(id=>$(id).classList.remove('err','ok'));
+let ok=true;
+if(q.hr===1){
+    // ? = row1[hc] × k or k × row1[hc]
+    const v=q.r1[q.hc];
+    if(!((eq(va,v)&&eq(vb,q.k))||(eq(va,q.k)&&eq(vb,v)))){$('va').classList.add('err');$('vb').classList.add('err');ok=false;q._mis=true}
+} else {
+    // ? = row2[hc] ÷ k
+    if(!eq(va,q.r2[q.hc])){$('va').classList.add('err');ok=false;q._mis=true}
+    if(!eq(vb,q.k)){$('vb').classList.add('err');ok=false;q._mis=true}
+}
+if(!eq(vr,q.ans)){$('vr').classList.add('err');ok=false;q._mis=true}
+if(ok){['va','vb','vr'].forEach(id=>setOk(id));finish(!q._mis,`? = ${fmt(q.ans)}`)}
+}
+
+// ===== L4: UNIT METHOD =====
+function genL4(){
+const out=[];
+for(let i=0;i<8;i++){
+    const it=rv(ITEMS),q1=rv([2,3,4,5,6,8,10]),up=rv([1,1.5,2,2.5,3,4,5,6]);
+    const t1=q1*up,q2=rv([3,4,5,6,7,8,9,10,12].filter(x=>x!==q1)),t2=q2*up;
+    out.push({it,q1,q2,up,t1,t2})}
+return out;
+}
+
+function renderL4(q){
+const Z=$('zone');
+let h=`<div class="wp"><span class="hl">${q.q1} ${q.q1>1?q.it.p:q.it.s}</span> coûtent <span class="hl">${fmt(q.t1)} €</span>. Combien coûtent <span class="ho">${q.q2} ${q.q2>1?q.it.p:q.it.s}</span> ?</div>`;
+h+=`<div class="sz"><div class="sz-t">Étape 1 : Prix d'un seul ${q.it.s}</div>
+<div class="sl"><span class="t">1 ${q.it.s} →</span>
+<input id="ua" inputmode="decimal" placeholder=".."><span class="t">÷</span>
+<input id="ub" inputmode="decimal" placeholder=".."><span class="t">=</span>
+<input id="ur" inputmode="decimal" placeholder="?"><span class="t">€</span></div>
+<div class="controls"><button class="btn btn-blue" id="uBtn" onclick="chkL4U()">Valider</button></div></div>`;
+h+=`<div class="sz" id="l4s2" style="display:none"><div class="sz-t">Étape 2 : Prix de ${q.q2} ${q.it.p}</div>
+<div class="sl"><span class="t">${q.q2} ${q.it.p} →</span>
+<input id="ta" inputmode="decimal" placeholder=".."><span class="t">×</span>
+<input id="tb" inputmode="decimal" placeholder=".."><span class="t">=</span>
+<input id="tr2" inputmode="decimal" placeholder="?"><span class="t">€</span></div>
+<div class="controls"><button class="btn btn-green" onclick="chkL4T()">Valider</button></div></div>`;
+Z.innerHTML=h;cq._mis=false;calcHide();foc('ua');
+}
+
+function chkL4U(){
+const q=cq;
+['ua','ub','ur'].forEach(id=>$(id).classList.remove('err','ok'));let ok=true;
+if(!eq(pN($('ua').value),q.t1)){$('ua').classList.add('err');ok=false;q._mis=true}
+if(!eq(pN($('ub').value),q.q1)){$('ub').classList.add('err');ok=false;q._mis=true}
+if(!eq(pN($('ur').value),q.up)){$('ur').classList.add('err');ok=false;q._mis=true}
+if(ok){['ua','ub','ur'].forEach(id=>setOk(id));$('uBtn').disabled=true;$('l4s2').style.display='';foc('ta')}
+}
+
+function chkL4T(){
+const q=cq;
+['ta','tb','tr2'].forEach(id=>$(id).classList.remove('err','ok'));let ok=true;
+const va=pN($('ta').value),vb=pN($('tb').value);
+if(!((eq(va,q.up)&&eq(vb,q.q2))||(eq(va,q.q2)&&eq(vb,q.up)))){$('ta').classList.add('err');$('tb').classList.add('err');ok=false;q._mis=true}
+if(!eq(pN($('tr2').value),q.t2)){$('tr2').classList.add('err');ok=false;q._mis=true}
+if(ok){['ta','tb','tr2'].forEach(id=>setOk(id));finish(!q._mis,`${q.q2} ${q.it.p} → ${fmt(q.t2)} €`)}
+}
+
+// ===== L5: BUILD TABLE =====
+function genL5(){
+const out=[];
+const tpl=[
+(ip)=>{const up=rv([2,3,4,5]),q1=ri(2,6),q2=ri(3,8);
+const p1=up*q1,p2=ip?up*q2:up*q2+ri(1,5);
+const qT=ri(5,12),aT=up*qT;
+return{ctx:{r1:'Quantité',r2:'Prix (€)'},
+text:`Au marché, <span class="hl">${q1} pommes</span> coûtent <span class="hl">${p1} €</span> et <span class="hl">${q2} pommes</span> coûtent <span class="hl">${p2} €</span>.`,
+r1:[q1,q2],r2:[p1,p2],isProp:ip,qT,aT,askT:`Combien coûtent <span class="ho">${qT} pommes</span> ?`}},
+(ip)=>{const sp=rv([40,60,80]),t1=ri(1,3),t2=ri(2,5);
+const d1=sp*t1,d2=ip?sp*t2:sp*t2+ri(5,20);
+const tT=rv([4,6]),dT=sp*tT;
+return{ctx:{r1:'Temps (h)',r2:'Distance (km)'},
+text:`Une voiture parcourt <span class="hl">${d1} km</span> en <span class="hl">${t1} h</span> et <span class="hl">${d2} km</span> en <span class="hl">${t2} h</span>.`,
+r1:[t1,t2],r2:[d1,d2],isProp:ip,qT:tT,aT:dT,askT:`Quelle distance en <span class="ho">${tT} h</span> ?`}},
+(ip)=>{const k=rv([20,30,50]),p1=ri(2,4),p2=ri(3,6);
+const f1=k*p1,f2=ip?k*p2:k*p2+ri(10,30);
+const pT=rv([5,8,10]),fT=k*pT;
+return{ctx:{r1:'Portions',r2:'Farine (g)'},
+text:`Pour <span class="hl">${p1} portions</span> il faut <span class="hl">${f1} g</span> de farine. Pour <span class="hl">${p2} portions</span> il faut <span class="hl">${f2} g</span>.`,
+r1:[p1,p2],r2:[f1,f2],isProp:ip,qT:pT,aT:fT,askT:`Combien de farine pour <span class="ho">${pT} portions</span> ?`}}
+];
+for(let i=0;i<4;i++){const ip=i<3;out.push({type:'l5',...rv(tpl)(ip)})}
+return sh(out);
+}
+
+function renderL5(q){cq._ph=1;cq._mis=false;doL5()}
+
+function dots(n,cur){return`<div class="pd">${Array.from({length:n},(_,i)=>`<div class="dot ${i+1<cur?'d':i+1===cur?'a':''}"></div>`).join('')}</div>`}
+
+function doL5(){
+const q=cq,Z=$('zone'),ph=q._ph;
+const nd=q.isProp?4:2;
+
+if(ph===1){
+    let h=dots(nd,1)+`<div class="wp">${q.text}</div>`;
+    h+=`<p class="prompt">Complète le tableau avec les valeurs de l'énoncé :</p>`;
+    h+=`<div class="tw"><table class="pt"><tr><th></th><th>Donnée 1</th><th>Donnée 2</th></tr>`;
+    h+=`<tr><td class="rl">${q.ctx.r1}</td><td><input class="ci or" id="t00" inputmode="decimal" placeholder="?"></td><td><input class="ci or" id="t01" inputmode="decimal" placeholder="?"></td></tr>`;
+    h+=`<tr><td class="rl">${q.ctx.r2}</td><td><input class="ci or" id="t10" inputmode="decimal" placeholder="?"></td><td><input class="ci or" id="t11" inputmode="decimal" placeholder="?"></td></tr>`;
+    h+=`</table></div>`;
+    h+=`<div class="controls"><button class="btn btn-blue" onclick="chkL5P1()">Valider le tableau</button></div>`;
+    Z.innerHTML=h;foc('t00');
+} else if(ph===2){
+    const quots=q.r2.map((y,i)=>y/q.r1[i]);q._quots=quots;
+    let h=dots(nd,2);
+    h+=`<div class="tw"><table class="pt"><tr><th></th><th>Donnée 1</th><th>Donnée 2</th></tr>`;
+    h+=`<tr><td class="rl">${q.ctx.r1}</td><td>${fmt(q.r1[0])}</td><td>${fmt(q.r1[1])}</td></tr>`;
+    h+=`<tr><td class="rl">${q.ctx.r2}</td><td>${fmt(q.r2[0])}</td><td>${fmt(q.r2[1])}</td></tr>`;
+    h+=`<tr><td class="rl" style="font-size:.7em">Quotient</td>`;
+    for(let c=0;c<2;c++){
+        h+=`<td class="qrc"><div style="display:flex;align-items:center;justify-content:center;gap:3px">
+        <span class="qfr"><input class="ci" id="l5n${c}" inputmode="decimal" placeholder="?" style="width:46px;font-size:.86em;padding:3px">
+        <span class="qbar"></span>
+        <input class="ci" id="l5d${c}" inputmode="decimal" placeholder="?" style="width:46px;font-size:.86em;padding:3px"></span>
+        <span class="qeq">=</span>
+        <input class="ci" id="l5r${c}" inputmode="decimal" placeholder="?" style="width:50px"></div></td>`;
+    }
+    h+=`</tr></table></div>`;
+    h+=`<div class="controls"><button class="btn btn-blue" id="l5qBtn" onclick="chkL5Q()">Valider les quotients</button></div>`;
+    h+=`<div class="cr" id="l5ch" style="display:none">
+    <button class="cb p" id="l5bP" onclick="chkL5C(true)">✓ Proportionnel</button>
+    <button class="cb n" id="l5bN" onclick="chkL5C(false)">✗ Non proportionnel</button></div>`;
+    Z.innerHTML=h;calcShow();foc('l5n0');
+} else if(ph===3&&q.isProp){
+    const a=q.r1[0],b=q.qT,c=q.r2[0];
+    let h=dots(nd,3)+`<div class="wp">${q.askT}</div>`;
+    h+=`<div class="tw"><table class="pt"><tr><th></th><th>Connue</th><th>Recherchée</th></tr>
+    <tr><td class="rl">${q.ctx.r1}</td><td>${fmt(a)}</td><td>${fmt(b)}</td></tr>
+    <tr><td class="rl">${q.ctx.r2}</td><td>${fmt(c)}</td><td class="unk">?</td></tr></table></div>`;
+    h+=`<div class="sz"><div class="sz-t">Produit en croix</div>
+    <div class="sl"><span class="or">?</span><span class="t">=</span>
+    <input id="l5pa" inputmode="decimal" placeholder=".."><span class="t">×</span>
+    <input id="l5pb" inputmode="decimal" placeholder=".."><span class="t">÷</span>
+    <input id="l5pc" inputmode="decimal" placeholder=".."></div>
+    <div class="sl" style="margin-top:10px"><span class="or">?</span><span class="t">=</span>
+    <input id="l5pr" inputmode="decimal" placeholder="résultat"></div>
+    <div class="controls"><button class="btn btn-green" onclick="chkL5PC()">Valider</button></div></div>`;
+    Z.innerHTML=h;calcShow();foc('l5pa');
+} else if(ph===4&&q.isProp){
+    let h=dots(nd,4);
+    h+=`<div class="sz"><p style="font-size:1.1em;color:var(--green);font-weight:700;text-align:center">✅ Terminé ! La valeur manquante est ${fmt(q.aT)}.</p></div>`;
+    Z.innerHTML=h;finish(!q._mis,`? = ${fmt(q.aT)}`);
+}
+}
+
+function chkL5P1(){
+const q=cq,exp=[[q.r1[0],q.r1[1]],[q.r2[0],q.r2[1]]];let ok=true;
+for(let r=0;r<2;r++)for(let c=0;c<2;c++){
+    const id=`t${r}${c}`,e=$(id);e.classList.remove('err','ok');
+    if(eq(pN(e.value),exp[r][c])){e.classList.add('ok');e.disabled=true}
+    else{e.classList.add('err');ok=false;q._mis=true}}
+if(ok){q._ph=2;setTimeout(doL5,500)}
+}
+
+function chkL5Q(){
+const q=cq;let ok=true;
+for(let c=0;c<2;c++){
+    const nI=$(`l5n${c}`),dI=$(`l5d${c}`),rI=$(`l5r${c}`);
+    [nI,dI,rI].forEach(e=>e.classList.remove('err','ok'));
+    if(!eq(pN(nI.value),q.r2[c])){nI.classList.add('err');ok=false;q._mis=true}else nI.classList.add('ok');
+    if(!eq(pN(dI.value),q.r1[c])){dI.classList.add('err');ok=false;q._mis=true}else dI.classList.add('ok');
+    if(!eq(pN(rI.value),q._quots[c])){rI.classList.add('err');ok=false;q._mis=true}else rI.classList.add('ok');
+}
+if(ok){document.querySelectorAll('.qrc input').forEach(i=>i.disabled=true);$('l5qBtn').disabled=true;$('l5ch').style.display='flex'}
+}
+
+function chkL5C(chose){
+const q=cq;$('l5bP').disabled=true;$('l5bN').disabled=true;
+const ok=chose===q.isProp;
+if(ok)$(chose?'l5bP':'l5bN').classList.add('cok');
+else{$(chose?'l5bP':'l5bN').classList.add('cbad');$(q.isProp?'l5bP':'l5bN').classList.add('cok');q._mis=true}
+if(q.isProp&&ok){setTimeout(()=>{q._ph=3;doL5()},800)}
+else if(q.isProp&&!ok){finish(false,'C\'est proportionnel (quotients égaux).')}
+else if(!q.isProp&&ok){finish(true,'Correct ! Ce tableau n\'est pas proportionnel.')}
+else{finish(false,'Ce n\'est pas proportionnel (quotients différents).')}
+}
+
+function chkL5PC(){
+const q=cq;
+const a=pN($('l5pa').value),b=pN($('l5pb').value),c=pN($('l5pc').value),r=pN($('l5pr').value);
+['l5pa','l5pb','l5pc','l5pr'].forEach(id=>$(id).classList.remove('err','ok'));
+const vn=[[q.r2[0],q.qT],[q.qT,q.r2[0]]];
+let numOk=false;for(const[x,y]of vn){if((eq(a,x)&&eq(b,y))||(eq(a,y)&&eq(b,x)))numOk=true}
+let ok=true;
+if(!numOk){$('l5pa').classList.add('err');$('l5pb').classList.add('err');ok=false;q._mis=true}
+if(!eq(c,q.r1[0])){$('l5pc').classList.add('err');ok=false;q._mis=true}
+if(!eq(r,q.aT)){$('l5pr').classList.add('err');ok=false;q._mis=true}
+if(ok){['l5pa','l5pb','l5pc','l5pr'].forEach(id=>setOk(id));q._ph=4;setTimeout(doL5,600)}
+}
+
+// ===== L6: GRAPH =====
+function genL6(){
+const out=[];
+for(let i=0;i<3;i++){const k=rv([0.5,1,1.5,2,2.5,3,4]);
+out.push({pts:[1,2,3,4,5].map(x=>({x,y:k*x})),isProp:true,
+exp:'Les points sont alignés et la droite passe par l\'origine → c\'est proportionnel.'})}
+{const a=rv([1,1.5,2,3]),b=rv([1,2,3,4]);
+out.push({pts:[1,2,3,4,5].map(x=>({x,y:a*x+b})),isProp:false,
+exp:'Les points sont alignés mais la droite ne passe pas par l\'origine → ce n\'est pas proportionnel.'})}
+out.push({pts:[1,2,3,4,5].map(x=>({x,y:Math.round(x*x*0.8)})),isProp:false,
+exp:'Les points ne sont pas alignés (courbe) → ce n\'est pas proportionnel.'});
+out.push({pts:[{x:1,y:2},{x:2,y:5},{x:3,y:6},{x:4,y:12},{x:5,y:13}],isProp:false,
+exp:'Les points ne sont pas alignés → ce n\'est pas proportionnel.'});
+return sh(out);
+}
+
+function renderL6(q){
+const Z=$('zone');
+let h=`<p class="prompt">Ce graphique représente-t-il une situation de <span class="hl">proportionnalité</span> ?</p>`;
+h+=`<div class="gw"><canvas id="cv" width="360" height="320"></canvas></div>`;
+h+=`<div class="cr"><button class="cb p" id="g6P" onclick="chkL6(true)">✓ Proportionnel</button>
+<button class="cb n" id="g6N" onclick="chkL6(false)">✗ Non proportionnel</button></div>`;
+Z.innerHTML=h;cq._mis=false;calcHide();drawG(q);
+}
+
+function drawG(q){
+const cv=$('cv'),c=cv.getContext('2d'),W=cv.width,H=cv.height,pad=45,gw=W-pad-15,gh=H-pad-20;
+c.clearRect(0,0,W,H);c.fillStyle='#fff';c.fillRect(0,0,W,H);
+const mx=Math.max(...q.pts.map(p=>p.x))+1,my=Math.max(...q.pts.map(p=>p.y))+2;
+const sx=gw/mx,sy=gh/my,ox=pad,oy=H-pad;
+c.strokeStyle='#e8ecf0';c.lineWidth=1;
+for(let x=0;x<=mx;x++){c.beginPath();c.moveTo(ox+x*sx,oy);c.lineTo(ox+x*sx,oy-gh);c.stroke()}
+for(let y=0;y<=my;y++){c.beginPath();c.moveTo(ox,oy-y*sy);c.lineTo(ox+gw,oy-y*sy);c.stroke()}
+c.strokeStyle='#1e293b';c.lineWidth=2;
+c.beginPath();c.moveTo(ox,oy);c.lineTo(ox+gw+10,oy);c.stroke();
+c.beginPath();c.moveTo(ox,oy);c.lineTo(ox,oy-gh-10);c.stroke();
+c.fillStyle='#1e293b';c.beginPath();c.moveTo(ox+gw+10,oy);c.lineTo(ox+gw+2,oy-4);c.lineTo(ox+gw+2,oy+4);c.fill();
+c.beginPath();c.moveTo(ox,oy-gh-10);c.lineTo(ox-4,oy-gh-2);c.lineTo(ox+4,oy-gh-2);c.fill();
+c.font='12px DM Sans';c.fillStyle='#64748b';c.textAlign='center';
+for(let x=1;x<=mx;x++)c.fillText(x,ox+x*sx,oy+16);
+c.textAlign='right';for(let y=1;y<=my;y++){const py=oy-y*sy;if(py>oy-gh-5)c.fillText(y,ox-8,py+4)}
+c.fillText('0',ox-8,oy+4);
+const ap=q.isProp?[{x:0,y:0},...q.pts]:q.pts;
+c.strokeStyle='rgba(29,78,216,.3)';c.lineWidth=1.5;c.setLineDash([5,4]);
+c.beginPath();ap.forEach((p,i)=>{const px=ox+p.x*sx,py=oy-p.y*sy;i===0?c.moveTo(px,py):c.lineTo(px,py)});
+c.stroke();c.setLineDash([]);
+q.pts.forEach(p=>{const px=ox+p.x*sx,py=oy-p.y*sy;
+c.fillStyle='#1d4ed8';c.beginPath();c.arc(px,py,5,0,Math.PI*2);c.fill();
+c.fillStyle='#fff';c.beginPath();c.arc(px,py,2,0,Math.PI*2);c.fill()});
+c.fillStyle='#1e293b';c.beginPath();c.arc(ox,oy,3,0,Math.PI*2);c.fill();
+}
+
+function chkL6(chose){
+$('g6P').disabled=true;$('g6N').disabled=true;
+const ok=chose===cq.isProp;
+if(ok)$(chose?'g6P':'g6N').classList.add('cok');
+else{$(chose?'g6P':'g6N').classList.add('cbad');$(cq.isProp?'g6P':'g6N').classList.add('cok')}
+const fb=$('fb');fb.className=ok?'fb ok':'fb bad';
+fb.textContent=(ok?'✅ ':'❌ ')+cq.exp;
+if(ok)sc++;
+$('scLbl').textContent=`${sc} / ${qi+1}`;$('nxt').style.display='';
+}
+
+// ===== FLOW =====
+function go(l){
+lv=l;sc=0;qi=0;
+if(l===1)qs=genL1();else if(l===2)qs=genL2();else if(l===3)qs=genL3();
+else if(l===4)qs=genL4();else if(l===5)qs=genL5();else qs=genL6();
+$('badge').textContent=LVNAMES[l];show('S_ex');loadQ();
+}
+
+function loadQ(){
+cq=qs[qi];cq._mis=false;
+$('scLbl').textContent=`${sc} / ${qi}`;
+$('pfill').style.width=(qi/qs.length*100)+'%';
+$('fb').className='fb';$('nxt').style.display='none';$('zone').innerHTML='';
+if(lv===1)renderL1(cq);else if(lv===2)renderL2(cq);else if(lv===3)renderL3(cq);
+else if(lv===4)renderL4(cq);else if(lv===5)renderL5(cq);else renderL6(cq);
+}
+
+function finish(ok,msg){
+if(ok)sc++;
+$('scLbl').textContent=`${sc} / ${qi+1}`;
+const fb=$('fb');fb.className=ok?'fb ok':'fb bad';
+fb.textContent=ok?'✅ Correct !':`❌ ${msg||'Incorrect.'}`;
+$('nxt').style.display='';
+}
+
+function nxtQ(){qi++;if(qi>=qs.length)showRes();else loadQ()}
+
+function showRes(){
+calcHide();const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+const tier=pct>=80?'good':pct>=50?'mid':'bad';
+$('rCirc').className=`rc ${tier}`;
+const rp=$('rPct');rp.textContent=`${pct}%`;
+rp.style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+$('rMsg').textContent=pct===100?'Parfait !':pct>=80?'Très bien !':pct>=60?'Continue tes efforts !':'Reprends les méthodes et réessaie.';
+show('S_res');
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

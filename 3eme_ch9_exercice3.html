@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>En piste pour le brevet – Fonctions affines et linéaires (Peintres)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script>
+    <style>
+        :root {
+            --primary:      #0f766e;
+            --primary-dark: #134e4a;
+            --primary-light:#ccfbf1;
+            --success:      #059669;
+            --accent:       #2563eb;
+            --accent-light: #dbeafe;
+            --orange:       #d97706;
+            --orange-light: #fef3c7;
+            --red:          #dc2626;
+            --red-light:    #fee2e2;
+            --purple:       #7c3aed;
+            --purple-light: #ede9fe;
+            --border:       #5eead4;
+            --text-dark:    #0f172a;
+            --text-medium:  #475569;
+            --shadow:       rgba(15,118,110,0.10);
+            /* Peintre colours */
+            --pa:   #d97706; --pa-l: #fef3c7;
+            --pb:   #2563eb; --pb-l: #dbeafe;
+            --pc:   #7c3aed; --pc-l: #ede9fe;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#ccfbf1 0%,#dbeafe 50%,#fef3c7 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+
+        /* ── Header ── */
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--accent),var(--orange));}
+        .header-meta{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:.8rem;font-weight:600;padding:.25rem .75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:.4rem;letter-spacing:-.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+        /* ── Context banner ── */
+        .context-banner{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .context-banner-title{font-family:'Crimson Pro',serif;font-size:1.25rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .peintre-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:.75rem;}
+        .peintre-card{border-radius:12px;padding:1rem 1.25rem;font-size:.97rem;line-height:1.8;}
+        .peintre-card.pa{background:var(--pa-l);border:2px solid #fcd34d;}
+        .peintre-card.pa .peintre-label{color:var(--pa);font-weight:700;font-size:1.05rem;}
+        .peintre-card.pb{background:var(--pb-l);border:2px solid #93c5fd;}
+        .peintre-card.pb .peintre-label{color:var(--pb);font-weight:700;font-size:1.05rem;}
+        .peintre-card.pc{background:var(--pc-l);border:2px solid #c4b5fd;}
+        .peintre-card.pc .peintre-label{color:var(--pc);font-weight:700;font-size:1.05rem;}
+
+        /* ── Recap ── */
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        .recap-card{border-radius:10px;padding:1rem 1.25rem;font-size:.97rem;line-height:1.9;}
+        .recap-card.teal{background:var(--primary-light);border:2px solid #5eead4;}
+        .recap-card.teal strong{color:var(--primary-dark);}
+        .recap-card.blue{background:var(--accent-light);border:2px solid #93c5fd;}
+        .recap-card.blue strong{color:var(--accent);}
+        .formula-list{display:flex;flex-direction:column;gap:.35rem;margin-top:.5rem;}
+        .formula-item{background:white;border-radius:6px;padding:.3rem .7rem;border:1.5px solid #5eead4;font-size:.95rem;}
+        .formula-item.blue{border-color:#93c5fd;}
+
+        /* ── Progress ── */
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+        .progress-counter{font-size:.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all .4s cubic-bezier(.34,1.56,.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+        /* ── Score card ── */
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),var(--primary),var(--accent));}
+        @keyframes popIn{from{opacity:0;transform:scale(.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:.2rem;margin:.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:.4rem 1rem;border-radius:99px;font-size:.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.blue{background:var(--accent-light);color:var(--accent);}
+        .score-badge.teal{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.orange{background:var(--orange-light);color:var(--orange);}
+
+        /* ── Section divider ── */
+        .section-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;}
+        .section-divider-line{flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent);}
+        .section-divider-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+
+        /* ── Exercise cards ── */
+        .exercise{background:white;border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform .3s ease,box-shadow .3s ease,border-color .4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.2rem .7rem;border-radius:99px;}
+        .tag-calcul{background:var(--pa-l);color:#92400e;}
+        .tag-fonctions{background:var(--primary-light);color:var(--primary-dark);}
+        .tag-graphique{background:var(--accent-light);color:#1e40af;}
+        .tag-equation{background:var(--red-light);color:#991b1b;}
+        .tag-interp{background:var(--pc-l);color:#4c1d95;}
+        .tag-algo{background:#fce7f3;color:#9d174d;}
+        .btn-group{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:.72rem;font-weight:700;letter-spacing:.05em;padding:.2rem .65rem;border-radius:99px;opacity:0;transform:scale(.5) translateY(-4px);transition:all .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .3s ease;box-shadow:0 4px 15px rgba(15,118,110,.3);flex-shrink:0;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+
+        /* ── Hints ── */
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #5eead4;padding-top:1.25rem;}
+        .hints-title{font-size:.85rem;font-weight:700;color:var(--primary);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:.6rem;}
+        .hint-btn{background:var(--primary-light);color:var(--primary);border:2px solid #5eead4;border-radius:10px;padding:.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s ease;white-space:nowrap;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#99f6e4;border-color:var(--primary);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#f0fdf4;border-left:3px solid var(--primary);border-radius:6px;padding:0 .85rem;font-size:.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease,opacity .3s ease;opacity:0;flex:1;min-width:0;word-break:break-word;}
+        .hint-text.revealed{max-height:400px;padding:.5rem .85rem;opacity:1;}
+
+        /* ── Correction ── */
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity .35s ease,height .35s cubic-bezier(.4,0,.2,1),margin-top .35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:.85rem;font-weight:700;letter-spacing:.04em;}
+        .correction-content{margin-top:1rem;}
+
+        /* ── Content utilities ── */
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-row{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.65rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:.8rem;font-weight:700;width:1.5rem;height:1.5rem;border-radius:50%;text-align:center;line-height:1.5rem;flex-shrink:0;margin-top:.2rem;}
+        .mini-section{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:700;color:var(--primary);margin:1.25rem 0 .5rem;}
+        .mini-section:first-child{margin-top:0;}
+        .rule-box{background:#f0fdf4;border:2px solid #5eead4;border-radius:10px;padding:.9rem 1.25rem;margin:.75rem 0;font-size:.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--primary-dark);}
+        .warn-box{background:#fefce8;border:2px solid #fde047;border-radius:10px;padding:.8rem 1.25rem;margin:.6rem 0;font-size:.92rem;line-height:1.6;}
+        .info-box{background:var(--accent-light);border:2px solid #93c5fd;border-radius:10px;padding:.8rem 1.25rem;margin:.6rem 0;font-size:.92rem;line-height:1.6;color:#1e3a8a;}
+
+        /* ── Equation / arrows ── */
+        .equation-step{background:white;padding:1.5rem 2rem;border-radius:10px;margin:1rem 0;border-left:4px solid var(--primary);}
+        .equation-step.blue{border-left-color:var(--accent);}
+        .equation-step.red{border-left-color:var(--red);}
+        .equation-step.orange{border-left-color:var(--orange);}
+        .equation-step.purple{border-left-color:var(--purple);}
+        .equation-line{font-size:1.4rem;text-align:center;margin:.5rem 0;font-family:'Times New Roman',serif;font-style:italic;}
+        .equation-line.left{text-align:left;font-size:1.05rem;}
+        .circled{display:inline-block;border:3px solid var(--primary);border-radius:50%;padding:.1rem .55rem;color:var(--primary);font-weight:bold;}
+        .circled.red{border-color:var(--red);color:var(--red);}
+        .arrow-section{position:relative;height:72px;margin:.2rem 0;}
+        .arrow-svg{position:absolute;width:100%;height:100%;}
+        .left-op{position:absolute;left:22%;top:8px;font-size:1.1rem;color:var(--primary);font-weight:700;font-family:'Times New Roman',serif;transform:translateX(-50%);}
+        .right-op{position:absolute;right:22%;top:8px;font-size:1.1rem;color:var(--primary);font-weight:700;font-family:'Times New Roman',serif;transform:translateX(50%);}
+
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:.75rem 0;}
+        .solution-text.blue{background:var(--accent-light);border-color:var(--accent);color:#1e3a8a;}
+        .solution-text.red{background:var(--red-light);border-color:var(--red);color:#7f1d1d;}
+        .solution-text.orange{background:var(--orange-light);border-color:var(--orange);color:#78350f;}
+        .solution-text.purple{background:var(--purple-light);border-color:var(--purple);color:#4c1d95;}
+
+        /* ── Colour helpers ── */
+        .cA{color:var(--pa);font-weight:700;}
+        .cB{color:var(--pb);font-weight:700;}
+        .cC{color:var(--pc);font-weight:700;}
+        .hl-a{background:var(--pa-l);color:#78350f;border-radius:4px;padding:0 4px;font-weight:700;}
+        .hl-b{background:var(--pb-l);color:#1e3a8a;border-radius:4px;padding:0 4px;font-weight:700;}
+        .hl-c{background:var(--pc-l);color:#4c1d95;border-radius:4px;padding:0 4px;font-weight:700;}
+
+        /* ── Step construction boxes ── */
+        .step-box{background:white;border-radius:10px;padding:1rem 1.25rem;margin:.5rem 0;font-size:.97rem;line-height:1.8;}
+        .step-box.teal{border-left:4px solid var(--primary);}
+        .step-box.blue{border-left:4px solid var(--accent);}
+        .step-box.orange{border-left:4px solid var(--orange);}
+        .step-num{display:inline-block;background:var(--primary);color:white;font-size:.75rem;font-weight:700;width:1.3rem;height:1.3rem;border-radius:50%;text-align:center;line-height:1.3rem;margin-right:.4rem;flex-shrink:0;vertical-align:middle;}
+        .step-num.blue{background:var(--accent);}
+        .step-num.orange{background:var(--orange);}
+
+        /* ── Graph ── */
+        .graph-container{background:white;border:2px solid var(--border);border-radius:12px;padding:1rem;margin:1rem 0;overflow-x:auto;}
+        .graph-container svg{display:block;margin:auto;}
+        .graph-legend{display:flex;gap:1rem;flex-wrap:wrap;margin:.5rem 0 .75rem;font-size:.9rem;font-weight:600;}
+        .legend-dash{display:inline-block;width:20px;height:3px;margin-right:4px;vertical-align:middle;border-radius:2px;}
+
+        /* ── Tables ── */
+        .val-table{border-collapse:collapse;width:100%;margin:.75rem 0;}
+        .val-table th,.val-table td{border:2px solid var(--border);padding:.5rem .9rem;text-align:center;font-size:1rem;}
+        .val-table th{background:var(--primary-light);color:var(--primary-dark);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;}
+        .val-table td{background:white;font-family:'Times New Roman',serif;}
+        .val-table td.pa{background:var(--pa-l);color:var(--pa);font-weight:700;}
+        .val-table td.pb{background:var(--pb-l);color:var(--pb);font-weight:700;}
+        .val-table td.header-pa{background:var(--pa-l);color:var(--pa);font-weight:700;font-family:'DM Sans',sans-serif;font-size:.88rem;}
+        .val-table td.header-pb{background:var(--pb-l);color:var(--pb);font-weight:700;font-family:'DM Sans',sans-serif;font-size:.88rem;}
+
+        /* ── Scratch / algo box ── */
+        .algo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;}
+        .algo-box{background:#1e293b;color:#e2e8f0;border-radius:12px;padding:1.25rem 1.5rem;font-family:'Courier New',monospace;font-size:.92rem;line-height:2.1;}
+        .algo-keyword{color:#38bdf8;font-weight:700;}
+        .algo-value{color:#86efac;}
+        .algo-op{color:#fbbf24;}
+        .scratch-box{background:#1e40af;border-radius:12px;padding:1.25rem 1.5rem;color:white;font-size:.95rem;line-height:2;}
+        .scratch-block{background:#3b82f6;border-radius:6px;padding:.25rem .75rem;margin:.2rem 0;display:inline-block;font-weight:600;}
+        .scratch-block.orange{background:#f59e0b;}
+        .scratch-block.green{background:#10b981;}
+        .scratch-block.purple{background:#8b5cf6;}
+
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+
+        /* ── Responsive ── */
+        @media(max-width:900px){
+            body{padding:1.5rem .75rem;}
+            h1{font-size:2rem;}
+            header{padding:2rem 1.5rem;}
+            .exercise{padding:1.5rem;}
+            .peintre-grid{grid-template-columns:1fr;}
+            .recap-grid{grid-template-columns:1fr;}
+            .algo-grid{grid-template-columns:1fr;}
+            .equation-line{font-size:1.15rem;}
+        }
+        @media(max-width:600px){
+            body{padding:1rem .5rem;}
+            h1{font-size:1.5rem;}
+            header{padding:1.5rem 1rem;border-radius:14px;}
+            .exercise{padding:1rem .75rem;border-radius:12px;}
+            .exercise-header{flex-direction:column;align-items:flex-start;}
+            .btn-group{width:100%;}
+            .reveal-btn{width:100%;text-align:center;}
+            .equation-step{padding:1rem .75rem;}
+            .equation-line{font-size:1rem;}
+            .arrow-section{height:60px;}
+            .left-op{left:8%;font-size:.9rem;transform:none;}
+            .right-op{right:8%;font-size:.9rem;transform:none;}
+            .val-table th,.val-table td{padding:.35rem .4rem;font-size:.82rem;}
+        }
+        @media(max-width:380px){
+            h1{font-size:1.2rem;}
+            .equation-line{font-size:.9rem;}
+        }
+        @media(max-width:600px){.hint-btn{font-size:0.8rem;padding:0.4rem 0.65rem;white-space:normal;width:100%;}.hint-text{font-size:0.85rem;width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}.hint-item{flex-direction:column;}}
+    </style>
+</head>
+<body>
+<div class="container">
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header>
+    <h1>🖌️ En piste pour le brevet</h1>
+    <p class="subtitle">Fonctions linéaires et affines — Les Peintres</p>
+    <div class="header-meta">
+        <span class="header-chip">3ème · Brevet</span>
+        <span class="header-chip">10 questions</span>
+        <span class="header-chip">Calcul · Fonctions · Graphique · Équation · Algorithme</span>
+    </div>
+</header>
+
+<!-- ══════════════ RAPPELS ══════════════ -->
+<div class="recap">
+    <div class="recap-title">📖 Ce qu'il faut savoir</div>
+    <div class="recap-grid">
+        <div class="recap-card teal">
+            <strong>Fonctions affine &amp; linéaire</strong>
+            <div class="formula-list">
+                <div class="formula-item">Affine : \(f(x) = ax + b\) avec \(a \neq 0\)</div>
+                <div class="formula-item">Linéaire : \(f(x) = ax\) (cas \(b = 0\))</div>
+                <div class="formula-item">\(a\) = coefficient directeur · \(b\) = ordonnée à l'origine</div>
+                <div class="formula-item">Linéaire ↔ droite passant par l'origine \((0\,;\,0)\)</div>
+            </div>
+        </div>
+        <div class="recap-card blue">
+            <strong>Tracer une droite sur un repère</strong>
+            <div class="formula-list">
+                <div class="formula-item blue"><strong>Étape 1</strong> — Place le point \((0\,;\,b)\) sur l'axe des ordonnées.</div>
+                <div class="formula-item blue"><strong>Étape 2</strong> — Depuis ce point, avance d'<strong>1 unité vers la droite</strong>.</div>
+                <div class="formula-item blue"><strong>Étape 3</strong> — Monte de \(a\) unités (ou descend si \(a < 0\)). Tu as un 2ème point.</div>
+                <div class="formula-item blue"><strong>Étape 4</strong> — Trace la droite passant par ces deux points.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ PROGRESSION ══════════════ -->
+<div class="progress-wrapper">
+    <span class="progress-label">📊 Corrections vues :</span>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <span class="progress-counter" id="progressCounter">0 / 10</span>
+    <div class="progress-dots" id="progressDots"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     EXERCICE 1 — CONTEXTE
+══════════════════════════════════════════ -->
+<div class="context-banner" style="margin-bottom:2rem;">
+    <div class="context-banner-title">🏠 Présentation du problème</div>
+    <p style="margin-bottom:.85rem;">On veut peindre des murs d'aire inférieure à 100 m². Voici les tarifs proposés par trois peintres en fonction de l'aire des murs à peindre en m² :</p>
+    <div class="peintre-grid">
+        <div class="peintre-card pa">
+            <div class="peintre-label">🟡 Peintre A</div>
+            <strong>15 €</strong> par m². Pas de frais fixe : on paie uniquement en fonction de la surface à peindre.
+        </div>
+        <div class="peintre-card pb">
+            <div class="peintre-label">🔵 Peintre B</div>
+            <strong>10 €</strong> par m² + <strong>70 €</strong> de frais d'installation de chantier (forfait fixe).
+        </div>
+        <div class="peintre-card pc">
+            <div class="peintre-label">🟣 Peintre C</div>
+            <strong>350 €</strong> quelle que soit l'aire (inférieure à 100 m²). Prix unique forfaitaire.
+        </div>
+    </div>
+    <p style="margin-top:1rem;font-size:.95rem;color:var(--text-medium);">Dans la suite de l'exercice, \(x\) désigne l'aire des murs à peindre en m². Les fonctions \(a(x)\), \(b(x)\) et \(c(x)\) donnent le prix proposé, en euros, respectivement par les peintres A, B et C.</p>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 1 — Vérification pour 40 m²
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">🧮</div>
+    <div class="section-divider-title">Question 1 – Vérification pour 40 m²</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q1">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 1 / 10</h2>
+            <span class="exercise-tag tag-calcul">Calcul numérique · Vérification</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q1">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <div class="q-row"><span class="qnum">→</span><span>Montrer que pour 40 m², le tarif du <span class="cA">Peintre A</span> est de <strong>600 €</strong>, le tarif du <span class="cB">Peintre B</span> est de <strong>470 €</strong> et le tarif du <span class="cC">Peintre C</span> est de <strong>350 €</strong>.</span></div>
+        <div class="info-box" style="margin-top:.75rem;">💡 <strong>Montrer</strong> signifie ici écrire le calcul complet, pas seulement l'affirmation.</div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h1-1">Indice 1 — Peintre A</button>
+                <div class="hint-text" id="h1-1">Pour le <span class="cA">Peintre A</span>, son tarif est de 15 € par m². Combien coûte 40 m² à ce tarif ? Réfléchis à ce que tu dois multiplier.</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h1-2">Indice 2 — Peintre B</button>
+                <div class="hint-text" id="h1-2">Pour le <span class="cB">Peintre B</span>, son tarif comporte deux parties : une fixe et une qui dépend de la surface. Réfléchis à comment les combiner pour obtenir le coût total.</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q1">
+        <div class="correction-box">
+            <div class="correction-content">
+                <div class="equation-step orange">
+                    <p style="font-size:1.05rem;margin-bottom:.4rem;"><span class="cA">Peintre A</span> — 15 € par m², donc pour 40 m² :</p>
+                    <div class="equation-line left">\(a(40) = 15 \times 40 = \mathbf{600}\) €</div>
+                </div>
+                <div class="equation-step blue">
+                    <p style="font-size:1.05rem;margin-bottom:.4rem;"><span class="cB">Peintre B</span> — 70 € de frais fixes + 10 € par m², donc pour 40 m² :</p>
+                    <div class="equation-line left">\(b(40) = 10 \times 40 + 70 = 400 + 70 = \mathbf{470}\) €</div>
+                </div>
+                <div class="equation-step purple">
+                    <p style="font-size:1.05rem;margin-bottom:.4rem;"><span class="cC">Peintre C</span> — Forfait fixe quel que soit le nombre de m² :</p>
+                    <div class="equation-line left">\(c(40) = \mathbf{350}\) €</div>
+                </div>
+                <div class="solution-text">Les trois valeurs sont bien vérifiées : <span class="cA">600 €</span> · <span class="cB">470 €</span> · <span class="cC">350 €</span>.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 2 — Écrire b(x)
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">✍️</div>
+    <div class="section-divider-title">Question 2 – Écrire \(b(x)\)</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q2">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 2 / 10</h2>
+            <span class="exercise-tag tag-fonctions">Expression · Fonction</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q2">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <div class="q-row"><span class="qnum">→</span><span>Écrire l'expression de la fonction \(b(x)\) donnant le prix proposé par le <span class="cB">Peintre B</span> pour \(x\) m².</span></div>
+        <p style="margin-top:.5rem;font-size:.97rem;color:var(--text-medium);">On rappelle que : \(a(x) = 15x\) et \(c(x) = 350\). À vous d'exprimer \(b(x)\).</p>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h2-1">Indice — Expression de b(x)</button>
+                <div class="hint-text" id="h2-1">Le <span class="cB">Peintre B</span> a deux types de frais dans son tarif. Comment les exprimer ensemble pour une surface quelconque \(x\) m² ?</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q2">
+        <div class="correction-box">
+            <div class="correction-content">
+                <div class="rule-box">Le <span class="cB">Peintre B</span> coûte : <strong>10 € par m²</strong> (partie variable) <strong>+ 70 €</strong> (frais fixes, partie constante).</div>
+                <div class="equation-step blue">
+                    <div class="equation-line left">
+                        \(b(x) = \underbrace{10x}_{\text{partie variable}} + \underbrace{70}_{\text{frais fixes}}\)
+                    </div>
+                </div>
+                <div class="solution-text blue">\(b(x) = 10x + 70\)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 3 — Nature de a(x), image, antécédent
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">📏</div>
+    <div class="section-divider-title">Question 3 – Nature de \(a\), image et antécédent</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q3">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 3 / 10</h2>
+            <span class="exercise-tag tag-fonctions">Linéaire · Affine · Image · Antécédent</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q3">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <p style="margin-bottom:1rem;">On rappelle que \(a(x) = 15x\) et \(c(x) = 350\).</p>
+        <div class="q-row"><span class="qnum">a</span><span>Quelle est la nature de la fonction \(a\) ? Justifier et donner en plus le <strong>coefficient directeur</strong> ainsi que l'<strong>ordonnée à l'origine</strong> de \(a\).</span></div>
+        <div class="q-row" style="margin-top:.5rem;"><span class="qnum">b</span><span>Calculer l'image de <strong>60</strong> par \(a\).</span></div>
+        <div class="q-row" style="margin-top:.5rem;"><span class="qnum">c</span><span>Calculer l'antécédent de <strong>300</strong> par \(a\).</span></div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h3-1">Indice 1 (a)</button>
+                <div class="hint-text" id="h3-1">Compare les formes générales des fonctions affines et linéaires. Qu'est-ce qui distingue une fonction linéaire d'une fonction affine ?</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h3-2">Indice 2 (b et c)</button>
+                <div class="hint-text" id="h3-2">L'image d'un nombre s'obtient en remplaçant \(x\) par ce nombre dans la formule. L'antécédent d'un nombre s'obtient en résolvant une équation.</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q3">
+        <div class="correction-box">
+            <div class="correction-content">
+                <p class="mini-section">a. Nature de la fonction \(a\)</p>
+                <div class="rule-box">
+                    Une fonction est <strong>linéaire</strong> si elle s'écrit \(f(x) = ax\) (sans terme constant, \(b = 0\)). Sa courbe est une droite passant par l'origine \((0\,;\,0)\).
+                </div>
+                <div class="equation-step orange">
+                    <p style="font-size:1rem;">\(a(x) = 15x\) s'écrit bien sous la forme \(f(x) = ax\) avec :</p>
+                    <ul style="margin:.4rem 0 0 1.2rem;line-height:2.2;">
+                        <li><strong>Coefficient directeur :</strong> \(a = 15\)</li>
+                        <li><strong>Ordonnée à l'origine :</strong> \(b = 0\)</li>
+                    </ul>
+                </div>
+                <div class="solution-text orange">\(a\) est une <strong>fonction linéaire</strong> de coefficient directeur \(15\) et d'ordonnée à l'origine \(0\).</div>
+                <div class="warn-box">⚠️ Une fonction linéaire est un <em>cas particulier</em> de fonction affine (avec \(b = 0\)). Sa droite passe obligatoirement par l'origine.</div>
+
+                <p class="mini-section">b. Image de 60 par \(a\)</p>
+                <div class="equation-step orange">
+                    <div class="equation-line left">\(a(60) = 15 \times 60 = \mathbf{900}\)</div>
+                </div>
+                <div class="solution-text orange">L'image de 60 par \(a\) est <strong>900</strong>. (Peindre 60 m² avec le Peintre A coûte 900 €.)</div>
+
+                <p class="mini-section">c. Antécédent de 300 par \(a\)</p>
+                <p style="font-size:.97rem;margin-bottom:.5rem;">On cherche \(x\) tel que \(a(x) = 300\), soit :</p>
+                <div class="equation-step orange">
+                    <div class="equation-line">15<i>x</i> = 300</div>
+                    <div class="arrow-section">
+                        <svg class="arrow-svg" viewBox="0 0 400 72" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="ah-l3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                                <marker id="ah-r3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                            </defs>
+                            <path d="M 90 10 Q 70 36 95 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-l3)"/>
+                            <path d="M 310 10 Q 330 36 305 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-r3)"/>
+                        </svg>
+                        <div class="left-op">÷ 15</div>
+                        <div class="right-op">÷ 15</div>
+                    </div>
+                    <div class="equation-line"><i>x</i> = 300 ÷ 15 = <strong>20</strong></div>
+                </div>
+                <div class="solution-text orange">L'antécédent de 300 par \(a\) est <strong>20</strong>. (Pour payer 300 €, le Peintre A peint 20 m².)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 4 — Représenter a(x) et b(x)
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">📈</div>
+    <div class="section-divider-title">Question 4 – Représenter \(a(x)\) et \(b(x)\)</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q4">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 4 / 10</h2>
+            <span class="exercise-tag tag-graphique">Représentation graphique · Méthode</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q4">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <p style="margin-bottom:1rem;"><strong>Représenter graphiquement les fonctions \(a(x) = 15x\) et \(b(x) = 10x + 70\) dans le repère ci-dessous.</strong></p>
+
+        <div class="rule-box" style="margin-bottom:1rem;">
+            📐 <strong>Rappel de méthode :</strong> Pour tracer une droite, tu n'as besoin que de <strong>deux points</strong>. Commence par placer l'ordonnée à l'origine \(b\), puis utilise le coefficient directeur \(a\) pour trouver un deuxième point (avancer de 1 vers la droite, monter de \(a\) vers le haut).
+        </div>
+
+        <div class="graph-legend">
+            <span><span class="legend-dash" style="background:var(--pa);"></span><span class="cA">\((D_A)\)</span> — \(a(x)=15x\) &nbsp;<em style="color:var(--text-medium);font-size:.85rem;">(à tracer)</em></span>
+            <span><span class="legend-dash" style="background:var(--pb);"></span><span class="cB">\((D_B)\)</span> — \(b(x)=10x+70\) &nbsp;<em style="color:var(--text-medium);font-size:.85rem;">(à tracer)</em></span>
+        </div>
+
+        <!-- Graphique VIERGE -->
+        <div class="graph-container">
+            <svg width="560" height="430" viewBox="0 0 560 430" style="max-width:100%;">
+                <defs>
+                    <pattern id="gridQ4v" width="46" height="36" patternUnits="userSpaceOnUse" x="70" y="20">
+                        <path d="M46 0 L 0 0 0 36" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                    </pattern>
+                    <clipPath id="clipQ4v"><rect x="70" y="20" width="460" height="360"/></clipPath>
+                </defs>
+                <rect x="70" y="20" width="460" height="360" fill="white"/>
+                <rect x="70" y="20" width="460" height="360" fill="url(#gridQ4v)"/>
+                <!-- Axes -->
+                <line x1="70" y1="380" x2="536" y2="380" stroke="#374151" stroke-width="2"/>
+                <line x1="70" y1="20"  x2="70"  y2="385" stroke="#374151" stroke-width="2"/>
+                <polygon points="536,380 528,376 528,384" fill="#374151"/>
+                <polygon points="70,20 66,28 74,28" fill="#374151"/>
+                <text x="539" y="384" font-size="13" font-family="Times New Roman" fill="#374151" font-style="italic">x</text>
+                <text x="55"  y="18"  font-size="13" font-family="Times New Roman" fill="#374151" font-style="italic">y</text>
+                <!-- Ticks X (0 à 10, pas de 1, chaque pas = 46px) -->
+                <text x="70"  y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">0</text>
+                <line x1="116" y1="377" x2="116" y2="383" stroke="#374151" stroke-width="1.5"/><text x="116" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">1</text>
+                <line x1="162" y1="377" x2="162" y2="383" stroke="#374151" stroke-width="1.5"/><text x="162" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">2</text>
+                <line x1="208" y1="377" x2="208" y2="383" stroke="#374151" stroke-width="1.5"/><text x="208" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">3</text>
+                <line x1="254" y1="377" x2="254" y2="383" stroke="#374151" stroke-width="1.5"/><text x="254" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">4</text>
+                <line x1="300" y1="377" x2="300" y2="383" stroke="#374151" stroke-width="1.5"/><text x="300" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">5</text>
+                <line x1="346" y1="377" x2="346" y2="383" stroke="#374151" stroke-width="1.5"/><text x="346" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">6</text>
+                <line x1="392" y1="377" x2="392" y2="383" stroke="#374151" stroke-width="1.5"/><text x="392" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">7</text>
+                <line x1="438" y1="377" x2="438" y2="383" stroke="#374151" stroke-width="1.5"/><text x="438" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">8</text>
+                <line x1="484" y1="377" x2="484" y2="383" stroke="#374151" stroke-width="1.5"/><text x="484" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">9</text>
+                <line x1="530" y1="377" x2="530" y2="383" stroke="#374151" stroke-width="1.5"/><text x="530" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">10</text>
+                <!-- Ticks Y (0 à 200, pas de 20, chaque 20 = 36px) -->
+                <line x1="67" y1="380" x2="73" y2="380" stroke="#374151" stroke-width="1.5"/><text x="62" y="384" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">0</text>
+                <line x1="67" y1="344" x2="73" y2="344" stroke="#374151" stroke-width="1.5"/><text x="62" y="348" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">20</text>
+                <line x1="67" y1="308" x2="73" y2="308" stroke="#374151" stroke-width="1.5"/><text x="62" y="312" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">40</text>
+                <line x1="67" y1="272" x2="73" y2="272" stroke="#374151" stroke-width="1.5"/><text x="62" y="276" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">60</text>
+                <line x1="67" y1="236" x2="73" y2="236" stroke="#374151" stroke-width="1.5"/><text x="62" y="240" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">80</text>
+                <line x1="67" y1="200" x2="73" y2="200" stroke="#374151" stroke-width="1.5"/><text x="62" y="204" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">100</text>
+                <line x1="67" y1="164" x2="73" y2="164" stroke="#374151" stroke-width="1.5"/><text x="62" y="168" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">120</text>
+                <line x1="67" y1="128" x2="73" y2="128" stroke="#374151" stroke-width="1.5"/><text x="62" y="132" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">140</text>
+                <line x1="67" y1="92"  x2="73" y2="92"  stroke="#374151" stroke-width="1.5"/><text x="62" y="96"  font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">160</text>
+                <line x1="67" y1="56"  x2="73" y2="56"  stroke="#374151" stroke-width="1.5"/><text x="62" y="60"  font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">180</text>
+                <line x1="67" y1="20"  x2="73" y2="20"  stroke="#374151" stroke-width="1.5"/><text x="62" y="24"  font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">200</text>
+                <!-- Labels axes -->
+                <text x="300" y="416" font-size="11" font-family="DM Sans" fill="#6b7280" text-anchor="middle">Surface (en m²)</text>
+                <text x="22" y="200" font-size="11" font-family="DM Sans" fill="#6b7280" text-anchor="middle" transform="rotate(-90,22,200)">Prix (en €)</text>
+                <!-- Invitation à tracer -->
+                <text x="290" y="195" font-size="11" font-family="DM Sans" fill="#d97706" font-weight="600" text-anchor="middle" opacity="0.5">→ Tracer (D_A) ici</text>
+                <text x="290" y="215" font-size="11" font-family="DM Sans" fill="#2563eb" font-weight="600" text-anchor="middle" opacity="0.5">→ Tracer (D_B) ici</text>
+            </svg>
+        </div>
+        <p style="font-size:.9rem;color:var(--text-medium);margin-top:.4rem;">Axe des abscisses : surface en m² (de 0 à 10) · Axe des ordonnées : prix en € (de 0 à 200)</p>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h4-1">Indice 1 — tracer \(a(x)=15x\)</button>
+                <div class="hint-text" id="h4-1">Pour tracer une droite, deux points suffisent. Le terme constant \(b\) te donne directement un point sur l'axe des ordonnées.</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h4-2">Indice 2 — tracer \(b(x)=10x+70\)</button>
+                <div class="hint-text" id="h4-2">Une fois le premier point placé, le coefficient directeur \(a\) t'indique comment la droite progresse. Il exprime la variation de \(y\) pour chaque unité ajoutée à \(x\).</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q4">
+        <div class="correction-box">
+            <div class="correction-content">
+                <p class="mini-section">Méthode pas à pas pour tracer \(a(x) = 15x\)</p>
+                <div class="step-box orange">
+                    <span class="step-num orange">1</span>
+                    <strong>Identifier \(a\) et \(b\) pour \(a(x) = 15x\)</strong><br>
+                    \(a(x) =\) <span style="color:var(--pa);font-weight:700;">\(15\)</span>\(x +\) <span style="color:var(--primary);font-weight:700;">\(0\)</span>
+                    &nbsp;→&nbsp; coefficient directeur <span style="color:var(--pa);font-weight:700;">\(a = 15\)</span> · ordonnée à l'origine <span style="color:var(--primary);font-weight:700;">\(b = 0\)</span>
+                </div>
+                <div class="step-box orange">
+                    <span class="step-num orange">2</span>
+                    <strong>Placer le premier point : \(b = 0\)</strong><br>
+                    Placer le point <span style="color:var(--pa);font-weight:700;">\(P_0 = (0\,;\,0)\)</span> : la droite part de l'<strong>origine du repère</strong>. C'est un signe qu'il s'agit d'une fonction linéaire.
+                </div>
+                <div class="step-box orange">
+                    <span class="step-num orange">3</span>
+                    <strong>Utiliser le coefficient directeur \(a = 15\)</strong><br>
+                    Depuis \(P_0 = (0\,;\,0)\) : avancer d'<strong>1 unité à droite</strong> → monter de <strong style="color:var(--pa);">15 unités</strong> → point <span style="color:var(--pa);font-weight:700;">\(P_1 = (1\,;\,15)\)</span>.
+                </div>
+
+                <p class="mini-section" style="margin-top:1.5rem;">Méthode pas à pas pour tracer \(b(x) = 10x + 70\)</p>
+                <div class="step-box blue">
+                    <span class="step-num blue">1</span>
+                    <strong>Identifier \(a\) et \(b\) pour \(b(x) = 10x + 70\)</strong><br>
+                    \(b(x) =\) <span style="color:var(--pb);font-weight:700;">\(10\)</span>\(x +\) <span style="color:var(--primary);font-weight:700;">\(70\)</span>
+                    &nbsp;→&nbsp; coefficient directeur <span style="color:var(--pb);font-weight:700;">\(a = 10\)</span> · ordonnée à l'origine <span style="color:var(--primary);font-weight:700;">\(b = 70\)</span>
+                </div>
+                <div class="step-box blue">
+                    <span class="step-num blue">2</span>
+                    <strong>Placer l'ordonnée à l'origine \(b = 70\)</strong><br>
+                    Sur l'axe des ordonnées (\(x = 0\)), repérer \(y = 70\) et placer <span style="color:var(--pb);font-weight:700;">\(Q_0 = (0\,;\,70)\)</span>.<br>
+                    <em style="font-size:.9rem;color:var(--text-medium);">C'est là que la droite coupe l'axe vertical — les 70 € de frais fixes.</em>
+                </div>
+                <div class="step-box blue">
+                    <span class="step-num blue">3</span>
+                    <strong>Utiliser le coefficient directeur \(a = 10\)</strong><br>
+                    Depuis \(Q_0 = (0\,;\,70)\) : avancer d'<strong>1 unité à droite</strong> → monter de <strong style="color:var(--pb);">10 unités</strong> → point <span style="color:var(--pb);font-weight:700;">\(Q_1 = (1\,;\,80)\)</span>.
+                </div>
+
+                <!-- Graphique COMPLET -->
+                <p class="mini-section" style="margin-top:1.25rem;">Graphique complété</p>
+                <div class="graph-legend">
+                    <span><span class="legend-dash" style="background:var(--pa);"></span><span class="cA">\((D_A)\)</span> — \(a(x)=15x\) (tracée)</span>
+                    <span><span class="legend-dash" style="background:var(--pb);"></span><span class="cB">\((D_B)\)</span> — \(b(x)=10x+70\) (tracée)</span>
+                </div>
+                <div class="graph-container">
+                    <svg width="560" height="450" viewBox="0 0 560 450" style="max-width:100%;">
+                        <defs>
+                            <pattern id="gridQ4c" width="46" height="36" patternUnits="userSpaceOnUse" x="70" y="20">
+                                <path d="M46 0 L 0 0 0 36" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            </pattern>
+                            <clipPath id="clipQ4c"><rect x="70" y="20" width="460" height="360"/></clipPath>
+                            <marker id="arr-da" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="var(--pa)"/></marker>
+                            <marker id="arr-db" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="var(--pb)"/></marker>
+                        </defs>
+                        <rect x="70" y="20" width="460" height="360" fill="white"/>
+                        <rect x="70" y="20" width="460" height="360" fill="url(#gridQ4c)"/>
+                        <!-- Axes -->
+                        <line x1="70" y1="380" x2="536" y2="380" stroke="#374151" stroke-width="2"/>
+                        <line x1="70" y1="20"  x2="70"  y2="385" stroke="#374151" stroke-width="2"/>
+                        <polygon points="536,380 528,376 528,384" fill="#374151"/>
+                        <polygon points="70,20 66,28 74,28" fill="#374151"/>
+                        <text x="539" y="384" font-size="13" font-family="Times New Roman" fill="#374151" font-style="italic">x</text>
+                        <text x="55"  y="18"  font-size="13" font-family="Times New Roman" fill="#374151" font-style="italic">y</text>
+                        <!-- Ticks X -->
+                        <text x="70"  y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">0</text>
+                        <line x1="116" y1="377" x2="116" y2="383" stroke="#374151" stroke-width="1.5"/><text x="116" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">1</text>
+                        <line x1="162" y1="377" x2="162" y2="383" stroke="#374151" stroke-width="1.5"/><text x="162" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">2</text>
+                        <line x1="208" y1="377" x2="208" y2="383" stroke="#374151" stroke-width="1.5"/><text x="208" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">3</text>
+                        <line x1="254" y1="377" x2="254" y2="383" stroke="#374151" stroke-width="1.5"/><text x="254" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">4</text>
+                        <line x1="300" y1="377" x2="300" y2="383" stroke="#374151" stroke-width="1.5"/><text x="300" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">5</text>
+                        <line x1="346" y1="377" x2="346" y2="383" stroke="#374151" stroke-width="1.5"/><text x="346" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">6</text>
+                        <line x1="392" y1="377" x2="392" y2="383" stroke="#374151" stroke-width="1.5"/><text x="392" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">7</text>
+                        <line x1="438" y1="377" x2="438" y2="383" stroke="#374151" stroke-width="1.5"/><text x="438" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">8</text>
+                        <line x1="484" y1="377" x2="484" y2="383" stroke="#374151" stroke-width="1.5"/><text x="484" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">9</text>
+                        <line x1="530" y1="377" x2="530" y2="383" stroke="#374151" stroke-width="1.5"/><text x="530" y="397" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="middle">10</text>
+                        <!-- Ticks Y -->
+                        <line x1="67" y1="380" x2="73" y2="380" stroke="#374151" stroke-width="1.5"/><text x="62" y="384" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">0</text>
+                        <line x1="67" y1="344" x2="73" y2="344" stroke="#374151" stroke-width="1.5"/><text x="62" y="348" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">20</text>
+                        <line x1="67" y1="308" x2="73" y2="308" stroke="#374151" stroke-width="1.5"/><text x="62" y="312" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">40</text>
+                        <line x1="67" y1="272" x2="73" y2="272" stroke="#374151" stroke-width="1.5"/><text x="62" y="276" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">60</text>
+                        <line x1="67" y1="236" x2="73" y2="236" stroke="#374151" stroke-width="1.5"/><text x="62" y="240" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">80</text>
+                        <line x1="67" y1="200" x2="73" y2="200" stroke="#374151" stroke-width="1.5"/><text x="62" y="204" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">100</text>
+                        <line x1="67" y1="164" x2="73" y2="164" stroke="#374151" stroke-width="1.5"/><text x="62" y="168" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">120</text>
+                        <line x1="67" y1="128" x2="73" y2="128" stroke="#374151" stroke-width="1.5"/><text x="62" y="132" font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">140</text>
+                        <line x1="67" y1="92"  x2="73" y2="92"  stroke="#374151" stroke-width="1.5"/><text x="62" y="96"  font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">160</text>
+                        <line x1="67" y1="56"  x2="73" y2="56"  stroke="#374151" stroke-width="1.5"/><text x="62" y="60"  font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">180</text>
+                        <line x1="67" y1="20"  x2="73" y2="20"  stroke="#374151" stroke-width="1.5"/><text x="62" y="24"  font-size="10" font-family="DM Sans" fill="#6b7280" text-anchor="end">200</text>
+                        <!-- Labels -->
+                        <text x="300" y="416" font-size="11" font-family="DM Sans" fill="#6b7280" text-anchor="middle">Surface (en m²)</text>
+                        <text x="22" y="200" font-size="11" font-family="DM Sans" fill="#6b7280" text-anchor="middle" transform="rotate(-90,22,200)">Prix (en €)</text>
+                        <!-- (DA) a(x)=15x : P0=(0,380) P1=(1,15→y=380-27=353) x=10→y=150→py=380-270=110 -->
+                        <!-- px: 1 unité = 46px. py: 20€ = 36px → 1€ = 1.8px -->
+                        <!-- a(x)=15x: at x=0 y=0 py=380; at x=10 y=150 py=380-150*1.8=380-270=110 -->
+                        <line x1="70" y1="380" x2="530" y2="110" stroke="var(--pa)" stroke-width="2.5" clip-path="url(#clipQ4c)"/>
+                        <text x="533" y="112" font-size="12" font-family="DM Sans" fill="var(--pa)" font-weight="700">(D_A)</text>
+                        <!-- P0 origin -->
+                        <circle cx="70" cy="380" r="5" fill="var(--pa)"/>
+                        <text x="78" y="374" font-size="9" font-family="DM Sans" fill="var(--pa)" font-weight="700">P₀(0;0)</text>
+                        <!-- P1=(1;15): px=70+46=116, py=380-15*1.8=380-27=353 -->
+                        <circle cx="116" cy="353" r="5" fill="var(--pa)"/>
+                        <text x="120" y="349" font-size="9" font-family="DM Sans" fill="var(--pa)" font-weight="700">P₁(1;15)</text>
+                        <!-- Flèche +1 droite -->
+                        <line x1="70" y1="393" x2="116" y2="393" stroke="var(--pa)" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-da)"/>
+                        <text x="93" y="406" font-size="9" font-family="DM Sans" fill="var(--pa)" font-weight="700" text-anchor="middle">+1</text>
+                        <!-- Flèche +15 haut -->
+                        <line x1="122" y1="380" x2="122" y2="353" stroke="var(--pa)" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-da)"/>
+                        <text x="136" y="370" font-size="9" font-family="DM Sans" fill="var(--pa)" font-weight="700">+15</text>
+
+                        <!-- (DB) b(x)=10x+70: at x=0 y=70 py=380-70*1.8=380-126=254; at x=10 y=170 py=380-306=74 -->
+                        <line x1="70" y1="254" x2="530" y2="74" stroke="var(--pb)" stroke-width="2.5" clip-path="url(#clipQ4c)"/>
+                        <text x="533" y="76" font-size="12" font-family="DM Sans" fill="var(--pb)" font-weight="700">(D_B)</text>
+                        <!-- Q0=(0;70): py=254 -->
+                        <circle cx="70" cy="254" r="5" fill="var(--pb)"/>
+                        <text x="78" y="250" font-size="9" font-family="DM Sans" fill="var(--pb)" font-weight="700">Q₀(0;70)</text>
+                        <!-- Q1=(1;80): px=116, py=380-80*1.8=380-144=236 -->
+                        <circle cx="116" cy="236" r="5" fill="var(--pb)"/>
+                        <text x="120" y="232" font-size="9" font-family="DM Sans" fill="var(--pb)" font-weight="700">Q₁(1;80)</text>
+                        <!-- Flèche +1 droite -->
+                        <line x1="70" y1="267" x2="116" y2="267" stroke="var(--pb)" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-db)"/>
+                        <text x="93" y="280" font-size="9" font-family="DM Sans" fill="var(--pb)" font-weight="700" text-anchor="middle">+1</text>
+                        <!-- Flèche +10 haut -->
+                        <line x1="122" y1="254" x2="122" y2="236" stroke="var(--pb)" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-db)"/>
+                        <text x="138" y="246" font-size="9" font-family="DM Sans" fill="var(--pb)" font-weight="700">+10</text>
+                    </svg>
+                </div>
+                <div class="solution-text"><span class="cA">\((D_A)\)</span> passe par \(P_0(0\,;\,0)\) et \(P_1(1\,;\,15)\) · <span class="cB">\((D_B)\)</span> passe par \(Q_0(0\,;\,70)\) et \(Q_1(1\,;\,80)\).</div>
+                <div class="rule-box">💡 <strong>Vérifications :</strong> \(a(2) = 30\) → \((2\,;\,30)\) ✓ · \(b(2) = 90\) → \((2\,;\,90)\) ✓</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 5 — Lecture graphique : 180 €
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">🔍</div>
+    <div class="section-divider-title">Question 5 – Lecture graphique : 180 €</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q5">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 5 / 10</h2>
+            <span class="exercise-tag tag-graphique">Lecture graphique · Comparaison</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q5">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <div class="q-row"><span class="qnum">→</span><span>Avec <strong>180 €</strong>, quel peintre est le plus intéressant ? <strong>Justifier en s'aidant du graphique.</strong></span></div>
+        <div class="rule-box" style="margin-top:.75rem;">📐 <strong>Méthode de lecture graphique :</strong> Repère la valeur 180 sur l'axe des ordonnées (axe \(y\)), trace une droite horizontale jusqu'à rencontrer chaque droite, puis lis les valeurs de \(x\) correspondantes en descendant vers l'axe des abscisses.</div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h5-1">Indice 1 — Lecture graphique</button>
+                <div class="hint-text" id="h5-1">Sur le graphique, le budget correspond à une valeur sur l'axe vertical. Cherche à quelles valeurs de \(x\) les droites atteignent ce niveau.</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h5-2">Indice 2 — Comparer les surfaces</button>
+                <div class="hint-text" id="h5-2">Le peintre le plus « intéressant » est celui qui te permet de peindre la <strong>plus grande surface</strong> pour le même budget. Parmi les valeurs de \(x\) lues sur le graphique pour \(y = 180\), laquelle est la plus grande ?</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q5">
+        <div class="correction-box">
+            <div class="correction-content">
+                <div class="step-box teal">
+                    <span class="step-num">1</span>
+                    Repérer \(y = 180\) sur l'axe des ordonnées et tracer une ligne horizontale imaginaire.
+                </div>
+                <div class="step-box teal">
+                    <span class="step-num">2</span>
+                    Lire les intersections avec chaque droite et descendre vers l'axe des abscisses pour lire \(x\).
+                </div>
+                <div class="equation-step orange">
+                    <p style="font-size:1.05rem;margin-bottom:.4rem;"><span class="cA">Peintre A</span> — \(a(x) = 180\) :</p>
+                    <div class="equation-line left">\(15x = 180\) &nbsp;⟹&nbsp; \(x = 180 \div 15 = 12\) m²</div>
+                </div>
+                <div class="equation-step blue">
+                    <p style="font-size:1.05rem;margin-bottom:.4rem;"><span class="cB">Peintre B</span> — \(b(x) = 180\) :</p>
+                    <div class="equation-line left">\(10x + 70 = 180\) &nbsp;⟹&nbsp; \(10x = 110\) &nbsp;⟹&nbsp; \(x = 11\) m²</div>
+                </div>
+                <div class="equation-step purple">
+                    <p style="font-size:1.05rem;margin-bottom:.4rem;"><span class="cC">Peintre C</span> — Prix fixe de 350 € : avec 180 €, le <span class="cC">Peintre C</span> n'est pas accessible (350 > 180).</p>
+                </div>
+                <div class="rule-box">Comparaison : <span class="cA">12 m²</span> (Peintre A) &gt; <span class="cB">11 m²</span> (Peintre B) &gt; <span class="cC">inaccessible</span> (Peintre C)</div>
+                <div class="solution-text orange">Avec 180 €, le <span class="cA"><strong>Peintre A</strong></span> est le plus intéressant : on peut lui faire peindre <strong>12 m²</strong> contre seulement 11 m² pour le Peintre B.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 6 — Lecture graphique : 8 m²
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">💰</div>
+    <div class="section-divider-title">Question 6 – Quel peintre pour 8 m² ?</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q6">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 6 / 10</h2>
+            <span class="exercise-tag tag-graphique">Lecture graphique · Tarifs</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q6">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <div class="q-row"><span class="qnum">→</span><span>Si on veut peindre une surface de <strong>8 m²</strong>, quel peintre coûtera le <strong>moins cher</strong> ? <strong>Justifier en s'aidant du graphique.</strong></span></div>
+        <div class="rule-box" style="margin-top:.75rem;">📐 <strong>Méthode :</strong> Repère la valeur \(x = 8\) sur l'axe des abscisses, trace une droite verticale et lis les valeurs de \(y\) (le prix) sur chaque droite.</div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h6-1">Indice 1 — Lecture graphique</button>
+                <div class="hint-text" id="h6-1">Pour 8 m², tu veux comparer les <em>prix</em>. Repère \(x = 8\) sur l'axe des abscisses et lis la hauteur (\(y\)) de chaque droite à cet endroit. Laquelle est la plus basse ?</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h6-2">Indice 2 — Calcul direct</button>
+                <div class="hint-text" id="h6-2">Si la lecture graphique est difficile, tu peux calculer directement le coût chez chaque peintre pour 8 m².</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q6">
+        <div class="correction-box">
+            <div class="correction-content">
+                <p class="mini-section">Prix pour 8 m² (lecture graphique et calcul)</p>
+                <div class="equation-step orange">
+                    <p style="font-size:1.05rem;margin:.3rem 0;"><span class="cA">Peintre A :</span> \(a(8) = 15 \times 8 = \mathbf{120}\) €</p>
+                </div>
+                <div class="equation-step blue">
+                    <p style="font-size:1.05rem;margin:.3rem 0;"><span class="cB">Peintre B :</span> \(b(8) = 10 \times 8 + 70 = 80 + 70 = \mathbf{150}\) €</p>
+                </div>
+                <div class="equation-step purple">
+                    <p style="font-size:1.05rem;margin:.3rem 0;"><span class="cC">Peintre C :</span> \(c(8) = \mathbf{350}\) € (forfait fixe)</p>
+                </div>
+                <div class="rule-box">Comparaison : <span class="cA">120 €</span> &lt; <span class="cB">150 €</span> &lt; <span class="cC">350 €</span></div>
+                <div class="solution-text orange">Pour 8 m², le <span class="cA"><strong>Peintre A</strong></span> est le moins cher avec <strong>120 €</strong>.</div>
+                <div class="warn-box">📈 Sur le graphique, c'est la droite <span class="cA">\((D_A)\)</span> qui est la plus basse pour \(x = 8\), ce qui confirme que le Peintre A est le moins cher.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 7 — Résoudre 15x = 10x + 70
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">⚖️</div>
+    <div class="section-divider-title">Question 7 – Résoudre \(15x = 10x + 70\)</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q7">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 7 / 10</h2>
+            <span class="exercise-tag tag-equation">Équation · Résolution algébrique</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q7">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <div class="q-row"><span class="qnum">→</span><span>Résoudre l'équation \(15x = 10x + 70\), c'est-à-dire l'équation \(a(x) = b(x)\).</span></div>
+        <div class="info-box" style="margin-top:.75rem;">🔍 <strong>Rappel :</strong> Il faut regrouper tous les termes en \(x\) d'un côté de l'égalité et les constantes de l'autre.</div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h7-1">Indice 1 — Regrouper les termes en x</button>
+                <div class="hint-text" id="h7-1">Il y a des termes en \(x\) des deux côtés. Pour les regrouper à gauche, que peut-on soustraire des deux membres pour faire disparaître le \(10x\) du côté droit ?</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h7-2">Indice 2 — Isoler x</button>
+                <div class="hint-text" id="h7-2">Une fois les termes en \(x\) regroupés d'un côté, il ne reste plus qu'une simple opération pour isoler \(x\).</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q7">
+        <div class="correction-box">
+            <div class="correction-content">
+                <p class="mini-section">Résolution de \(15x = 10x + 70\)</p>
+                <div class="equation-step">
+                    <div class="equation-line">15<i>x</i> = <span class="circled">10<i>x</i></span> + 70</div>
+                    <div class="arrow-section">
+                        <svg class="arrow-svg" viewBox="0 0 400 72" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="ah-l7a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                                <marker id="ah-r7a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                            </defs>
+                            <path d="M 90 10 Q 70 36 95 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-l7a)"/>
+                            <path d="M 310 10 Q 330 36 305 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-r7a)"/>
+                        </svg>
+                        <div class="left-op">− 10<i>x</i></div>
+                        <div class="right-op">− 10<i>x</i></div>
+                    </div>
+                    <div class="equation-line"><span class="circled">5</span><i>x</i> = 70</div>
+                    <div class="arrow-section">
+                        <svg class="arrow-svg" viewBox="0 0 400 72" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="ah-l7b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                                <marker id="ah-r7b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                            </defs>
+                            <path d="M 90 10 Q 70 36 95 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-l7b)"/>
+                            <path d="M 310 10 Q 330 36 305 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-r7b)"/>
+                        </svg>
+                        <div class="left-op">÷ 5</div>
+                        <div class="right-op">÷ 5</div>
+                    </div>
+                    <div class="equation-line"><i>x</i> = 70 ÷ 5 = <strong>14</strong></div>
+                </div>
+                <div class="solution-text">La solution est \(x = 14\).</div>
+                <div class="warn-box">✅ <strong>Vérification :</strong> \(a(14) = 15 \times 14 = 210\) &nbsp;·&nbsp; \(b(14) = 10 \times 14 + 70 = 140 + 70 = 210\) &nbsp;→&nbsp; Les deux donnent bien 210 € ✓</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 8 — Interprétation de la solution
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">💬</div>
+    <div class="section-divider-title">Question 8 – Interprétation de la solution</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q8">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 8 / 10</h2>
+            <span class="exercise-tag tag-interp">Interprétation · Contexte</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q8">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <div class="q-row"><span class="qnum">→</span><span>Que représente la solution de l'équation \(a(x) = b(x)\) dans le contexte de ce problème ?</span></div>
+        <div class="info-box" style="margin-top:.75rem;">🔍 Relis les fonctions : \(a(x)\) est le coût du <span class="cA">Peintre A</span> et \(b(x)\) celui du <span class="cB">Peintre B</span>. Que signifie qu'elles soient <strong>égales</strong> ? Et sur le graphique, à quoi correspond cette valeur ?</div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h8-1">Indice — Intersection des droites</button>
+                <div class="hint-text" id="h8-1">L'intersection des deux droites sur le graphique correspond à la surface pour laquelle les deux tarifs sont identiques. En deçà et au-delà de cette valeur, compare les positions relatives des deux droites.</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q8">
+        <div class="correction-box">
+            <div class="correction-content">
+                <div class="equation-step">
+                    <p style="font-size:1.05rem;">La solution \(x = 14\) est la surface pour laquelle le <span class="cA"><strong>Peintre A</strong></span> et le <span class="cB"><strong>Peintre B</strong></span> coûtent <strong>exactement le même prix</strong> : 210 €.</p>
+                </div>
+                <div class="solution-text">La solution représente le <strong>point d'équilibre</strong> entre le Peintre A et le Peintre B :<br>pour <strong>14 m²</strong>, les deux peintres coûtent la même somme (210 €).</div>
+                <div class="rule-box">
+                    <strong>Conséquences pratiques :</strong><br>
+                    • Pour <strong>moins de 14 m²</strong> : le <span class="cA">Peintre A</span> est moins cher (pas de frais fixes).<br>
+                    • Pour <strong>plus de 14 m²</strong> : le <span class="cB">Peintre B</span> devient moins cher (les 70 € de frais fixes sont « amortis » par le tarif à 10 €/m² au lieu de 15 €/m²).<br>
+                    • Sur le graphique, la solution correspond à l'<strong>intersection des droites \((D_A)\) et \((D_B)\)</strong>.
+                </div>
+                <div class="warn-box">⚠️ Le <span class="cC">Peintre C</span> (forfait 350 €) n'est jamais le moins cher sur [0 ; 100 m²] car le Peintre A coûte 350 € pour \(\frac{350}{15} \approx 23{,}3\) m², bien moins que 100 m².</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     EXERCICE 2 — ALGORITHME
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">🤖</div>
+    <div class="section-divider-title">Exercice 2 – Programme de calcul</div>
+    <div class="section-divider-line"></div>
+</div>
+
+<!-- Présentation du programme -->
+<div class="context-banner" style="margin-bottom:1.5rem;">
+    <div class="context-banner-title">📋 Le programme de calcul</div>
+    <div class="algo-grid">
+        <div class="algo-box">
+            <div><span class="algo-keyword">Variables :</span> x, résultat</div>
+            <div><span class="algo-keyword">Début :</span></div>
+            <div>&nbsp;&nbsp;<span class="algo-keyword">Lire</span> x</div>
+            <div>&nbsp;&nbsp;résultat ← <span class="algo-value">x</span> <span class="algo-op">× 2</span></div>
+            <div>&nbsp;&nbsp;résultat ← résultat <span class="algo-op">+ 1</span></div>
+            <div>&nbsp;&nbsp;<span class="algo-keyword">Afficher</span> résultat</div>
+            <div><span class="algo-keyword">Fin</span></div>
+        </div>
+        <div class="scratch-box">
+            <div style="font-weight:700;font-size:1rem;margin-bottom:.75rem;">🐱 Version Scratch</div>
+            <div class="scratch-block orange">Quand 🚩 cliqué</div>
+            <div class="scratch-block">demander [Choisir un nombre] et attendre</div>
+            <div class="scratch-block green">mettre [résultat] à <strong>(réponse × 2)</strong></div>
+            <div class="scratch-block green">mettre [résultat] à <strong>(résultat + 1)</strong></div>
+            <div class="scratch-block purple">dire [résultat]</div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 9 — Algo : résultat pour x=8
+════════════════════════════════════════════ -->
+<div class="exercise" id="card-q9">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 9 / 10</h2>
+            <span class="exercise-tag tag-algo">Algorithme · Exécution · Fonction</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q9">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <div class="q-row"><span class="qnum">a</span><span>Si on choisit le nombre <strong>8</strong> au départ, quel sera le résultat ?</span></div>
+        <div class="q-row" style="margin-top:.5rem;"><span class="qnum">b</span><span>On note \(g\) la fonction qui, au nombre \(x\) choisi au départ, associe le résultat obtenu avec ce programme. <strong>Montrer que \(g(x) = 2x + 1\).</strong></span></div>
+        <div class="q-row" style="margin-top:.5rem;"><span class="qnum">c</span><span>Quel nombre doit-on choisir au départ pour obtenir <strong>6</strong> ?</span></div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h9-1">Indice 1 (a)</button>
+                <div class="hint-text" id="h9-1">Suis le programme étape par étape avec \(x = 8\) : d'abord on multiplie 8 par 2, puis on ajoute 1 au résultat. Quel nombre obtient-on à la fin ?</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h9-2">Indice 2 (b et c)</button>
+                <div class="hint-text" id="h9-2">Pour montrer que \(g(x) = 2x + 1\), remplace le nombre particulier par un nombre quelconque \(x\) dans le programme. Pour (c), « trouver l'antécédent de 6 » signifie résoudre une équation.</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q9">
+        <div class="correction-box">
+            <div class="correction-content">
+                <p class="mini-section">a. Exécution du programme pour \(x = 8\)</p>
+                <div class="equation-step blue" style="font-size:.97rem;line-height:2.1;">
+                    <div>Étape 1 : résultat ← \(8 \times 2 = 16\)</div>
+                    <div>Étape 2 : résultat ← \(16 + 1 = 17\)</div>
+                    <div>Affichage : <strong>17</strong></div>
+                </div>
+                <div class="solution-text blue">Pour \(x = 8\), le programme affiche <strong>17</strong>.</div>
+
+                <p class="mini-section">b. Montrer que \(g(x) = 2x + 1\)</p>
+                <div class="equation-step blue" style="font-size:.97rem;line-height:2.1;">
+                    <div>On remplace le nombre fixe 8 par un nombre quelconque \(x\) :</div>
+                    <div>Étape 1 : résultat ← \(x \times 2 = 2x\)</div>
+                    <div>Étape 2 : résultat ← \(2x + 1\)</div>
+                </div>
+                <div class="solution-text blue">Le programme calcule bien \(g(x) = 2x + 1\). ✓</div>
+
+                <p class="mini-section">c. Antécédent de 6 par \(g\)</p>
+                <p style="font-size:.97rem;margin-bottom:.5rem;">On cherche \(x\) tel que \(g(x) = 6\), soit :</p>
+                <div class="equation-step blue">
+                    <div class="equation-line">2<i>x</i> + 1 = 6</div>
+                    <div class="arrow-section">
+                        <svg class="arrow-svg" viewBox="0 0 400 72" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="ah-l9a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                                <marker id="ah-r9a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                            </defs>
+                            <path d="M 90 10 Q 70 36 95 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-l9a)"/>
+                            <path d="M 310 10 Q 330 36 305 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-r9a)"/>
+                        </svg>
+                        <div class="left-op">− 1</div>
+                        <div class="right-op">− 1</div>
+                    </div>
+                    <div class="equation-line">2<i>x</i> = 5</div>
+                    <div class="arrow-section">
+                        <svg class="arrow-svg" viewBox="0 0 400 72" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="ah-l9b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                                <marker id="ah-r9b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="var(--primary)"/></marker>
+                            </defs>
+                            <path d="M 90 10 Q 70 36 95 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-l9b)"/>
+                            <path d="M 310 10 Q 330 36 305 64" stroke="var(--primary)" stroke-width="3" fill="none" marker-end="url(#ah-r9b)"/>
+                        </svg>
+                        <div class="left-op">÷ 2</div>
+                        <div class="right-op">÷ 2</div>
+                    </div>
+                    <div class="equation-line"><i>x</i> = <sup>5</sup>⁄<sub>2</sub> = 2,5</div>
+                </div>
+                <div class="solution-text blue">Pour obtenir 6, on doit choisir \(x = 2{,}5\) au départ.</div>
+                <div class="warn-box">✅ <strong>Vérification :</strong> \(g(2{,}5) = 2 \times 2{,}5 + 1 = 5 + 1 = 6\) ✓</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION 10 — Nature, sens de variation, proportionnalité de g
+════════════════════════════════════════════ -->
+<div class="section-divider">
+    <div style="font-size:1.3rem;">📐</div>
+    <div class="section-divider-title">Question 10 – Nature et propriétés de \(g\)</div>
+    <div class="section-divider-line"></div>
+</div>
+<div class="exercise" id="card-q10">
+    <div class="exercise-header">
+        <div class="exercise-title-group">
+            <h2 class="exercise-title">Question 10 / 10</h2>
+            <span class="exercise-tag tag-fonctions">Affine · Croissance · Proportionnalité</span>
+        </div>
+        <div class="btn-group">
+            <span class="seen-badge">✓ Vu</span>
+            <button class="reveal-btn" data-target="corr-q10">Voir la correction</button>
+        </div>
+    </div>
+    <div class="exercise-content">
+        <p style="margin-bottom:1rem;">On rappelle que \(g(x) = 2x + 1\).</p>
+        <div class="q-row"><span class="qnum">d</span><span>De quelle nature est la fonction \(g\) ?</span></div>
+        <div class="q-row" style="margin-top:.5rem;"><span class="qnum">e</span><span>Donner le <strong>coefficient directeur</strong> ainsi que l'<strong>ordonnée à l'origine</strong> de \(g\).</span></div>
+        <div class="q-row" style="margin-top:.5rem;"><span class="qnum">f</span><span>La fonction \(g\) est-elle <strong>croissante ou décroissante</strong> ? Justifier.</span></div>
+        <div class="q-row" style="margin-top:.5rem;"><span class="qnum">g</span><span>La fonction \(g\) est-elle associée à une situation de <strong>proportionnalité</strong> ? Justifier.</span></div>
+    </div>
+    <div class="hints-section">
+        <div class="hints-title">💡 Indices</div>
+        <div class="hints-list">
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h10-1">Indice 1 (d et e)</button>
+                <div class="hint-text" id="h10-1">Compare \(g(x) = 2x + 1\) avec la forme générale \(f(x) = ax + b\). Identifie \(a\) et \(b\). Un terme constant \(b \neq 0\) est-il présent ?</div>
+            </div>
+            <div class="hint-item">
+                <button class="hint-btn" data-hint="h10-2">Indice 2 (f et g)</button>
+                <div class="hint-text" id="h10-2">Pour (f) : réfléchis à ce que le signe du coefficient directeur indique sur le comportement de la droite. Pour (g) : rappelle-toi quelle propriété caractérise une situation de proportionnalité du point de vue graphique.</div>
+            </div>
+        </div>
+    </div>
+    <div class="correction" id="corr-q10">
+        <div class="correction-box">
+            <div class="correction-content">
+                <p class="mini-section">d. Nature de la fonction \(g\)</p>
+                <div class="equation-step">
+                    <p style="font-size:1rem;">\(g(x) = 2x + 1\) s'écrit sous la forme \(f(x) = ax + b\) avec \(a = 2 \neq 0\) et \(b = 1 \neq 0\).</p>
+                </div>
+                <div class="solution-text">\(g\) est une <strong>fonction affine</strong>.</div>
+                <div class="warn-box">⚠️ \(g\) n'est pas linéaire car \(b = 1 \neq 0\) : sa droite ne passe pas par l'origine.</div>
+
+                <p class="mini-section">e. Coefficient directeur et ordonnée à l'origine</p>
+                <div class="equation-step" style="font-size:1.05rem;line-height:2.2;">
+                    <div>\(g(x) =\) <span style="color:var(--pb);font-weight:700;">\(2\)</span> \(x +\) <span style="color:var(--primary);font-weight:700;">\(1\)</span></div>
+                    <div>• <strong>Coefficient directeur :</strong> <span style="color:var(--pb);font-weight:700;">\(a = 2\)</span></div>
+                    <div>• <strong>Ordonnée à l'origine :</strong> <span style="color:var(--primary);font-weight:700;">\(b = 1\)</span></div>
+                </div>
+
+                <p class="mini-section">f. Sens de variation</p>
+                <div class="rule-box">
+                    Une fonction affine \(f(x) = ax + b\) est <strong>croissante</strong> si \(a > 0\) et <strong>décroissante</strong> si \(a < 0\).
+                </div>
+                <div class="equation-step">
+                    <p>Ici, le coefficient directeur est \(a = 2 > 0\).</p>
+                </div>
+                <div class="solution-text">\(g\) est une fonction <strong>croissante</strong> car son coefficient directeur \(a = 2 > 0\).</div>
+
+                <p class="mini-section">g. Proportionnalité</p>
+                <div class="rule-box">
+                    Une situation de proportionnalité correspond à une <strong>fonction linéaire</strong> : \(f(x) = ax\), dont la représentation graphique passe par l'origine \((0\,;\,0)\).
+                </div>
+                <div class="equation-step">
+                    <p>\(g(0) = 2 \times 0 + 1 = 1 \neq 0\)</p>
+                    <p style="margin-top:.3rem;">La droite ne passe pas par l'origine : \(g\) n'est pas une fonction linéaire.</p>
+                </div>
+                <div class="solution-text red">\(g\) <strong>n'est pas</strong> associée à une situation de proportionnalité car ce n'est pas une fonction linéaire (\(b = 1 \neq 0\)).</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>🖌️ Les Peintres &nbsp;·&nbsp; \(a(x)=15x\) Peintre A &nbsp;·&nbsp; \(b(x)=10x+70\) Peintre B &nbsp;·&nbsp; \(c(x)=350\) Peintre C &nbsp;·&nbsp; Bonne révision pour le brevet !</footer>
+
+<div class="score-card" id="scoreCard">
+    <span class="score-emoji" id="scoreEmoji"></span>
+    <div class="score-title" id="scoreTitle"></div>
+    <div class="score-stars" id="scoreStars"></div>
+    <p class="score-message" id="scoreMessage"></p>
+    <div class="score-breakdown" id="scoreBreakdown"></div>
+</div>
+
+</div><!-- .container -->
+
+<script>
+    const TOTAL = 10, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min:10, emoji:'🏆', stars:'⭐⭐⭐', title:'Parfait !',    msg:"Tu maîtrises tout : calculs, fonctions, graphique, équations et algorithme !" },
+        { min:7,  emoji:'🎉', stars:'⭐⭐',   title:'Très bien !', msg:"Encore quelques corrections à explorer pour tout maîtriser !" },
+        { min:4,  emoji:'💪', stars:'⭐',     title:'Bon travail !',msg:"Continue ! Il reste plusieurs corrections à ouvrir." },
+        { min:1,  emoji:'📖', stars:'',       title:'En route !',  msg:"Ouvre les corrections une par une pour bien comprendre." },
+    ];
+
+    /* Dots */
+    const dotsEl = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = 'dot-q' + i; d.title = 'Question ' + i;
+        dotsEl.appendChild(d);
+    }
+
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = (done / TOTAL * 100) + '%';
+        document.getElementById('progressCounter').textContent = done + ' / ' + TOTAL;
+        if (done === TOTAL) setTimeout(showScoreCard, 500);
+    }
+
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent   = data.emoji;
+        document.getElementById('scoreTitle').textContent   = data.title;
+        document.getElementById('scoreStars').textContent   = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            '<span class="score-badge green">✓ ' + seenSet.size + ' / ' + TOTAL + ' vues</span>' +
+            '<span class="score-badge orange">🧮 Calcul</span>' +
+            '<span class="score-badge teal">📐 Fonctions</span>' +
+            '<span class="score-badge blue">📈 Graphique</span>';
+        card.classList.add('visible');
+    }
+
+    function openCorr(el)  { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorr(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+
+    function toggleCorrection(corrId) {
+        const corr = document.getElementById(corrId);
+        const card = corr.closest('.exercise');
+        const btn  = card.querySelector('.reveal-btn');
+        const dotId = corrId.replace('corr-', '');
+        const dot  = document.getElementById('dot-' + dotId);
+        if (openSet.has(corrId)) {
+            closeCorr(corr); btn.classList.remove('active'); btn.textContent = 'Voir la correction'; openSet.delete(corrId);
+        } else {
+            openCorr(corr); btn.classList.add('active'); btn.textContent = 'Masquer la correction'; openSet.add(corrId);
+            if (!seenSet.has(corrId)) {
+                seenSet.add(corrId);
+                if (dot) dot.classList.add('done');
+                card.classList.add('seen');
+                updateProgress();
+            }
+        }
+    }
+
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn =>
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target))
+    );
+    document.querySelectorAll('.correction').forEach(el =>
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        })
+    );
+
+    /* Hint system — sequential unlock */
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            const el = document.getElementById(id);
+            if (el) el.classList.add('revealed');
+            this.disabled = true;
+            this.textContent = '✓ ' + this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Durées et conversions – 5ème</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:#0891b2; --primary-dark:#0e7490; --primary-light:#cffafe;
+            --success:#059669; --bonus:#7c3aed; --bonus-light:#ede9fe;
+            --bg-card:#ffffff; --border:#a5f3fc; --text-dark:#082f49; --text-medium:#475569;
+            --shadow:rgba(8,145,178,0.10);
+            --tag-conv:#dbeafe; --tag-conv-text:#1d4ed8;
+            --tag-hor:#fce7f3; --tag-hor-text:#be185d;
+            --tag-pb:#dcfce7; --tag-pb-text:#166534;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#cffafe 0%,#ede9fe 50%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+        .container{max-width:1100px;margin:0 auto;}
+        header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+        header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--bonus),#ec4899);}
+        .header-meta{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-top:1rem;}
+        .header-chip{font-size:0.8rem;font-weight:600;padding:0.25rem 0.75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+        h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;letter-spacing:-0.5px;}
+        .subtitle{font-size:1.05rem;color:var(--text-medium);}
+        /* Rappel */
+        .recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+        .recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+        .recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        .recap-card{border-radius:10px;padding:1rem 1.25rem;font-size:0.97rem;line-height:1.8;}
+        .recap-card.conv{background:#e0f2fe;border:2px solid #7dd3fc;}
+        .recap-card.meth{background:#ede9fe;border:2px solid #c4b5fd;}
+        .recap-card strong{display:block;font-size:1rem;margin-bottom:0.3rem;color:var(--primary-dark);}
+        .recap-card.meth strong{color:var(--bonus);}
+        .recap-chain{display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;background:white;border-radius:8px;padding:0.6rem 1rem;margin-top:0.5rem;font-size:1rem;font-family:'Times New Roman',serif;}
+        .chain-unit{background:var(--primary-light);border:2px solid var(--border);border-radius:6px;padding:0.2rem 0.7rem;font-weight:700;color:var(--primary-dark);}
+        .chain-op{color:var(--text-medium);font-weight:700;font-size:0.9rem;}
+        /* Progress */
+        .progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+        .progress-label{font-size:0.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+        .progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+        .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--bonus));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+        .progress-counter{font-size:0.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+        .progress-dots{display:flex;gap:0.4rem;flex-wrap:wrap;}
+        .progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+        /* Score */
+        .score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+        .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--bonus));}
+        @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        .score-card.visible{display:block;}
+        .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+        .score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:0.5rem;}
+        .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+        .score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+        .score-breakdown{display:flex;justify-content:center;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+        .score-badge{padding:0.4rem 1rem;border-radius:99px;font-size:0.85rem;font-weight:700;}
+        .score-badge.green{background:#dcfce7;color:#166534;}
+        .score-badge.cyan{background:var(--primary-light);color:var(--primary-dark);}
+        .score-badge.purple{background:var(--bonus-light);color:var(--bonus);}
+        /* Exercices */
+        .exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.4s ease;}
+        .exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+        .exercise.seen{border-left-color:var(--success);}
+        .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:0.75rem;}
+        .exercise-title-group{display:flex;flex-direction:column;gap:0.25rem;}
+        .exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+        .exercise-tag{display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.7rem;border-radius:99px;}
+        .tag-conv{background:var(--tag-conv);color:var(--tag-conv-text);}
+        .tag-hor{background:var(--tag-hor);color:var(--tag-hor-text);}
+        .tag-pb{background:var(--tag-pb);color:var(--tag-pb-text);}
+        .btn-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+        .seen-badge{background:var(--success);color:white;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:0.2rem 0.65rem;border-radius:99px;opacity:0;transform:scale(0.5) translateY(-4px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;flex-shrink:0;}
+        .exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+        .reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:0.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(8,145,178,0.3);position:relative;overflow:hidden;flex-shrink:0;}
+        .reveal-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);transition:width 0.5s,height 0.5s;}
+        .reveal-btn:hover::before{width:280px;height:280px;}
+        .reveal-btn:hover{transform:scale(1.05);}
+        .reveal-btn:active{transform:scale(0.97);}
+        .reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+        /* Indices */
+        .hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+        .hints-title{font-size:0.85rem;font-weight:700;color:var(--bonus);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.75rem;}
+        .hints-list{display:flex;flex-direction:column;gap:0.6rem;}
+        .hint-item{display:flex;align-items:flex-start;gap:0.6rem;flex-wrap:wrap;}
+        .hint-btn{background:var(--bonus-light);color:var(--bonus);border:2px solid #c4b5fd;border-radius:10px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:normal;flex-shrink:0;}
+        .hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--bonus);}
+        .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+        .hint-text{background:#faf5ff;border-left:3px solid var(--bonus);border-radius:6px;padding:0 0.85rem;font-size:0.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;overflow-wrap:break-word;word-break:break-word;flex:1;min-width:0;}
+        .hint-text.revealed{max-height:300px;padding:0.5rem 0.85rem;opacity:1;}
+        /* Correction */
+        .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+        .correction.show{opacity:1;margin-top:1.5rem;}
+        .correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+        .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:0.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:0.85rem;font-weight:700;letter-spacing:0.04em;}
+        .correction-content{margin-top:1rem;}
+        /* Contenu */
+        .exercise-content{font-size:1.05rem;line-height:1.9;}
+        .q-row{display:flex;align-items:flex-start;gap:0.4rem;margin-bottom:0.6rem;}
+        .qnum{display:inline-block;background:var(--primary);color:white;font-size:0.8rem;font-weight:700;width:1.4rem;height:1.4rem;border-radius:50%;text-align:center;line-height:1.4rem;flex-shrink:0;margin-top:0.2rem;}
+        .conv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem 2rem;margin:0.75rem 0 1rem;font-size:1.08rem;font-family:'Times New Roman',serif;}
+        .conv-item{background:#f0f9ff;border:2px solid var(--border);border-radius:8px;padding:0.5rem 1rem;}
+        .context-box{background:#f0f9ff;border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;margin:0.75rem 0 1rem;font-size:0.97rem;line-height:1.8;}
+        .context-box strong{color:var(--primary-dark);}
+        .calcul-step{background:white;padding:1.25rem 1.5rem;border-radius:10px;margin:0.75rem 0;border-left:4px solid var(--primary);}
+        .calcul-line{font-size:1.15rem;text-align:center;margin:0.5rem 0;font-family:'Times New Roman',serif;font-style:italic;overflow-wrap:break-word;word-break:break-word;}
+        .solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:0.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:0.75rem 0;}
+        .rule-box{background:#faf5ff;border:2px solid #c4b5fd;border-radius:10px;padding:0.9rem 1.25rem;margin:0.75rem 0;font-size:0.95rem;line-height:1.7;}
+        .rule-box strong{color:var(--bonus);}
+        /* Tableau produit en croix */
+        .cross-table{border-collapse:collapse;margin:0.75rem auto;font-size:1.05rem;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+        .cross-table th{background:var(--primary-light);color:var(--primary-dark);border:2px solid var(--border);padding:0.5rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;text-align:center;}
+        .cross-table td{border:2px solid var(--border);padding:0.5rem 1.2rem;text-align:center;font-family:'Times New Roman',serif;font-size:1.1rem;}
+        .cross-table td.unknown{background:#fef3c7;border-color:#fbbf24;font-weight:700;color:#92400e;}
+        .cross-result{font-size:1rem;margin:0.5rem 0;text-align:center;font-family:'Times New Roman',serif;font-style:italic;}
+        footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+        @media(max-width:900px){body{padding:1.5rem 0.75rem;}h1{font-size:2rem;}header{padding:2rem 1.5rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}.recap-grid{grid-template-columns:1fr;}}
+        @media(max-width:600px){.conv-grid{grid-template-columns:1fr;.recap-grid{grid-template-columns:1fr;}}.recap-grid{grid-template-columns:1fr;}body{padding:1rem 0.5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.calcul-step{padding:0.75rem;}.solution-text{font-size:1rem;padding:0.65rem 1rem;}.correction-box{padding:1.75rem 0.75rem 1rem;}.correction-box::before{font-size:0.8rem;padding:0.35rem 1rem;}footer{margin-top:2rem;padding:1.25rem;font-size:0.9rem;}.progress-wrapper{padding:1rem;gap:0.75rem;}.conv-grid{grid-template-columns:1fr;}.hint-item{flex-direction:column;}.hint-btn{white-space:normal;width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+        @media(max-width:380px){h1{font-size:1.25rem;}.exercise-title{font-size:1.1rem;}}
+
+        .hint-for{font-weight:400;font-style:italic;font-size:0.8rem;color:#5b21b6;margin-left:0.25rem;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>⏱️ Feuille d'exercices</h1>
+        <p class="subtitle">Conversions de durées et calculs d'horaires – Correction interactive</p>
+        <div class="header-meta">
+            <span class="header-chip">5ème</span>
+            <span class="header-chip">5 exercices</span>
+            <span class="header-chip">Conversions · Horaires · Proportionnalité</span>
+        </div>
+    </header>
+
+    <!-- Rappel de cours -->
+    <div class="recap">
+        <div class="recap-title">📖 Ce qu'il faut savoir</div>
+        <div class="recap-grid">
+            <div class="recap-card conv">
+                <strong>Les relations entre unités</strong>
+                <div class="recap-chain">
+                    <span class="chain-unit">1 h</span>
+                    <span class="chain-op">= 60 min</span>
+                </div>
+                <div class="recap-chain">
+                    <span class="chain-unit">1 min</span>
+                    <span class="chain-op">= 60 s</span>
+                </div>
+                <div class="recap-chain">
+                    <span class="chain-unit">1 h</span>
+                    <span class="chain-op">= 3 600 s</span>
+                </div>
+                <em style="font-size:0.9rem;display:block;margin-top:0.4rem;">⚠️ 1,5 h ≠ 1 h 50 min !<br>1,5 h = 1 h 30 min (car 0,5 × 60 = 30)</em>
+            </div>
+            <div class="recap-card meth">
+                <strong>La méthode : tableau de proportionnalité</strong>
+                Pour convertir, on utilise un tableau avec la relation connue, puis un produit en croix pour trouver la valeur inconnue.
+                <div class="recap-chain" style="flex-direction:column;align-items:flex-start;gap:0.2rem;margin-top:0.5rem;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
+                    <span>Ex : convertir 2,5 h en minutes</span>
+                </div>
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table" style="margin:0.5rem auto;">
+                    <tbody>
+                        <tr><th>heures</th><td>1</td><td>2,5</td></tr>
+                        <tr><th>minutes</th><td>60</td><td class="unknown">?</td></tr>
+                    </tbody>
+                </table></div>
+                <p style="font-size:0.9rem;text-align:center;font-family:'Times New Roman',serif;font-style:italic;">? = 2,5 × 60 ÷ 1 = <strong>150 min</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-wrapper">
+        <span class="progress-label">Corrections vues :</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <span class="progress-counter" id="progressCounter">0 / 5</span>
+        <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <!-- ===== EXERCICE 1 ===== -->
+    <div class="exercise" id="card-ex1">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 1 / 5</h2>
+                <span class="exercise-tag tag-conv">Conversions</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <p style="margin-bottom:0.75rem;">Effectuer les conversions suivantes. Pour chaque conversion, dresse un tableau de proportionnalité et utilise un produit en croix.</p>
+            <div class="conv-grid">
+                <div class="conv-item">1,3 h = …… min</div>
+                <div class="conv-item">12,6 min = …… s</div>
+                <div class="conv-item">45 648 s = …… h</div>
+                <div class="conv-item">1 265 min = …… h</div>
+                <div class="conv-item">1 h 15 min = …… min</div>
+                <div class="conv-item">1 h 15 min = …… h</div>
+                <div class="conv-item">1 h 15 min = …… s</div>
+            </div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-1">💡 Indice 1/2 <span class="hint-for">– conversions heures/minutes – tableau de proportionnalité</span></button>
+                    <div class="hint-text" id="h1-1">La relation entre heures et minutes est fixe. Si tu la places dans un tableau de proportionnalité, quelle valeur connue peux-tu mettre dès le départ ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h1-2">💡 Indice 2/2 <span class="hint-for">– durées mixtes (ex. 1 h 15 min)</span></button>
+                    <div class="hint-text" id="h1-2">Pour une durée mixte comme "1 h 15 min", pense à séparer les heures et les minutes. Comment les convertir pour tout exprimer dans la même unité ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+
+            <h3 style="color:var(--primary);margin-bottom:1rem;">1,3 h → minutes</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>heures</th><td>1</td><td>1,3</td></tr>
+                    <tr><th>minutes</th><td>60</td><td class="unknown">?</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 1,3 × 60 ÷ 1 = <strong>78 min</strong></p>
+            </div>
+
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">12,6 min → secondes</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>minutes</th><td>1</td><td>12,6</td></tr>
+                    <tr><th>secondes</th><td>60</td><td class="unknown">?</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 12,6 × 60 ÷ 1 = <strong>756 s</strong></p>
+            </div>
+
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">45 648 s → heures</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>heures</th><td>1</td><td class="unknown">?</td></tr>
+                    <tr><th>secondes</th><td>3 600</td><td>45 648</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 1 × 45 648 ÷ 3 600 = 12,68 h</p>
+                <div class="solution-text">≈ 12,68 h &nbsp;(soit 12 h 41 min)</div>
+            </div>
+
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">1 265 min → heures</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>heures</th><td>1</td><td class="unknown">?</td></tr>
+                    <tr><th>minutes</th><td>60</td><td>1 265</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 1 × 1 265 ÷ 60 ≈ 21,08 h</p>
+                <div class="solution-text">≈ 21,08 h &nbsp;(soit 21 h 05 min)</div>
+            </div>
+
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">1 h 15 min → minutes</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">On convertit d'abord l'heure : 1 h = 60 min.</p>
+                <div class="calcul-line">1 h 15 min = 60 min + 15 min = <strong>75 min</strong></div>
+            </div>
+
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">1 h 15 min → heures décimales</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">On convertit les 15 min en heures :</p>
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>heures</th><td>1</td><td class="unknown">?</td></tr>
+                    <tr><th>minutes</th><td>60</td><td>15</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 1 × 15 ÷ 60 = 0,25 h</p>
+                <div class="calcul-line">1 h 15 min = 1 + 0,25 = <strong>1,25 h</strong></div>
+            </div>
+
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">1 h 15 min → secondes</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.4rem;">On convertit les 75 min en secondes :</p>
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>minutes</th><td>1</td><td>75</td></tr>
+                    <tr><th>secondes</th><td>60</td><td class="unknown">?</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 75 × 60 ÷ 1 = <strong>4 500 s</strong></p>
+            </div>
+
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 2 ===== -->
+    <div class="exercise" id="card-ex2">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 2 / 5</h2>
+                <span class="exercise-tag tag-hor">Calcul d'horaire</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Lucas marche pendant 38 min. Il arrive à son rendez-vous à <strong>17 h 11</strong>. À quelle heure est-il parti ?</div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-1">💡 Indice 1/2 <span class="hint-for">– trouver l'heure de départ</span></button>
+                    <div class="hint-text" id="h2-1">Tu connais l'heure d'arrivée et la durée du trajet. Pour trouver l'heure de départ, réfléchis au sens de l'opération. Attention en travaillant avec les minutes !</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h2-2">💡 Indice 2/2 <span class="hint-for">– emprunter une heure en minutes</span></button>
+                    <div class="hint-text" id="h2-2">Si les minutes ne sont pas suffisantes pour soustraire, tu peux "emprunter" une heure. Rappelle-toi : 1 heure, c'est combien de minutes ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">Il faut <strong>soustraire</strong> la durée du trajet à l'heure d'arrivée.</p>
+                <p style="font-size:1rem;margin-bottom:0.5rem;">17 h 11 min − 38 min : les minutes ne suffisent pas (11 &lt; 38).</p>
+                <p style="font-size:1rem;margin-bottom:0.5rem;">On emprunte 1 h = 60 min → 17 h 11 min = <strong>16 h 71 min</strong></p>
+                <div class="calcul-line">16 h 71 min − 38 min = 16 h 33 min</div>
+                <div class="solution-text">Lucas est parti à 16 h 33</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 3 ===== -->
+    <div class="exercise" id="card-ex3">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 3 / 5</h2>
+                <span class="exercise-tag tag-hor">Conversion + horaire</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Pauline commence son travail à <strong>8 h 00</strong>. Elle part de chez elle <strong>5 400 secondes</strong> avant pour arriver à l'heure. À quelle heure est-elle partie ?</div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-1">💡 Indice 1/2 <span class="hint-for">– convertir 5 400 s en heures et minutes</span></button>
+                    <div class="hint-text" id="h3-1">5 400 secondes, c'est beaucoup. Convertis d'abord cette durée en minutes, puis en heures et minutes, avec un tableau de proportionnalité.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h3-2">💡 Indice 2/2 <span class="hint-for">– calculer l'heure de départ</span></button>
+                    <div class="hint-text" id="h3-2">Une fois la durée convertie, il reste à trouver l'heure de départ à partir de l'heure de début du travail. Dans quel sens vas-tu sur la ligne du temps ?</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Étape 1 – Convertir 5 400 s en minutes</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>minutes</th><td>1</td><td class="unknown">?</td></tr>
+                    <tr><th>secondes</th><td>60</td><td>5 400</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 1 × 5 400 ÷ 60 = <strong>90 min = 1 h 30 min</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Étape 2 – Calculer l'heure de départ</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">Elle part 1 h 30 min avant 8 h 00.</p>
+                <div class="calcul-line">8 h 00 − 1 h 30 min = 6 h 30</div>
+                <div class="solution-text">Pauline est partie à 6 h 30</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 4 ===== -->
+    <div class="exercise" id="card-ex4">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 4 / 5</h2>
+                <span class="exercise-tag tag-pb">Débit – proportionnalité</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Le robinet du jardin a un débit de <strong>100 L en 6 min</strong>.</div>
+            <div class="q-row"><span class="qnum">1</span><p>Quel volume d'eau s'écoule en <strong>2 h</strong> ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Combien de temps faudra-t-il pour remplir une piscine de <strong>18 m³</strong> avec ce robinet ? Donner la réponse en heures et minutes.</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-1">💡 Indice 1/2 <span class="hint-for">– question 1 – harmoniser les unités avant de calculer</span></button>
+                    <div class="hint-text" id="h4-1">Vérifie les unités avant de calculer : le débit et la durée sont-ils exprimés dans des unités compatibles ? Si non, commence par harmoniser.</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h4-2">💡 Indice 2/2 <span class="hint-for">– question 2 – convertir m³ en litres</span></button>
+                    <div class="hint-text" id="h4-2">Pour la question 2 : le volume est exprimé en m³, mais le débit en litres. Pense à la conversion entre ces deux unités avant de construire ton tableau.</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Volume en 2 h</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">On convertit d'abord 2 h en minutes :</p>
+                <div class="calcul-line">2 h = 2 × 60 = <strong>120 min</strong></div>
+                <p style="font-size:1rem;margin:0.5rem 0;">Tableau de proportionnalité :</p>
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>Volume (L)</th><td>100</td><td class="unknown">?</td></tr>
+                    <tr><th>Durée (min)</th><td>6</td><td>120</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 100 × 120 ÷ 6 = <strong>2 000 L</strong></p>
+                <div class="solution-text">En 2 h, il s'écoule 2 000 L d'eau</div>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Durée pour 18 m³</h3>
+            <div class="calcul-step">
+                <p style="font-size:1rem;margin-bottom:0.5rem;">On convertit d'abord : 18 m³ = 18 × 1 000 = <strong>18 000 L</strong></p>
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>Volume (L)</th><td>100</td><td>18 000</td></tr>
+                    <tr><th>Durée (min)</th><td>6</td><td class="unknown">?</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 6 × 18 000 ÷ 100 = <strong>1 080 min</strong></p>
+                <p style="font-size:1rem;margin:0.5rem 0;">On convertit 1 080 min en heures :</p>
+                <div class="calcul-line">1 080 ÷ 60 = 18 h</div>
+                <div class="solution-text">Il faut 18 heures pour remplir la piscine</div>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- ===== EXERCICE 5 ===== -->
+    <div class="exercise" id="card-ex5">
+        <div class="exercise-header">
+            <div class="exercise-title-group">
+                <h2 class="exercise-title">Exercice 5 / 5</h2>
+                <span class="exercise-tag tag-pb">Problème en chaîne</span>
+            </div>
+            <div class="btn-group">
+                <span class="seen-badge">✓ Vu</span>
+                <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+            </div>
+        </div>
+        <div class="exercise-content">
+            <div class="context-box">Une entreprise de jouets vend en moyenne <strong>2 jouets par seconde</strong>.</div>
+            <div class="q-row"><span class="qnum">1</span><p>Combien de jouets l'entreprise vend-elle en moyenne <strong>par minute</strong> ?</p></div>
+            <div class="q-row"><span class="qnum">2</span><p>Combien de jouets l'entreprise vend-elle en moyenne <strong>par heure</strong> ?</p></div>
+            <div class="q-row"><span class="qnum">3</span><p>Combien de jouets l'entreprise vend-elle en moyenne <strong>par jour</strong> ?</p></div>
+            <div class="q-row"><span class="qnum">4</span><p>Combien de jouets l'entreprise vend-elle en moyenne sur <strong>tout le mois de décembre</strong> ?</p></div>
+            <div class="q-row"><span class="qnum">5</span><p>Combien de jouets l'entreprise vend-elle en moyenne <strong>par an</strong> ?</p></div>
+        </div>
+        <div class="hints-section">
+            <p class="hints-title">💡 Indice – débloque-les un par un</p>
+            <div class="hints-list">
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-1">💡 Indice 1/2 <span class="hint-for">– questions 1 à 3 – conversions secondes → minutes → heures</span></button>
+                    <div class="hint-text" id="h5-1">Les conversions se font étape par étape. Quelle relation connue peux-tu utiliser pour passer des secondes aux minutes, puis des minutes aux heures ?</div>
+                </div>
+                <div class="hint-item">
+                    <button class="hint-btn" data-hint="h5-2">💡 Indice 2/2 <span class="hint-for">– questions 4 et 5 – nombre de jours (décembre, année)</span></button>
+                    <div class="hint-text" id="h5-2">Pour les questions 4 et 5, tu as besoin de savoir combien de jours contiennent décembre et une année. Ensuite, c'est à nouveau de la proportionnalité.</div>
+                </div>
+            </div>
+        </div>
+        <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+            <h3 style="color:var(--primary);margin-bottom:0.75rem;">Question 1 – Par minute</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>Jouets</th><td>2</td><td class="unknown">?</td></tr>
+                    <tr><th>Durée</th><td>1 s</td><td>60 s (= 1 min)</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 2 × 60 ÷ 1 = <strong>120 jouets/min</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 2 – Par heure</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>Jouets</th><td>120</td><td class="unknown">?</td></tr>
+                    <tr><th>Durée</th><td>1 min</td><td>60 min (= 1 h)</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 120 × 60 = <strong>7 200 jouets/h</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 3 – Par jour</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>Jouets</th><td>7 200</td><td class="unknown">?</td></tr>
+                    <tr><th>Durée</th><td>1 h</td><td>24 h (= 1 jour)</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 7 200 × 24 = <strong>172 800 jouets/jour</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 4 – En décembre (31 jours)</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>Jouets</th><td>172 800</td><td class="unknown">?</td></tr>
+                    <tr><th>Durée</th><td>1 jour</td><td>31 jours</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 172 800 × 31 = <strong>5 356 800 jouets</strong></p>
+            </div>
+            <h3 style="color:var(--primary);margin:1.25rem 0 0.75rem;">Question 5 – Par an (365 jours)</h3>
+            <div class="calcul-step">
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;"><table class="cross-table"><tbody>
+                    <tr><th>Jouets</th><td>172 800</td><td class="unknown">?</td></tr>
+                    <tr><th>Durée</th><td>1 jour</td><td>365 jours</td></tr>
+                </tbody></table></div>
+                <p class="cross-result">? = 172 800 × 365 = <strong>63 072 000 jouets/an</strong></p>
+            </div>
+        </div></div></div>
+    </div>
+
+    <footer>🎓 Bonne révision ! Penser à toujours vérifier que les unités sont cohérentes avant de faire un produit en croix.</footer>
+    <div class="score-card" id="scoreCard">
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <div class="score-title" id="scoreTitle"></div>
+        <div class="score-stars" id="scoreStars"></div>
+        <p class="score-message" id="scoreMessage"></p>
+        <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    const TOTAL = 5, seenSet = new Set(), openSet = new Set();
+    const SCORE_DATA = [
+        { min: 5, emoji: '🏆', stars: '⭐⭐⭐', title: 'Parfait !', msg: 'Tu as revu tous les exercices. Excellent travail !' },
+        { min: 4, emoji: '🎉', stars: '⭐⭐⭐', title: 'Très bien !', msg: 'Presque tout vérifié. Jette un œil au dernier !' },
+        { min: 3, emoji: '👍', stars: '⭐⭐', title: 'Bien !', msg: 'Plus de la moitié vérifiée. Continue !' },
+        { min: 1, emoji: '💪', stars: '⭐', title: "C'est un début !", msg: "N'hésite pas à ouvrir les autres corrections !" },
+    ];
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+        dotsContainer.appendChild(d);
+    }
+    function updateProgress() {
+        const done = seenSet.size;
+        document.getElementById('progressFill').style.width = `${(done / TOTAL) * 100}%`;
+        document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+        if (done === TOTAL) showScoreCard();
+    }
+    function showScoreCard() {
+        const card = document.getElementById('scoreCard');
+        if (card.classList.contains('visible')) return;
+        const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length - 1];
+        document.getElementById('scoreEmoji').textContent = data.emoji;
+        document.getElementById('scoreTitle').textContent = data.title;
+        document.getElementById('scoreStars').textContent = data.stars;
+        document.getElementById('scoreMessage').textContent = data.msg;
+        document.getElementById('scoreBreakdown').innerHTML =
+            `<span class="score-badge green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+            `<span class="score-badge cyan">📚 Feuille complète</span>` +
+            `<span class="score-badge purple">⏱️ Durées 5ème</span>`;
+        card.classList.add('visible');
+    }
+    function openCorrection(el) { el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+    function closeCorrection(el) {
+        el.style.height = el.scrollHeight + 'px';
+        requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); });
+    }
+    function toggleCorrection(exId) {
+        const correction = document.getElementById(exId);
+        const card = correction.closest('.exercise');
+        const btn = card.querySelector('.reveal-btn');
+        const dot = document.getElementById(`dot-${exId}`);
+        const isOpen = openSet.has(exId);
+        if (isOpen) {
+            closeCorrection(correction); btn.classList.remove('active');
+            btn.textContent = 'Voir la correction'; openSet.delete(exId);
+        } else {
+            openCorrection(correction); btn.classList.add('active');
+            btn.textContent = 'Masquer la correction'; openSet.add(exId);
+            if (!seenSet.has(exId)) {
+                seenSet.add(exId); dot.classList.add('done');
+                card.classList.add('seen'); updateProgress();
+            }
+        }
+    }
+    document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+    });
+    document.querySelectorAll('.correction').forEach(el => {
+        el.addEventListener('transitionend', e => {
+            if (e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto';
+        });
+    });
+    document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.hint;
+            document.getElementById(id).classList.add('revealed');
+            this.disabled = true;
+            this.textContent = '✓ ' + this.textContent;
+        });
+    });
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

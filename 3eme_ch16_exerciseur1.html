@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistiques — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Kalam:wght@400;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0faf8;--grid:#c9e8e2;--card:#fff;
+  --teal:#0f766e;--teal-light:#2dd4bf;--teal-pale:rgba(15,118,110,.08);--teal-border:rgba(15,118,110,.22);
+  --amber:#c2410c;--amber-pale:rgba(194,65,12,.09);--amber-border:rgba(194,65,12,.28);
+  --green:#16a34a;--green-pale:rgba(22,163,74,.09);--green-border:rgba(22,163,74,.22);
+  --red:#dc2626;--red-pale:rgba(220,38,38,.08);
+  --indigo:#4338ca;--indigo-pale:rgba(67,56,202,.08);--indigo-border:rgba(67,56,202,.22);
+  --violet:#7c3aed;--violet-pale:rgba(124,58,237,.08);--violet-border:rgba(124,58,237,.22);
+  --text:#1a2e2b;--text-light:#5a7470;--border:#d4e8e4;--shadow:rgba(15,60,50,.09);
+}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;display:flex;justify-content:center;padding:16px 10px 70px;color:var(--text);
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.app{max-width:780px;width:100%}
+.app-header{background:linear-gradient(135deg,#065f46 0%,#0f766e 45%,#0369a1 100%);color:#fff;
+  padding:14px 22px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 20px rgba(6,95,70,.3);position:relative;overflow:hidden}
+.app-header::before{content:'';position:absolute;top:-30px;right:-20px;width:140px;height:140px;
+  border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none}
+.app-header::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 55%);pointer-events:none}
+.app-title{font-family:'Spectral',serif;font-size:1.15em;font-weight:600;letter-spacing:.3px;position:relative;display:flex;align-items:center;gap:8px}
+.hdr-menu{background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 16px;border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:.82em;font-weight:600;cursor:pointer;transition:all .2s;position:relative;touch-action:manipulation;min-height:36px}
+.hdr-menu:hover{background:rgba(255,255,255,.35)}
+.main{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;
+  padding:28px 26px;box-shadow:0 8px 32px var(--shadow);min-height:52vh}
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+h1{font-family:'Spectral',serif;font-size:1.5em;font-weight:700;text-align:center;margin-bottom:6px;color:var(--teal)}
+.sub{text-align:center;font-size:.92em;color:var(--text-light);margin-bottom:22px;line-height:1.6}
+
+/* Buttons */
+.btn{font-family:'DM Sans',sans-serif;padding:11px 24px;border-radius:10px;font-size:.92em;font-weight:600;
+  cursor:pointer;transition:all .2s;border:2px solid;-webkit-tap-highlight-color:transparent;
+  min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-teal{background:var(--teal);color:#fff;border-color:var(--teal);box-shadow:0 2px 8px rgba(15,118,110,.2)}
+.btn-teal:hover:not(:disabled){background:#0d9488;transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover:not(:disabled){background:#15803d;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+/* Menu grid */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:14px;
+  padding:20px 16px;text-align:center;cursor:pointer;transition:all .25s;position:relative;
+  min-height:110px;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mc:hover{border-color:var(--teal);transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
+.mc-icon{font-size:1.7em;margin-bottom:5px}
+.mc-t{font-family:'Spectral',serif;font-size:1em;color:var(--teal);font-weight:700;margin-bottom:3px}
+.mc-d{font-size:.78em;color:var(--text-light)}
+.mc-badge{position:absolute;top:8px;right:8px;font-size:.62em;font-weight:700;padding:2px 9px;border-radius:10px}
+.mc-badge.b6{background:var(--teal-pale);color:var(--teal);border:1px solid var(--teal-border)}
+.mc-badge.b5{background:var(--violet-pale);color:var(--violet);border:1px solid var(--violet-border)}
+.mc-badge.b4{background:var(--amber-pale);color:var(--amber);border:1px solid var(--amber-border)}
+.mc-badge.b3{background:#bfdbfe;color:#1d4ed8;border:1px solid #93c5fd}
+.mc-badge.blec{background:var(--green-pale);color:var(--green);border:1px solid var(--green-border)}
+
+/* Exercise header */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.ex-badge{padding:5px 16px;border-radius:20px;font-size:.84em;font-weight:700;background:var(--teal-pale);color:var(--teal)}
+.ex-score{font-size:.88em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:18px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-light));border-radius:4px;transition:width .4s}
+
+/* Tables */
+.tw{overflow-x:auto;margin:0 auto 16px;-webkit-overflow-scrolling:touch}
+.pt{border-collapse:collapse;margin:0 auto;font-family:'Kalam',cursive}
+.pt th{background:var(--teal);color:#fff;padding:10px 14px;font-size:.86em;font-weight:600;border:2px solid var(--teal);text-align:center;min-width:58px;font-family:'DM Sans',sans-serif}
+.pt td{padding:10px 12px;border:2px solid var(--teal-border);text-align:center;font-size:1.05em;font-weight:700;background:#fff;min-width:58px}
+.pt .rl{background:var(--teal-pale);color:var(--teal);font-size:.78em;font-weight:600;font-family:'DM Sans',sans-serif;text-align:left;padding:9px 12px;min-width:130px;white-space:nowrap}
+.pt .tot{background:#f0fdf4;border-top:3px solid var(--teal);font-weight:700}
+
+/* Inputs */
+.ci{font-family:'Kalam',cursive;font-size:1.05em;width:64px;text-align:center;
+  border:2px dashed var(--teal-border);border-radius:8px;background:#fff;padding:6px 2px;
+  outline:none;color:var(--text);font-weight:700;transition:all .2s;min-height:40px;touch-action:manipulation}
+.ci:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-pale)}
+.ci.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;border-style:solid!important}
+.ci.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s}
+.ci.am{border-color:var(--amber);color:var(--amber)}
+.ci.am:focus{box-shadow:0 0 0 3px var(--amber-pale)}
+.ci-wide{width:80px}
+.ci-lg{width:100px}
+
+/* Formula line */
+.fl{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0;flex-wrap:wrap}
+.fl .s{font-family:'Kalam',cursive;font-size:1.15em;font-weight:700;color:var(--text)}
+.fl .q{font-family:'Kalam',cursive;font-size:1.15em;font-weight:700;color:var(--amber)}
+.fl .u{font-family:'DM Sans',sans-serif;font-size:.9em;font-weight:600;color:var(--text-light)}
+
+/* Info boxes */
+.wp{background:var(--teal-pale);border:2px solid var(--teal-border);border-radius:12px;
+  padding:16px 18px;margin-bottom:14px;font-size:.98em;line-height:1.6}
+.wp .hl{color:var(--teal);font-weight:700}.wp .ho{color:var(--amber);font-weight:700}
+.sz{background:var(--bg);border:2px solid var(--border);border-radius:14px;padding:16px 18px;margin:14px 0;text-align:center}
+.sz-t{font-size:.74em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:12px;font-family:'DM Sans',sans-serif}
+.prompt{font-size:1em;text-align:center;margin:12px 0;line-height:1.5;color:var(--text)}
+.prompt .hl{color:var(--teal);font-weight:700}.prompt .ho{color:var(--amber);font-weight:700}
+
+/* Feedback */
+.fb{margin-top:14px;padding:12px 18px;border-radius:10px;font-size:.92em;text-align:center;
+  display:none;animation:fadeIn .25s;font-weight:600;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+
+/* Results */
+.rc{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:18px auto;border:5px solid}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:#d97706;background:#fffbeb}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2em;font-weight:700;line-height:1}
+.rm{font-size:1.05em;text-align:center;margin:14px 0}
+
+/* Fiche méthode */
+.fiche{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.fterm{background:#fff;border:2px solid var(--border);border-radius:12px;padding:14px 16px;transition:all .2s}
+.fterm:hover{border-color:var(--teal);transform:translateY(-2px)}
+.fterm-icon{font-size:1.5em;margin-bottom:6px}
+.fterm-name{font-family:'Spectral',serif;font-size:.98em;font-weight:700;color:var(--teal);margin-bottom:5px}
+.fterm-sym{font-size:.76em;font-weight:700;color:var(--text-light);margin-bottom:5px;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.fterm-def{font-size:.84em;color:var(--text);line-height:1.55}
+.fterm-how{font-size:.82em;color:var(--teal);line-height:1.55;margin-top:6px;font-style:italic}
+.fiche-methods{border-radius:14px;margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.meth-card{background:linear-gradient(135deg,var(--teal-pale),rgba(67,56,202,.06));border:2px solid var(--teal-border);border-radius:12px;padding:14px 16px}
+.meth-card.am{background:linear-gradient(135deg,var(--amber-pale),rgba(194,65,12,.04));border-color:var(--amber-border)}
+.meth-card.vi{background:linear-gradient(135deg,var(--violet-pale),rgba(124,58,237,.04));border-color:var(--violet-border)}
+.meth-card.in{background:linear-gradient(135deg,var(--indigo-pale),rgba(67,56,202,.04));border-color:var(--indigo-border)}
+.meth-name{font-family:'Spectral',serif;font-size:.95em;font-weight:700;color:var(--teal);margin-bottom:7px}
+.meth-card.am .meth-name{color:var(--amber)}.meth-card.vi .meth-name{color:var(--violet)}.meth-card.in .meth-name{color:var(--indigo)}
+.meth-steps{font-size:.82em;line-height:1.65;color:var(--text)}
+.meth-step{display:flex;gap:6px;margin-bottom:4px}
+.meth-num{font-weight:700;color:var(--teal);flex-shrink:0;min-width:16px}
+.meth-card.am .meth-num{color:var(--amber)}.meth-card.vi .meth-num{color:var(--violet)}.meth-card.in .meth-num{color:var(--indigo)}
+
+/* Values display */
+.vals-box{background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:14px 18px;margin:12px 0;text-align:center}
+.vals{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0}
+.val-chip{background:#fff;border:2px solid var(--teal-border);border-radius:8px;padding:6px 12px;
+  font-family:'Kalam',cursive;font-size:1.15em;font-weight:700;color:var(--text)}
+
+/* Step reveal */
+.step-box{background:var(--bg);border:2px solid var(--border);border-radius:14px;padding:18px;margin:14px 0}
+.step-title{font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:12px;font-family:'DM Sans',sans-serif}
+
+/* Diagram */
+.diag-wrap{display:flex;justify-content:center;align-items:flex-start;gap:18px;flex-wrap:wrap;margin:14px 0}
+.legend{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:.85em;font-weight:600}
+.leg-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+
+/* Calculator */
+#cBt{position:fixed;bottom:20px;right:20px;width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),#0369a1);color:#fff;font-size:1.35em;border:none;cursor:pointer;
+  box-shadow:0 4px 16px rgba(15,118,110,.35);z-index:200;display:flex;align-items:center;justify-content:center;transition:all .2s;touch-action:manipulation}
+#cBt:hover{transform:scale(1.1)}
+#cPn{position:fixed;bottom:80px;right:16px;background:var(--card);border:2px solid var(--border);
+  border-radius:14px;padding:14px 16px;box-shadow:0 8px 28px var(--shadow);z-index:200;display:none;width:260px}
+.calc-title{text-align:center;font-size:.76em;font-weight:700;color:var(--teal);margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase}
+.clr{display:flex;align-items:center;gap:6px;margin:7px 0;font-family:'Kalam',cursive;font-size:1.1em;font-weight:700}
+.clr input{font-family:'Kalam',cursive;font-size:1em;width:58px;text-align:center;border:2px solid var(--border);
+  border-radius:8px;padding:5px;outline:none;min-height:36px}
+.clr input:focus{border-color:var(--teal)}
+.clr .op{color:var(--text-light);font-size:1.1em}
+.cres{min-height:24px;font-size:1.05em;color:var(--teal);text-align:center;margin-top:4px;font-family:'Kalam',cursive;font-weight:700}
+
+/* Animations */
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* Responsive */
+@media(max-width:768px){
+  body{padding:14px 8px 70px}.main{padding:22px 18px}
+  h1{font-size:1.35em}.fiche{grid-template-columns:1fr;max-width:400px;margin:16px auto}
+  .fiche-methods{grid-template-columns:1fr;max-width:400px;margin:12px auto}
+  .menu-grid{grid-template-columns:1fr;gap:10px}.mc{min-height:90px;padding:16px 14px}
+  .btn{padding:10px 20px;font-size:.9em;min-height:42px}
+  .pt th,.pt td{padding:9px 10px;min-width:50px;font-size:.98em}
+  .ci{width:58px;min-height:38px}.ci-wide{width:72px}
+  #cPn{right:10px;left:10px;width:auto}
+}
+@media(max-width:600px){
+  body{padding:12px 6px 68px}.app-header{padding:11px 16px}.app-title{font-size:1.05em}
+  .main{padding:18px 14px}.fiche{max-width:320px;gap:8px}
+  h1{font-size:1.22em}.sub{font-size:.88em;margin-bottom:18px}
+  .menu-grid{grid-template-columns:1fr;max-width:310px;margin:14px auto}
+  .mc{padding:14px 12px;min-height:85px}.mc-t{font-size:.9em}
+  .btn{padding:9px 18px;font-size:.86em;min-height:40px}
+  .pt th,.pt td{padding:8px 7px;min-width:44px;font-size:.92em}
+  .ci{width:52px;font-size:.95em;min-height:36px}.ci-wide{width:66px}
+  .diag-wrap{gap:10px}
+  #cBt{bottom:16px;right:16px;width:46px;height:46px;font-size:1.25em}
+  #cPn{right:8px;left:8px;width:auto;bottom:72px}
+}
+@media(max-width:480px){
+  .main{padding:16px 12px}.menu-grid{max-width:280px}
+  h1{font-size:1.12em}.btn{padding:8px 16px;font-size:.83em}
+  .pt th,.pt td{padding:7px 5px;min-width:38px;font-size:.88em}
+  .ci{width:48px;font-size:.9em}.ci-wide{width:60px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+  <span class="app-title">📊 Statistiques</span>
+  <button class="hdr-menu" id="menuBtn" onclick="goMenu()" style="display:none">☰ Menu</button>
+</div>
+<div class="main">
+
+<!-- ══════════════ FICHE MÉTHODE ══════════════ -->
+<div class="screen active" id="S_fiche">
+  <h1>Fiche Méthode</h1>
+  <p class="sub">Le vocabulaire et les méthodes essentiels des statistiques</p>
+
+  <div class="fiche">
+    <div class="fterm">
+      <div class="fterm-icon">👥</div>
+      <div class="fterm-name">Population</div>
+      <div class="fterm-def">Ensemble de tous les individus étudiés. Par exemple : tous les élèves d'une classe.</div>
+    </div>
+    <div class="fterm">
+      <div class="fterm-icon">📌</div>
+      <div class="fterm-name">Valeur</div>
+      <div class="fterm-sym">Notée xᵢ</div>
+      <div class="fterm-def">Une donnée possible dans la série. Exemple : une note (12), une taille (165 cm)…</div>
+    </div>
+    <div class="fterm">
+      <div class="fterm-icon">🔢</div>
+      <div class="fterm-name">Effectif</div>
+      <div class="fterm-sym">Noté nᵢ</div>
+      <div class="fterm-def">Nombre de fois qu'une valeur apparaît dans la série. Si 5 élèves ont eu 12, l'effectif de 12 est 5.</div>
+    </div>
+    <div class="fterm">
+      <div class="fterm-icon">∑</div>
+      <div class="fterm-name">Effectif total</div>
+      <div class="fterm-sym">Noté N</div>
+      <div class="fterm-def">Somme de tous les effectifs. C'est le nombre total d'individus dans la série.</div>
+    </div>
+    <div class="fterm" style="grid-column:1/-1">
+      <div class="fterm-icon">📏</div>
+      <div class="fterm-name">Fréquence</div>
+      <div class="fterm-sym">Notée fᵢ (souvent en %)</div>
+      <div class="fterm-def">Part que représente une valeur par rapport au total. On la calcule en divisant l'effectif de la valeur par l'effectif total, puis en multipliant par 100 pour obtenir un pourcentage.</div>
+    </div>
+  </div>
+
+  <div class="fiche-methods">
+    <div class="meth-card">
+      <div class="meth-name">➕ Moyenne simple</div>
+      <div class="meth-steps">
+        <div class="meth-step"><span class="meth-num">1.</span><span>Additionner toutes les valeurs de la série.</span></div>
+        <div class="meth-step"><span class="meth-num">2.</span><span>Diviser cette somme par le nombre total de valeurs.</span></div>
+      </div>
+    </div>
+    <div class="meth-card am">
+      <div class="meth-name">⚖️ Moyenne pondérée</div>
+      <div class="meth-steps">
+        <div class="meth-step"><span class="meth-num">1.</span><span>Multiplier chaque valeur par son effectif.</span></div>
+        <div class="meth-step"><span class="meth-num">2.</span><span>Additionner ces produits.</span></div>
+        <div class="meth-step"><span class="meth-num">3.</span><span>Diviser par l'effectif total N.</span></div>
+      </div>
+    </div>
+    <div class="meth-card vi">
+      <div class="meth-name">🎯 Médiane</div>
+      <div class="meth-steps">
+        <div class="meth-step"><span class="meth-num">1.</span><span>Trier la série dans l'ordre croissant.</span></div>
+        <div class="meth-step"><span class="meth-num">2.</span><span>Si n est impair : la médiane est la valeur du milieu.</span></div>
+        <div class="meth-step"><span class="meth-num">3.</span><span>Si n est pair : la médiane est la moyenne des deux valeurs centrales.</span></div>
+      </div>
+    </div>
+    <div class="meth-card in">
+      <div class="meth-name">↔️ Étendue</div>
+      <div class="meth-steps">
+        <div class="meth-step"><span class="meth-num">1.</span><span>Repérer la plus grande valeur (maximum).</span></div>
+        <div class="meth-step"><span class="meth-num">2.</span><span>Repérer la plus petite valeur (minimum).</span></div>
+        <div class="meth-step"><span class="meth-num">3.</span><span>Calculer : étendue = maximum − minimum.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-teal" onclick="show('S_menu');$('menuBtn').style.display=''">C'est parti ! →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MENU ══════════════ -->
+<div class="screen" id="S_menu">
+  <h1>Choisir un thème</h1>
+  <p class="sub">5 compétences statistiques à maîtriser</p>
+  <div class="menu-grid">
+    <div class="mc" onclick="go(1)">
+      <div class="mc-badge b6">6ème</div>
+      <div class="mc-icon">➕</div>
+      <div class="mc-t">Moyenne simple</div>
+      <div class="mc-d">Calculer la moyenne d'une série</div>
+    </div>
+    <div class="mc" onclick="go(2)">
+      <div class="mc-badge b5">5ème</div>
+      <div class="mc-icon">⚖️</div>
+      <div class="mc-t">Moyenne pondérée</div>
+      <div class="mc-d">Avec un tableau effectifs / valeurs</div>
+    </div>
+    <div class="mc" onclick="go(3)">
+      <div class="mc-badge b4">4ème</div>
+      <div class="mc-icon">🎯</div>
+      <div class="mc-t">Médiane</div>
+      <div class="mc-d">Cas pair et impair</div>
+    </div>
+    <div class="mc" onclick="go(4)">
+      <div class="mc-badge b3">3ème</div>
+      <div class="mc-icon">↔️</div>
+      <div class="mc-t">Étendue</div>
+      <div class="mc-d">Max − Min d'une série</div>
+    </div>
+    <div class="mc" style="grid-column:1/-1" onclick="go(5)">
+      <div class="mc-badge blec">Lecture</div>
+      <div class="mc-icon">📈</div>
+      <div class="mc-t">Diagrammes</div>
+      <div class="mc-d">Lire un diagramme circulaire ou un histogramme</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:10px">
+    <button class="btn btn-ghost" style="font-size:.82em" onclick="show('S_fiche')">📖 Revoir la fiche méthode</button>
+  </div>
+</div>
+
+<!-- ══════════════ EXERCISE ══════════════ -->
+<div class="screen" id="S_ex">
+  <div class="ex-top">
+    <div class="ex-badge" id="badge">—</div>
+    <div class="ex-score" id="scLbl">0 / 0</div>
+  </div>
+  <div class="pbar"><div class="pfill" id="pfill"></div></div>
+  <div id="zone"></div>
+  <div class="fb" id="fb"></div>
+  <div class="controls">
+    <button class="btn btn-teal" id="nxt" style="display:none" onclick="nxtQ()">Question suivante →</button>
+    <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+  </div>
+</div>
+
+<!-- ══════════════ RESULTS ══════════════ -->
+<div class="screen" id="S_res">
+  <h1>Résultats</h1>
+  <div class="rc" id="rCirc">
+    <div class="rp" id="rPct">0%</div>
+    <div style="font-size:.72em;color:var(--text-light);margin-top:2px">réussite</div>
+  </div>
+  <div class="rm" id="rMsg"></div>
+  <div class="controls">
+    <button class="btn btn-teal" onclick="goMenu()">Retour au menu</button>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══════════════ CALCULATRICE ══════════════ -->
+<button id="cBt" onclick="calcToggle()" title="Calculatrice">🧮</button>
+<div id="cPn">
+  <div class="calc-title">Calculatrice</div>
+  <div class="clr"><input id="cA" inputmode="decimal" placeholder="a"><span class="op">×</span><input id="cB" inputmode="decimal" placeholder="b"></div>
+  <div style="text-align:center;margin:4px 0"><button class="btn btn-teal" style="padding:5px 14px;font-size:.82em;min-height:34px" onclick="calcMul()">Calculer ×</button></div>
+  <div class="cres" id="cRM"></div>
+  <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
+  <div class="clr"><input id="cC" inputmode="decimal" placeholder="a"><span class="op">÷</span><input id="cD" inputmode="decimal" placeholder="b"></div>
+  <div style="text-align:center;margin:4px 0"><button class="btn btn-teal" style="padding:5px 14px;font-size:.82em;min-height:34px" onclick="calcDiv()">Calculer ÷</button></div>
+  <div class="cres" id="cRD"></div>
+  <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
+  <div class="clr"><input id="cE" inputmode="decimal" placeholder="a"><span class="op">+</span><input id="cF" inputmode="decimal" placeholder="b"></div>
+  <div style="text-align:center;margin:4px 0"><button class="btn btn-teal" style="padding:5px 14px;font-size:.82em;min-height:34px" onclick="calcAdd()">Calculer +</button></div>
+  <div class="cres" id="cRA"></div>
+</div>
+
+<script>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   UTILITIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const rv=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=id=>document.getElementById(id);
+const pN=s=>{if(!s||!s.trim())return NaN;return parseFloat(s.trim().replace(',','.').replace(/\s/g,''))};
+const eq=(a,b)=>{if(isNaN(a)||isNaN(b))return false;return Math.abs(a-b)<0.05};
+const fmt=n=>{if(n==null||isNaN(n))return'?';const s=Math.round(n*100)/100;return String(s).replace('.',',')};
+function setOk(id){const e=$(id);if(e){e.classList.remove('ok','err');e.classList.add('ok');e.disabled=true}}
+function foc(id){setTimeout(()=>{const e=$(id);if(e&&!e.disabled)e.focus()},90)}
+function addEnter(ids,fn){ids.forEach(id=>{const e=$(id);if(e)e.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();fn()}})})}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function goMenu(){show('S_menu');$('menuBtn').style.display=''}
+
+/* finish() — la réponse finale est correcte → toujours compter juste */
+function finish(ok){
+  if(ok)sc++;
+  $('scLbl').textContent=`${sc} / ${qi+1}`;
+  const fb=$('fb');
+  fb.className=ok?'fb ok':'fb bad';
+  fb.textContent=ok?'✅ Correct ! Bravo !':'❌ Incorrect — vérifie ton calcul.';
+  $('nxt').style.display=''}
+
+function nxtQ(){qi++;if(qi>=qs.length)showRes();else loadQ()}
+function showRes(){const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className=`rc ${tier}`;$('rPct').textContent=`${pct}%`;
+  $('rPct').style.color=tier==='good'?'var(--green)':tier==='mid'?'#d97706':'var(--red)';
+  $('rMsg').textContent=pct===100?'Parfait ! 🎉':pct>=80?'Très bien, continue !':pct>=50?'Bon travail, continue tes efforts !':'Reprends la fiche méthode et réessaie.';
+  show('S_res')}
+
+/* Calculatrice */
+let calcOn=false;
+function calcToggle(){
+  calcOn=!calcOn;
+  $('cPn').style.display=calcOn?'block':'none';
+  $('cBt').style.background=calcOn?'linear-gradient(135deg,#dc2626,#b91c1c)':'linear-gradient(135deg,var(--teal),#0369a1)';
+  if(calcOn){['cA','cB','cC','cD','cE','cF'].forEach(id=>$(id).value='');
+    ['cRM','cRD','cRA'].forEach(id=>$(id).textContent='');}
+}
+function calcMul(){const a=pN($('cA').value),b=pN($('cB').value);if(isNaN(a)||isNaN(b))return;$('cRM').textContent=fmt(a*b)}
+function calcDiv(){const a=pN($('cC').value),b=pN($('cD').value);if(isNaN(a)||isNaN(b)||b===0)return;$('cRD').textContent=fmt(a/b)}
+function calcAdd(){const a=pN($('cE').value),b=pN($('cF').value);if(isNaN(a)||isNaN(b))return;$('cRA').textContent=fmt(a+b)}
+document.addEventListener('DOMContentLoaded',()=>{
+  ['cA','cB'].forEach(id=>{const e=$(id);if(e)e.addEventListener('keydown',ev=>{if(ev.key==='Enter')calcMul()})});
+  ['cC','cD'].forEach(id=>{const e=$(id);if(e)e.addEventListener('keydown',ev=>{if(ev.key==='Enter')calcDiv()})});
+  ['cE','cF'].forEach(id=>{const e=$(id);if(e)e.addEventListener('keydown',ev=>{if(ev.key==='Enter')calcAdd()})});
+});
+
+let lv=1,sc=0,qi=0,qs=[],cq=null;
+const LVNAMES={1:'Moyenne simple — 6ème',2:'Moyenne pondérée — 5ème',3:'Médiane — 4ème',4:'Étendue — 3ème',5:'Lecture de diagrammes'};
+function go(l){lv=l;sc=0;qi=0;
+  if(l===1)qs=genM1();else if(l===2)qs=genM2();else if(l===3)qs=genM3();
+  else if(l===4)qs=genM4();else qs=genM5();
+  $('badge').textContent=LVNAMES[l];show('S_ex');$('menuBtn').style.display='';loadQ()}
+function loadQ(){cq=qs[qi];
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';$('nxt').style.display='none';$('zone').innerHTML='';
+  if(lv===1)renderM1(cq);else if(lv===2)renderM2(cq);else if(lv===3)renderM3(cq);
+  else if(lv===4)renderM4(cq);else renderM5(cq)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   M1 — MOYENNE SIMPLE (6ème)
+   L'élève tape chaque valeur de l'addition lui-même
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const CTX1=[
+  {ctx:'notes de mathématiques',unit:'',pfx:'Les notes obtenues sont :'},
+  {ctx:'températures relevées (en °C)',unit:'°C',pfx:'Les températures relevées sont :'},
+  {ctx:'points obtenus lors du jeu',unit:'pts',pfx:'Les scores sont :'},
+  {ctx:'tailles des élèves (en cm)',unit:'cm',pfx:'Les tailles sont :'},
+  {ctx:'distances parcourues (en km)',unit:'km',pfx:'Les distances sont :'},
+  {ctx:'âges des participants (en ans)',unit:'ans',pfx:'Les âges sont :'},
+];
+function genM1(){
+  const out=[];
+  for(let i=0;i<6;i++){
+    const ctx=CTX1[i%CTX1.length];
+    const n=ri(4,6);
+    let vals,sum,mean;let tries=0;
+    do{
+      vals=Array.from({length:n-1},()=>ri(4,16));
+      const partial=vals.reduce((a,b)=>a+b,0);
+      const rem=((partial%n)+n)%n;
+      const last=rem===0?ri(4,16):ri(4,16)+(n-rem);
+      if(last>=4&&last<=20){vals.push(last);sum=partial+last;mean=sum/n;}
+      else vals=null;
+      tries++;
+    }while(!vals&&tries<60);
+    if(!vals){vals=Array.from({length:n},()=>n*ri(2,5));sum=vals.reduce((a,b)=>a+b,0);mean=sum/n;}
+    out.push({vals,n,sum,mean,ctx});
+  }
+  return out}
+
+function renderM1(q){
+  const Z=$('zone');
+  let h=`<div class="wp"><span class="hl">${q.ctx.ctx}</span> — <span class="ho">${q.ctx.pfx}</span></div>`;
+  // Show values as chips (display only)
+  h+=`<div class="vals-box"><div style="font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);margin-bottom:8px">Les valeurs</div><div class="vals">`;
+  q.vals.forEach(v=>h+=`<div class="val-chip">${v}</div>`);
+  h+=`</div></div>`;
+
+  // Step 1 : The student types each value in the sum
+  h+=`<div id="m1p1"><div class="step-box"><div class="step-title">Étape 1 — Détailler la somme</div>`;
+  h+=`<div class="prompt">Tape chaque valeur dans l'addition, puis calcule le résultat :</div>`;
+  h+=`<div class="fl" style="flex-wrap:wrap;gap:6px;row-gap:10px">`;
+  q.vals.forEach((v,i)=>{
+    if(i>0)h+=`<span class="s">+</span>`;
+    h+=`<input class="ci am" id="m1v${i}" inputmode="decimal" placeholder="?" style="width:52px">`;
+  });
+  h+=`<span class="s">=</span><input class="ci ci-wide am" id="m1s" inputmode="decimal" placeholder="?">`;
+  if(q.ctx.unit)h+=`<span class="u">${q.ctx.unit}</span>`;
+  h+=`</div>`;
+  h+=`<div class="controls"><button class="btn btn-teal" id="m1b1" onclick="chkM1a()">Valider la somme</button></div></div></div>`;
+
+  // Step 2 : Division
+  h+=`<div id="m1p2" style="display:none"><div class="step-box"><div class="step-title">Étape 2 — Calculer la moyenne</div>`;
+  h+=`<div class="prompt">La série a <span class="hl">${q.n} valeurs</span>. Divise la somme par ce nombre :</div>`;
+  h+=`<div class="fl"><span class="q">Moyenne</span><span class="s"> = </span><input class="ci ci-wide am" id="m1sum2" inputmode="decimal" placeholder="somme"><span class="s"> ÷ </span><span class="s" style="color:var(--teal)">${q.n}</span><span class="s"> = </span><input class="ci ci-wide am" id="m1m" inputmode="decimal" placeholder="?">`;
+  if(q.ctx.unit)h+=`<span class="u">${q.ctx.unit}</span>`;
+  h+=`</div>`;
+  h+=`<div class="controls"><button class="btn btn-green" id="m1b2" onclick="chkM1b()">Valider la moyenne</button></div></div></div>`;
+  Z.innerHTML=h;
+
+  const valIds=q.vals.map((_,i)=>`m1v${i}`);
+  foc('m1v0');
+  addEnter([...valIds,'m1s'],chkM1a);
+}
+
+function chkM1a(){
+  const q=cq;
+  const valIds=q.vals.map((_,i)=>`m1v${i}`);
+  [...valIds,'m1s'].forEach(id=>$(id).classList.remove('err','ok'));
+  let ok=true;
+  // Check each typed value matches
+  q.vals.forEach((v,i)=>{
+    const el=$(`m1v${i}`);
+    if(eq(pN(el.value),v))setOk(`m1v${i}`);
+    else{el.classList.add('err');ok=false;}
+  });
+  // Check sum
+  const sinp=$('m1s');
+  if(eq(pN(sinp.value),q.sum))setOk('m1s');
+  else{sinp.classList.add('err');ok=false;}
+  if(ok){$('m1b1').disabled=true;$('m1p2').style.display='';foc('m1sum2');addEnter(['m1sum2','m1m'],chkM1b);}
+}
+
+function chkM1b(){
+  const q=cq;
+  ['m1sum2','m1m'].forEach(id=>$(id).classList.remove('err','ok'));
+  let ok=true;
+  if(eq(pN($('m1sum2').value),q.sum))setOk('m1sum2');else{$('m1sum2').classList.add('err');ok=false;}
+  if(eq(pN($('m1m').value),q.mean))setOk('m1m');else{$('m1m').classList.add('err');ok=false;}
+  // Final answer correct → always count as correct
+  if(ok){$('m1b2').disabled=true;finish(true);}
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   M2 — MOYENNE PONDÉRÉE (5ème)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const CTX2=[
+  {ctx:'Notes en contrôle',xi:'Note'},
+  {ctx:'Nombre de buts marqués par match',xi:'Buts'},
+  {ctx:'Points obtenus par partie',xi:'Points'},
+  {ctx:'Températures journalières (°C)',xi:'Temp. (°C)'},
+  {ctx:'Résultats d\'un sondage',xi:'Valeur'},
+  {ctx:'Pointures relevées dans la classe',xi:'Pointure'},
+];
+function genM2(){
+  const out=[];
+  for(let i=0;i<6;i++){
+    const ctx=CTX2[i%CTX2.length];
+    const nVals=ri(3,5);
+    const vals=[],used=new Set();
+    while(vals.length<nVals){const v=ri(5,18);if(!used.has(v)){used.add(v);vals.push(v);}}
+    vals.sort((a,b)=>a-b);
+    const effectifs=vals.map(()=>ri(2,8));
+    const N=effectifs.reduce((a,b)=>a+b,0);
+    const produits=vals.map((v,k)=>v*effectifs[k]);
+    const somme=produits.reduce((a,b)=>a+b,0);
+    const mean=Math.round(somme/N*100)/100;
+    out.push({vals,effectifs,N,produits,somme,mean,ctx});
+  }
+  return out}
+
+function renderM2(q){
+  const Z=$('zone');
+  let h='';
+  h+=`<div class="wp"><span class="hl">${q.ctx.ctx}</span> — Complète le tableau, puis calcule la moyenne pondérée.</div>`;
+  h+=`<div id="m2zone1">`;
+  h+=`<div class="tw"><table class="pt">`;
+  h+=`<tr><th>${q.ctx.xi} (xᵢ)</th><th>Effectif (nᵢ)</th><th>xᵢ × nᵢ</th></tr>`;
+  q.vals.forEach((v,i)=>{
+    h+=`<tr>`;
+    h+=`<td>${v}</td>`;
+    h+=`<td>${q.effectifs[i]}</td>`;
+    h+=`<td><input class="ci ci-wide am" id="m2p${i}" inputmode="decimal" placeholder="?"></td>`;
+    h+=`</tr>`;
+  });
+  h+=`<tr class="tot">`;
+  h+=`<td class="rl" style="font-weight:700;color:var(--teal)">Totaux</td>`;
+  h+=`<td><input class="ci am" id="m2N" inputmode="decimal" placeholder="N"></td>`;
+  h+=`<td><input class="ci ci-wide am" id="m2S" inputmode="decimal" placeholder="Σ"></td>`;
+  h+=`</tr></table></div>`;
+  h+=`<div id="m2errMsg" style="display:none;color:var(--red);font-size:.88em;font-weight:600;margin:8px 0 4px;text-align:center;padding:8px;background:var(--red-pale);border-radius:8px">`;
+  h+=`❌ Certaines cases sont incorrectes — corrige les cases en rouge.</div>`;
+  h+=`<div class="controls">`;
+  h+=`<button class="btn btn-teal" id="m2b1" onclick="chkM2a()">Valider le tableau</button>`;
+  h+=`</div>`;
+  h+=`</div>`;
+  // Zone où l'étape 2 sera INJECTÉE dynamiquement
+  h+=`<div id="m2zone2"></div>`;
+  Z.innerHTML=h;
+  const prodIds=q.vals.map((_,i)=>`m2p${i}`);
+  foc('m2p0');
+  addEnter([...prodIds,'m2N','m2S'],chkM2a);
+}
+
+function chkM2a(){
+  const q=cq;
+  // 1. Vérifier les produits xi×ni
+  let allOk=true;
+  q.vals.forEach(function(v,i){
+    var el=document.getElementById('m2p'+i);
+    if(!el)return;
+    el.classList.remove('err','ok');
+    if(eq(pN(el.value),q.produits[i])){
+      el.classList.add('ok');
+    } else {
+      el.classList.add('err');
+      allOk=false;
+    }
+  });
+  // 2. Vérifier N et Σ
+  var elN=document.getElementById('m2N');
+  var elS=document.getElementById('m2S');
+  elN.classList.remove('err','ok');
+  elS.classList.remove('err','ok');
+  if(eq(pN(elN.value),q.N)){
+    elN.classList.add('ok');
+  } else {
+    elN.classList.add('err');
+    allOk=false;
+  }
+  if(eq(pN(elS.value),q.somme)){
+    elS.classList.add('ok');
+  } else {
+    elS.classList.add('err');
+    allOk=false;
+  }
+  // 3. Si erreurs → message et stop
+  var errMsg=document.getElementById('m2errMsg');
+  if(!allOk){
+    errMsg.style.display='block';
+    return;
+  }
+  errMsg.style.display='none';
+  // 4. Tout juste → verrouiller le tableau
+  document.getElementById('m2b1').disabled=true;
+  q.vals.forEach(function(v,i){
+    var el=document.getElementById('m2p'+i);
+    if(el){el.classList.remove('err');el.classList.add('ok');el.disabled=true;}
+  });
+  elN.classList.remove('err');elN.classList.add('ok');elN.disabled=true;
+  elS.classList.remove('err');elS.classList.add('ok');elS.disabled=true;
+  // 5. Injecter l'étape 2 directement dans le DOM
+  var zone2=document.getElementById('m2zone2');
+  var s='';
+  s+='<div class="step-box" style="margin-top:18px">';
+  s+='<div class="step-title">Étape finale — Calcul de la moyenne</div>';
+  s+='<div class="prompt">Divise la somme des produits par l\'effectif total :</div>';
+  s+='<div class="fl">';
+  s+='<span class="q">Moyenne</span>';
+  s+='<span class="s"> = </span>';
+  s+='<input class="ci ci-wide am" id="m2mS" inputmode="decimal" placeholder="Σ(x×n)">';
+  s+='<span class="s"> ÷ </span>';
+  s+='<input class="ci am" id="m2mN" inputmode="decimal" placeholder="N">';
+  s+='<span class="s"> = </span>';
+  s+='<input class="ci ci-wide am" id="m2m" inputmode="decimal" placeholder="?">';
+  s+='</div>';
+  s+='<div class="controls"><button class="btn btn-green" id="m2b2" onclick="chkM2b()">Valider la moyenne</button></div>';
+  s+='</div>';
+  zone2.innerHTML=s;
+  // 6. Focus et listeners
+  setTimeout(function(){
+    var mS=document.getElementById('m2mS');
+    if(mS)mS.focus();
+    zone2.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },100);
+  addEnter(['m2mS','m2mN','m2m'],chkM2b);
+}
+
+function chkM2b(){
+  const q=cq;
+  var mS=document.getElementById('m2mS');
+  var mN=document.getElementById('m2mN');
+  var mM=document.getElementById('m2m');
+  if(!mS||!mN||!mM)return;
+  mS.classList.remove('err','ok');
+  mN.classList.remove('err','ok');
+  mM.classList.remove('err','ok');
+  var allOk=true;
+  if(eq(pN(mS.value),q.somme)){mS.classList.add('ok');}
+  else{mS.classList.add('err');allOk=false;}
+  if(eq(pN(mN.value),q.N)){mN.classList.add('ok');}
+  else{mN.classList.add('err');allOk=false;}
+  if(eq(pN(mM.value),q.mean)){mM.classList.add('ok');}
+  else{mM.classList.add('err');allOk=false;}
+  if(allOk){
+    mS.disabled=true;mN.disabled=true;mM.disabled=true;
+    document.getElementById('m2b2').disabled=true;
+    finish(true);
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   M3 — MÉDIANE (4ème)
+   Pas de mise en évidence des valeurs centrales
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function genM3(){
+  const out=[];
+  const parities=sh(['odd','odd','odd','even','even','even']);
+  parities.forEach(par=>{
+    const nCount=par==='odd'?rv([5,7,9]):rv([4,6,8]);
+    const vals=Array.from({length:nCount},()=>ri(2,30)).sort((a,b)=>a-b);
+    let median,mid1,mid2,midRank1,midRank2;
+    if(par==='odd'){
+      median=vals[Math.floor(nCount/2)];
+      midRank1=Math.floor(nCount/2)+1;
+    } else {
+      midRank1=nCount/2;midRank2=nCount/2+1;
+      mid1=vals[nCount/2-1];mid2=vals[nCount/2];
+      median=(mid1+mid2)/2;
+    }
+    out.push({vals,nCount,par,median,mid1,mid2,midRank1,midRank2});
+  });
+  return out}
+
+function renderM3(q){
+  const Z=$('zone');
+  const isOdd=q.par==='odd';
+  // Show values WITHOUT any highlighting
+  let h=`<div class="vals-box">`;
+  h+=`<div style="font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);margin-bottom:8px">Série triée par ordre croissant — <strong>${q.nCount} valeurs</strong></div>`;
+  h+=`<div class="vals">`;
+  q.vals.forEach((v,i)=>h+=`<div class="val-chip">${v}</div>`);
+  h+=`</div></div>`;
+
+  if(isOdd){
+    h+=`<div class="step-box"><div class="step-title">Médiane — n impair</div>`;
+    h+=`<div class="prompt">Il y a <span class="hl">${q.nCount} valeurs</span> (nombre impair).<br>La médiane est la valeur qui se trouve exactement au milieu.</div>`;
+    h+=`<div class="fl"><span class="s">Médiane =</span><input class="ci ci-wide am" id="m3m" inputmode="decimal" placeholder="?"></div>`;
+    h+=`<div class="controls"><button class="btn btn-green" id="m3b1" onclick="chkM3odd()">Valider</button></div></div>`;
+    Z.innerHTML=h;foc('m3m');addEnter(['m3m'],chkM3odd);
+  } else {
+    h+=`<div class="step-box"><div class="step-title">Médiane — n pair</div>`;
+    h+=`<div class="prompt">Il y a <span class="hl">${q.nCount} valeurs</span> (nombre pair).<br>La médiane est la <strong>moyenne des deux valeurs centrales</strong>.<br>Identifie d'abord ces deux valeurs :</div>`;
+    h+=`<div class="fl"><span class="s">1ʳᵉ valeur centrale :</span><input class="ci am" id="m3v1" inputmode="decimal" placeholder="?"></div>`;
+    h+=`<div class="fl"><span class="s">2ᵉ valeur centrale :</span><input class="ci am" id="m3v2" inputmode="decimal" placeholder="?"></div>`;
+    h+=`<div class="controls"><button class="btn btn-teal" id="m3b1" onclick="chkM3evenA()">Valider</button></div></div>`;
+    h+=`<div id="m3p2" style="display:none"><div class="step-box"><div class="step-title">Calcul de la médiane</div>`;
+    h+=`<div class="fl"><span class="q">Médiane</span><span class="s"> = (</span><input class="ci am" id="m3e1" inputmode="decimal" placeholder="v₁"><span class="s"> + </span><input class="ci am" id="m3e2" inputmode="decimal" placeholder="v₂"><span class="s">) ÷ 2 = </span><input class="ci ci-wide am" id="m3m" inputmode="decimal" placeholder="?"></div>`;
+    h+=`<div class="controls"><button class="btn btn-green" id="m3b2" onclick="chkM3evenB()">Valider</button></div></div></div>`;
+    Z.innerHTML=h;foc('m3v1');addEnter(['m3v1','m3v2'],chkM3evenA);
+  }
+}
+
+function chkM3odd(){
+  const q=cq;const inp=$('m3m');inp.classList.remove('err','ok');
+  if(eq(pN(inp.value),q.median)){setOk('m3m');$('m3b1').disabled=true;finish(true);}
+  else{inp.classList.add('err');setTimeout(()=>inp.classList.remove('err'),600);}
+}
+
+function chkM3evenA(){
+  const q=cq;['m3v1','m3v2'].forEach(id=>$(id).classList.remove('err','ok'));let ok=true;
+  if(eq(pN($('m3v1').value),q.mid1))setOk('m3v1');else{$('m3v1').classList.add('err');ok=false;}
+  if(eq(pN($('m3v2').value),q.mid2))setOk('m3v2');else{$('m3v2').classList.add('err');ok=false;}
+  if(ok){$('m3b1').disabled=true;$('m3p2').style.display='';foc('m3e1');addEnter(['m3e1','m3e2','m3m'],chkM3evenB);}
+}
+
+function chkM3evenB(){
+  const q=cq;['m3e1','m3e2','m3m'].forEach(id=>$(id).classList.remove('err','ok'));let ok=true;
+  if(eq(pN($('m3e1').value),q.mid1))setOk('m3e1');else{$('m3e1').classList.add('err');ok=false;}
+  if(eq(pN($('m3e2').value),q.mid2))setOk('m3e2');else{$('m3e2').classList.add('err');ok=false;}
+  if(eq(pN($('m3m').value),q.median))setOk('m3m');else{$('m3m').classList.add('err');ok=false;}
+  if(ok){$('m3b2').disabled=true;finish(true);}
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   M4 — ÉTENDUE (3ème)
+   Aucune mise en évidence des valeurs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const CTX4=[
+  {ctx:'températures relevées en °C',unit:'°C'},
+  {ctx:'notes obtenues par les élèves',unit:''},
+  {ctx:'durées en minutes',unit:'min'},
+  {ctx:'distances en km',unit:'km'},
+  {ctx:'points marqués par équipe',unit:'pts'},
+  {ctx:'revenus mensuels en euros',unit:'€'},
+];
+function genM4(){
+  const out=[];
+  for(let i=0;i<6;i++){
+    const ctx=CTX4[i%CTX4.length];
+    const n=ri(5,9);
+    const vals=Array.from({length:n},()=>ri(3,80));
+    // Ensure unique max and min (no ties)
+    const max=Math.max(...vals),min=Math.min(...vals),etendue=max-min;
+    out.push({vals,max,min,etendue,ctx});
+  }
+  return out}
+
+function renderM4(q){
+  const Z=$('zone');
+  let h=`<div class="wp">Voici une série de <span class="hl">${q.ctx.ctx}</span> :</div>`;
+  // No highlighting at all — all chips identical
+  h+=`<div class="vals-box"><div class="vals">`;
+  q.vals.forEach(v=>h+=`<div class="val-chip">${v}</div>`);
+  h+=`</div></div>`;
+  h+=`<div class="step-box"><div class="step-title">Calcul de l'étendue</div>`;
+  h+=`<div class="prompt">Repère la valeur la plus grande et la plus petite dans la série :</div>`;
+  h+=`<div class="fl"><span class="s">Maximum =</span><input class="ci ci-wide am" id="m4max" inputmode="decimal" placeholder="?"><span class="u">${q.ctx.unit}</span></div>`;
+  h+=`<div class="fl"><span class="s">Minimum =</span><input class="ci ci-wide am" id="m4min" inputmode="decimal" placeholder="?"><span class="u">${q.ctx.unit}</span></div>`;
+  h+=`<div class="controls"><button class="btn btn-teal" id="m4b1" onclick="chkM4a()">Valider</button></div></div>`;
+  h+=`<div id="m4p2" style="display:none"><div class="step-box"><div class="step-title">Calcul du résultat</div>`;
+  h+=`<div class="prompt">Maintenant calcule l'étendue :</div>`;
+  h+=`<div class="fl"><span class="q">Étendue</span><span class="s"> = </span><input class="ci am" id="m4e1" inputmode="decimal" placeholder="max"><span class="s"> − </span><input class="ci am" id="m4e2" inputmode="decimal" placeholder="min"><span class="s"> = </span><input class="ci ci-wide am" id="m4r" inputmode="decimal" placeholder="?"><span class="u">${q.ctx.unit}</span></div>`;
+  h+=`<div class="controls"><button class="btn btn-green" id="m4b2" onclick="chkM4b()">Valider</button></div></div></div>`;
+  Z.innerHTML=h;foc('m4max');addEnter(['m4max','m4min'],chkM4a);
+}
+
+function chkM4a(){
+  const q=cq;['m4max','m4min'].forEach(id=>$(id).classList.remove('err','ok'));let ok=true;
+  if(eq(pN($('m4max').value),q.max))setOk('m4max');else{$('m4max').classList.add('err');ok=false;}
+  if(eq(pN($('m4min').value),q.min))setOk('m4min');else{$('m4min').classList.add('err');ok=false;}
+  if(ok){$('m4b1').disabled=true;$('m4p2').style.display='';foc('m4e1');addEnter(['m4e1','m4e2','m4r'],chkM4b);}
+}
+
+function chkM4b(){
+  const q=cq;['m4e1','m4e2','m4r'].forEach(id=>$(id).classList.remove('err','ok'));let ok=true;
+  if(eq(pN($('m4e1').value),q.max))setOk('m4e1');else{$('m4e1').classList.add('err');ok=false;}
+  if(eq(pN($('m4e2').value),q.min))setOk('m4e2');else{$('m4e2').classList.add('err');ok=false;}
+  if(eq(pN($('m4r').value),q.etendue))setOk('m4r');else{$('m4r').classList.add('err');ok=false;}
+  if(ok){$('m4b2').disabled=true;finish(true);}
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   M5 — DIAGRAMMES (sans formules)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const COLORS5=['#0f766e','#7c3aed','#c2410c','#0369a1','#16a34a','#d97706'];
+const LABELS_PIE=[
+  {theme:'Sport préféré',cats:['Football','Basketball','Tennis','Natation','Cyclisme']},
+  {theme:'Moyen de transport',cats:['Voiture','Vélo','Bus','Marche','Train']},
+  {theme:'Matière préférée',cats:['Maths','Français','Histoire','SVT','Anglais']},
+  {theme:'Fruit préféré',cats:['Pomme','Banane','Fraise','Orange','Poire']},
+];
+const LABELS_HIST=[
+  {theme:'Âges des participants (ans)',cats:['[10 ; 12[','[12 ; 14[','[14 ; 16[','[16 ; 18[','[18 ; 20[']},
+  {theme:'Notes obtenues',cats:['[0 ; 4[','[4 ; 8[','[8 ; 12[','[12 ; 16[','[16 ; 20]']},
+  {theme:'Durées (en minutes)',cats:['[0 ; 5[','[5 ; 10[','[10 ; 15[','[15 ; 20[','[20 ; 25[']},
+  {theme:'Distances (en km)',cats:['[0 ; 10[','[10 ; 20[','[20 ; 30[','[30 ; 40[','[40 ; 50[']},
+];
+
+function genM5(){
+  const out=[];
+  for(let i=0;i<6;i++){
+    if(i<3){
+      const tpl=rv(LABELS_PIE);
+      const nCats=ri(3,4);
+      const cats=sh([...tpl.cats]).slice(0,nCats);
+      let percs,tries=0;
+      do{
+        const raw=cats.map(()=>ri(10,40));
+        const tot=raw.reduce((a,b)=>a+b,0);
+        percs=raw.map(v=>Math.round(v/tot*100));
+        const diff=100-percs.reduce((a,b)=>a+b,0);
+        percs[0]+=diff;tries++;
+      }while((percs.some(p=>p<8||p>55))&&tries<30);
+      const N=ri(3,8)*50;
+      const effectifs=percs.map(p=>Math.round(p*N/100));
+      const qIdx=ri(0,nCats-1);
+      out.push({type:'pie',theme:tpl.theme,cats,percs,N,effectifs,qIdx,asked:rv(['pct','eff'])});
+    } else {
+      const tpl=rv(LABELS_HIST);
+      const effectifs=Array.from({length:5},()=>ri(2,20));
+      const N=effectifs.reduce((a,b)=>a+b,0);
+      const qIdx=ri(0,4);
+      const qType=rv(['eff','total','modal']);
+      out.push({type:'hist',theme:tpl.theme,cats:tpl.cats,effectifs,N,qIdx,qType});
+    }
+  }
+  return sh(out);}
+
+function drawPie(canvasId,percs,colors){
+  const canvas=$(canvasId);if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=Math.min(W,H)/2-8;
+  ctx.clearRect(0,0,W,H);
+  let angle=-Math.PI/2;
+  percs.forEach((p,i)=>{
+    const slice=p/100*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
+    ctx.fillStyle=colors[i];ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    if(p>=10){const mid=angle+slice/2;
+      const lx=cx+Math.cos(mid)*r*0.62,ly=cy+Math.sin(mid)*r*0.62;
+      ctx.fillStyle='#fff';ctx.font='bold 13px DM Sans,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(p+'%',lx,ly);}
+    angle+=slice;
+  });}
+
+function drawHist(canvasId,effectifs,labels,colors){
+  const canvas=$(canvasId);if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const pad={l:36,r:10,t:12,b:52};
+  const maxE=Math.max(...effectifs);
+  const bw=(W-pad.l-pad.r)/effectifs.length;
+  ctx.clearRect(0,0,W,H);
+  effectifs.forEach((e,i)=>{
+    const x=pad.l+i*bw,barH=e/maxE*(H-pad.t-pad.b);
+    const y=H-pad.b-barH;
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.fillRect(x+2,y,bw-4,barH);
+    ctx.fillStyle='#1a2e2b';ctx.font='bold 12px DM Sans,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText(e,x+bw/2,y-2);
+    ctx.fillStyle='#5a7470';ctx.font='10px DM Sans,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(labels[i],x+bw/2,H-pad.b+5);
+  });
+  ctx.strokeStyle='#d4e8e4';ctx.lineWidth=1;
+  for(let v=0;v<=maxE;v+=Math.ceil(maxE/5)){
+    const y=H-pad.b-v/maxE*(H-pad.t-pad.b);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.fillStyle='#5a7470';ctx.font='11px DM Sans,sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(v,pad.l-4,y);
+  }
+  ctx.strokeStyle='#0f766e';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();}
+
+function renderM5(q){
+  const Z=$('zone');
+  if(q.type==='pie')renderPie(q,Z);
+  else renderHist(q,Z);
+}
+
+function renderPie(q,Z){
+  let h=`<div class="wp"><span class="hl">${q.theme}</span> — Lis le diagramme circulaire ci-dessous.</div>`;
+  h+=`<div class="diag-wrap">`;
+  h+=`<canvas id="m5cvs" width="200" height="200" style="flex-shrink:0"></canvas>`;
+  h+=`<div class="legend">`;
+  q.cats.forEach((c,i)=>h+=`<div class="leg-item"><div class="leg-dot" style="background:${COLORS5[i]}"></div><span>${c} — <strong>${q.percs[i]}%</strong></span></div>`);
+  h+=`</div></div>`;
+  const cat=q.cats[q.qIdx],pct=q.percs[q.qIdx],eff=q.effectifs[q.qIdx];
+  h+=`<div class="step-box"><div class="step-title">Question</div>`;
+  if(q.asked==='pct'){
+    h+=`<div class="prompt">Quel est le pourcentage de la catégorie <span class="hl">${cat}</span> ?</div>`;
+    h+=`<div class="fl"><span class="s">${cat} →</span><input class="ci ci-wide am" id="m5a" inputmode="decimal" placeholder="?"><span class="u">%</span></div>`;
+    h+=`<div class="controls"><button class="btn btn-teal" id="m5b1" onclick="chkM5(${pct})">Valider</button></div></div>`;
+    Z.innerHTML=h;
+    requestAnimationFrame(()=>drawPie('m5cvs',q.percs,COLORS5));
+    foc('m5a');addEnter(['m5a'],()=>chkM5(pct));
+  } else {
+    h+=`<div class="prompt">L'effectif total est <span class="hl">N = ${q.N}</span>.<br>Combien y a-t-il de personnes dans la catégorie <span class="hl">${cat}</span> ?<br><span style="font-size:.85em;color:var(--text-light)">Rappel : effectif = pourcentage × total ÷ 100</span></div>`;
+    h+=`<div class="fl"><span class="s">Effectif de ${cat} =</span><input class="ci ci-wide am" id="m5a" inputmode="decimal" placeholder="?"></div>`;
+    h+=`<div class="controls"><button class="btn btn-teal" id="m5b1" onclick="chkM5(${eff})">Valider</button></div></div>`;
+    Z.innerHTML=h;
+    requestAnimationFrame(()=>drawPie('m5cvs',q.percs,COLORS5));
+    foc('m5a');addEnter(['m5a'],()=>chkM5(eff));
+  }
+}
+
+function renderHist(q,Z){
+  let h=`<div class="wp"><span class="hl">${q.theme}</span> — Lis l'histogramme ci-dessous.</div>`;
+  h+=`<div style="text-align:center;margin:10px 0"><canvas id="m5cvs" width="360" height="220" style="max-width:100%;height:auto"></canvas></div>`;
+  let ansVal,questionHtml;
+  if(q.qType==='eff'){
+    const cat=q.cats[q.qIdx];ansVal=q.effectifs[q.qIdx];
+    questionHtml=`<div class="prompt">Quel est l'effectif de la classe <span class="hl">${cat}</span> ?</div>
+    <div class="fl"><span class="s">Effectif de ${cat} =</span><input class="ci ci-wide am" id="m5a" inputmode="decimal" placeholder="?"></div>`;
+  } else if(q.qType==='total'){
+    ansVal=q.N;
+    questionHtml=`<div class="prompt">Quel est l'<span class="hl">effectif total</span> de cette série ?<br><span style="font-size:.85em;color:var(--text-light)">Additionne les effectifs de toutes les classes.</span></div>
+    <div class="fl"><span class="s">N =</span><input class="ci ci-wide am" id="m5a" inputmode="decimal" placeholder="?"></div>`;
+  } else {
+    const maxEff=Math.max(...q.effectifs);const idxModal=q.effectifs.indexOf(maxEff);ansVal=maxEff;
+    questionHtml=`<div class="prompt">Quelle est la classe ayant l'<span class="hl">effectif le plus élevé</span> ?<br><span style="font-size:.85em;color:var(--text-light)">Tape son effectif.</span></div>
+    <div class="fl"><span class="s">Effectif max =</span><input class="ci ci-wide am" id="m5a" inputmode="decimal" placeholder="?"></div>`;
+  }
+  h+=`<div class="step-box"><div class="step-title">Question</div>${questionHtml}`;
+  h+=`<div class="controls"><button class="btn btn-teal" id="m5b1" onclick="chkM5(${ansVal})">Valider</button></div></div>`;
+  Z.innerHTML=h;
+  requestAnimationFrame(()=>drawHist('m5cvs',q.effectifs,q.cats,COLORS5));
+  foc('m5a');addEnter(['m5a'],()=>chkM5(ansVal));
+}
+
+function chkM5(expected){
+  const inp=$('m5a');inp.classList.remove('err','ok');
+  if(eq(pN(inp.value),expected)){setOk(inp.id);$('m5b1').disabled=true;finish(true);}
+  else{inp.classList.add('err');setTimeout(()=>inp.classList.remove('err'),600);}
+}
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>

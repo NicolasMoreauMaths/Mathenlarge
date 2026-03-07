@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier d'Homothétie</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@1,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{width:100%;height:100%;overflow:hidden}
+#root{display:flex;flex-direction:column}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#e8e4de}
+:root{
+  --hdr-bg:#0f172a;
+  --hdr-h:54px;
+  --sb-w:252px;
+  --radius-lg:14px;
+  --radius-md:10px;
+  --radius-sm:7px;
+  --sand-50:#faf8f5;
+  --sand-100:#f2efe8;
+  --sand-200:#e4dfd5;
+  --sand-300:#cdc8bc;
+  --sand-700:#6b6459;
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{0%{transform:scale(.88);opacity:0}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}45%{transform:translateY(-4px)}}
+@keyframes pulseO{0%,100%{r:8}50%{r:11}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ═══ HEADER ════════════════════════════════════════════ */
+.hdr{
+  display:flex;align-items:center;gap:8px;
+  padding:0 16px;height:var(--hdr-h);
+  background:var(--hdr-bg);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  flex-shrink:0;z-index:30;
+  box-shadow:0 2px 20px rgba(0,0,0,.35);
+}
+.hdr-brand{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.hdr-logo-pill{
+  width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(135deg,#6366f1,#a855f7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;box-shadow:0 2px 8px rgba(99,102,241,.45);
+  flex-shrink:0;
+}
+.hdr-title{font-size:14px;font-weight:700;color:#f8fafc;letter-spacing:-.2px;white-space:nowrap;line-height:1.2}
+.hdr-title-sub{font-size:10px;font-weight:400;color:#64748b;display:block;letter-spacing:.2px}
+
+.hdr-mid{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;}
+.hdr-right{display:flex;align-items:center;gap:3px;margin-left:auto;flex-shrink:0;}
+
+/* Tool groups */
+.tool-group{
+  display:flex;align-items:center;gap:2px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:3px;
+}
+
+.tbtn{
+  width:32px;height:32px;border-radius:7px;border:none;
+  background:transparent;cursor:pointer;font-size:15px;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.55);transition:all .15s ease;
+  position:relative;flex-shrink:0;
+}
+.tbtn:hover{background:rgba(255,255,255,.12);color:rgba(255,255,255,.9);}
+.tbtn.on{background:rgba(255,255,255,.95);color:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);}
+.tbtn.accent{background:#3b82f6;color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.4);}
+.tbtn-sm{width:28px;height:28px;font-size:13px;}
+.tbtn-label{font-size:9.5px;font-weight:600;color:rgba(255,255,255,.4);white-space:nowrap;padding:0 6px;letter-spacing:.3px;}
+
+.hdr-sep{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 4px;flex-shrink:0}
+
+.zoom-display{
+  font-size:10px;color:rgba(255,255,255,.45);
+  min-width:36px;text-align:center;font-family:'DM Mono',monospace;
+  font-weight:500;
+}
+
+/* ═══ MAIN ══════════════════════════════════════════════ */
+.main{display:flex;flex:1;min-height:0;overflow:hidden}
+.canvas-wrap{flex:1;min-width:0;position:relative;overflow:hidden;touch-action:none}
+
+/* ═══ SIDEBAR ════════════════════════════════════════════ */
+.sb{
+  width:var(--sb-w);flex-shrink:0;display:flex;flex-direction:column;
+  background:var(--sand-50);
+  border-left:1px solid var(--sand-200);
+  overflow-y:auto;overflow-x:hidden;z-index:20;
+  box-shadow:-4px 0 20px rgba(0,0,0,.05);
+}
+.sb::-webkit-scrollbar{width:4px}
+.sb::-webkit-scrollbar-track{background:transparent}
+.sb::-webkit-scrollbar-thumb{background:var(--sand-300);border-radius:4px}
+
+.sb-section{padding:16px;border-bottom:1px solid var(--sand-200);flex-shrink:0;}
+.sb-section:last-child{border-bottom:none;flex:1;}
+.sb-label{
+  font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.8px;color:var(--sand-300);
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.sb-label::after{content:'';flex:1;height:1px;background:var(--sand-200);}
+
+/* Level cards */
+.lv-card{
+  width:100%;padding:11px 13px;border-radius:var(--radius-md);
+  border:1.5px solid var(--sand-200);background:#fff;
+  cursor:pointer;font-family:'DM Sans',inherit;
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:5px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
+  transition:all .18s ease;text-align:left;
+  position:relative;overflow:hidden;
+}
+.lv-card:last-child{margin-bottom:0}
+.lv-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;border-radius:0 2px 2px 0;
+  background:var(--lv-col,#94a3b8);
+  transition:width .18s ease;
+}
+.lv-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateX(2px);border-color:var(--lv-col,#94a3b8);}
+.lv-card:hover::before{width:4px}
+.lv-card.active{
+  border-color:var(--lv-col);
+  background:color-mix(in srgb,var(--lv-col) 6%,#fff);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--lv-col) 25%,transparent);
+}
+.lv-card.active::before{width:4px}
+.lv-k{
+  font-family:'Playfair Display',Georgia,serif;
+  font-style:italic;font-weight:700;font-size:22px;
+  line-height:1;color:var(--lv-col);flex-shrink:0;min-width:40px;
+  text-align:center;
+}
+.lv-info{flex:1;min-width:0;}
+.lv-info strong{font-size:11.5px;font-weight:600;color:#1e1b16;display:block;line-height:1.3}
+.lv-info span{font-size:10px;font-weight:400;color:var(--sand-700);display:block;margin-top:1px}
+.lv-badge{
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;
+  background:var(--lv-col);color:#fff;flex-shrink:0;letter-spacing:.3px;
+}
+
+/* Instrument grid */
+.instr-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.instr-btn{
+  padding:10px 8px;border-radius:var(--radius-md);
+  border:1.5px solid var(--sand-200);background:#fff;
+  cursor:pointer;font-family:'DM Sans',inherit;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);transition:all .15s ease;
+}
+.instr-btn:hover{box-shadow:0 3px 12px rgba(0,0,0,.1);transform:translateY(-1px);}
+.instr-btn.on{border-color:var(--instr-col);background:color-mix(in srgb,var(--instr-col) 8%,#fff);box-shadow:0 2px 10px color-mix(in srgb,var(--instr-col) 20%,transparent);}
+.instr-ico{font-size:20px;line-height:1;}
+.instr-lbl{font-size:10px;font-weight:600;color:#4a4640;letter-spacing:.1px;}
+.instr-dot{width:5px;height:5px;border-radius:50%;background:var(--sand-200);transition:background .15s;}
+.instr-btn.on .instr-dot{background:var(--instr-col);}
+
+/* Consigne card */
+.ccard{
+  background:#fff;border-radius:var(--radius-lg);padding:13px 14px;
+  border:1.5px solid var(--sand-200);
+  box-shadow:0 1px 6px rgba(0,0,0,.06);
+  animation:slideUp .22s ease;margin-bottom:8px;
+}
+.ccard-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;padding:3px 9px;
+  border-radius:20px;color:#fff;margin-bottom:8px;
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.ccard-formula{
+  font-family:'Playfair Display',Georgia,serif;font-style:italic;
+  font-size:15px;color:#1e1b16;margin-bottom:6px;display:block;
+  letter-spacing:-.2px;
+}
+.ccard-text{font-size:11.5px;line-height:1.65;color:#4a4640;}
+
+.vcard{border-radius:var(--radius-md);padding:10px 13px;font-size:11.5px;font-weight:600;
+  line-height:1.45;animation:slideUp .18s ease;margin-bottom:8px}
+.vok{background:#d1fae5;color:#065f46;border:1.5px solid #6ee7b7}
+.verr{background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5}
+
+/* Action buttons */
+.abtn{
+  width:100%;padding:11px 14px;border-radius:var(--radius-md);border:none;
+  cursor:pointer;font-family:'DM Sans',inherit;font-size:12.5px;font-weight:700;
+  box-shadow:0 2px 10px rgba(0,0,0,.14);transition:all .15s ease;
+  margin-bottom:6px;letter-spacing:-.1px;
+}
+.abtn:last-child{margin-bottom:0}
+.abtn:hover{box-shadow:0 4px 18px rgba(0,0,0,.2);transform:translateY(-1px)}
+.abtn-ghost{
+  width:100%;padding:10px 13px;border-radius:var(--radius-md);
+  border:1.5px solid var(--sand-200);background:#fff;
+  cursor:pointer;font-family:'DM Sans',inherit;
+  font-size:12px;font-weight:600;color:var(--sand-700);margin-bottom:6px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);transition:all .15s ease;
+}
+.abtn-ghost:hover{box-shadow:0 2px 10px rgba(0,0,0,.1);border-color:var(--sand-300);}
+
+/* Status bar */
+.sbar{
+  display:flex;align-items:center;gap:10px;padding:0 14px;height:22px;
+  background:var(--hdr-bg);border-top:1px solid rgba(255,255,255,.05);
+  font-size:9px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;
+  flex-shrink:0;overflow:hidden;
+}
+.sbar-chip{
+  padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.5);font-weight:500;font-size:9px;
+}
+
+/* Mobile toggle */
+.sb-toggle{
+  display:none;position:fixed;bottom:16px;right:16px;z-index:100;
+  width:48px;height:48px;border-radius:50%;border:none;
+  background:var(--hdr-bg);color:#fff;font-size:20px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  align-items:center;justify-content:center;
+}
+.sb{touch-action:pan-y}
+@media(max-width:768px){
+  .hdr{height:46px;padding:0 8px;overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;flex-wrap:nowrap;gap:4px}
+  .hdr::-webkit-scrollbar{display:none}
+  .hdr-title-sub{display:none}
+  .hdr-mid{flex:none;gap:2px;}
+  .tool-group{padding:2px;}
+  .tbtn{width:28px;height:28px;font-size:13px;flex-shrink:0;}
+  .tbtn-sm{width:26px;height:26px;}
+  .main{flex-direction:column}
+  .sb-toggle{display:flex}
+  .sb{position:fixed;bottom:0;left:0;right:0;z-index:80;
+    width:100%;max-height:65vh;overflow-y:auto;border-left:none;
+    border-top:2px solid var(--sand-200);border-radius:20px 20px 0 0;
+    box-shadow:0 -6px 28px rgba(0,0,0,.2);
+    transform:translateY(100%);transition:transform .3s ease}
+  .sb.open{transform:translateY(0)}
+  .sb-section{padding:12px 14px;}
+  .ccard{font-size:10.5px;padding:10px 12px;margin-bottom:5px}
+  .vcard{font-size:10px;padding:8px 10px;margin-bottom:5px}
+  .abtn,.abtn-ghost{padding:10px 13px;font-size:12px;margin-bottom:5px}
+  .lv-badge{display:none}
+  .sbar{display:none}
+  .hdr-sep{display:none}
+  .tbtn-label{display:none}
+}
+@media(min-width:769px){.sb-toggle{display:none!important}}
+</style>
+</head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {useState,useRef,useEffect,useCallback}=React;
+
+// ═══ FONCTIONS UTILITAIRES MANQUANTES (correctif) ══════════════════
+const D2R=deg=>deg*Math.PI/180;
+const R2D=rad=>rad*180/Math.PI;
+
+// ═══ CONSTANTES ═══════════════════════════════════════════════════
+const IZ=3,RH=18,PROT_R=90,RAIL_PX=10,DETACH_PX=15,ANG_TOL=15;
+const CRAN_PX=11,PT_PX=14,VTXSNAP_PX=14,ANCHOR_PX=30;
+const MERGE_MM=1.2,MERGE_ANG=5,HDL_R=10,VALID_TOL_PX=12;
+const ORAIL_PX=8, DETACH_ORAIL=52;
+const TOUCH_HDL=35;
+// ── Tailles FIXES en pixels écran (indépendantes du zoom) ──────────
+const PX_PT_EX=5;
+const PX_PT_O=6;
+const PX_PT_STU=5;
+const PX_PT_SOL=5;
+
+const LVCONF={
+  1:{n:1,conn:[],                  k:2,   col:'#7c3aed',label:"k = 2 — Un point A"},
+  2:{n:2,conn:[[0,1]],             k:0.5, col:'#1d4ed8',label:"k = ½ — Segment [AB]"},
+  3:{n:3,conn:[[0,1],[1,2],[2,0]], k:-1,  col:'#059669',label:"k = −1 — Triangle"},
+  4:{n:2,conn:[[0,1]],             k:-2,  col:'#d97706',label:"k = −2 — Symétrie + ×2"},
+  5:{n:3,conn:[[0,1],[1,2]],       k:1.5, col:'#dc2626',label:"k = 3/2 — Brisée élargie"},
+};
+function kLabel(k){
+  if(k===Math.floor(k))return String(k);
+  return k.toFixed(1).replace('.',',');
+}
+const CONSIGNE={
+  1:`Construis l'image du point A par l'homothétie de centre O et de rapport k = 2.`,
+  2:`Construis l'image du segment [AB] par l'homothétie de centre O et de rapport k = 0,5.`,
+  3:`Construis l'image du triangle ABC par l'homothétie de centre O et de rapport k = −1.`,
+  4:`Construis l'image du segment [AB] par l'homothétie de centre O et de rapport k = −2.`,
+  5:`Construis l'image de la brisée ABC par l'homothétie de centre O et de rapport k = 1,5.`,
+  libre:"Mode libre — explore l'homothétie avec les instruments.",
+};
+
+const V=(x,y)=>({x,y});
+const vadd=(a,b)=>V(a.x+b.x,a.y+b.y);
+const vsub=(a,b)=>V(a.x-b.x,a.y-b.y);
+const vscl=(v,s)=>V(v.x*s,v.y*s);
+const vdot=(a,b)=>a.x*b.x+a.y*b.y;
+const vlen=v=>Math.sqrt(v.x*v.x+v.y*v.y);
+const vunit=v=>{const l=vlen(v);return l<1e-10?V(1,0):V(v.x/l,v.y/l)};
+const vperp=v=>V(-v.y,v.x);
+const vdst=(a,b)=>vlen(vsub(a,b));
+const angDiff=(a,b)=>{let d=Math.abs(((a-b)%360+360)%360);return d>180?360-d:d};
+const projRay=(p,pt,dir)=>vadd(pt,vscl(dir,vdot(vsub(p,pt),dir)));
+const dRay=(p,pt,dir)=>vdst(p,projRay(p,pt,dir));
+const tRay=(p,pt,dir)=>vdot(vsub(p,pt),dir);
+const noFlipDir=(candidate,current)=>vdot(candidate,current)>=0?candidate:vscl(candidate,-1);
+
+function rayRay(p1,d1,p2,d2){
+  const cr=d1.x*d2.y-d1.y*d2.x;
+  if(Math.abs(cr)<1e-9)return null;
+  return vadd(p1,vscl(d1,((p2.x-p1.x)*d2.y-(p2.y-p1.y)*d2.x)/cr));
+}
+function linCirc(p1,p2,cx,cy,r){
+  const dx=p2.x-p1.x,dy=p2.y-p1.y,fx=p1.x-cx,fy=p1.y-cy,A=dx*dx+dy*dy;
+  if(A<1e-10)return[];
+  const B=2*(fx*dx+fy*dy),C=fx*fx+fy*fy-r*r,disc=B*B-4*A*C;
+  if(disc<0)return[];
+  const s=Math.sqrt(Math.max(0,disc));
+  return[(-B-s)/(2*A),(-B+s)/(2*A)].map(t=>V(p1.x+t*dx,p1.y+t*dy));
+}
+function circCirc(x1,y1,r1,x2,y2,r2){
+  const d=vdst(V(x1,y1),V(x2,y2));
+  if(d<1e-9||d>r1+r2+.01||d<Math.abs(r1-r2)-.01)return[];
+  const a=(r1*r1-r2*r2+d*d)/(2*d),h2=r1*r1-a*a;
+  if(h2<0)return[];
+  const h=Math.sqrt(Math.max(0,h2)),mx=x1+a*(x2-x1)/d,my=y1+a*(y2-y1)/d;
+  if(h<1e-6)return[V(mx,my)];
+  const px=h*(y2-y1)/d,py=h*(x2-x1)/d;
+  return[V(mx+px,my-py),V(mx-px,my+py)];
+}
+function arcStr(cx,cy,r,a1,a2){
+  let sw=((a2-a1)%360+360)%360;
+  if(sw<.05)return'';
+  if(sw>=359.95)return`M${cx-r} ${cy} A${r} ${r} 0 1 1 ${cx+r} ${cy} A${r} ${r} 0 1 1 ${cx-r} ${cy}`;
+  const R1=D2R(a1),R2=D2R(a1+sw);
+  return`M${cx+r*Math.cos(R1)} ${cy+r*Math.sin(R1)} A${r} ${r} 0 ${sw>180?1:0} 1 ${cx+r*Math.cos(R2)} ${cy+r*Math.sin(R2)}`;
+}
+
+// ═══ INSTRUMENTS ══════════════════════════════════════════════════
+function rulerG(r){
+  const a=D2R(r.angle),dir=V(Math.cos(a),Math.sin(a)),nor=V(dir.y,-dir.x),h=RH/2;
+  const O=V(r.x,r.y),E=vadd(O,vscl(dir,r.length));
+  const cL=vadd(O,vscl(nor,h)),cR=vadd(E,vscl(nor,h));
+  return{O,E,dir,nor,h,cL,cR,top:[cL,cR],bot:[vadd(O,vscl(nor,-h)),vadd(E,vscl(nor,-h))],corners:[cL,cR,vadd(E,vscl(nor,-h)),vadd(O,vscl(nor,-h))],...r};
+}
+function squareG(s){
+  const a=D2R(s.angle),U=V(Math.cos(a),Math.sin(a)),W=vperp(U);
+  const O=V(s.x,s.y),A=vadd(O,vscl(U,s.size)),B=vadd(O,vscl(W,s.size));
+  return{O,A,B,U,W,leg1:[O,A],leg2:[O,B],hyp:[A,B],...s};
+}
+
+// ═══ POOL MAGNÉTIQUE ══════════════════════════════════════════════
+function buildPool(segs,arcs,named,cmpPt,protPt){
+  const p=[];
+  named.forEach(n=>p.push({x:n.x,y:n.y,kind:'named'}));
+  segs.forEach(s=>{if(!s.isExSeg){p.push({x:s.x1,y:s.y1,kind:'end'});p.push({x:s.x2,y:s.y2,kind:'end'});}});
+  arcs.forEach(a=>p.push({x:a.cx,y:a.cy,kind:'center'}));
+  for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){
+    const r=rayRay(V(segs[i].x1,segs[i].y1),vunit(vsub(V(segs[i].x2,segs[i].y2),V(segs[i].x1,segs[i].y1))),V(segs[j].x1,segs[j].y1),vunit(vsub(V(segs[j].x2,segs[j].y2),V(segs[j].x1,segs[j].y1))));
+    if(r)p.push({x:r.x,y:r.y,kind:'inter'});
+  }
+  segs.forEach(s=>arcs.forEach(a=>{linCirc(V(s.x1,s.y1),V(s.x2,s.y2),a.cx,a.cy,a.r).forEach(r=>p.push({x:r.x,y:r.y,kind:'inter'}));}));
+  for(let i=0;i<arcs.length;i++)for(let j=i+1;j<arcs.length;j++)
+    circCirc(arcs[i].cx,arcs[i].cy,arcs[i].r,arcs[j].cx,arcs[j].cy,arcs[j].r).forEach(r=>p.push({x:r.x,y:r.y,kind:'inter'}));
+  if(cmpPt)p.push({x:cmpPt.x,y:cmpPt.y,kind:'center'});
+  if(protPt)p.push({x:protPt.x,y:protPt.y,kind:'center'});
+  return p;
+}
+function nearestPt(pt,pool,radius){
+  let best=null,bd=radius;
+  for(const c of pool){const d=vdst(pt,V(c.x,c.y));if(d<bd){bd=d;best=c;}}
+  return best;
+}
+function snapToEdge(pt,rG,sG,mm,snapMM){
+  let best=null,bd=mm;
+  const chk=e=>{const dir=vunit(vsub(e[1],e[0])),proj=projRay(pt,e[0],dir),d=vdst(pt,proj);if(d<bd){bd=d;const d0=vdst(pt,e[0]),d1=vdst(pt,e[1]),ep=(d0<snapMM)?e[0]:(d1<snapMM)?e[1]:null;best={pt:ep||proj,edge:e,endpt:ep};}};
+  if(rG){chk(rG.top);chk(rG.bot);}
+  if(sG){chk(sG.leg1);chk(sG.leg2);}
+  return best;
+}
+function tryMerge(ns,segs,tol,aTol){
+  const A=V(ns.x1,ns.y1),B=V(ns.x2,ns.y2),ang=R2D(Math.atan2(B.y-A.y,B.x-A.x));
+  for(const s of segs){
+    if(s.locked)continue;
+    const sa=R2D(Math.atan2(s.y2-s.y1,s.x2-s.x1));
+    if(Math.min(angDiff(ang,sa),angDiff(ang+180,sa))>aTol)continue;
+    if(vdst(A,V(s.x2,s.y2))<tol)return{id:s.id,seg:{...s,x2:B.x,y2:B.y}};
+    if(vdst(A,V(s.x1,s.y1))<tol)return{id:s.id,seg:{...s,x1:B.x,y1:B.y}};
+    if(vdst(B,V(s.x1,s.y1))<tol)return{id:s.id,seg:{...s,x1:A.x,y1:A.y}};
+    if(vdst(B,V(s.x2,s.y2))<tol)return{id:s.id,seg:{...s,x2:A.x,y2:A.y}};
+  }
+  return null;
+}
+
+// ═══ RAILS SEGMENTS ═══════════════════════════════════════════════
+function segsToRails(segs){
+  return segs.filter(s=>!s.isExSeg).map(s=>{
+    const dir=vunit(vsub(V(s.x2,s.y2),V(s.x1,s.y1)));
+    return{pt:V(s.x1,s.y1),dir,segId:s.id,segAng:R2D(Math.atan2(dir.y,dir.x))};
+  });
+}
+function closestAngle(cur,cands){return cands.reduce((b,c)=>{const d=angDiff(cur,c);return d<b.da?{a:(c+360)%360,da:d}:b},{a:(cands[0]+360)%360,da:angDiff(cur,cands[0])});}
+
+function tryRailSnap(instr,segs,zoom,isSq,oPts){
+  const mm=RAIL_PX/zoom;
+  const rails=segsToRails(segs);
+  let best=null,bestScore=Infinity;
+
+  for(const rail of rails){
+    if(isSq){
+      const g=squareG(instr),ia=instr.angle;
+      const l1=closestAngle(ia,[rail.segAng,rail.segAng+180]);
+      if(l1.da<ANG_TOL){const d=Math.min(dRay(g.O,rail.pt,rail.dir),dRay(g.A,rail.pt,rail.dir));if(d<mm&&d<bestScore){bestScore=d;best={rail,lockedAngle:l1.a,leg:'leg1'};}}
+      const l2=closestAngle(ia,[rail.segAng-90,rail.segAng+90]);
+      if(l2.da<ANG_TOL){const d=Math.min(dRay(g.O,rail.pt,rail.dir),dRay(g.B,rail.pt,rail.dir));if(d<mm&&d<bestScore){bestScore=d;best={rail,lockedAngle:l2.a,leg:'leg2'};}}
+    }else{
+      const g=rulerG(instr),lc=closestAngle(instr.angle,[rail.segAng,rail.segAng+180]);
+      if(lc.da>ANG_TOL)continue;
+      const dT=Math.min(dRay(g.top[0],rail.pt,rail.dir),dRay(g.top[1],rail.pt,rail.dir));
+      const dB=Math.min(dRay(g.bot[0],rail.pt,rail.dir),dRay(g.bot[1],rail.pt,rail.dir));
+      const d=Math.min(dT,dB);
+      if(d<mm&&d<bestScore){bestScore=d;best={rail,lockedAngle:lc.a,edge:dT<dB?'top':'bot'};}
+    }
+  }
+
+  if(!isSq&&oPts&&oPts.length>0){
+    const g=rulerG(instr);
+    const omm=(ORAIL_PX)/zoom;
+    for(const O of oPts){
+      const Opt=V(O.x,O.y);
+      const dT=dRay(Opt,g.cL,g.dir);
+      const dB=dRay(Opt,g.bot[0],g.dir);
+      const d=Math.min(dT,dB);
+      if(d<omm&&d<bestScore){
+        bestScore=d;
+        best={
+          rail:{pt:Opt,dir:g.dir,segId:'O-rail'},
+          lockedAngle:instr.angle,
+          edge:dT<=dB?'top':'bot',
+          isORail:true
+        };
+      }
+    }
+  }
+  return best;
+}
+
+function railPos(lock,t,isSq){
+  const pt=vadd(lock.rail.pt,vscl(lock.rail.dir,t));
+  if(isSq)return{x:pt.x,y:pt.y,angle:lock.lockedAngle};
+  const rd=lock.rail.dir,nor=V(rd.y,-rd.x),h=lock.edge==='top'?RH/2:-RH/2;
+  return{x:pt.x-nor.x*h,y:pt.y-nor.y*h,angle:lock.lockedAngle};
+}
+function calcTOff(cur,lock,instr,isSq){
+  const rd=lock.rail.dir,nor=isSq?vperp(rd):V(rd.y,-rd.x);
+  const ref=isSq?V(instr.x,instr.y):vadd(V(instr.x,instr.y),vscl(nor,lock.edge==='top'?RH/2:-RH/2));
+  return tRay(ref,lock.rail.pt,lock.rail.dir)-tRay(cur,lock.rail.pt,lock.rail.dir);
+}
+function findCran(t,rail,pool,mm){
+  let best=null,bd=mm;
+  for(const p of pool){const tp=tRay(V(p.x,p.y),rail.pt,rail.dir),d=Math.abs(tp-t);if(d<bd){bd=d;best={t:tp,pt:V(p.x,p.y),kind:p.kind};}}
+  return best;
+}
+function vtxSnap(instr,pool,zoom,isSq){
+  const r=VTXSNAP_PX/zoom;
+  if(isSq){
+    const g=squareG(instr);
+    for(const{pt,label} of [{pt:g.O,label:'O'},{pt:g.A,label:'A'},{pt:g.B,label:'B'}]){
+      const n=nearestPt(pt,pool,r);
+      if(n)return{newState:{...instr,x:instr.x+(n.x-pt.x),y:instr.y+(n.y-pt.y)},snapPt:V(n.x,n.y),snapKind:n.kind,cornerLabel:label};
+    }
+  }else{
+    const g=rulerG(instr);
+    for(const{pt,label} of [{pt:g.cL,label:'cL'},{pt:g.cR,label:'cR'}]){
+      const n=nearestPt(pt,pool,r);
+      if(n)return{newState:{...instr,x:instr.x+(n.x-pt.x),y:instr.y+(n.y-pt.y)},snapPt:V(n.x,n.y),snapKind:n.kind,cornerLabel:label};
+    }
+  }
+  return null;
+}
+function rulerAnchorSnap(rs,pool,mm){
+  const g=rulerG(rs);
+  for(const{pt,label} of [{pt:g.cL,label:'RULER_START'},{pt:g.cR,label:'RULER_END'}]){
+    const n=nearestPt(pt,pool,mm);if(n)return{dx:n.x-pt.x,dy:n.y-pt.y,anchorLabel:label,snapPt:V(n.x,n.y),snapKind:n.kind};
+  }
+  return null;
+}
+function vcenter(panR,zoomR,cvaR){
+  const vx=-panR.current.x/zoomR.current,vy=-panR.current.y/zoomR.current,a=-D2R(cvaR.current);
+  return V(vx*Math.cos(a)-vy*Math.sin(a),vx*Math.sin(a)+vy*Math.cos(a));
+}
+
+// ═══ FIT TRANSFORM ════════════════════════════════════════════════
+function fitTransform(ch,W,H){
+  const pts=[...(ch.points||[]),...(ch.symmetrics||[])];
+  if(ch.center)pts.push(ch.center);
+  if(!pts.length)return{zoom:IZ,pan:{x:0,y:0}};
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  pts.forEach(p=>{x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);});
+  const pad=14;
+  const fw=Math.max(x1-x0+pad*2,18),fh=Math.max(y1-y0+pad*2,18);
+  const z=Math.max(IZ*.6,Math.min(Math.min(W,H)*.75/Math.max(fw,fh),IZ*6));
+  return{zoom:z,pan:{x:-(x0+x1)/2*z,y:-(y0+y1)/2*z}};
+}
+
+// ═══ GÉNÉRATION DÉFI ══════════════════════════════════════════════
+let _uid=0;const uid=()=>++_uid;
+
+function generateChallenge(level,svgW,svgH){
+  const conf=LVCONF[level];
+  const k=conf.k;
+  const absk=Math.abs(k);
+
+  const Ox=(Math.random()-.5)*6;
+  const Oy=(Math.random()-.5)*5;
+  const center={x:Ox,y:Oy,label:'O'};
+
+  const LABELS=['A','B','C','D','E'];
+  const pts=[],imgs=[];
+
+  const maxBound=absk>0?Math.min(40,32)/Math.max(1,absk):30;
+  const minDist=Math.max(10,maxBound*.45);
+  const maxDist=Math.max(minDist+4,maxBound*.90);
+  const minSep=Math.max(10,Math.min(18,maxDist*.40));
+  let gen=0;
+
+  while(pts.length<conf.n&&gen<3000){
+    gen++;
+    const r=minDist+Math.random()*(maxDist-minDist);
+    const angle=Math.random()*2*Math.PI;
+    const P=V(Ox+r*Math.cos(angle),Oy+r*Math.sin(angle));
+    const Pimg=V(Ox+k*(P.x-Ox),Oy+k*(P.y-Oy));
+    if(Math.abs(P.x)>78||Math.abs(P.y)>58)continue;
+    if(Math.abs(Pimg.x)>78||Math.abs(Pimg.y)>58)continue;
+    let ok=true;
+    for(const ep of [...pts,...imgs])
+      if(vdst(P,ep)<minSep||vdst(Pimg,ep)<minSep||vdst(P,Pimg)<6){ok=false;break;}
+    if(!ok)continue;
+    pts.push({x:P.x,y:P.y,label:LABELS[pts.length]});
+    imgs.push({x:Pimg.x,y:Pimg.y,label:LABELS[imgs.length]+"'"});
+  }
+  for(let i=pts.length;i<conf.n;i++){
+    const angle=(i/conf.n)*2*Math.PI;
+    const r=(minDist+maxDist)/2;
+    const P=V(Ox+r*Math.cos(angle),Oy+r*Math.sin(angle));
+    const Pimg=V(Ox+k*(P.x-Ox),Oy+k*(P.y-Oy));
+    pts.push({x:P.x,y:P.y,label:LABELS[i]});
+    imgs.push({x:Pimg.x,y:Pimg.y,label:LABELS[i]+"'"});
+  }
+  const exSegs=conf.conn.map(([i,j])=>({id:uid(),
+    x1:pts[i].x,y1:pts[i].y,x2:pts[j].x,y2:pts[j].y,
+    locked:true,isExSeg:true,style:'exseg'}));
+  return{level,center,points:pts,symmetrics:imgs,exSegs,
+    conn:conf.conn,k,solved:false,showSolution:false};
+}
+
+// ═══ RAPPORTEUR ═══════════════════════════════════════════════════
+function ProtractorSVG({prot,zoom,isPen,onBodyDown,onRotDown,snapped}){
+  const{cx,cy,baseAngle}=prot,R=PROT_R;
+  const ba=D2R(baseAngle),cosB=Math.cos(ba),sinB=Math.sin(ba);
+  const rx=(x,y)=>({x:cx+x*cosB-y*sinB,y:cy+x*sinB+y*cosB});
+  const flatL=rx(-R,0),flatR=rx(R,0);
+  const arcPath=`M ${flatL.x} ${flatL.y} A ${R} ${R} 0 0 1 ${flatR.x} ${flatR.y} Z`;
+  const SEP=R*.72,RON=R*.80,RIN=SEP*.67;
+  const toME=e=>({clientX:e.touches[0]?.clientX??e.changedTouches[0]?.clientX,clientY:e.touches[0]?.clientY??e.changedTouches[0]?.clientY,button:0,target:e.target,stopPropagation:()=>e.stopPropagation(),preventDefault:()=>e.preventDefault()});
+  const els=[];
+  for(let deg=0;deg<=180;deg++){
+    const maj=deg%10===0,med=!maj&&deg%5===0;
+    const rad=D2R(deg),c=Math.cos(rad),s=Math.sin(rad),tr=baseAngle+90-deg;
+    const ro=maj?R*.90:med?R*.93:R*.95;
+    const tO=rx(c*R,-s*R),tI=rx(c*ro,-s*ro);
+    els.push(<line key={`te${deg}`} x1={tO.x} y1={tO.y} x2={tI.x} y2={tI.y} stroke="#0f172a" strokeWidth={(maj?2.8:med?1.6:.8)/zoom} style={{pointerEvents:'none'}}/>);
+    if(maj){const lp=rx(c*RON,-s*RON);els.push(<text key={`le${deg}`} x={lp.x} y={lp.y} fontSize={16/zoom} fill="#0f172a" fontWeight="700" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${tr} ${lp.x} ${lp.y})`} style={{pointerEvents:'none',fontFamily:'Arial,sans-serif'}}>{deg}</text>);}
+    if(deg>0&&deg<180){const ri=maj?SEP*.85:med?SEP*.90:SEP*.93;const tiO=rx(c*SEP,-s*SEP),tiI=rx(c*ri,-s*ri);els.push(<line key={`ti${deg}`} x1={tiO.x} y1={tiO.y} x2={tiI.x} y2={tiI.y} stroke="#334155" strokeWidth={(maj?2.2:med?1.2:.6)/zoom} style={{pointerEvents:'none'}}/>);}
+    if(maj&&deg>0&&deg<180){const lp=rx(c*RIN,-s*RIN);els.push(<text key={`li${deg}`} x={lp.x} y={lp.y} fontSize={12/zoom} fill="#334155" fontWeight="600" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${tr} ${lp.x} ${lp.y})`} style={{pointerEvents:'none',fontFamily:'Arial,sans-serif'}}>{180-deg}</text>);}
+  }
+  const fR=rx(RON,0),fL=rx(-RON,0);
+  els.push(<text key="ext0" x={fR.x} y={fR.y} fontSize={15/zoom} fill="#0f172a" fontWeight="800" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${baseAngle+90} ${fR.x} ${fR.y})`} style={{pointerEvents:'none',fontFamily:'Arial,sans-serif'}}>0</text>);
+  els.push(<text key="ext180" x={fL.x} y={fL.y} fontSize={15/zoom} fill="#0f172a" fontWeight="800" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${baseAngle-90} ${fL.x} ${fL.y})`} style={{pointerEvents:'none',fontFamily:'Arial,sans-serif'}}>180</text>);
+  const sepL=rx(-SEP,0),sepR=rx(SEP,0);
+  const rotHdl=rx(0,-R),hR=HDL_R/zoom;
+  return<g data-i="1">
+    <path d={arcPath} fill="rgba(219,234,254,.12)" stroke="#3b82f6" strokeWidth={2/zoom} onMouseDown={isPen?undefined:onBodyDown} onTouchStart={isPen?undefined:e=>{e.preventDefault();onBodyDown(toME(e));}} style={{cursor:isPen?'default':'move'}}/>
+    <line x1={flatL.x} y1={flatL.y} x2={flatR.x} y2={flatR.y} stroke="#0f172a" strokeWidth={2.5/zoom} style={{pointerEvents:'none'}}/>
+    <path d={`M ${sepL.x} ${sepL.y} A ${SEP} ${SEP} 0 0 1 ${sepR.x} ${sepR.y}`} fill="none" stroke="#64748b" strokeWidth={1.2/zoom} style={{pointerEvents:'none'}}/>
+    {(()=>{const t=rx(0,-SEP*.9);return<line x1={cx} y1={cy} x2={t.x} y2={t.y} stroke="#93c5fd" strokeWidth={1/zoom} strokeDasharray={`${4/zoom},${2/zoom}`} style={{pointerEvents:'none'}}/>;})()}
+    {els}
+    <line x1={cx-10/zoom} y1={cy} x2={cx+10/zoom} y2={cy} stroke="#0f172a" strokeWidth={2/zoom} style={{pointerEvents:'none'}}/>
+    <line x1={cx} y1={cy-10/zoom} x2={cx} y2={cy+10/zoom} stroke="#0f172a" strokeWidth={2/zoom} style={{pointerEvents:'none'}}/>
+    <circle cx={cx} cy={cy} r={5/zoom} fill="white" stroke="#0f172a" strokeWidth={2/zoom} style={{pointerEvents:'none'}}/>
+    <circle cx={cx} cy={cy} r={1.8/zoom} fill="#0f172a" style={{pointerEvents:'none'}}/>
+    {snapped&&<circle cx={cx} cy={cy} r={12/zoom} fill="none" stroke="#f59e0b" strokeWidth={3/zoom} style={{pointerEvents:'none'}}/>}
+    {!isPen&&<g data-i="1"><circle cx={rotHdl.x} cy={rotHdl.y} r={hR} fill="#1d4ed8" stroke="white" strokeWidth={Math.max(.5,2/zoom)} onMouseDown={onRotDown} onTouchStart={e=>{e.preventDefault();onRotDown(toME(e));}} style={{cursor:'grab'}}/><text x={rotHdl.x} y={rotHdl.y} fontSize={hR*1.1} fill="white" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${baseAngle} ${rotHdl.x} ${rotHdl.y})`} style={{pointerEvents:'none'}}>↻</text></g>}
+  </g>;
+}
+
+// ═══ COMPOSANT APP ════════════════════════════════════════════════
+function App(){
+  const svgRef=useRef(null),dragRef=useRef(null),pinchRef=useRef(null);
+  const rLock=useRef(null),sLock=useRef(null);
+  const segsR=useRef([]),arcsR=useRef([]),namedR=useRef([]);
+  const zR=useRef(IZ),panR=useRef({x:0,y:0}),cvaR=useRef(0);
+  const rulerR=useRef(null),sqR=useRef(null),cmpR=useRef(null),protR=useRef(null);
+  const showRR=useRef(false),showSR=useRef(false),showCR=useRef(false),showPR=useRef(false);
+
+  const[svgSz,setSvgSz]=useState({w:900,h:600});
+  useEffect(()=>{
+    const u=()=>{if(!svgRef.current)return;const r=svgRef.current.getBoundingClientRect();setSvgSz({w:r.width,h:r.height});};
+    u();const ro=new ResizeObserver(u);if(svgRef.current)ro.observe(svgRef.current);return()=>ro.disconnect();
+  },[]);
+
+  const[zoom,setZoom]=useState(IZ);
+  const[pan,setPan]=useState({x:0,y:0});
+  const[cva,setCva]=useState(0);
+  useEffect(()=>{zR.current=zoom;},[zoom]);
+  useEffect(()=>{panR.current=pan;},[pan]);
+  useEffect(()=>{cvaR.current=cva;},[cva]);
+
+  const[ruler,setRuler]=useState({x:-50,y:0,angle:0,length:100});
+  const[sq,setSq]=useState({x:30,y:-90,angle:0,size:73});
+  const[cmp,setCmp]=useState({cx:-60,cy:-140,radius:60,pencilAngle:30});
+  const[prot,setProt]=useState({cx:40,cy:40,baseAngle:0});
+  const[showR,setShowR]=useState(false);
+  const[showS,setShowS]=useState(false);
+  const[showC,setShowC]=useState(false);
+  const[showP,setShowP]=useState(false);
+  useEffect(()=>{rulerR.current=ruler;},[ruler]);
+  useEffect(()=>{sqR.current=sq;},[sq]);
+  useEffect(()=>{cmpR.current=cmp;},[cmp]);
+  useEffect(()=>{protR.current=prot;},[prot]);
+  useEffect(()=>{showRR.current=showR;},[showR]);
+  useEffect(()=>{showSR.current=showS;},[showS]);
+  useEffect(()=>{showCR.current=showC;},[showC]);
+  useEffect(()=>{showPR.current=showP;},[showP]);
+
+  const[rSnap,setRSnap]=useState(null);
+  const[sSnap,setSSnap]=useState(null);
+  const[cranInfo,setCranInfo]=useState(null);
+  const[vtxInfo,setVtxInfo]=useState(null);
+  const[protSnap,setProtSnap]=useState(false);
+
+  const[segs,setSegs]=useState([]);
+  const[arcs,setArcs]=useState([]);
+  const[named,setNamed]=useState([]);
+  useEffect(()=>{segsR.current=segs;},[segs]);
+  useEffect(()=>{arcsR.current=arcs;},[arcs]);
+  useEffect(()=>{namedR.current=named;},[named]);
+
+  const[hist,setHist]=useState([]);
+  const[future,setFuture]=useState([]);
+  const save=useCallback(()=>{setHist(h=>[...h.slice(-49),{segs:[...segsR.current],arcs:[...arcsR.current],named:[...namedR.current]}]);setFuture([]);},[]);
+  const undo=useCallback(()=>setHist(h=>{if(!h.length)return h;const p=h[h.length-1];setFuture(f=>[...f.slice(-49),{segs:[...segsR.current],arcs:[...arcsR.current],named:[...namedR.current]}]);setSegs(p.segs);setArcs(p.arcs);setNamed(p.named);return h.slice(0,-1);}),[]);
+  const redo=useCallback(()=>setFuture(f=>{if(!f.length)return f;const p=f[f.length-1];setHist(h=>[...h.slice(-49),{segs:[...segsR.current],arcs:[...arcsR.current],named:[...namedR.current]}]);setSegs(p.segs);setArcs(p.arcs);setNamed(p.named);return f.slice(0,-1);}),[]);
+  useEffect(()=>{const fn=e=>{if(e.ctrlKey||e.metaKey){if(e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}if(e.key==='y'||e.key==='Z'){e.preventDefault();redo();}}};window.addEventListener('keydown',fn);return()=>window.removeEventListener('keydown',fn);},[undo,redo]);
+
+  const[tool,setTool]=useState('pan');
+  const[lstyle,setLstyle]=useState('solid');
+  const[drawing,setDrawing]=useState(null);
+  const[compArc,setCompArc]=useState(null);
+  const[snapD,setSnapD]=useState(null);
+  const[hov,setHov]=useState(null);
+  const penMode=tool==='pen';
+
+  const[ch,setCh]=useState(null);
+  const[validMsg,setValidMsg]=useState(null);
+  const[sbOpen,setSbOpen]=useState(false);
+  const chR=useRef(null);
+  useEffect(()=>{chR.current=ch;},[ch]);
+
+  function getOCenters(){
+    if(!chR.current||!chR.current.center)return[];
+    return[chR.current.center];
+  }
+
+  function startCh(level){
+    const c=generateChallenge(level,svgSz.w,svgSz.h);
+    setCh(c);setValidMsg(null);
+    setHist([]);setFuture([]);setCva(0);
+    rLock.current=null;sLock.current=null;
+    setRSnap(null);setSSnap(null);setCranInfo(null);setVtxInfo(null);setProtSnap(false);
+    const exNamed=c.points.map(p=>({x:p.x,y:p.y,id:uid(),locked:true,exLabel:p.label}));
+    const oNamed={x:c.center.x,y:c.center.y,id:uid(),locked:true,exLabel:'O',isCenter:true};
+    setNamed([...exNamed,oNamed]);
+    setSegs(c.exSegs);
+    setArcs([]);
+    const ft=fitTransform(c,svgSz.w,svgSz.h);
+    setZoom(ft.zoom);setPan(ft.pan);
+  }
+  function startFree(){
+    setCh({level:'libre',solved:false,showSolution:false,points:[],symmetrics:[],conn:[]});
+    setValidMsg(null);setSegs([]);setArcs([]);setNamed([]);
+    setHist([]);setFuture([]);setZoom(IZ);setPan({x:0,y:0});setCva(0);
+  }
+
+  function validate(){
+    const c=chR.current;if(!c||c.level==='libre')return;
+    const k=c.k||LVCONF[c.level]?.k||1;
+    const tolMM=VALID_TOL_PX/zR.current;
+    const stuSegs=segsR.current.filter(s=>!s.locked&&!s.isExSeg);
+    const stuNamed=namedR.current.filter(n=>!n.locked);
+    const pool=[];
+    stuNamed.forEach(n=>pool.push({x:n.x,y:n.y}));
+    stuSegs.forEach(s=>{pool.push({x:s.x1,y:s.y1});pool.push({x:s.x2,y:s.y2});});
+    const missedPts=[],missedSegs=[];
+    for(const sp of c.symmetrics){
+      if(!nearestPt(V(sp.x,sp.y),pool,tolMM))missedPts.push(sp.label);
+    }
+    if(c.conn&&c.conn.length>0){
+      for(const[i,j] of c.conn){
+        const A=c.symmetrics[i],B=c.symmetrics[j];if(!A||!B)continue;
+        const found=stuSegs.some(s=>{const p1=V(s.x1,s.y1),p2=V(s.x2,s.y2);return(vdst(p1,A)<=tolMM&&vdst(p2,B)<=tolMM)||(vdst(p1,B)<=tolMM&&vdst(p2,A)<=tolMM);});
+        if(!found)missedSegs.push(`[${A.label}${B.label}]`);
+      }
+    }
+    const kStr=kLabel(k);
+    if(!missedPts.length&&!missedSegs.length){
+      setValidMsg({ok:true,msg:`🎉 Bravo ! Homothétie k = ${kStr} parfaite !`});
+      setCh(c2=>({...c2,solved:true}));
+    }else{
+      let msg='❌ Pas tout à fait…';
+      if(missedPts.length)msg+=' Points : '+missedPts.join(', ')+'.';
+      if(missedSegs.length)msg+=' Segments : '+missedSegs.join(', ')+'.';
+      setValidMsg({ok:false,msg});
+    }
+  }
+
+  function clearStudent(){
+    save();
+    setSegs(s=>s.filter(x=>x.locked));
+    setArcs([]);setNamed(n=>n.filter(x=>x.locked));
+    setValidMsg(null);
+    rLock.current=null;sLock.current=null;
+    setRSnap(null);setSSnap(null);setCranInfo(null);setVtxInfo(null);setProtSnap(false);
+    if(chR.current)setCh(c=>({...c,solved:false,showSolution:false}));
+  }
+
+  const ptMM=()=>PT_PX/zR.current;
+  const crMM=()=>CRAN_PX/zR.current;
+  function s2c(sx,sy){
+    const r=svgRef.current?.getBoundingClientRect();if(!r)return V(sx,sy);
+    const vx=(sx-r.left-svgSz.w/2-panR.current.x)/zR.current;
+    const vy=(sy-r.top-svgSz.h/2-panR.current.y)/zR.current;
+    const a=-D2R(cvaR.current);return V(vx*Math.cos(a)-vy*Math.sin(a),vx*Math.sin(a)+vy*Math.cos(a));
+  }
+  function getPool(c=true,p=true){return buildPool(segsR.current,arcsR.current,namedR.current,c&&showCR.current?V(cmpR.current.cx,cmpR.current.cy):null,p&&showPR.current?V(protR.current.cx,protR.current.cy):null);}
+
+  function cursorSnap(raw,lockEdge=null){
+    const sr=ptMM(),aM=ANCHOR_PX/zR.current;
+    const rG=showRR.current?rulerG(rulerR.current):null;
+    const sG=showSR.current?squareG(sqR.current):null;
+    const pool=getPool();
+    if(rG&&!lockEdge){const dL=vdst(raw,rG.cL),dR=vdst(raw,rG.cR);if(dL<aM||dR<aM){const anchor=dL<=dR?rG.cL:rG.cR;const n=nearestPt(anchor,pool,sr*1.5);return{pt:anchor,kind:n?n.kind:'anchor',edge:rG.top};}}
+    if(lockEdge){const dir=vunit(vsub(lockEdge[1],lockEdge[0]));const cst=projRay(raw,lockEdge[0],dir);const n=nearestPt(cst,pool.filter(p=>dRay(V(p.x,p.y),lockEdge[0],dir)<sr*2),sr*3);if(n)return{pt:projRay(V(n.x,n.y),lockEdge[0],dir),kind:n.kind,edge:lockEdge};return{pt:cst,kind:'locked',edge:lockEdge};}
+    const near=nearestPt(raw,pool,sr);
+    if(near){const P=V(near.x,near.y),T=.8;if(rG){if(dRay(P,rG.cL,rG.dir)<T)return{pt:P,kind:near.kind,edge:rG.top};if(dRay(P,rG.bot[0],rG.dir)<T)return{pt:P,kind:near.kind,edge:rG.bot};}if(sG){const d1=dRay(P,sG.O,vunit(vsub(sG.A,sG.O))),d2=dRay(P,sG.O,vunit(vsub(sG.B,sG.O)));if(d1<T)return{pt:P,kind:near.kind,edge:sG.leg1};if(d2<T)return{pt:P,kind:near.kind,edge:sG.leg2};}return{pt:P,kind:near.kind};}
+    const es=snapToEdge(raw,rG,sG,5,sr*2);
+    if(es){if(es.endpt)return{pt:es.endpt,kind:'end',edge:es.edge};const d=vunit(vsub(es.edge[1],es.edge[0]));const ne=nearestPt(es.pt,pool.filter(p=>dRay(V(p.x,p.y),es.edge[0],d)<sr*2),sr*3);if(ne)return{pt:projRay(V(ne.x,ne.y),es.edge[0],d),kind:ne.kind,edge:es.edge};return{pt:es.pt,kind:'edge',edge:es.edge};}
+    return{pt:raw,kind:'none'};
+  }
+
+  const toME=e=>({clientX:e.touches[0]?.clientX??e.changedTouches[0]?.clientX,clientY:e.touches[0]?.clientY??e.changedTouches[0]?.clientY,button:0,target:e.target,stopPropagation:()=>e.stopPropagation(),preventDefault:()=>e.preventDefault()});
+
+  const touchDist=(t1,t2)=>Math.hypot(t1.clientX-t2.clientX,t1.clientY-t2.clientY);
+  const touchMid=(t1,t2)=>({x:(t1.clientX+t2.clientX)/2,y:(t1.clientY+t2.clientY)/2});
+  function panForPinch(C,S,z){
+    const rect=svgRef.current?.getBoundingClientRect();if(!rect)return panR.current;
+    const cva_r=D2R(cvaR.current);
+    const vx=C.x*Math.cos(cva_r)-C.y*Math.sin(cva_r);
+    const vy=C.x*Math.sin(cva_r)+C.y*Math.cos(cva_r);
+    return{x:(S.x-rect.left-svgSz.w/2)-vx*z,y:(S.y-rect.top-svgSz.h/2)-vy*z};
+  }
+  const onTS=e=>{
+    if(e.touches.length===2){
+      e.preventDefault();dragRef.current=null;setDrawing(null);setCompArc(null);
+      const t1=e.touches[0],t2=e.touches[1];
+      pinchRef.current={d0:touchDist(t1,t2),z0:zR.current,canvasMid:s2c(touchMid(t1,t2).x,touchMid(t1,t2).y)};
+      return;
+    }
+    if(e.touches.length===1){e.preventDefault();pinchRef.current=null;onDown(toME(e));}
+  };
+  const onTM=e=>{
+    if(e.touches.length===2&&pinchRef.current){
+      e.preventDefault();
+      const{d0,z0,canvasMid}=pinchRef.current;
+      const t1=e.touches[0],t2=e.touches[1];
+      const newZ=Math.max(0.1,Math.min(30,z0*(touchDist(t1,t2)/d0)));
+      const mid=touchMid(t1,t2);
+      setZoom(newZ);setPan(panForPinch(canvasMid,mid,newZ));return;
+    }
+    if(e.touches.length===1&&!pinchRef.current){e.preventDefault();onMove(toME(e));}
+  };
+  const onTE=e=>{
+    if(e.touches.length<2)pinchRef.current=null;
+    if(e.touches.length===0){e.preventDefault();onUp();}
+  };
+  const _onTSRef=useRef(null),_onTMRef=useRef(null),_onTERef=useRef(null);
+  _onTSRef.current=onTS;_onTMRef.current=onTM;_onTERef.current=onTE;
+  useEffect(()=>{
+    const el=svgRef.current;if(!el)return;
+    const opt={passive:false};
+    const ts=e=>_onTSRef.current(e);
+    const tm=e=>_onTMRef.current(e);
+    const te=e=>_onTERef.current(e);
+    el.addEventListener('touchstart',ts,opt);el.addEventListener('touchmove',tm,opt);el.addEventListener('touchend',te,opt);
+    return()=>{el.removeEventListener('touchstart',ts,opt);el.removeEventListener('touchmove',tm,opt);el.removeEventListener('touchend',te,opt);};
+  },[]);
+
+  function onDown(e){
+    if(e.button!==0||e.target.closest('[data-i]'))return;
+    const raw=s2c(e.clientX,e.clientY);
+    if(tool==='pan'){dragRef.current={t:'pan',sx:e.clientX,sy:e.clientY,sp:{...panR.current}};return;}
+    if(tool==='rotate'){dragRef.current={t:'rot',sx:e.clientX,sa:cvaR.current};return;}
+    if(tool==='point'){
+      let finalPt=null;
+      if(showRR.current){
+        const rGn=rulerG(rulerR.current);
+        const edgeMM=12/zR.current;
+        const projT=projRay(raw,rGn.cL,rGn.dir);
+        const projB=projRay(raw,rGn.bot[0],rGn.dir);
+        const dT=vdst(raw,projT), dB=vdst(raw,projB);
+        if(Math.min(dT,dB)<edgeMM){
+          const best=dT<=dB?projT:projB;
+          const t=tRay(best,rGn.cL,rGn.dir);
+          if(t>=-0.5&&t<=rGn.length+0.5){
+            finalPt=best;
+            const pool=getPool();
+            const lineNear=nearestPt(best,pool,ptMM());
+            if(lineNear&&vdst(projRay(V(lineNear.x,lineNear.y),rGn.cL,rGn.dir),V(lineNear.x,lineNear.y))<edgeMM){
+              finalPt=V(lineNear.x,lineNear.y);
+            }
+          }
+        }
+      }
+      if(!finalPt){
+        const r=cursorSnap(raw);
+        finalPt=r.pt;
+      }
+      save();setNamed(n=>[...n,{x:finalPt.x,y:finalPt.y,id:uid()}]);return;
+    }
+    if(tool==='pen'){const r=cursorSnap(raw);setDrawing({x1:r.pt.x,y1:r.pt.y,x2:r.pt.x,y2:r.pt.y,lockEdge:r.edge||null});setSnapD(r.kind!=='none'?r:null);return;}
+    if(tool==='arc'&&showC){const a=R2D(Math.atan2(raw.y-cmpR.current.cy,raw.x-cmpR.current.cx));setCompArc({startAngle:a});setCmp(c=>({...c,pencilAngle:a}));return;}
+  }
+  function onMove(e){
+    const raw=s2c(e.clientX,e.clientY);
+    if(dragRef.current){const d=dragRef.current;if(d.t==='pan'){setPan({x:d.sp.x+e.clientX-d.sx,y:d.sp.y+e.clientY-d.sy});return;}if(d.t==='rot'){setCva(d.sa+(e.clientX-d.sx)*.4);return;}}
+    if(drawing&&tool==='pen'){const r=cursorSnap(raw,drawing.lockEdge);setDrawing(d=>({...d,x2:r.pt.x,y2:r.pt.y}));setSnapD(r.kind!=='none'?r:null);return;}
+    if(compArc&&tool==='arc'){const a=R2D(Math.atan2(raw.y-cmpR.current.cy,raw.x-cmpR.current.cx));const ne=nearestPt(V(cmpR.current.cx+cmpR.current.radius*Math.cos(D2R(a)),cmpR.current.cy+cmpR.current.radius*Math.sin(D2R(a))),getPool(false,false),ptMM());if(ne){setCmp(c=>({...c,pencilAngle:R2D(Math.atan2(ne.y-c.cy,ne.x-c.cx))}));setSnapD({pt:V(ne.x,ne.y),kind:ne.kind});}else{setCmp(c=>({...c,pencilAngle:a}));setSnapD(null);}return;}
+    if(tool==='point'&&showRR.current){
+      const rGn=rulerG(rulerR.current);
+      const edgeMM=12/zR.current;
+      const projT=projRay(raw,rGn.cL,rGn.dir);
+      const projB=projRay(raw,rGn.bot[0],rGn.dir);
+      const dT=vdst(raw,projT),dB=vdst(raw,projB);
+      if(Math.min(dT,dB)<edgeMM){
+        const best=dT<=dB?projT:projB;
+        const t=tRay(best,rGn.cL,rGn.dir);
+        if(t>=-0.5&&t<=rGn.length+0.5){
+          setSnapD({pt:best,kind:'edge'});return;
+        }
+      }
+    }
+    const r=cursorSnap(raw);setSnapD(r.kind!=='none'?r:null);
+  }
+  function onUp(){
+    if(dragRef.current){dragRef.current=null;return;}
+    if(drawing&&tool==='pen'){
+      if(vdst(V(drawing.x1,drawing.y1),V(drawing.x2,drawing.y2))>.3){
+        save();const ns={id:uid(),x1:drawing.x1,y1:drawing.y1,x2:drawing.x2,y2:drawing.y2,style:lstyle};
+        const mg=tryMerge(ns,segsR.current,MERGE_MM,MERGE_ANG);
+        if(mg)setSegs(ss=>ss.map(s=>s.id===mg.id?mg.seg:s));else setSegs(ss=>[...ss,ns]);
+      }
+      setDrawing(null);setSnapD(null);return;
+    }
+    if(compArc&&tool==='arc'){
+      const sw=((cmpR.current.pencilAngle-compArc.startAngle)%360+360)%360;
+      if(sw>.5){save();setArcs(a=>[...a,{id:uid(),cx:cmpR.current.cx,cy:cmpR.current.cy,r:cmpR.current.radius,startAngle:compArc.startAngle,endAngle:compArc.startAngle+sw,style:lstyle}]);}
+      setCompArc(null);return;
+    }
+  }
+  function onWheel(e){e.preventDefault();setZoom(z=>Math.max(.1,Math.min(30,z*(e.deltaY>0?.92:1.09))));}
+
+  function instrDrag(e,type,get,set,isSq,lockRef,setSnap){
+    if(penMode)return;e.stopPropagation();e.preventDefault();
+    const origC=s2c(e.clientX,e.clientY),init=get();
+    let lock=lockRef.current;
+    const oCenters=getOCenters();
+
+    if(type==='startR'||type==='endR'){
+      if(lock&&!lock.isORail&&!lock.isDualSnap){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);}
+    }
+
+    if(type==='move'&&!lock&&(segsR.current.length>0||oCenters.length>0)){
+      const snap=tryRailSnap(init,segsR.current,zR.current,isSq,oCenters);
+      if(snap){const tOff=calcTOff(origC,snap,init,isSq);lock={...snap,t_offset:tOff};lockRef.current=lock;setSnap(lock);}
+    }
+    function mv(me){
+      const cur=s2c(me.clientX,me.clientY);
+      if(type==='move'){
+        const dx=cur.x-origC.x,dy=cur.y-origC.y,raw={...init,x:init.x+dx,y:init.y+dy};
+        if(!isSq){
+          const pool=getPool(),aM=ANCHOR_PX/zR.current;
+          const omm2=ORAIL_PX/zR.current;
+
+          if(lock?.isDualSnap){
+            const aP=lock.anchorPt;
+            const pullDist=vdst(cur,aP)*zR.current;
+            if(pullDist>DETACH_ORAIL*1.4){
+              lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);setVtxInfo(null);
+              set(s=>({...s,x:raw.x,y:raw.y}));return;
+            }
+            const dir=lock.rail.dir;
+            const nor=V(dir.y,-dir.x);
+            const h=lock.edge==='top'?RH/2:-RH/2;
+            let snapX,snapY;
+            if(lock.anchorCorner==='RULER_START'){
+              snapX=aP.x-nor.x*h;snapY=aP.y-nor.y*h;
+            }else{
+              const rLen=lock.rLen||init.length;
+              const E=vsub(aP,vscl(nor,h));
+              const orig=vsub(E,vscl(dir,rLen));
+              snapX=orig.x;snapY=orig.y;
+            }
+            set(s=>({...s,x:snapX,y:snapY,angle:lock.lockedAngle,length:lock.rLen||init.length}));
+            setVtxInfo({snapPt:aP,cornerLabel:lock.anchorCorner,kind:'named'});
+            return;
+          }
+
+          const as=rulerAnchorSnap(raw,pool,aM);
+          if(as){
+            const anchored={...raw,x:raw.x+as.dx,y:raw.y+as.dy};
+            const ga=rulerG(anchored);
+            let oFired=false;
+            for(const Oc of oCenters){
+              const Opt=V(Oc.x,Oc.y);
+              const anchorPt=as.anchorLabel==='RULER_START'?ga.cL:ga.cR;
+              if(vdst(anchorPt,Opt)<1)continue;
+              const dT=dRay(Opt,ga.cL,ga.dir);
+              const dB=dRay(Opt,ga.bot[0],ga.dir);
+              const d=Math.min(dT,dB);
+              if(d<omm2){
+                const rawSnapDir=as.anchorLabel==='RULER_START'
+                  ?vunit(vsub(Opt,anchorPt))
+                  :vunit(vsub(anchorPt,Opt));
+                const currentDir=V(Math.cos(D2R(raw.angle)),Math.sin(D2R(raw.angle)));
+                const snapDir=noFlipDir(rawSnapDir,currentDir);
+                const snapNor=V(snapDir.y,-snapDir.x);
+                const snapAngle=R2D(Math.atan2(snapDir.y,snapDir.x));
+                const snapLen=Math.max(20,vdst(anchorPt,Opt)*1.6,ga.length);
+                const edge=dT<=dB?'top':'bot';
+                const h=edge==='top'?RH/2:-RH/2;
+                let snapX,snapY;
+                if(as.anchorLabel==='RULER_START'){
+                  snapX=anchorPt.x-snapNor.x*h;
+                  snapY=anchorPt.y-snapNor.y*h;
+                }else{
+                  const E=vsub(anchorPt,vscl(snapNor,h));
+                  const orig=vsub(E,vscl(snapDir,snapLen));
+                  snapX=orig.x;snapY=orig.y;
+                }
+                lock={
+                  rail:{pt:Opt,dir:snapDir,segId:'O-rail'},
+                  lockedAngle:snapAngle,edge,
+                  isORail:true,
+                  isDualSnap:true,
+                  anchorPt:anchorPt,
+                  anchorCorner:as.anchorLabel,
+                  rLen:snapLen,
+                };
+                lockRef.current=lock;setSnap({...lock});
+                set(s=>({...s,x:snapX,y:snapY,length:snapLen,angle:snapAngle}));
+                setVtxInfo({snapPt:anchorPt,cornerLabel:as.anchorLabel,kind:as.snapKind});
+                oFired=true;break;
+              }
+            }
+            if(!oFired){
+              if(lock){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);}
+              set(s=>({...s,x:raw.x+as.dx,y:raw.y+as.dy}));
+              setVtxInfo({snapPt:as.snapPt,cornerLabel:as.anchorLabel,kind:as.snapKind});
+            }
+            return;
+          }
+        }
+        if(lock){
+          const gT=isSq?squareG(raw):rulerG(raw);
+          const tPts=isSq?[gT.O,gT.A,gT.B]:[gT.top[0],gT.top[1],gT.bot[0],gT.bot[1]];
+          const isORail=lock.isORail;
+          let detach=false;
+          if(isORail){
+            const g2=rulerG({...raw,angle:lock.lockedAngle});
+            const d2=lock.edge==='top'?dRay(lock.rail.pt,g2.cL,g2.dir):dRay(lock.rail.pt,g2.bot[0],g2.dir);
+            if(d2*zR.current>DETACH_ORAIL)detach=true;
+          }else{
+            if(Math.min(...tPts.map(p=>dRay(p,lock.rail.pt,lock.rail.dir)))*zR.current>DETACH_PX)detach=true;
+          }
+          if(detach){lock=null;lockRef.current=null;setSnap(null);setCranInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));setVtxInfo(null);return;}
+          const t_raw=tRay(cur,lock.rail.pt,lock.rail.dir)+lock.t_offset;
+          const cran=isORail?null:findCran(t_raw,lock.rail,getPool(),crMM());
+          const pos=railPos(lock,cran?cran.t:t_raw,isSq);set(s=>({...s,...pos}));
+          if(!isORail&&cran){const ig=isSq?squareG(pos):rulerG(pos);let perpPt;if(isSq){const pe=lock.leg==='leg1'?ig.leg2:ig.leg1;perpPt=projRay(V(cran.pt.x,cran.pt.y),pe[0],vunit(vsub(pe[1],pe[0])));}else{perpPt=projRay(V(cran.pt.x,cran.pt.y),ig.top[0],ig.dir);}setCranInfo({pt:cran.pt,perpPt,kind:cran.kind});}else setCranInfo(null);
+          setVtxInfo(null);return;
+        }
+        const snap=tryRailSnap(raw,segsR.current,zR.current,isSq,oCenters);
+        if(snap){const tOff=calcTOff(cur,snap,raw,isSq);lock={...snap,t_offset:tOff};lockRef.current=lock;setSnap(lock);set(s=>({...s,...railPos(lock,tRay(cur,lock.rail.pt,lock.rail.dir)+tOff,isSq)}));setVtxInfo(null);return;}
+        if(isSq){const vs=vtxSnap(raw,getPool(),zR.current,isSq);if(vs){set(s=>({...s,x:vs.newState.x,y:vs.newState.y}));setVtxInfo({snapPt:vs.snapPt,cornerLabel:vs.cornerLabel,kind:vs.snapKind});return;}}
+        setVtxInfo(null);set(s=>({...s,x:raw.x,y:raw.y}));return;
+      }
+      if(type==='endR'){
+        if(lock?.isDualSnap){
+          const aP=lock.anchorPt;
+          const dir=lock.rail.dir;
+          const nor=V(dir.y,-dir.x);
+          const h=lock.edge==='top'?RH/2:-RH/2;
+          if(lock.anchorCorner==='RULER_START'){
+            const cLf=V(aP.x-nor.x*h, aP.y-nor.y*h);
+            const ne=nearestPt(cur,getPool(),ptMM());
+            const tgt=ne?V(ne.x,ne.y):cur;
+            if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+            const t=tRay(tgt,aP,dir);
+            const newLen=Math.max(6,Math.abs(t));
+            if(t<0){
+              const revDir=vscl(dir,-1);
+              const revNor=V(revDir.y,-revDir.x);
+              const newH=lock.edge==='top'?RH/2:-RH/2;
+              const newCLf=V(aP.x-revNor.x*newH, aP.y-revNor.y*newH);
+              const newLock={...lock,rail:{...lock.rail,dir:revDir},lockedAngle:R2D(Math.atan2(revDir.y,revDir.x)),rLen:newLen};
+              lock=newLock;lockRef.current=lock;setSnap({...lock});
+              set(s=>({...s,x:newCLf.x,y:newCLf.y,length:newLen,angle:lock.lockedAngle}));
+            }else{
+              const newLock={...lock,rLen:newLen};
+              lock=newLock;lockRef.current=lock;setSnap({...lock});
+              set(s=>({...s,x:cLf.x,y:cLf.y,length:newLen,angle:lock.lockedAngle}));
+            }
+            setVtxInfo({snapPt:aP,cornerLabel:'RULER_START',kind:'named'});
+            return;
+          }
+          if(lock.anchorCorner==='RULER_END'){
+            setVtxInfo({snapPt:aP,cornerLabel:'RULER_END',kind:'named'});
+            return;
+          }
+        }
+        if(lock?.isORail){
+          const Opt=lock.rail.pt;
+          const g0=rulerG(init);
+          const t_O=tRay(Opt,g0.cL,g0.dir);
+          const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+          if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+          const rawDir=vsub(tgt,Opt);
+          if(vlen(rawDir)<1)return;
+          const nd=noFlipDir(vunit(rawDir),lock.rail.dir);
+          const newNor=V(nd.y,-nd.x);
+          const h=lock.edge==='top'?RH/2:-RH/2;
+          const newCL=vsub(Opt,vscl(nd,t_O));
+          const newX=newCL.x-newNor.x*h;
+          const newY=newCL.y-newNor.y*h;
+          const newLength=Math.max(15,t_O+vdst(tgt,Opt));
+          const newAngle=R2D(Math.atan2(nd.y,nd.x));
+          lock={...lock,rail:{...lock.rail,dir:nd},lockedAngle:newAngle};
+          lockRef.current=lock;setSnap({...lock});
+          set(s=>({...s,x:newX,y:newY,length:newLength,angle:newAngle}));
+          return;
+        }
+        const initDirE=V(Math.cos(D2R(init.angle)),Math.sin(D2R(init.angle)));
+        const initNorE=V(initDirE.y,-initDirE.x);
+        const cLf=vadd(V(init.x,init.y),vscl(initNorE,RH/2));
+        const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+        if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+        if(vdst(tgt,cLf)<2)return;
+        const ndE=vunit(vsub(tgt,cLf));
+        const newNorE=V(ndE.y,-ndE.x);
+          const omm=ORAIL_PX/zR.current;
+          for(const Oc of oCenters){
+            const Opt=V(Oc.x,Oc.y);
+            if(dRay(Opt,cLf,ndE)<omm&&vdst(Opt,cLf)>2){
+              const rawDir=vunit(vsub(Opt,cLf));
+              const snapDir=noFlipDir(rawDir,ndE);
+              const snapNor=V(snapDir.y,-snapDir.x);
+              const snapAngle=R2D(Math.atan2(snapDir.y,snapDir.x));
+              const snapLen=Math.max(15,vdst(tgt,cLf));
+              const snapX=cLf.x-snapNor.x*RH/2;
+              const snapY=cLf.y-snapNor.y*RH/2;
+              lock={rail:{pt:Opt,dir:snapDir,segId:'O-rail'},lockedAngle:snapAngle,edge:'top',isORail:true};
+              lockRef.current=lock;setSnap({...lock});
+              set(s=>({...s,x:snapX,y:snapY,length:snapLen,angle:snapAngle}));
+              return;
+            }
+          }
+        set(s=>({...s,x:vsub(cLf,vscl(newNorE,RH/2)).x,y:vsub(cLf,vscl(newNorE,RH/2)).y,length:Math.max(15,vdst(tgt,cLf)),angle:R2D(Math.atan2(ndE.y,ndE.x))}));return;
+      }
+      if(type==='startR'){
+        if(lock?.isDualSnap){
+          const aP=lock.anchorPt;
+          const dir=lock.rail.dir;
+          const nor=V(dir.y,-dir.x);
+          const h=lock.edge==='top'?RH/2:-RH/2;
+          if(lock.anchorCorner==='RULER_END'){
+            const ne=nearestPt(cur,getPool(),ptMM());
+            const tgt=ne?V(ne.x,ne.y):cur;
+            if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+            const t=tRay(tgt,aP,dir);
+            const newLen=Math.max(6,Math.abs(t));
+            if(t>0){
+              const E=vsub(aP,vscl(nor,h));
+              const orig=vsub(E,vscl(dir,newLen));
+              const newLock={...lock,rLen:newLen};
+              lock=newLock;lockRef.current=lock;setSnap({...lock});
+              set(s=>({...s,x:orig.x,y:orig.y,length:newLen,angle:lock.lockedAngle}));
+            }else{
+              const revDir=vscl(dir,-1);
+              const revNor=V(revDir.y,-revDir.x);
+              const newH=lock.edge==='top'?RH/2:-RH/2;
+              const newCLf=V(aP.x-revNor.x*newH, aP.y-revNor.y*newH);
+              const newLock={...lock,rail:{...lock.rail,dir:revDir},lockedAngle:R2D(Math.atan2(revDir.y,revDir.x)),rLen:newLen,anchorCorner:'RULER_START'};
+              lock=newLock;lockRef.current=lock;setSnap({...lock});
+              set(s=>({...s,x:newCLf.x,y:newCLf.y,length:newLen,angle:lock.lockedAngle}));
+            }
+            setVtxInfo({snapPt:aP,cornerLabel:'RULER_END',kind:'named'});
+            return;
+          }
+          if(lock.anchorCorner==='RULER_START'){
+            setVtxInfo({snapPt:aP,cornerLabel:'RULER_START',kind:'named'});
+            return;
+          }
+        }
+        if(lock?.isORail){
+          const Opt=lock.rail.pt;
+          const g0=rulerG(init);
+          const t_O=tRay(Opt,g0.cL,g0.dir);
+          const t_rest=init.length-t_O;
+          const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+          if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+          const rawDir=vsub(Opt,tgt);
+          if(vlen(rawDir)<1)return;
+          const nd=noFlipDir(vunit(rawDir),lock.rail.dir);
+          const newNor=V(nd.y,-nd.x);
+          const h=lock.edge==='top'?RH/2:-RH/2;
+          const distTgtO=vdst(tgt,Opt);
+          const newX=tgt.x-newNor.x*h;
+          const newY=tgt.y-newNor.y*h;
+          const newLength=Math.max(15,distTgtO+t_rest);
+          const newAngle=R2D(Math.atan2(nd.y,nd.x));
+          lock={...lock,rail:{...lock.rail,dir:nd},lockedAngle:newAngle};
+          lockRef.current=lock;setSnap({...lock});
+          set(s=>({...s,x:newX,y:newY,length:newLength,angle:newAngle}));
+          return;
+        }
+        const initDirS=V(Math.cos(D2R(init.angle)),Math.sin(D2R(init.angle)));
+        const initNorS=V(initDirS.y,-initDirS.x);
+        const EiS=vadd(V(init.x,init.y),vscl(initDirS,init.length));
+        const cRf=vadd(EiS,vscl(initNorS,RH/2));
+        const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+        if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+        if(vdst(tgt,cRf)<2)return;
+        const ndS=vunit(vsub(cRf,tgt));
+        const newNorS=V(ndS.y,-ndS.x);
+        const omm=ORAIL_PX/zR.current;
+        for(const Oc of oCenters){
+          const Opt=V(Oc.x,Oc.y);
+          if(dRay(Opt,tgt,ndS)<omm&&vdst(Opt,cRf)>2){
+            const rawDir=vunit(vsub(cRf,Opt));
+            const snapDir=noFlipDir(rawDir,ndS);
+            const snapNor=V(snapDir.y,-snapDir.x);
+            const snapAngle=R2D(Math.atan2(snapDir.y,snapDir.x));
+            const snapLen=Math.max(15,vdst(tgt,cRf));
+            const newCL=vsub(tgt,vscl(snapNor,RH/2));
+            lock={rail:{pt:Opt,dir:snapDir,segId:'O-rail'},lockedAngle:snapAngle,edge:'top',isORail:true};
+            lockRef.current=lock;setSnap({...lock});
+            set(s=>({...s,x:newCL.x,y:newCL.y,length:snapLen,angle:snapAngle}));
+            return;
+          }
+        }
+        set(s=>({...s,x:vsub(tgt,vscl(newNorS,RH/2)).x,y:vsub(tgt,vscl(newNorS,RH/2)).y,length:Math.max(15,vdst(tgt,cRf)),angle:R2D(Math.atan2(ndS.y,ndS.x))}));return;
+      }
+      if(type==='vtxO'){
+        const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;
+        if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);
+        set(s=>({...s,x:tgt.x,y:tgt.y}));
+        if(ne)setVtxInfo({snapPt:tgt,cornerLabel:'O',kind:ne.kind});else setVtxInfo(null);
+        return;
+      }
+      if(type==='vtxA'){const O=V(init.x,init.y);const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);set(s=>({...s,size:Math.max(15,vdst(tgt,O)),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))}));if(ne)setVtxInfo({snapPt:tgt,cornerLabel:'A',kind:ne.kind});else setVtxInfo(null);return;}
+      if(type==='vtxB'){const O=V(init.x,init.y);const ne=nearestPt(cur,getPool(),ptMM());const tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);set(s=>({...s,size:Math.max(15,vdst(tgt,O)),angle:R2D(Math.atan2(tgt.y-O.y,tgt.x-O.x))-90}));if(ne)setVtxInfo({snapPt:tgt,cornerLabel:'B',kind:ne.kind});else setVtxInfo(null);return;}
+      if(type==='cmpR'){const a=R2D(Math.atan2(cur.y-init.cy,cur.x-init.cx));const r=Math.max(4,vdst(cur,V(init.cx,init.cy)));const ne=nearestPt(V(init.cx+r*Math.cos(D2R(a)),init.cy+r*Math.sin(D2R(a))),getPool(false,false),ptMM());if(ne){set(s=>({...s,radius:vdst(V(ne.x,ne.y),V(init.cx,init.cy)),pencilAngle:R2D(Math.atan2(ne.y-init.cy,ne.x-init.cx))}));setSnapD({pt:V(ne.x,ne.y),kind:ne.kind});}else{set(s=>({...s,radius:r,pencilAngle:a}));setSnapD(null);}return;}
+    }
+    function up(){dragRef.current=null;window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}
+    function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}
+    dragRef.current={t:'instr'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});
+  }
+
+  function unlockRail(lRef,setSt){lRef.current=null;setSt(null);setCranInfo(null);setVtxInfo(null);}
+
+  function anchorDrag(e,anchorId){
+    if(penMode)return;e.stopPropagation();e.preventDefault();
+    const initR={...rulerR.current},iG=rulerG(initR);
+    const iAnchor=anchorId==='RULER_START'?iG.cL:iG.cR;
+    function mv(me){const cur=s2c(me.clientX,me.clientY);const ne=nearestPt(cur,getPool(),ANCHOR_PX/zR.current);const tgt=ne?V(ne.x,ne.y):cur;if(ne)setSnapD({pt:tgt,kind:ne.kind});else setSnapD(null);setRuler(r=>({...r,x:initR.x+(tgt.x-iAnchor.x),y:initR.y+(tgt.y-iAnchor.y)}));if(ne)setVtxInfo({snapPt:tgt,cornerLabel:anchorId,kind:ne.kind});else setVtxInfo(null);}
+    function up(){dragRef.current=null;setSnapD(null);window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}
+    function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}
+    dragRef.current={t:'anchor'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});
+  }
+  function protRot(e){if(penMode)return;e.stopPropagation();e.preventDefault();const pCx=protR.current.cx,pCy=protR.current.cy;function mv(me){const c=s2c(me.clientX,me.clientY);setProt(p=>({...p,cx:pCx,cy:pCy,baseAngle:((R2D(Math.atan2(c.y-pCy,c.x-pCx))+90)%360+360)%360}));}function up(){dragRef.current=null;window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}dragRef.current={t:'pR'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});}
+  function protBody(e){if(penMode)return;e.stopPropagation();e.preventDefault();const orig=s2c(e.clientX,e.clientY),init={...protR.current};function mv(me){const c=s2c(me.clientX,me.clientY);const raw=V(init.cx+c.x-orig.x,init.cy+c.y-orig.y);const ne=nearestPt(raw,getPool(true,false),ptMM());if(ne){setProt(p=>({...p,cx:ne.x,cy:ne.y}));setProtSnap(true);}else{setProt(p=>({...p,cx:raw.x,cy:raw.y}));setProtSnap(false);}}function up(){dragRef.current=null;window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}dragRef.current={t:'pB'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});}
+  function cmpCenter(e){if(penMode)return;e.stopPropagation();e.preventDefault();const orig=s2c(e.clientX,e.clientY),init={...cmpR.current};function mv(me){const c=s2c(me.clientX,me.clientY);const raw=V(init.cx+c.x-orig.x,init.cy+c.y-orig.y);const ne=nearestPt(raw,getPool(false,true),ptMM());if(ne){setCmp(cm=>({...cm,cx:ne.x,cy:ne.y}));setSnapD({pt:V(ne.x,ne.y),kind:ne.kind});}else{setCmp(cm=>({...cm,cx:raw.x,cy:raw.y}));setSnapD(null);}}function up(){dragRef.current=null;setSnapD(null);window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mvT);window.removeEventListener('touchend',up);}function mvT(te){if(te.touches.length>=1){te.preventDefault();mv({clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});}}dragRef.current={t:'cC'};window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);window.addEventListener('touchmove',mvT,{passive:false});window.addEventListener('touchend',up,{passive:false});}
+
+  function togS(){if(!showS){const c=vcenter(panR,zR,cvaR);const sz=Math.round(220/zR.current);setSq(s=>({...s,x:c.x,y:c.y,size:sz}));sLock.current=null;setSSnap(null);setCranInfo(null);}setShowS(x=>!x);}
+  function togR(){if(!showR){const c=vcenter(panR,zR,cvaR);const len=Math.round(300/zR.current);setRuler(r=>({...r,x:c.x-len/2,y:c.y,angle:0,length:len}));rLock.current=null;setRSnap(null);setCranInfo(null);}setShowR(x=>!x);}
+  function togC(){if(!showC){const c=vcenter(panR,zR,cvaR);setCmp(m=>({...m,cx:c.x,cy:c.y}));}setShowC(x=>!x);}
+  function togP(){if(!showP){const c=vcenter(panR,zR,cvaR);setProt(p=>({...p,cx:c.x,cy:c.y+PROT_R/2}));setProtSnap(false);}setShowP(x=>!x);}
+  function refit(){if(ch&&ch.level!=='libre'){const ft=fitTransform(ch,svgSz.w,svgSz.h);setZoom(ft.zoom);setPan(ft.pan);}else{setZoom(IZ);setPan({x:0,y:0});}setCva(0);}
+
+  const rG=showR?rulerG(ruler):null;
+  const sG=showS?squareG(sq):null;
+  const tf=`translate(${svgSz.w/2+pan.x} ${svgSz.h/2+pan.y}) scale(${zoom}) rotate(${cva})`;
+  const cpA=D2R(cmp.pencilAngle),cpX=cmp.cx+cmp.radius*Math.cos(cpA),cpY=cmp.cy+cmp.radius*Math.sin(cpA);
+  const lSt=(st,h)=>({stroke:st==='constr'?'#6b7fa0':'#1a1a2e',strokeWidth:h?2.5:st==='constr'?.8:1.5,strokeDasharray:st==='constr'?'5,2.5':undefined,strokeLinecap:'round'});
+  const SC={edge:'#059669',locked:'#059669',inter:'#7c3aed',end:'#2563eb',named:'#2563eb',center:'#dc2626',anchor:'#f59e0b'};
+  const SL={edge:'◇ bord',inter:'✕ intersect.',end:'● extrémi.',named:'● point',center:'⊙ centre',anchor:'⚓ ancre'};
+  const CURMAP={pen:'crosshair',point:'cell',arc:'crosshair',eraser:'cell',pan:'grab',rotate:'ew-resize'};
+  const hR=HDL_R/zoom;
+  const thR=TOUCH_HDL/zoom;
+  const isEx=ch&&ch.level!=='libre';
+  const ancL=vtxInfo?.cornerLabel==='RULER_START';
+  const ancR=vtxInfo?.cornerLabel==='RULER_END';
+  const gR_sz=ANCHOR_PX/zoom;
+  const instrOp=0.70;
+  const isOnORail=rSnap?.rail?.segId==='O-rail';
+
+  return(
+    <div className="app">
+      <header className="hdr">
+        <div className="hdr-brand">
+          <div className="hdr-logo-pill">⊗</div>
+          <div className="hdr-title">
+            Homothétie
+            <span className="hdr-title-sub">atelier interactif</span>
+          </div>
+        </div>
+
+        <div className="hdr-sep"/>
+
+        <div className="hdr-mid">
+          <div className="tool-group">
+            {[
+              {id:'pan',  ic:'✋', lb:'Déplacer'},
+              {id:'pen',  ic:'✏', lb:'Tracer'},
+              {id:'point',ic:'⊙', lb:'Point'},
+              {id:'arc',  ic:'◜', lb:'Arc', req:true},
+              {id:'eraser',ic:'⌫',lb:'Gomme'},
+            ].map(t=>{
+              const dis=t.req&&!showC,act=tool===t.id;
+              return<button key={t.id} className={`tbtn${act?' on':''}`} title={t.lb}
+                style={{opacity:dis?.3:1,cursor:dis?'not-allowed':'pointer'}}
+                onClick={()=>!dis&&setTool(t.id)}>{t.ic}</button>;
+            })}
+          </div>
+
+          <div className="hdr-sep"/>
+
+          <div className="tool-group">
+            <button className="tbtn" title="Basculer style trait"
+              style={{width:'auto',padding:'0 10px',fontSize:11,fontFamily:"'DM Mono',monospace",
+                color:lstyle==='solid'?'rgba(255,255,255,.85)':'rgba(255,255,255,.45)'}}
+              onClick={()=>setLstyle(s=>s==='solid'?'constr':'solid')}>
+              {lstyle==='solid'?'——':'- -'}
+            </button>
+          </div>
+
+          <div className="hdr-sep"/>
+
+          <div className="tool-group">
+            <button className="tbtn tbtn-sm" onClick={()=>setZoom(z=>Math.min(30,z*1.25))} title="Zoom +">+</button>
+            <span className="zoom-display">{Math.round(zoom/IZ*100)}%</span>
+            <button className="tbtn tbtn-sm" onClick={()=>setZoom(z=>Math.max(.1,z*.8))} title="Zoom −">−</button>
+            <div style={{width:1,height:18,background:'rgba(255,255,255,.1)',margin:'0 2px'}}/>
+            <button className="tbtn tbtn-sm" onClick={refit} title="Recentrer">⊙</button>
+            <button className="tbtn" title="Pivoter la feuille"
+              style={{fontSize:13,color:tool==='rotate'?'rgba(255,255,255,.9)':'rgba(255,255,255,.45)'}}
+              onClick={()=>setTool(t=>t==='rotate'?'pan':'rotate')}>↺</button>
+          </div>
+
+          <div className="hdr-sep"/>
+
+          <div className="tool-group">
+            <button className="tbtn tbtn-sm" onClick={undo} disabled={!hist.length}
+              style={{opacity:hist.length?1:.28}} title="Annuler Ctrl+Z">↩</button>
+            <button className="tbtn tbtn-sm" onClick={redo} disabled={!future.length}
+              style={{opacity:future.length?1:.28}} title="Refaire Ctrl+Y">↪</button>
+          </div>
+        </div>
+
+        <div className="hdr-right">
+          {isEx&&<div style={{display:'flex',alignItems:'center',gap:5,padding:'3px 10px',
+            borderRadius:8,background:'rgba(255,255,255,.07)',
+            border:'1px solid rgba(255,255,255,.1)'}}>
+            <span style={{fontSize:9,color:'rgba(255,255,255,.35)',fontFamily:"'DM Mono',monospace",letterSpacing:'.5px',textTransform:'uppercase'}}>N{ch.level}</span>
+            <span style={{width:1,height:12,background:'rgba(255,255,255,.12)'}}/>
+            <span style={{fontSize:12,fontFamily:"'Playfair Display',Georgia,serif",fontStyle:'italic',fontWeight:700,color:LVCONF[ch.level]?.col||'#fff'}}>k = {kLabel(ch.k||LVCONF[ch.level]?.k||1)}</span>
+          </div>}
+          {rSnap&&<button className="tbtn tbtn-sm" title="Déverrouiller règle"
+            onClick={()=>unlockRail(rLock,setRSnap)}
+            style={{color:rSnap.isDualSnap?'#a78bfa':isOnORail?'#f87171':'#fbbf24',
+              background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)'}}>🔓</button>}
+          {sSnap&&<button className="tbtn tbtn-sm" title="Déverrouiller équerre"
+            onClick={()=>unlockRail(sLock,setSSnap)}
+            style={{color:'#60a5fa',background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)'}}>🔓</button>}
+        </div>
+      </header>
+
+      <div className="main">
+
+        <div className="canvas-wrap">
+          {!ch&&<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(160deg,#f8f6f1 0%,#ede9e0 100%)',zIndex:2}}>
+            <div style={{textAlign:'center',maxWidth:560,padding:'40px 32px',animation:'fadeIn .4s ease'}}>
+              <div style={{width:72,height:72,borderRadius:20,background:'linear-gradient(135deg,#6366f1,#a855f7)',
+                display:'flex',alignItems:'center',justifyContent:'center',fontSize:40,
+                margin:'0 auto 20px',boxShadow:'0 8px 28px rgba(99,102,241,.35)'}}>⊗</div>
+              <h1 style={{fontSize:32,fontWeight:800,color:'#0f172a',marginBottom:8,letterSpacing:'-1px',
+                fontFamily:"'DM Sans',system-ui,sans-serif"}}>Atelier d'Homothétie</h1>
+              <div style={{display:'inline-block',background:'#fff',borderRadius:12,padding:'10px 22px',
+                marginBottom:16,border:'1.5px solid #e4dfd5',boxShadow:'0 2px 12px rgba(0,0,0,.06)'}}>
+                <span style={{fontFamily:"'Playfair Display',Georgia,serif",fontStyle:'italic',fontSize:18,color:'#1e1b16',letterSpacing:'-.2px'}}>
+                  OA⃗' = k · OA⃗
+                </span>
+              </div>
+              <p style={{fontSize:13,color:'#786e63',lineHeight:1.75,marginBottom:28,maxWidth:420,margin:'0 auto 28px'}}>
+                Pose le coin de la règle sur A, approche le bord sur O — la règle s'aimante sur l'axe [OA]. Lis la distance, multiplie par k.
+              </p>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,maxWidth:480,margin:'0 auto 12px'}}>
+                {[1,2,3,4,5].map(lv=>{
+                  const{col,k,label}=LVCONF[lv];
+                  const desc=label.split('—').slice(1).join('—').trim();
+                  return<button key={lv} onClick={()=>startCh(lv)} style={{
+                    padding:'14px 10px',borderRadius:14,cursor:'pointer',
+                    fontFamily:"'DM Sans',inherit",background:'#fff',
+                    border:`2px solid ${col}`,textAlign:'center',
+                    boxShadow:`0 4px 16px ${col}30`,
+                    transition:'all .18s ease',animation:`popIn .35s ease ${lv*.07}s both`
+                  }}
+                  onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow=`0 8px 24px ${col}45`;}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=`0 4px 16px ${col}30`;}}>
+                    <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontStyle:'italic',fontWeight:700,fontSize:22,color:col,lineHeight:1,marginBottom:4}}>
+                      k={kLabel(k)}
+                    </div>
+                    <div style={{fontSize:9,fontWeight:700,color:col,textTransform:'uppercase',letterSpacing:'1px',marginBottom:3,opacity:.7}}>N{lv}</div>
+                    <div style={{fontSize:10,color:'#786e63',lineHeight:1.3}}>{desc}</div>
+                  </button>;
+                })}
+                <button onClick={startFree} style={{
+                  padding:'14px 10px',borderRadius:14,cursor:'pointer',
+                  fontFamily:"'DM Sans',inherit",background:'#fff',
+                  border:'2px solid #f59e0b',textAlign:'center',
+                  boxShadow:'0 4px 16px #f59e0b30',gridColumn:'span 3',
+                  animation:'popIn .35s ease .38s both'
+                }}
+                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.background='#fffbeb';}}
+                onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.background='#fff';}}>
+                  <span style={{fontSize:12,fontWeight:700,color:'#b45309'}}>✦ Mode Libre — explorez librement</span>
+                </button>
+              </div>
+            </div>
+          </div>}
+
+          <svg ref={svgRef}
+            style={{width:'100%',height:'100%',cursor:CURMAP[tool]||'default',touchAction:'none',display:'block'}}
+            onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onWheel={onWheel}>
+            <defs>
+              <pattern id="g5" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M5 0L0 0 0 5" fill="none" stroke="#e3ddd6" strokeWidth=".4"/></pattern>
+              <pattern id="g50" width="50" height="50" patternUnits="userSpaceOnUse"><rect width="50" height="50" fill="url(#g5)"/><path d="M50 0L0 0 0 50" fill="none" stroke="#d8d2c8" strokeWidth=".75"/></pattern>
+              <filter id="sh"><feDropShadow dx="1" dy="2" stdDeviation="2.5" floodColor="rgba(0,0,0,.11)"/></filter>
+              <filter id="shS"><feDropShadow dx="2" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,.17)"/></filter>
+            </defs>
+            <g transform={tf}>
+              <rect x="-9000" y="-9000" width="18000" height="18000" fill="#fafaf7"/>
+              <rect x="-9000" y="-9000" width="18000" height="18000" fill="url(#g50)"/>
+              <rect x="-148.5" y="-105" width="297" height="210" fill="none" stroke="#cdc6ba" strokeWidth=".5" strokeDasharray="4,4" style={{pointerEvents:'none'}}/>
+
+              {segs.map(s=>{
+                if(s.isExSeg){
+                  return<line key={s.id} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
+                    stroke="#2563eb" strokeWidth={1.5} strokeLinecap="round" opacity={.85}
+                    style={{pointerEvents:'none'}}/>;
+                }
+                const h=hov?.t==='seg'&&hov.id===s.id;
+                const tgtCol=rSnap?.rail?.segId===s.id?'#d97706':sSnap?.rail?.segId===s.id?'#1d4ed8':null;
+                const {stroke,strokeWidth,strokeDasharray,strokeLinecap}=lSt(s.style,h);
+                return<g key={s.id}>
+                  {tgtCol&&<line x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={tgtCol} strokeWidth={10} strokeLinecap="round" opacity={.13} style={{pointerEvents:'none'}}/>}
+                  <line x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
+                    stroke={h&&tool==='eraser'?'#ef4444':tgtCol||stroke} strokeWidth={strokeWidth}
+                    strokeDasharray={strokeDasharray} strokeLinecap={strokeLinecap}
+                    opacity={h&&tool==='eraser'?.2:1}
+                    onMouseEnter={()=>setHov({t:'seg',id:s.id})} onMouseLeave={()=>setHov(null)}
+                    onClick={()=>tool==='eraser'&&!s.locked&&(save(),setSegs(x=>x.filter(y=>y.id!==s.id)))}
+                    style={{cursor:tool==='eraser'&&!s.locked?'pointer':'default'}}/>
+                </g>;
+              })}
+
+              {arcs.map(a=>{const h=hov?.t==='arc'&&hov.id===a.id;const d=arcStr(a.cx,a.cy,a.r,a.startAngle,a.endAngle);const {stroke,strokeWidth,strokeDasharray}=lSt(a.style,h);return d?<path key={a.id} d={d} fill="none" stroke={h&&tool==='eraser'?'#ef4444':stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} strokeLinecap="round" opacity={h&&tool==='eraser'?.2:1} onMouseEnter={()=>setHov({t:'arc',id:a.id})} onMouseLeave={()=>setHov(null)} onClick={()=>tool==='eraser'&&(save(),setArcs(x=>x.filter(y=>y.id!==a.id)))} style={{cursor:tool==='eraser'?'pointer':'default'}}/>:null;})}
+
+              {named.map(p=>{
+                const h=hov?.t==='pt'&&hov.id===p.id;
+                const isExPt=!!p.exLabel;
+                const isCenter=!!p.isCenter;
+                const isCran=cranInfo&&vdst(V(p.x,p.y),cranInfo.pt)<.5;
+                const isVtx=vtxInfo&&vdst(V(p.x,p.y),vtxInfo.snapPt)<.5;
+                const isSnap=isVtx&&(vtxInfo.cornerLabel==='RULER_START'||vtxInfo.cornerLabel==='RULER_END');
+
+                if(isCenter){
+                  const rO=PX_PT_O/zoom;
+                  const armO=8/zoom;
+                  const swO=1.8/zoom;
+                  const isSnapO=isVtx||isSnap;
+                  const oSnapping=isOnORail&&rSnap?.rail?.pt;
+                  const isDual=rSnap?.isDualSnap&&rSnap?.rail?.pt&&vdst(rSnap.rail.pt,V(p.x,p.y))<.5;
+                  const col=isDual?'#7c3aed':isSnapO||oSnapping?'#f97316':'#dc2626';
+                  return<g key={p.id} style={{pointerEvents:'none'}}>
+                    <circle cx={p.x} cy={p.y} r={ORAIL_PX/zoom}
+                      fill="none"
+                      stroke={isDual?'#7c3aed':oSnapping?'#f97316':'#dc2626'}
+                      strokeWidth={(oSnapping||isDual)?1.2/zoom:.5/zoom}
+                      strokeDasharray={`${2.5/zoom},${2/zoom}`}
+                      opacity={(oSnapping||isDual)?.7:.22}/>
+                    {isSnapO&&<circle cx={p.x} cy={p.y} r={12/zoom} fill="#fef3c7" opacity={.35}/>}
+                    <line x1={p.x-armO} y1={p.y} x2={p.x+armO} y2={p.y}
+                      stroke={col} strokeWidth={swO} strokeLinecap="round"/>
+                    <line x1={p.x} y1={p.y-armO} x2={p.x} y2={p.y+armO}
+                      stroke={col} strokeWidth={swO} strokeLinecap="round"/>
+                    <circle cx={p.x} cy={p.y} r={rO}
+                      fill="white" stroke={col} strokeWidth={1.5/zoom}/>
+                    <text x={p.x+12/zoom} y={p.y+6/zoom}
+                      fontSize={18/zoom} fontWeight="bold"
+                      fontFamily="Georgia,serif" fontStyle="italic"
+                      fill="#dc2626"
+                      stroke="white" strokeWidth={3/zoom} paintOrder="stroke">O</text>
+                  </g>;
+                }
+
+                if(isExPt){
+                  const rE=PX_PT_EX/zoom;
+                  const isDualAnchor=rSnap?.isDualSnap&&rSnap?.anchorPt&&vdst(rSnap.anchorPt,V(p.x,p.y))<.5;
+                  const colE=isDualAnchor?'#7c3aed':'#1d4ed8';
+                  return<g key={p.id} style={{pointerEvents:'none'}}>
+                    {isDualAnchor&&<circle cx={p.x} cy={p.y} r={13/zoom}
+                      fill="none" stroke="#7c3aed" strokeWidth={1.5/zoom} opacity={.65}/>}
+                    {isSnap&&<>
+                      <circle cx={p.x} cy={p.y} r={11/zoom} fill="#fef3c7" opacity={.35}/>
+                      <circle cx={p.x} cy={p.y} r={11/zoom} fill="none"
+                        stroke="#f59e0b" strokeWidth={1/zoom} strokeDasharray={`${2/zoom},${1.5/zoom}`}/>
+                    </>}
+                    <circle cx={p.x} cy={p.y} r={rE}
+                      fill={colE} stroke="white" strokeWidth={1.5/zoom}/>
+                    <text x={p.x+12/zoom} y={p.y+6/zoom}
+                      fontSize={18/zoom} fontWeight="bold"
+                      fontFamily="Georgia,serif" fontStyle="italic"
+                      fill={colE}
+                      stroke="white" strokeWidth={3/zoom} paintOrder="stroke">{p.exLabel}</text>
+                  </g>;
+                }
+                return<g key={p.id}
+                  onMouseEnter={()=>setHov({t:'pt',id:p.id})} onMouseLeave={()=>setHov(null)}
+                  onClick={()=>tool==='eraser'&&(save(),setNamed(x=>x.filter(y=>y.id!==p.id)))}
+                  style={{cursor:tool==='eraser'?'pointer':'default'}}>
+                  <circle cx={p.x} cy={p.y} r={ptMM()} fill="transparent" style={{pointerEvents:'all'}}/>
+                  {(isCran||isVtx)&&<circle cx={p.x} cy={p.y} r={(PX_PT_STU+4)/zoom}
+                    fill="none" stroke="#f59e0b" strokeWidth={1.2/zoom}
+                    strokeDasharray={`${2.5/zoom},${1.5/zoom}`} style={{pointerEvents:'none'}}/>}
+                  <circle cx={p.x} cy={p.y}
+                    r={isCran||isVtx?(PX_PT_STU+1.5)/zoom:PX_PT_STU/zoom}
+                    fill={isCran||isVtx?'#f59e0b':h&&tool==='eraser'?'#ef4444':'#374151'}
+                    stroke="white" strokeWidth={1.5/zoom}
+                    style={{pointerEvents:'none'}}/>
+                </g>;
+              })}
+
+              {isEx&&ch.showSolution&&(()=>{
+                const Ox=ch.center.x,Oy=ch.center.y;
+                const k=ch.k||LVCONF[ch.level]?.k||1;
+                const kStr=kLabel(k);
+                return<g style={{pointerEvents:'none'}}>
+                  {ch.symmetrics.map((sp,i)=>{
+                    const op=ch.points[i];if(!op)return null;
+                    const dOA=vdst(V(op.x,op.y),V(Ox,Oy));
+                    const dOAp=vdst(V(sp.x,sp.y),V(Ox,Oy));
+                    const dirOA=dOA>0?vunit(vsub(V(op.x,op.y),V(Ox,Oy))):V(1,0);
+                    const dirOAp=dOAp>0?vunit(vsub(V(sp.x,sp.y),V(Ox,Oy))):V(1,0);
+                    const rayExt=Math.max(dOA,dOAp)*1.15+8/zoom;
+                    const rayDir=k>=0?dirOA:vscl(dirOA,-1);
+                    function arrowTip(tip,dir,sz){
+                      const p=V(-dir.y,dir.x);
+                      const base=vadd(tip,vscl(dir,-sz));
+                      return `M${base.x+p.x*sz*.45} ${base.y+p.y*sz*.45} L${tip.x} ${tip.y} L${base.x-p.x*sz*.45} ${base.y-p.y*sz*.45}`;
+                    }
+                    const arrowSz=4.5/zoom;
+                    const midOAp=V((Ox+sp.x)/2,(Oy+sp.y)/2);
+                    const perpOAp=V(-dirOAp.y,dirOAp.x);
+                    const labelOffset=8/zoom;
+                    return<g key={sp.label}>
+                      <line x1={Ox-rayDir.x*rayExt} y1={Oy-rayDir.y*rayExt}
+                            x2={Ox+rayDir.x*rayExt} y2={Oy+rayDir.y*rayExt}
+                        stroke="#059669" strokeWidth={.9/zoom}
+                        strokeDasharray={`${4/zoom},${2.5/zoom}`} opacity={.5}/>
+                      <line x1={Ox} y1={Oy} x2={op.x} y2={op.y}
+                        stroke="#0891b2" strokeWidth={1.6/zoom} opacity={.8}/>
+                      <path d={arrowTip(V(op.x,op.y),dirOA,arrowSz)}
+                        fill="none" stroke="#0891b2" strokeWidth={1.5/zoom} opacity={.8}/>
+                      <line x1={Ox} y1={Oy} x2={sp.x} y2={sp.y}
+                        stroke="#059669" strokeWidth={2/zoom} opacity={.85}/>
+                      <path d={arrowTip(V(sp.x,sp.y),dirOAp,arrowSz)}
+                        fill="none" stroke="#059669" strokeWidth={1.8/zoom}/>
+                      {i===0&&<text
+                        x={midOAp.x+perpOAp.x*labelOffset*1.8}
+                        y={midOAp.y+perpOAp.y*labelOffset*1.8}
+                        fontSize={7.5/zoom} fontWeight="800" textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#059669" stroke="white" strokeWidth={2.5/zoom} paintOrder="stroke"
+                        fontFamily="monospace">k={kStr}</text>}
+                      <circle cx={sp.x} cy={sp.y} r={(PX_PT_SOL+2.5)/zoom}
+                        fill="#dcfce7" stroke="#059669" strokeWidth={1.5/zoom}
+                        strokeDasharray={`${2.5/zoom},${1.5/zoom}`} opacity={.95}/>
+                      <circle cx={sp.x} cy={sp.y} r={PX_PT_SOL/zoom}
+                        fill="#059669" stroke="white" strokeWidth={1.5/zoom}/>
+                      <text x={sp.x+12/zoom} y={sp.y+6/zoom}
+                        fontSize={18/zoom} fontWeight="bold"
+                        fontFamily="Georgia,serif" fontStyle="italic"
+                        fill="#059669"
+                        stroke="white" strokeWidth={3/zoom} paintOrder="stroke">{sp.label}</text>
+                    </g>;
+                  })}
+                  {ch.conn&&ch.conn.map(([i,j],ki)=>{
+                    const A=ch.symmetrics[i],B=ch.symmetrics[j];if(!A||!B)return null;
+                    return<line key={ki} x1={A.x} y1={A.y} x2={B.x} y2={B.y}
+                      stroke="#059669" strokeWidth={2/zoom} strokeDasharray={`${6/zoom},${3/zoom}`} opacity={.75}/>;
+                  })}
+                </g>;
+              })()}
+
+              {drawing&&<line x1={drawing.x1} y1={drawing.y1} x2={drawing.x2} y2={drawing.y2}
+                stroke={drawing.lockEdge?'#059669':'#2563eb'} strokeWidth={1.8} strokeLinecap="round" opacity={.8}
+                strokeDasharray={lstyle==='constr'?'5,2.5':undefined} style={{pointerEvents:'none'}}/>}
+              {compArc&&(()=>{const d=arcStr(cmp.cx,cmp.cy,cmp.radius,compArc.startAngle,cmp.pencilAngle);return d?<path d={d} fill="none" stroke="#2563eb" strokeWidth={1.8} opacity={.8} strokeLinecap="round" strokeDasharray={lstyle==='constr'?'5,2.5':undefined} style={{pointerEvents:'none'}}/>:null;})()}
+
+              {snapD&&snapD.kind!=='none'&&(()=>{const{pt,kind}=snapD,col=SC[kind]||'#aaa',r1=7/zoom;if(kind==='inter')return<g style={{pointerEvents:'none'}}><circle cx={pt.x} cy={pt.y} r={r1} fill="none" stroke={col} strokeWidth={1.5/zoom}/><line x1={pt.x-6/zoom} y1={pt.y} x2={pt.x+6/zoom} y2={pt.y} stroke={col} strokeWidth={1.2/zoom}/><line x1={pt.x} y1={pt.y-6/zoom} x2={pt.x} y2={pt.y+6/zoom} stroke={col} strokeWidth={1.2/zoom}/></g>;return<g style={{pointerEvents:'none'}}><circle cx={pt.x} cy={pt.y} r={r1} fill="none" stroke={col} strokeWidth={1.5/zoom}/><circle cx={pt.x} cy={pt.y} r={2.5/zoom} fill={col}/></g>;})()}
+
+              {cranInfo?.perpPt&&<g style={{pointerEvents:'none'}}>
+                <circle cx={cranInfo.perpPt.x} cy={cranInfo.perpPt.y} r={5/zoom} fill="none" stroke="#f59e0b" strokeWidth={2.5/zoom}/>
+                <circle cx={cranInfo.perpPt.x} cy={cranInfo.perpPt.y} r={1.8/zoom} fill="#f59e0b"/>
+                <line x1={cranInfo.perpPt.x} y1={cranInfo.perpPt.y} x2={cranInfo.pt.x} y2={cranInfo.pt.y} stroke="#f59e0b" strokeWidth={.9/zoom} strokeDasharray={`${3/zoom},${2/zoom}`} opacity={.6}/>
+              </g>}
+
+              {showP&&<ProtractorSVG prot={prot} zoom={zoom} isPen={penMode} onBodyDown={protBody} onRotDown={protRot} snapped={protSnap}/>}
+
+              {showR&&rG&&(()=>{
+                const sn=rSnap;
+                const pts=rG.corners.map(c=>`${c.x},${c.y}`).join(' ');
+                const oRailActive=isOnORail;
+                const isDualA=rSnap?.isDualSnap;
+                const sc=sn?'#d97706':'#b45309';
+                const sf=sn?'#fffbeb':'#fffdf5';
+                const mx=(rG.cL.x+rG.cR.x)/2,my=(rG.cL.y+rG.cR.y)/2;
+                return<g data-i="1" filter="url(#sh)" opacity={instrOp}>
+                  <polygon points={pts}
+                    fill={ancL||ancR?'#fffbeb':sf}
+                    stroke={ancL||ancR?'#f59e0b':sc}
+                    strokeWidth={ancL||ancR?2.5:sn?2.2:1.4}
+                    onMouseDown={penMode?undefined:e=>instrDrag(e,'move',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                    onTouchStart={penMode?undefined:e=>{e.preventDefault();instrDrag(toME(e),'move',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                    style={{cursor:penMode?'default':'move'}}/>
+                  {sn&&<polygon points={pts} fill="none" stroke={oRailActive?'#fca5a5':'#fcd34d'} strokeWidth={.9} strokeDasharray="5,3"/>}
+                  <line x1={rG.cL.x} y1={rG.cL.y} x2={rG.cR.x} y2={rG.cR.y}
+                    stroke={ancL||ancR?'#f59e0b':sc} strokeWidth={ancL||ancR?2.6:1.8} strokeLinecap="round" style={{pointerEvents:'none'}}/>
+                  {(()=>{
+                    const tks=[];
+                    const totalMM=ruler.length;
+                    const steps=Math.floor(totalMM/1);
+                    for(let i=0;i<=steps;i++){
+                      const t=i;
+                      const isCm=t%10===0;
+                      const is5mm=t%5===0&&!isCm;
+                      const is1mm=!isCm&&!is5mm;
+                      const tickH=isCm?5.5:is5mm?3.5:2;
+                      const pt=vadd(rG.cL,vscl(rG.dir,t));
+                      const dn=V(-rG.nor.x,-rG.nor.y);
+                      const end=vadd(pt,vscl(dn,tickH));
+                      tks.push(<line key={`t${i}`}
+                        x1={pt.x} y1={pt.y} x2={end.x} y2={end.y}
+                        stroke={isCm?'#78350f':is5mm?'#92400e':'#b45309'}
+                        strokeWidth={(isCm?1.4:is5mm?.9:.4)/zoom}
+                        style={{pointerEvents:'none'}}/>);
+                      if(isCm&&t>0){
+                        const lp=vadd(pt,vscl(dn,tickH+3));
+                        tks.push(<text key={`l${i}`}
+                          x={lp.x} y={lp.y}
+                          fontSize={5.5/zoom} fill="#78350f" fontWeight="700"
+                          textAnchor="middle" dominantBaseline="middle"
+                          fontFamily="monospace"
+                          transform={`rotate(${ruler.angle} ${lp.x} ${lp.y})`}
+                          style={{pointerEvents:'none'}}>{t/10}</text>);
+                      }
+                    }
+                    return tks;
+                  })()}
+                  <circle cx={rG.cL.x} cy={rG.cL.y} r={gR_sz} fill={ancL?'rgba(253,230,138,.18)':'none'}
+                    stroke={ancL?'#f59e0b':'#92400e'} strokeWidth={ancL?1.6/zoom:.6/zoom}
+                    strokeDasharray={ancL?undefined:`${3/zoom},${2/zoom}`} opacity={ancL?1:.4} style={{pointerEvents:'none'}}/>
+                  <circle cx={rG.cR.x} cy={rG.cR.y} r={gR_sz} fill={ancR?'rgba(253,230,138,.18)':'none'}
+                    stroke={ancR?'#f59e0b':'#92400e'} strokeWidth={ancR?1.6/zoom:.6/zoom}
+                    strokeDasharray={ancR?undefined:`${3/zoom},${2/zoom}`} opacity={ancR?1:.4} style={{pointerEvents:'none'}}/>
+
+                  {!penMode&&<>
+                    <circle cx={rG.cL.x} cy={rG.cL.y} r={gR_sz} fill="transparent" data-i="1"
+                      onMouseDown={e=>anchorDrag(e,'RULER_START')}
+                      onTouchStart={e=>{e.preventDefault();anchorDrag(toME(e),'RULER_START');}}
+                      style={{cursor:'crosshair'}}/>
+                    <circle cx={rG.cR.x} cy={rG.cR.y} r={gR_sz} fill="transparent" data-i="1"
+                      onMouseDown={e=>anchorDrag(e,'RULER_END')}
+                      onTouchStart={e=>{e.preventDefault();anchorDrag(toME(e),'RULER_END');}}
+                      style={{cursor:'crosshair'}}/>
+                    <circle cx={rG.cL.x} cy={rG.cL.y} r={hR}
+                      fill={ancL?'#f59e0b':sn?'#9a3412':'#b45309'} stroke="white"
+                      strokeWidth={Math.max(.5,2/zoom)} data-i="1"
+                      onMouseDown={e=>instrDrag(e,'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                    <line x1={rG.cL.x-rG.dir.x*hR*.4} y1={rG.cL.y-rG.dir.y*hR*.4}
+                          x2={rG.cL.x+rG.dir.x*hR*.4} y2={rG.cL.y+rG.dir.y*hR*.4}
+                          stroke="white" strokeWidth={Math.max(.3,1.5/zoom)} strokeLinecap="round" style={{pointerEvents:'none'}}/>
+                    <circle cx={rG.cL.x} cy={rG.cL.y} r={thR} fill="transparent" data-i="1"
+                      onMouseDown={e=>instrDrag(e,'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'startR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                    <circle cx={rG.cR.x} cy={rG.cR.y} r={hR}
+                      fill={ancR?'#f59e0b':'#d97706'} stroke="white"
+                      strokeWidth={Math.max(.5,2/zoom)} data-i="1"
+                      onMouseDown={e=>instrDrag(e,'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                    <line x1={rG.cR.x-rG.dir.x*hR*.4} y1={rG.cR.y-rG.dir.y*hR*.4}
+                          x2={rG.cR.x+rG.dir.x*hR*.4} y2={rG.cR.y+rG.dir.y*hR*.4}
+                          stroke="white" strokeWidth={Math.max(.3,1.5/zoom)} strokeLinecap="round" style={{pointerEvents:'none'}}/>
+                    <circle cx={rG.cR.x} cy={rG.cR.y} r={thR} fill="transparent" data-i="1"
+                      onMouseDown={e=>instrDrag(e,'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'endR',()=>({...rulerR.current}),setRuler,false,rLock,setRSnap);}}
+                      style={{cursor:'ew-resize'}}/>
+                  </>}
+                </g>;
+              })()}
+
+              {showS&&sG&&(()=>{
+                const sn=sSnap;
+                const{O,A,B,U,W}=sG;
+                const sc=sn?'#1d4ed8':'#3b82f6';
+                const vO=vtxInfo?.cornerLabel==='O'&&!sn;
+                const vA=vtxInfo?.cornerLabel==='A';
+                const vB=vtxInfo?.cornerLabel==='B';
+                const perpEdge=sn?(sn.leg==='leg1'?sG.leg2:sG.leg1):null;
+                return<g data-i="1" filter="url(#shS)" opacity={instrOp}>
+                  <polygon points={`${O.x},${O.y} ${A.x},${A.y} ${B.x},${B.y}`}
+                    fill={sn?'#dbeafe':'#eff6ff'} stroke={sc} strokeWidth={sn?2.2:1.4}
+                    onMouseDown={penMode?undefined:e=>instrDrag(e,'move',()=>({...sqR.current}),setSq,true,sLock,setSSnap)}
+                    onTouchStart={penMode?undefined:e=>{e.preventDefault();instrDrag(toME(e),'move',()=>({...sqR.current}),setSq,true,sLock,setSSnap);}}
+                    style={{cursor:penMode?'default':'move'}}/>
+                  {sn&&<polygon points={`${O.x},${O.y} ${A.x},${A.y} ${B.x},${B.y}`} fill="none" stroke="#93c5fd" strokeWidth={.9} strokeDasharray="5,3"/>}
+                  <path d={`M ${O.x+U.x*13} ${O.y+U.y*13} L ${O.x+U.x*13+W.x*13} ${O.y+U.y*13+W.y*13} L ${O.x+W.x*13} ${O.y+W.y*13}`} fill="none" stroke={sc} strokeWidth={1.2} style={{pointerEvents:'none'}}/>
+                  {sn&&perpEdge&&<line x1={perpEdge[0].x} y1={perpEdge[0].y} x2={perpEdge[1].x} y2={perpEdge[1].y} stroke={cranInfo?'#f59e0b':'#818cf8'} strokeWidth={cranInfo?2.5:1.5} strokeDasharray={cranInfo?undefined:"4,2"} style={{pointerEvents:'none'}}/>}
+                  {sn&&<text x={(O.x+A.x+B.x)/3} y={(O.y+A.y+B.y)/3} fontSize={6} fill="#1d4ed8" textAnchor="middle" style={{pointerEvents:'none',fontFamily:'monospace',fontWeight:'bold'}}>{cranInfo?'✦ CRAN':'glisse'}</text>}
+                  {!penMode&&<>
+                    <circle cx={O.x} cy={O.y} r={hR}
+                      fill={vO?'#f59e0b':sn?'#4f46e5':'#6366f1'} stroke="white"
+                      strokeWidth={Math.max(.5,2/zoom)} data-i="1"
+                      onMouseDown={e=>instrDrag(e,'vtxO',()=>({...sqR.current}),setSq,true,sLock,setSSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'vtxO',()=>({...sqR.current}),setSq,true,sLock,setSSnap);}}
+                      style={{cursor:'crosshair'}}/>
+                    <circle cx={O.x} cy={O.y} r={thR} fill="transparent" data-i="1"
+                      onMouseDown={e=>instrDrag(e,'vtxO',()=>({...sqR.current}),setSq,true,sLock,setSSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'vtxO',()=>({...sqR.current}),setSq,true,sLock,setSSnap);}}
+                      style={{cursor:'crosshair'}}/>
+                    <line x1={O.x-U.x*hR*.35-W.x*hR*.35} y1={O.y-U.y*hR*.35-W.y*hR*.35}
+                          x2={O.x+U.x*hR*.35+W.x*hR*.35} y2={O.y+U.y*hR*.35+W.y*hR*.35}
+                          stroke="white" strokeWidth={Math.max(.3,1.5/zoom)} strokeLinecap="round" style={{pointerEvents:'none'}}/>
+                    <circle cx={A.x} cy={A.y} r={hR}
+                      fill={vA?'#f59e0b':sn?'#1e3a8a':'#1d4ed8'} stroke="white"
+                      strokeWidth={Math.max(.5,2/zoom)} data-i="1"
+                      onMouseDown={e=>instrDrag(e,'vtxA',()=>({...sqR.current}),setSq,true,sLock,setSSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'vtxA',()=>({...sqR.current}),setSq,true,sLock,setSSnap);}}
+                      style={{cursor:'crosshair'}}/>
+                    <circle cx={A.x} cy={A.y} r={thR} fill="transparent" data-i="1"
+                      onMouseDown={e=>instrDrag(e,'vtxA',()=>({...sqR.current}),setSq,true,sLock,setSSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'vtxA',()=>({...sqR.current}),setSq,true,sLock,setSSnap);}}
+                      style={{cursor:'crosshair'}}/>
+                    <line x1={A.x-U.x*hR*.4} y1={A.y-U.y*hR*.4}
+                          x2={A.x+U.x*hR*.4} y2={A.y+U.y*hR*.4}
+                          stroke="white" strokeWidth={Math.max(.3,1.5/zoom)} strokeLinecap="round" style={{pointerEvents:'none'}}/>
+                    <circle cx={B.x} cy={B.y} r={hR}
+                      fill={vB?'#f59e0b':sn?'#1e3a8a':'#3b82f6'} stroke="white"
+                      strokeWidth={Math.max(.5,2/zoom)} data-i="1"
+                      onMouseDown={e=>instrDrag(e,'vtxB',()=>({...sqR.current}),setSq,true,sLock,setSSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'vtxB',()=>({...sqR.current}),setSq,true,sLock,setSSnap);}}
+                      style={{cursor:'crosshair'}}/>
+                    <circle cx={B.x} cy={B.y} r={thR} fill="transparent" data-i="1"
+                      onMouseDown={e=>instrDrag(e,'vtxB',()=>({...sqR.current}),setSq,true,sLock,setSSnap)}
+                      onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'vtxB',()=>({...sqR.current}),setSq,true,sLock,setSSnap);}}
+                      style={{cursor:'crosshair'}}/>
+                    <line x1={B.x-W.x*hR*.4} y1={B.y-W.y*hR*.4}
+                          x2={B.x+W.x*hR*.4} y2={B.y+W.y*hR*.4}
+                          stroke="white" strokeWidth={Math.max(.3,1.5/zoom)} strokeLinecap="round" style={{pointerEvents:'none'}}/>
+                  </>}
+                </g>;
+              })()}
+
+              {showC&&<g data-i="1">
+                <circle cx={cmp.cx} cy={cmp.cy} r={cmp.radius} fill="none" stroke="#fca5a5" strokeWidth={.7} strokeDasharray="3,3" style={{pointerEvents:'none'}}/>
+                <line x1={cmp.cx} y1={cmp.cy} x2={cpX} y2={cpY} stroke="#dc2626" strokeWidth={2.5} strokeLinecap="round" style={{pointerEvents:'none'}}/>
+                <text x={(cmp.cx+cpX)/2+5} y={(cmp.cy+cpY)/2-4} fontSize={7} fill="#b91c1c" style={{pointerEvents:'none',fontFamily:'monospace'}}>r={Math.round(cmp.radius*10)/10}mm</text>
+                {!penMode?<>
+                  <circle cx={cmp.cx} cy={cmp.cy} r={8/zoom} fill="#dc2626" stroke="white" strokeWidth={2.5/zoom}
+                    onMouseDown={cmpCenter}
+                    onTouchStart={e=>{e.preventDefault();cmpCenter(toME(e));}}
+                    style={{cursor:'move'}}/>
+                  <circle cx={cmp.cx} cy={cmp.cy} r={thR} fill="transparent" data-i="1"
+                    onMouseDown={cmpCenter}
+                    onTouchStart={e=>{e.preventDefault();cmpCenter(toME(e));}}
+                    style={{cursor:'move'}}/>
+                  <circle cx={cmp.cx} cy={cmp.cy} r={2/zoom} fill="white" style={{pointerEvents:'none'}}/>
+                  <circle cx={cpX} cy={cpY} r={6/zoom} fill="#f97316" stroke="white" strokeWidth={2/zoom} data-i="1"
+                    onMouseDown={e=>instrDrag(e,'cmpR',()=>({...cmpR.current}),setCmp,false,{current:null},()=>{})}
+                    onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'cmpR',()=>({...cmpR.current}),setCmp,false,{current:null},()=>{});}}
+                    style={{cursor:'crosshair'}}/>
+                  <circle cx={cpX} cy={cpY} r={thR} fill="transparent" data-i="1"
+                    onMouseDown={e=>instrDrag(e,'cmpR',()=>({...cmpR.current}),setCmp,false,{current:null},()=>{})}
+                    onTouchStart={e=>{e.preventDefault();instrDrag(toME(e),'cmpR',()=>({...cmpR.current}),setCmp,false,{current:null},()=>{});}}
+                    style={{cursor:'crosshair'}}/>
+                </>:<>
+                  <circle cx={cmp.cx} cy={cmp.cy} r={3} fill="#dc2626" style={{pointerEvents:'none'}}/>
+                  <circle cx={cpX} cy={cpY} r={3} fill="#f97316" style={{pointerEvents:'none'}}/>
+                </>}
+              </g>}
+
+            </g>
+          </svg>
+
+          {(drawing||rSnap?.isDualSnap)&&(()=>{
+            const k=chR.current?.k||null;
+            const isDual=rSnap?.isDualSnap&&!drawing;
+            let lenMM,locked;
+            if(drawing){
+              lenMM=vdst(V(drawing.x1,drawing.y1),V(drawing.x2,drawing.y2));
+              locked=!!drawing.lockEdge;
+            } else if(isDual){
+              const aP=rSnap.anchorPt;
+              const Opt=rSnap.rail?.pt;
+              lenMM=aP&&Opt?vdst(aP,Opt):0;
+              locked=true;
+            }
+            const lenCm=(lenMM/10).toFixed(1);
+            return<div style={{position:'absolute',top:12,right:12,
+              background:locked?'rgba(5,150,105,.9)':'rgba(15,23,42,.82)',
+              color:'white',borderRadius:10,padding:'6px 13px',
+              fontFamily:'monospace',fontSize:14,fontWeight:'bold',
+              letterSpacing:'.3px',boxShadow:'0 2px 12px rgba(0,0,0,.25)',
+              pointerEvents:'none',zIndex:50,
+              display:'flex',flexDirection:'column',alignItems:'center',gap:2,
+              backdropFilter:'blur(4px)',
+              border:`1px solid ${locked?'rgba(52,211,153,.4)':'rgba(255,255,255,.1)'}`}}>
+              <span style={{fontSize:9,opacity:.65,letterSpacing:'1px',textTransform:'uppercase'}}>
+                {isDual?'OA':'longueur'}
+              </span>
+              <span style={{fontSize:21,lineHeight:1}}>{lenCm} <span style={{fontSize:12,opacity:.8}}>cm</span></span>
+              {k!==null&&lenMM>0&&<>
+                <div style={{height:1,width:'100%',background:'rgba(255,255,255,.15)',margin:'2px 0'}}/>
+                <span style={{fontSize:11,color:'#86efac',fontWeight:'bold'}}>
+                  × {kLabel(k)} = {(lenMM*Math.abs(k)/10).toFixed(1)} cm
+                </span>
+              </>}
+            </div>;
+          })()}
+        </div>
+
+        <aside className={`sb${sbOpen?' open':''}`}>
+
+          <div className="sb-section">
+            <div className="sb-label">Exercices</div>
+            {[1,2,3,4,5].map(lv=>{
+              const{col,label,k:lk}=LVCONF[lv],active=ch?.level===lv;
+              const desc=label.split('—').slice(1).join('—').trim();
+              return<button key={lv}
+                className={`lv-card${active?' active':''}`}
+                style={{'--lv-col':col}}
+                onClick={()=>{startCh(lv);setSbOpen(false);}}>
+                <span className="lv-k">{kLabel(lk)}</span>
+                <span className="lv-info">
+                  <strong>Niveau {lv}</strong>
+                  <span>{desc}</span>
+                </span>
+                {active&&<span className="lv-badge">actif</span>}
+              </button>;
+            })}
+            <button
+              className={`lv-card${ch?.level==='libre'?' active':''}`}
+              style={{'--lv-col':'#f59e0b'}}
+              onClick={()=>{startFree();setSbOpen(false);}}>
+              <span className="lv-k" style={{fontSize:18}}>✦</span>
+              <span className="lv-info">
+                <strong>Mode Libre</strong>
+                <span>Exploration sans consigne</span>
+              </span>
+              {ch?.level==='libre'&&<span className="lv-badge">actif</span>}
+            </button>
+          </div>
+
+          <div className="sb-section">
+            <div className="sb-label">Instruments</div>
+            <div className="instr-grid">
+              {[
+                {ico:'📏',lb:'Règle',   on:showR,fn:togR, col:'#b45309'},
+                {ico:'📐',lb:'Équerre', on:showS,fn:togS, col:'#1d4ed8'},
+                {ico:'⌓', lb:'Rapporteur',on:showP,fn:togP,col:'#7c3aed'},
+                {ico:'🧭',lb:'Compas',  on:showC,fn:togC, col:'#dc2626'},
+              ].map(({ico,lb,on,fn,col})=>(
+                <button key={lb} className={`instr-btn${on?' on':''}`}
+                  style={{'--instr-col':col}} onClick={fn}>
+                  <span className="instr-ico">{ico}</span>
+                  <span className="instr-lbl">{lb}</span>
+                  <span className="instr-dot"/>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {ch&&<div className="sb-section">
+            <div className="sb-label">En cours</div>
+
+            <div className="ccard">
+              {isEx&&<span className="ccard-badge" style={{background:LVCONF[ch.level]?.col||'#64748b'}}>
+                Niveau {ch.level} · k = {kLabel(ch.k||LVCONF[ch.level]?.k||1)}
+              </span>}
+              {ch.solved
+                ? <div style={{display:'flex',alignItems:'center',gap:8,background:'#d1fae5',borderRadius:8,padding:'8px 10px',marginBottom:8}}>
+                    <span style={{fontSize:20}}>✅</span>
+                    <span style={{fontSize:11.5,fontWeight:700,color:'#065f46',lineHeight:1.4}}>Bravo ! Bonne réponse.</span>
+                  </div>
+                : <div className="ccard-text">{CONSIGNE[ch.level]}</div>
+              }
+            </div>
+
+            {validMsg&&<div className={`vcard ${validMsg.ok?'vok':'verr'}`}>{validMsg.msg}</div>}
+
+            {isEx&&!ch.solved&&<button className="abtn"
+              style={{background:'#1d4ed8',color:'#fff'}}
+              onClick={validate}>✔ Valider ma réponse</button>}
+
+            {isEx&&ch.solved&&<button className="abtn"
+              style={{background:LVCONF[ch.level]?.col||'#059669',color:'#fff',animation:'bounce 1.3s infinite'}}
+              onClick={()=>startCh(ch.level)}>↺ Rejouer Niveau {ch.level}</button>}
+
+            {isEx&&!ch.showSolution&&<button className="abtn-ghost"
+              onClick={()=>setCh(c=>({...c,showSolution:true}))}>👁 Voir la solution</button>}
+
+            {isEx&&ch.showSolution&&<div style={{fontSize:11,color:'#059669',fontWeight:600,
+              textAlign:'center',padding:'4px 0',display:'flex',alignItems:'center',justifyContent:'center',gap:5}}>
+              <span style={{width:8,height:8,borderRadius:'50%',background:'#059669',display:'inline-block'}}/>
+              Solution visible en vert
+            </div>}
+
+            <button className="abtn-ghost"
+              style={{color:'#dc2626',borderColor:'#fca5a5'}}
+              onClick={clearStudent}>🗑 Effacer mes tracés</button>
+          </div>}
+
+          {ch&&<div className="sb-section" style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-end',gap:0}}>
+            <div style={{background:'#fff',borderRadius:10,padding:'11px 13px',border:'1.5px solid var(--sand-200)'}}>
+              <div style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'1.5px',color:'var(--sand-300)',marginBottom:6}}>Formule clé</div>
+              <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontStyle:'italic',fontSize:15,color:'#1e1b16',marginBottom:8}}>
+                OA⃗' = k · OA⃗
+              </div>
+              <div style={{fontSize:10,color:'#9a9087',lineHeight:1.65}}>
+                <div>① Pose la règle sur O et A</div>
+                <div>② Lis la distance OA en cm</div>
+                <div>③ Multiplie par k → place A'</div>
+              </div>
+            </div>
+            <div style={{marginTop:8,fontFamily:"'DM Mono',monospace",fontSize:9,color:'var(--sand-300)',textAlign:'center'}}>
+              {segs.filter(s=>!s.locked).length}seg · {named.filter(n=>!n.locked).length}pts
+              {snapD&&snapD.kind!=='none'&&<span style={{color:SC[snapD.kind]||'#aaa',marginLeft:6,fontWeight:600}}>{SL[snapD.kind]}</span>}
+            </div>
+          </div>}
+        </aside>
+      </div>
+
+      <button className="sb-toggle" onClick={()=>setSbOpen(o=>!o)} aria-label="Menu">
+        {sbOpen?'✕':'☰'}
+      </button>
+
+      <div className="sbar">
+        <span className="sbar-chip">{Math.round(zoom/IZ*100)}%</span>
+        <span className="sbar-chip">∠{Math.round(cva)}°</span>
+        {isEx&&<span className="sbar-chip" style={{color:LVCONF[ch.level]?.col,borderColor:LVCONF[ch.level]?.col+'44',background:LVCONF[ch.level]?.col+'18'}}>
+          N{ch.level} · k={kLabel(ch.k||LVCONF[ch.level]?.k||1)}
+        </span>}
+        {rSnap&&<span className="sbar-chip" style={{color:'#fbbf24'}}>📏 🔒</span>}
+        {sSnap&&<span className="sbar-chip" style={{color:'#60a5fa'}}>📐 🔒</span>}
+        <span style={{marginLeft:'auto',opacity:.4}}>⌘Z / ⌘Y</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: Quicksand, sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
