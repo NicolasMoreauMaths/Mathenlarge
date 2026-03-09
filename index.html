@@ -1789,7 +1789,7 @@
                     <!-- SVG injecté par JS -->
                 </div>
                 <div class="xp-info">
-                    <div class="xp-rank-name" id="xpRankName">Apprenti</div>
+                    <div class="xp-rank-name" id="xpRankName">G : Apprenti</div>
                     <div class="xp-count" id="xpCount">0 XP</div>
                 </div>
             </div>
@@ -1798,7 +1798,7 @@
             </div>
             <div class="xp-bar-label">
                 <span id="xpBarLeft">0 XP</span>
-                <span id="xpBarRight">Prochain : Élève</span>
+                <span id="xpBarRight">Prochain : F : Élève</span>
             </div>
         </div>
 
@@ -2146,7 +2146,7 @@
     // XP max naturel : ~300*10 + ~80catégories*50 + ~80chapitres*100 ≈ 15 000 XP
     const XP_RANKS = [
         {
-            name: 'Apprenti',
+            name: 'G : Apprenti',
             next: 100,
             color: '#8B6542',
             glow: 'rgba(139,101,66,0.5)',
@@ -2158,7 +2158,7 @@
             </svg>`
         },
         {
-            name: 'Élève',
+            name: 'F : Élève',
             next: 350,
             color: '#cd7f32',
             glow: 'rgba(205,127,50,0.55)',
@@ -2174,7 +2174,7 @@
             </svg>`
         },
         {
-            name: 'Studieux',
+            name: 'E : Studieux',
             next: 900,
             color: '#a8a8b8',
             glow: 'rgba(168,168,184,0.55)',
@@ -2190,7 +2190,7 @@
             </svg>`
         },
         {
-            name: 'Confirmé',
+            name: 'D : Confirmé',
             next: 2000,
             color: '#c8c8dc',
             glow: 'rgba(200,200,220,0.6)',
@@ -2206,7 +2206,7 @@
             </svg>`
         },
         {
-            name: 'Expert',
+            name: 'C : Expert',
             next: 4000,
             color: '#f5c842',
             glow: 'rgba(245,200,66,0.6)',
@@ -2222,7 +2222,7 @@
             </svg>`
         },
         {
-            name: 'Savant',
+            name: 'B : Savant',
             next: 5500,
             color: '#ffd700',
             glow: 'rgba(255,215,0,0.7)',
@@ -2239,7 +2239,7 @@
             </svg>`
         },
         {
-            name: 'Érudit',
+            name: 'A : Érudit',
             next: 8500,
             color: '#e0d0ff',
             glow: 'rgba(180,150,255,0.75)',
@@ -2257,7 +2257,7 @@
             </svg>`
         },
         {
-            name: 'Légende',
+            name: 'S : Légende',
             next: Infinity,
             color: '#ff9f43',
             glow: 'rgba(255,215,0,0.9)',
@@ -2393,6 +2393,66 @@
 
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 4000);
+
+        if (rankIndex === XP_RANKS.length - 1) {
+            launchConfetti();
+        }
+    }
+
+    function launchConfetti() {
+        const canvas = document.createElement('canvas');
+        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;';
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const colors = ['#ff9f43','#ffd700','#ff6b6b','#a29bfe','#55efc4','#fdcb6e','#e17055','#74b9ff','#fd79a8','#ffffff'];
+        const pieces = Array.from({length: 160}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            w: Math.random() * 10 + 6,
+            h: Math.random() * 6 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            r: Math.random() * Math.PI * 2,
+            dr: (Math.random() - 0.5) * 0.2,
+            dy: Math.random() * 3 + 2,
+            dx: (Math.random() - 0.5) * 2,
+            opacity: 1
+        }));
+
+        let frame;
+        const startTime = Date.now();
+        const duration = 4000;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const elapsed = Date.now() - startTime;
+            const progress = elapsed / duration;
+
+            pieces.forEach(p => {
+                p.y += p.dy;
+                p.x += p.dx;
+                p.r += p.dr;
+                p.opacity = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
+
+                ctx.save();
+                ctx.globalAlpha = p.opacity;
+                ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+                ctx.rotate(p.r);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                ctx.restore();
+            });
+
+            if (elapsed < duration) {
+                frame = requestAnimationFrame(draw);
+            } else {
+                cancelAnimationFrame(frame);
+                canvas.remove();
+            }
+        }
+        draw();
     }
 
     // Tracks déjà récompensés pour éviter le double-XP (catégories et chapitres)
@@ -3486,7 +3546,7 @@ ${buildCatalogueSummary()}`;
         <div class="xp-toast-badge" id="xpToastBadge">🏅</div>
         <div class="xp-toast-text">
             <strong id="xpToastTitle">Niveau supérieur !</strong>
-            <span id="xpToastSub">Tu es maintenant Élève</span>
+            <span id="xpToastSub">Tu es maintenant F : Élève</span>
         </div>
     </div>
 
@@ -3809,16 +3869,16 @@ ${buildCatalogueSummary()}`;
               color:'#ff9f43', cat:'XP' },
 
             // ── Rang ──
-            { id:'rank_studieux',  icon:'&#x2694;&#xFE0F;', name:'Rang Studieux',
-              desc:'Tu as atteint le rang Studieux.',
+            { id:'rank_studieux',  icon:'&#x2694;&#xFE0F;', name:'Rang E : Studieux',
+              desc:'Tu as atteint le rang E : Studieux.',
               how:'Atteins 350 XP.',
               color:'#a8a8b8', cat:'Rang' },
-            { id:'rank_expert',    icon:'&#x1F48E;', name:'Rang Expert',
-              desc:'Tu as atteint le rang Expert.',
+            { id:'rank_expert',    icon:'&#x1F48E;', name:'Rang C : Expert',
+              desc:'Tu as atteint le rang C : Expert.',
               how:'Atteins 2 000 XP.',
               color:'#f5c842', cat:'Rang' },
-            { id:'rank_legende',   icon:'&#x1F451;', name:'Rang Légende',
-              desc:'Tu as atteint le rang maximum : Légende !',
+            { id:'rank_legende',   icon:'&#x1F451;', name:'Rang S : Légende',
+              desc:'Tu as atteint le rang maximum : S : Légende !',
               how:'Atteins 8 500 XP.',
               color:'#ff9f43', cat:'Rang' },
 
