@@ -424,13 +424,14 @@ header p {
     <button class="diff-btn" data-level="2">Intermédiaire</button>
     <button class="diff-btn" data-level="3">Expert</button>
     <button class="diff-btn" data-level="4">Maître</button>
+    <button class="diff-btn" id="btn-2p" data-level="0">⚔️ 2 Joueurs</button>
   </div>
 
   <div class="status-bar">
     <div class="player-card" id="pc-black">
       <div class="player-gem black"></div>
       <div class="player-info">
-        <div class="player-role">Joueur</div>
+        <div class="player-role" id="role-black">Joueur</div>
         <div class="player-name">Noir</div>
         <div class="player-score" id="score-black">20 pièces · 0 pris</div>
       </div>
@@ -447,7 +448,7 @@ header p {
     <div class="player-card" id="pc-white">
       <div class="player-gem white"></div>
       <div class="player-info">
-        <div class="player-role">Ordinateur</div>
+        <div class="player-role" id="role-white">Ordinateur</div>
         <div class="player-name">Blanc</div>
         <div class="player-score" id="score-white">20 pièces · 0 pris</div>
       </div>
@@ -485,6 +486,7 @@ const EMPTY=0, BLACK=1, WHITE=2, BK=3, WK=4;
 
 let board, turn, selected, legalMoves, history;
 let aiLevel, gameOver, gen;
+let twoPlayerMode = false;
 let capsBlack=0, capsWhite=0; // prises totales
 let prevSnap=null;
 let animating=false;
@@ -644,14 +646,14 @@ function render(flashCap=null){
     if((r+c)%2===1){
       const isSel    =!animating&&selected&&selected[0]===r&&selected[1]===c;
       const isTarget =!animating&&legalMoves&&legalMoves.some(m=>m.to[0]===r&&m.to[1]===c);
-      const isFriend =!animating&&owns(board[r][c],BLACK)&&!gameOver&&turn===BLACK;
+      const isFriend =!animating&&owns(board[r][c],turn)&&!gameOver&&(twoPlayerMode||(turn===BLACK));
 
       if(isSel){cell.classList.add('selected');cell.addEventListener('click',()=>onClick(r,c));}
       else if(isTarget){
         const dot=document.createElement('div');dot.className='move-dot';cell.appendChild(dot);
         cell.style.cursor='pointer';cell.addEventListener('click',()=>onClick(r,c));
       } else if(isFriend){
-        const allM=genMoves(board,BLACK);
+        const allM=genMoves(board,turn);
         const myM=allM.filter(m=>m.from[0]===r&&m.from[1]===c);
         if(myM.length){
           if(!selected)cell.classList.add('selectable');
@@ -692,6 +694,9 @@ function setStatus(m){document.getElementById('status-msg').textContent=m;}
 function setActive(){
   document.getElementById('pc-black').className='player-card'+(turn===BLACK?' active-black':'');
   document.getElementById('pc-white').className='player-card'+(turn===WHITE?' active-white':'');
+  // Update role labels
+  document.getElementById('role-black').textContent = twoPlayerMode ? 'Joueur 1' : 'Joueur';
+  document.getElementById('role-white').textContent = twoPlayerMode ? 'Joueur 2' : 'Ordinateur';
 }
 
 /* ── animation multi-captures ────────────────────────────────
@@ -757,12 +762,14 @@ function animateCaptures(mv, isAI, onDone){
 
 /* ── clic joueur ──────────────────────────────────────────── */
 function onClick(r,c){
-  if(gameOver||turn!==BLACK||animating)return;
-  const allMoves=genMoves(board,BLACK);
+  const activeTurn = turn;
+  if(gameOver||animating)return;
+  if(!twoPlayerMode && turn!==BLACK)return;
+  const allMoves=genMoves(board,activeTurn);
   if(selected){
     const mv=legalMoves.find(m=>m.to[0]===r&&m.to[1]===c);
-    if(mv){doPlayerMove(mv);return;}
-    if(owns(board[r][c],BLACK)){
+    if(mv){doPlayerMove(mv,activeTurn);return;}
+    if(owns(board[r][c],activeTurn)){
       const myM=allMoves.filter(m=>m.from[0]===r&&m.from[1]===c);
       if(!myM.length){
         setStatus(allMoves.some(m=>m.caps.length>0)?'Ce pion ne peut pas capturer !':'Ce pion ne peut pas bouger.');
@@ -772,7 +779,7 @@ function onClick(r,c){
     }
     selected=null;legalMoves=null;render();return;
   }
-  if(owns(board[r][c],BLACK)){
+  if(owns(board[r][c],activeTurn)){
     const myM=allMoves.filter(m=>m.from[0]===r&&m.from[1]===c);
     if(!myM.length){setStatus(allMoves.some(m=>m.caps.length>0)?'Capture obligatoire ailleurs !':'');return;}
     selected=[r,c];legalMoves=myM;render();
@@ -780,37 +787,56 @@ function onClick(r,c){
 }
 
 /* ── coup joueur ──────────────────────────────────────────── */
-function doPlayerMove(mv){
-  history.push({board:cloneB(board),turn:BLACK,cB:capsBlack,cW:capsWhite});
+function doPlayerMove(mv, playerTurn){
+  if(playerTurn===undefined) playerTurn=BLACK;
+  history.push({board:cloneB(board),turn:playerTurn,cB:capsBlack,cW:capsWhite});
   selected=null;legalMoves=null;
+  const nextTurn = opp(playerTurn);
 
   if(mv.caps.length>1){
     animating=true;
     render();
-    animateCaptures(mv,false,()=>{
-      // Finaliser : promotion éventuelle + changer de tour
+    animateCaptures(mv, playerTurn===WHITE, ()=>{
       const [tr,tc]=mv.to,p=board[tr][tc];
       if(p===BLACK&&tr===0)board[tr][tc]=BK;
+      if(p===WHITE&&tr===ROWS-1)board[tr][tc]=WK;
       animating=false;
-      turn=WHITE;
+      turn=nextTurn;
       render();setActive();
-      afterPlayerMove(mv);
+      afterPlayerMove(mv, nextTurn);
     });
   } else {
-    if(mv.caps.length===1){capsBlack++;flashScore('black');}
+    if(mv.caps.length===1){
+      if(playerTurn===BLACK){capsBlack++;flashScore('black');}
+      else {capsWhite++;flashScore('white');}
+    }
     applyMove(board,mv);
-    turn=WHITE;render();setActive();
-    afterPlayerMove(mv);
+    turn=nextTurn;render();setActive();
+    afterPlayerMove(mv, nextTurn);
   }
 }
 
-function afterPlayerMove(mv){
+function afterPlayerMove(mv, nextTurn){
+  if(nextTurn===undefined) nextTurn=WHITE;
   const myGen=gen;
-  const next=genMoves(board,WHITE);
-  if(!next.length){gameOver=true;setTimeout(()=>showWin('Noir'),400);return;}
+  const next=genMoves(board,nextTurn);
+  const prevTurn=opp(nextTurn);
+  const prevName=prevTurn===BLACK?'Noir':'Blanc';
+  const nextName=nextTurn===BLACK?'Noir':'Blanc';
+
+  if(!next.length){
+    gameOver=true;
+    setTimeout(()=>showWin(prevName),400);
+    return;
+  }
   const c=mv.caps.length;
-  setStatus(c?`Vous avez pris ${c} pièce${c>1?'s':''}. À l'ordinateur…`:"À l'ordinateur…");
-  setTimeout(()=>{if(gen===myGen)doAIMove();},700);
+
+  if(twoPlayerMode){
+    setStatus(c?`${prevName} prend ${c} pièce${c>1?'s':''} · À ${nextName} de jouer`:`À ${nextName} de jouer`);
+  } else {
+    setStatus(c?`Vous avez pris ${c} pièce${c>1?'s':''}. À l'ordinateur…`:"À l'ordinateur…");
+    setTimeout(()=>{if(gen===myGen)doAIMove();},700);
+  }
 }
 
 /* ── tour IA ──────────────────────────────────────────────── */
@@ -853,9 +879,15 @@ function afterAIMove(mv){
 
 /* ── victoire ──────────────────────────────────────────────── */
 function showWin(winner){
-  const isPlayer=winner==='Noir';
-  document.getElementById('ov-title').textContent=isPlayer?'🏆 Victoire !':'💀 Défaite';
-  document.getElementById('ov-sub').textContent=`Les ${winner.toLowerCase()}s ont gagné la partie`;
+  const isBlack=winner==='Noir';
+  if(twoPlayerMode){
+    document.getElementById('ov-title').textContent='🏆 Victoire !';
+    document.getElementById('ov-sub').textContent=`${winner} remporte la partie`;
+  } else {
+    const isPlayer=isBlack;
+    document.getElementById('ov-title').textContent=isPlayer?'🏆 Victoire !':'💀 Défaite';
+    document.getElementById('ov-sub').textContent=`Les ${winner.toLowerCase()}s ont gagné la partie`;
+  }
   document.getElementById('overlay').classList.add('show');
 }
 
@@ -868,7 +900,7 @@ function newGame(){
   turn=BLACK;gameOver=false;prevSnap=null;animating=false;
   capsBlack=0;capsWhite=0;
   initBoard();render();setActive();
-  setStatus('À vous de jouer');
+  setStatus(twoPlayerMode ? 'À Noir de jouer' : 'À vous de jouer');
 }
 
 /* ── annuler ────────────────────────────────────────────────── */
@@ -892,7 +924,14 @@ document.querySelectorAll('.diff-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    aiLevel=parseInt(btn.dataset.level);
+    const level=parseInt(btn.dataset.level);
+    if(level===0){
+      twoPlayerMode=true;
+      aiLevel=1;
+    } else {
+      twoPlayerMode=false;
+      aiLevel=level;
+    }
     newGame();
   });
 });
