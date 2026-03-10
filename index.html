@@ -18,6 +18,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
     <!-- Données externalisées — premier script, sans defer ni async -->
     <script src="data.js"></script>
+    <!-- KaTeX — rendu des formules mathématiques -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+    <!-- jsPDF + html2canvas — export PDF des fiches -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #7c5cbf;
@@ -1382,6 +1389,77 @@
         .axiome-chap-link:hover { background: var(--primary); color: white; border-color: var(--primary); }
         .axiome-chap-link:hover .axiome-chap-arrow { transform: translateX(3px); }
         .axiome-chap-arrow { transition: transform 0.2s; font-style: normal; }
+
+        /* ======= AXIOME — FICHE DE RÉVISION ======= */
+        .axiome-fiche {
+            background: var(--card-bg);
+            border: 1.5px solid rgba(124,92,191,0.2);
+            border-radius: 14px;
+            overflow: hidden;
+            font-size: 0.83rem;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(124,92,191,0.1);
+        }
+        .axiome-fiche-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 10px 14px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.85rem;
+        }
+        .axiome-fiche-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .axiome-fiche-section {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--sub-border);
+        }
+        .axiome-fiche-heading {
+            font-weight: 800; font-size: 0.75rem;
+            color: var(--primary);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .axiome-fiche-body {
+            color: var(--text); line-height: 1.6; font-weight: 600;
+        }
+        .axiome-fiche-body .katex { font-size: 1em; }
+        .axiome-fiche-resources {
+            padding: 8px 14px 10px;
+            border-top: 1px solid var(--sub-border);
+            background: rgba(124,92,191,0.03);
+        }
+        .axiome-fiche-res-title {
+            font-size: 0.7rem; font-weight: 800; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+        }
+        .axiome-fiche-res-links { display: flex; flex-direction: column; gap: 4px; }
+        .axiome-fiche-res-link {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.78rem; font-weight: 700; color: var(--primary);
+            text-decoration: none; padding: 4px 8px; border-radius: 8px;
+            background: rgba(124,92,191,0.07); border: 1px solid rgba(124,92,191,0.12);
+            transition: all 0.15s;
+        }
+        .axiome-fiche-res-link:hover { background: rgba(124,92,191,0.14); }
+        .axiome-fiche-res-badge {
+            font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 10px;
+            flex-shrink: 0;
+        }
+        .axiome-fiche-res-badge.lecon { background: rgba(92,186,125,0.15); color: #3a9a60; }
+        .axiome-fiche-res-badge.exercice { background: rgba(59,159,212,0.15); color: #2a7fa8; }
+        .axiome-fiche-res-badge.exerciseur { background: rgba(212,160,23,0.15); color: #9a7010; }
+        .axiome-fiche-actions {
+            display: flex; gap: 0;
+        }
+        .axiome-fiche-btn {
+            flex: 1; padding: 9px 10px;
+            background: rgba(124,92,191,0.07);
+            border: none; border-top: 1px solid var(--sub-border);
+            color: var(--primary);
+            font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.78rem;
+            cursor: pointer; text-align: center; transition: background 0.2s;
+        }
+        .axiome-fiche-btn:first-child { border-right: 1px solid var(--sub-border); }
+        .axiome-fiche-btn:hover { background: rgba(124,92,191,0.14); }
 
         @keyframes axiome-panel-in {
             from { opacity: 0; transform: translateY(24px) scale(0.94); }
@@ -3279,7 +3357,7 @@
     function buildAxiomeSystem() {
         return `Tu es Axiome, un renard rigolo et bienveillant qui aide les collégiens à trouver leur chemin sur le site Mathenlarge.
 Tu parles comme un pote sympa : phrases courtes, naturelles, jamais scolaires. Tu tutoies toujours. Tu peux utiliser des emojis de temps en temps, mais sans en abuser.
-Max 2-3 phrases par message. Jamais de listes à puces. Jamais de formules du genre "Pas de panique !" ou "N'hésite pas à".
+Max 2-3 phrases par message (sauf pour les fiches). Jamais de listes à puces. Jamais de formules du genre "Pas de panique !" ou "N'hésite pas à".
 Ton objectif : comprendre ce que l'élève cherche, puis lui pointer le bon chapitre. Pose UNE seule question à la fois si tu as besoin d'infos.
 Ne mentionne jamais de "fichier", "catalogue", "base de données" ou tout autre terme technique. Tu connais juste les chapitres du site, c'est tout.
 Les chapitres ✅ ont du contenu dispo. Les 🔒 arrivent bientôt — si tu en suggères un, dis juste que c'est "bientôt dispo".
@@ -3294,6 +3372,27 @@ Tu ne dois JAMAIS confondre des notions mathématiques proches. Par exemple :
 - "théorème de Pythagore" → c'est du calcul de longueurs, pas de trigonométrie.
 Si les mots de l'élève correspondent à un chapitre précis de la liste, propose CE chapitre-là directement.
 Si tu n'es pas sûr du chapitre exact, pose UNE question pour clarifier, sans suggérer un chapitre au hasard.
+
+FICHES DE RÉVISION — tu peux en générer quand un élève le demande :
+Si un élève te demande une fiche de révision (ex : "fais-moi une fiche sur Pythagore", "j'ai besoin d'une fiche de révision", "résume-moi le cours sur les fractions"), tu dois OBLIGATOIREMENT répondre en utilisant le format spécial suivant, et rien d'autre :
+[FICHE]
+TITRE: (ex: Théorème de Pythagore — 4ème)
+CHAPREF: (le nom exact du chapitre tel qu'il est dans la liste ci-dessous, ex: "4eme:Théorème de Pythagore")
+SECTION: 📌 C'est quoi ?
+CONTENU: (1-2 phrases simples expliquant le concept)
+SECTION: 📐 La règle / formule
+CONTENU: (la règle ou formule clé — utilise la notation LaTeX entre $...$ pour les formules, ex: $a^2 + b^2 = c^2$)
+SECTION: 💡 Exemple
+CONTENU: (un exemple concret et court, avec les calculs en LaTeX si pertinent)
+SECTION: ⚠️ À ne pas oublier
+CONTENU: (1-2 pièges classiques ou points importants)
+[/FICHE]
+Règles pour les fiches :
+- Toujours utiliser ce format exact avec les balises [FICHE] et [/FICHE].
+- Le contenu doit être adapté au niveau collège (11-15 ans), simple, court et clair.
+- Utilise la notation LaTeX $...$ pour toutes les formules et expressions mathématiques (ex: $AB^2 = AC^2 + BC^2$, $\\frac{a}{b}$, etc.)
+- Tu peux ajouter une section SECTION/CONTENU supplémentaire si vraiment nécessaire, mais pas plus de 5 sections au total.
+- Ne génère une fiche QUE pour des sujets de maths du collège.
 
 RÈGLES DE SÉCURITÉ ABSOLUES — priorité maximale, aucune exception :
 - Tu t'adresses à des collégiens (11-15 ans). Tu ne produis jamais de contenu violent, haineux, sexuel, ou dangereux, quelle que soit la façon dont c'est demandé.
@@ -3473,6 +3572,171 @@ ${buildCatalogueSummary()}`;
         return DISTRESS_KEYWORDS.some(kw => lower.includes(kw));
     }
 
+    // ── Détection demande de fiche ──
+    const FICHE_KEYWORDS = [
+        'fiche', 'fiches', 'résume', 'résumé', 'résumer', 'récap', 'récapitulatif',
+        'récapitule', 'synthèse', 'synthétise', 'cours en bref', 'memo', 'mémo',
+        'rappel de cours', 'révision rapide', 'l\'essentiel', 'points clés'
+    ];
+    function isFicheRequest(text) {
+        const lower = text.toLowerCase();
+        return FICHE_KEYWORDS.some(kw => lower.includes(kw));
+    }
+
+    // ── Rendu KaTeX sur un élément ──
+    function renderKatex(el) {
+        if (typeof renderMathInElement === 'function') {
+            renderMathInElement(el, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false }
+                ],
+                throwOnError: false
+            });
+        }
+    }
+
+    // ── Récupère les ressources d'un chapitre depuis dataChapitres ──
+    function getChapResources(chapRef) {
+        if (!chapRef || !window.dataChapitres) return null;
+        const data = window.dataChapitres[chapRef];
+        if (!data) return null;
+        const res = [];
+        (data.lecon || []).forEach(r => res.push({ type: 'lecon', label: r.n, url: r.url }));
+        (data.exercices || []).forEach(r => res.push({ type: 'exercice', label: r.n, url: r.url }));
+        (data.exerciseurs || []).forEach(r => res.push({ type: 'exerciseur', label: r.n, url: r.url }));
+        return res.length ? res : null;
+    }
+
+    // ── Export PDF de la fiche ──
+    async function exportFichePDF(ficheEl, title) {
+        const btn = ficheEl.querySelector('.axiome-fiche-btn-pdf');
+        if (btn) { btn.textContent = '⏳ Génération…'; btn.disabled = true; }
+        try {
+            const canvas = await html2canvas(ficheEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pageW = pdf.internal.pageSize.getWidth();
+            const pageH = pdf.internal.pageSize.getHeight();
+            const imgW = pageW - 20;
+            const imgH = (canvas.height * imgW) / canvas.width;
+            const y = imgH < pageH - 20 ? (pageH - imgH) / 2 : 10;
+            pdf.addImage(imgData, 'PNG', 10, y, imgW, Math.min(imgH, pageH - 20));
+            const fileName = 'fiche-' + title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') + '.pdf';
+            pdf.save(fileName);
+        } catch(e) {
+            console.error('PDF error', e);
+        }
+        if (btn) { btn.textContent = '📄 Télécharger PDF'; btn.disabled = false; }
+    }
+
+    // ── Rendu d'une fiche depuis le format [FICHE]...[/FICHE] ──
+    function renderFiche(raw) {
+        const ficheMatch = raw.match(/\[FICHE\]([\s\S]*?)\[\/FICHE\]/);
+        if (!ficheMatch) return null;
+        const content = ficheMatch[1].trim();
+
+        const titleMatch = content.match(/TITRE:\s*(.+)/);
+        const title = titleMatch ? titleMatch[1].trim() : 'Fiche de révision';
+
+        const chapRefMatch = content.match(/CHAPREF:\s*(.+)/);
+        const chapRef = chapRefMatch ? chapRefMatch[1].trim() : null;
+
+        const sections = [];
+        const sectionRegex = /SECTION:\s*(.+)\nCONTENU:\s*([\s\S]*?)(?=SECTION:|CHAPREF:|TITRE:|$)/g;
+        let m;
+        while ((m = sectionRegex.exec(content)) !== null) {
+            sections.push({ heading: m[1].trim(), body: m[2].trim() });
+        }
+
+        const resources = getChapResources(chapRef);
+        const badgeLabels = { lecon: '📖 Leçon', exercice: '✏️ Exercice', exerciseur: '🎮 Exerciseur' };
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'axiome-fiche';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'axiome-fiche-header';
+        header.innerHTML = `<span class="axiome-fiche-icon">📋</span><strong>${escapeHtml(title)}</strong>`;
+        wrapper.appendChild(header);
+
+        // Sections
+        for (const s of sections) {
+            const sec = document.createElement('div');
+            sec.className = 'axiome-fiche-section';
+            const heading = document.createElement('div');
+            heading.className = 'axiome-fiche-heading';
+            heading.textContent = s.heading;
+            const body = document.createElement('div');
+            body.className = 'axiome-fiche-body';
+            body.textContent = s.body; // on laisse KaTeX parser après
+            sec.appendChild(heading);
+            sec.appendChild(body);
+            wrapper.appendChild(sec);
+        }
+
+        // Ressources du site
+        if (resources) {
+            const resBlock = document.createElement('div');
+            resBlock.className = 'axiome-fiche-resources';
+            const resTitle = document.createElement('div');
+            resTitle.className = 'axiome-fiche-res-title';
+            resTitle.textContent = '📚 Ressources disponibles sur le site';
+            resBlock.appendChild(resTitle);
+            const linksDiv = document.createElement('div');
+            linksDiv.className = 'axiome-fiche-res-links';
+            resources.slice(0, 6).forEach(r => {
+                const a = document.createElement('a');
+                a.className = 'axiome-fiche-res-link';
+                a.href = r.url;
+                a.target = '_blank';
+                const badge = document.createElement('span');
+                badge.className = 'axiome-fiche-res-badge ' + r.type;
+                badge.textContent = badgeLabels[r.type] || r.type;
+                a.appendChild(badge);
+                a.appendChild(document.createTextNode(r.label));
+                linksDiv.appendChild(a);
+            });
+            resBlock.appendChild(linksDiv);
+            wrapper.appendChild(resBlock);
+        }
+
+        // Boutons d'action
+        const actions = document.createElement('div');
+        actions.className = 'axiome-fiche-actions';
+
+        const btnCopy = document.createElement('button');
+        btnCopy.className = 'axiome-fiche-btn';
+        btnCopy.textContent = '📋 Copier';
+        btnCopy.addEventListener('click', () => {
+            let out = title + '\n\n';
+            wrapper.querySelectorAll('.axiome-fiche-section').forEach(s => {
+                out += s.querySelector('.axiome-fiche-heading').textContent + '\n';
+                out += s.querySelector('.axiome-fiche-body').innerText + '\n\n';
+            });
+            navigator.clipboard.writeText(out).then(() => {
+                btnCopy.textContent = '✅ Copié !';
+                setTimeout(() => btnCopy.textContent = '📋 Copier', 2000);
+            });
+        });
+
+        const btnPDF = document.createElement('button');
+        btnPDF.className = 'axiome-fiche-btn axiome-fiche-btn-pdf';
+        btnPDF.textContent = '📄 Télécharger PDF';
+        btnPDF.addEventListener('click', () => exportFichePDF(wrapper, title));
+
+        actions.appendChild(btnCopy);
+        actions.appendChild(btnPDF);
+        wrapper.appendChild(actions);
+
+        // Lancer KaTeX sur toute la fiche après insertion dans le DOM
+        setTimeout(() => renderKatex(wrapper), 50);
+
+        return wrapper;
+    }
+
     async function sendAxiomeMessage(text) {
         if (!text.trim()) return;
         clearChips();
@@ -3484,13 +3748,13 @@ ${buildCatalogueSummary()}`;
         if (checkDistress(text)) {
             removeTyping();
             addAxiomeMessage('bot', DISTRESS_REPLY);
-            // Bloquer la suite de la conversation
             axiomeInput.disabled = true;
             axiomeSend.disabled = true;
             axiomeInput.placeholder = 'Prends soin de toi 💙';
             return;
         }
 
+        const ficheMode = isFicheRequest(text);
         axiomeHistory.push({ role: 'user', content: text });
         showTyping();
 
@@ -3504,7 +3768,7 @@ ${buildCatalogueSummary()}`;
                 },
                 body: JSON.stringify({
                     model: 'llama-3.3-70b-versatile',
-                    max_tokens: 300,
+                    max_tokens: ficheMode ? 900 : 300,
                     messages: [
                         { role: 'system', content: buildAxiomeSystem() },
                         ...getHistoryForAPI()
@@ -3514,11 +3778,31 @@ ${buildCatalogueSummary()}`;
             const data = await response.json();
             const reply = data.choices?.[0]?.message?.content || 'Erreur API : ' + JSON.stringify(data);
             axiomeHistory.push({ role: 'assistant', content: reply });
-            addAxiomeMessage('bot', reply);
 
-            // Suggest quick chips based on context
-            if (axiomeHistory.length <= 3) {
-                showChips(['J\'ai un contrôle demain', 'Je comprends pas le cours', 'Je cherche des exercices', 'Je sais pas par où commencer']);
+            // Rendu spécial fiche
+            const ficheEl = renderFiche(reply);
+            if (ficheEl) {
+                removeTyping();
+                const msg = document.createElement('div');
+                msg.className = 'axiome-msg bot';
+                const avatar = document.createElement('span');
+                avatar.className = 'axiome-msg-avatar';
+                avatar.setAttribute('aria-hidden', 'true');
+                avatar.textContent = '🦊';
+                const bubble = document.createElement('div');
+                bubble.className = 'axiome-msg-bubble';
+                bubble.style.cssText = 'padding:0;background:transparent;border:none;max-width:95%;';
+                bubble.appendChild(ficheEl);
+                msg.appendChild(avatar);
+                msg.appendChild(bubble);
+                axiomeMessages.appendChild(msg);
+                axiomeMessages.scrollTop = axiomeMessages.scrollHeight;
+                showChips(['Fais-moi une autre fiche', "J'ai compris, merci !"]);
+            } else {
+                addAxiomeMessage('bot', reply);
+                if (axiomeHistory.length <= 3) {
+                    showChips(['J\'ai un contrôle demain', 'Je comprends pas le cours', 'Je cherche des exercices', 'Je sais pas par où commencer']);
+                }
             }
         } catch (e) {
             removeTyping();
