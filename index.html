@@ -3089,13 +3089,19 @@
             a.addEventListener('click', (e) => {
                 if (!chapKey) return;
                 e.preventDefault();
-                const isNew = !a.classList.contains('item-visited');
+                const normUrl = normalizeUrl(item.url);
+                const rewardedKey = chapKey + ':item:' + normUrl;
+                const r = loadRewarded();
+                const isNew = !r[rewardedKey];
 
                 // 1. Sauvegarder la progression (synchrone, garanti)
                 markItemVisited(chapKey, id, item.url);
 
                 // 2. Sauvegarder l'XP silencieusement + mettre en pending pour animation au retour
+                // Protection anti-doublon via rewarded store (résistant au bfcache + bouton retour)
                 if (isNew) {
+                    r[rewardedKey] = 1;
+                    saveRewarded(r);
                     gainXP(XP_ITEM, null, true);
                     addPendingXP(XP_ITEM);
                 }
