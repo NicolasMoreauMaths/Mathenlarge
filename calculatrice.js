@@ -349,7 +349,8 @@
 
     // Mode buttons
     panel.querySelectorAll(".calc-mode-btn").forEach(b => {
-      b.addEventListener("click", () => {
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
         mode = b.dataset.mode;
         buildPanel();
       });
