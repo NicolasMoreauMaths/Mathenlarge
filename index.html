@@ -3778,7 +3778,7 @@ ${buildCatalogueSummary()}`;
         return res.length ? res : null;
     }
 
-    // ── Export PDF de la fiche (rendu natif jsPDF, sans html2canvas) ──
+    // ── Export PDF de la fiche ──
     function exportFichePDF(ficheEl, title) {
         const btn = ficheEl.querySelector('.axiome-fiche-btn-pdf');
         if (btn) { btn.textContent = '⏳ Génération…'; btn.disabled = true; }
@@ -3787,10 +3787,9 @@ ${buildCatalogueSummary()}`;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
             const PAGE_W = 210, PAGE_H = 297;
-            const ML = 14, MR = 14, MT = 14, MB = 16; // marges
-            const TW = PAGE_W - ML - MR; // largeur de texte utile
+            const ML = 14, MR = 14, MT = 14, MB = 16;
+            const TW = PAGE_W - ML - MR;
 
-            // Couleurs
             const COL_PURPLE   = [124, 92, 191];
             const COL_PURPLE_D = [90,  61, 154];
             const COL_TEXT     = [45,  45,  58];
@@ -3801,112 +3800,77 @@ ${buildCatalogueSummary()}`;
 
             let y = MT;
 
-            // ── helpers ──────────────────────────────────────────────
-            function checkPage(needed) {
-                if (y + needed > PAGE_H - MB) {
-                    pdf.addPage();
-                    y = MT;
-                }
+            // Nettoie les délimiteurs KaTeX $...$ pour un texte lisible
+            function cleanMath(text) {
+                return text
+                    .replace(/\$\$[\s\S]*?\$\$/g, m => m.slice(2, -2).trim())
+                    .replace(/\$([^$]+)\$/g, (_, inner) => inner.trim());
             }
 
-            // Retourne les lignes wrappées pour une largeur donnée
+            function checkPage(needed) {
+                if (y + needed > PAGE_H - MB) { pdf.addPage(); y = MT; }
+            }
+
             function wrapText(text, maxW, fontSize, style) {
                 pdf.setFontSize(fontSize);
                 pdf.setFont('helvetica', style || 'normal');
                 return pdf.splitTextToSize(text, maxW);
             }
 
-            // Imprime un bloc de texte avec gestion de pagination propre
-            function printLines(lines, fontSize, style, color, lineH) {
-                pdf.setFontSize(fontSize);
-                pdf.setFont('helvetica', style || 'normal');
-                pdf.setTextColor(...color);
-                for (const line of lines) {
-                    checkPage(lineH);
-                    pdf.text(line, ML, y);
-                    y += lineH;
-                }
-            }
-
-            // Dessine un rectangle arrondi rempli
-            function filledRect(x, rx, ry, w, h, r, fill) {
-                pdf.setFillColor(...fill);
-                pdf.roundedRect(rx, ry, w, h, r, r, 'F');
-            }
-
-            // ── HEADER ───────────────────────────────────────────────
-            // Bandeau violet dégradé simulé (deux rectangles)
+            // ── HEADER ──
             pdf.setFillColor(...COL_PURPLE_D);
             pdf.rect(ML, y, TW, 12, 'F');
             pdf.setFillColor(...COL_PURPLE);
             pdf.rect(ML, y, TW * 0.6, 12, 'F');
-
             pdf.setFontSize(11);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(...COL_WHITE);
-            // Centrage vertical dans le bandeau
-            const headerTextY = y + 8;
-            pdf.text('📋  ' + title, ML + 4, headerTextY);
-            y += 12 + 5;
+            pdf.text('📋  ' + title, ML + 4, y + 8);
+            y += 17;
 
-            // ── SECTIONS ─────────────────────────────────────────────
+            // ── SECTIONS ──
             const sections = ficheEl.querySelectorAll('.axiome-fiche-section');
-            sections.forEach((sec, i) => {
+            sections.forEach(sec => {
                 const headingEl = sec.querySelector('.axiome-fiche-heading');
                 const bodyEl    = sec.querySelector('.axiome-fiche-body');
                 if (!headingEl || !bodyEl) return;
 
                 const headingTxt = headingEl.textContent.trim().toUpperCase();
-                const bodyTxt    = bodyEl.innerText.trim();
+                // Utiliser le texte brut stocké avant rendu KaTeX, sinon fallback innerText
+                const rawBody = bodyEl.dataset.rawText || bodyEl.innerText;
+                const bodyTxt = cleanMath(rawBody).trim();
 
-                // Calculer la hauteur nécessaire pour la section entière
                 const headLines = wrapText(headingTxt, TW - 6, 8, 'bold');
                 const bodyLines = wrapText(bodyTxt, TW - 6, 10, 'normal');
-                const secH = 4 + headLines.length * 4.5 + 2 + bodyLines.length * 6 + 5;
+                const secH = 4 + headLines.length * 4.5 + 3 + bodyLines.length * 6 + 5;
 
-                // Si toute la section tient sur la page courante, on ne coupe pas
-                if (y + secH > PAGE_H - MB) {
-                    pdf.addPage();
-                    y = MT;
-                }
+                if (y + secH > PAGE_H - MB) { pdf.addPage(); y = MT; }
 
-                // Fond léger de la section
                 pdf.setFillColor(...COL_BG_SEC);
                 pdf.setDrawColor(...COL_BORDER);
                 pdf.roundedRect(ML, y, TW, secH - 2, 2, 2, 'FD');
 
                 y += 4;
 
-                // Heading (violet, uppercase, petit)
                 pdf.setFontSize(8);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setTextColor(...COL_PURPLE);
-                for (const l of headLines) {
-                    pdf.text(l, ML + 3, y);
-                    y += 4.5;
-                }
+                for (const l of headLines) { pdf.text(l, ML + 3, y); y += 4.5; }
 
-                y += 1;
-
-                // Séparateur fin
                 pdf.setDrawColor(...COL_BORDER);
                 pdf.setLineWidth(0.2);
                 pdf.line(ML + 3, y, ML + TW - 3, y);
                 y += 3;
 
-                // Body (texte normal)
                 pdf.setFontSize(10);
                 pdf.setFont('helvetica', 'normal');
                 pdf.setTextColor(...COL_TEXT);
-                for (const l of bodyLines) {
-                    pdf.text(l, ML + 3, y);
-                    y += 6;
-                }
+                for (const l of bodyLines) { pdf.text(l, ML + 3, y); y += 6; }
 
-                y += 4; // espace entre sections
+                y += 4;
             });
 
-            // ── PIED DE PAGE sur chaque page ─────────────────────────
+            // ── PIED DE PAGE ──
             const totalPages = pdf.internal.getNumberOfPages();
             for (let p = 1; p <= totalPages; p++) {
                 pdf.setPage(p);
@@ -3915,7 +3879,6 @@ ${buildCatalogueSummary()}`;
                 pdf.setTextColor(...COL_MUTED);
                 pdf.text('mathenlarge.fr — Fiche générée par Axiome', ML, PAGE_H - 7);
                 pdf.text(p + ' / ' + totalPages, PAGE_W - MR, PAGE_H - 7, { align: 'right' });
-                // Ligne de pied
                 pdf.setDrawColor(...COL_BORDER);
                 pdf.setLineWidth(0.3);
                 pdf.line(ML, PAGE_H - 10, PAGE_W - MR, PAGE_H - 10);
@@ -3925,7 +3888,7 @@ ${buildCatalogueSummary()}`;
             pdf.save(fileName);
         } catch(e) {
             console.error('PDF error', e);
-            alert('Erreur lors de la génération du PDF : ' + e.message);
+            alert('Erreur PDF : ' + e.message);
         }
         if (btn) { btn.textContent = '📄 Télécharger PDF'; btn.disabled = false; }
     }
@@ -3971,6 +3934,7 @@ ${buildCatalogueSummary()}`;
             const body = document.createElement('div');
             body.className = 'axiome-fiche-body';
             body.textContent = s.body; // on laisse KaTeX parser après
+            body.dataset.rawText = s.body; // texte brut conservé pour l'export PDF
             sec.appendChild(heading);
             sec.appendChild(body);
             wrapper.appendChild(sec);
