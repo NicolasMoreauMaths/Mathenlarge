@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mathenlarge-v47';
+const CACHE_NAME = 'mathenlarge-v48';
 const URLS_TO_CACHE = [
   "./",
   "./index.html",
