@@ -3778,64 +3778,154 @@ ${buildCatalogueSummary()}`;
         return res.length ? res : null;
     }
 
-    // ── Export PDF de la fiche ──
-    async function exportFichePDF(ficheEl, title) {
+    // ── Export PDF de la fiche (rendu natif jsPDF, sans html2canvas) ──
+    function exportFichePDF(ficheEl, title) {
         const btn = ficheEl.querySelector('.axiome-fiche-btn-pdf');
         if (btn) { btn.textContent = '⏳ Génération…'; btn.disabled = true; }
         try {
-            const canvas = await html2canvas(ficheEl, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                scrollY: -window.scrollY,
-                windowWidth: ficheEl.scrollWidth,
-                windowHeight: ficheEl.scrollHeight
-            });
-            const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-            const pageW = pdf.internal.pageSize.getWidth();   // 210 mm
-            const pageH = pdf.internal.pageSize.getHeight();  // 297 mm
-            const margin = 10; // mm
-            const printW = pageW - margin * 2;                // largeur utile
+            const PAGE_W = 210, PAGE_H = 297;
+            const ML = 14, MR = 14, MT = 14, MB = 16; // marges
+            const TW = PAGE_W - ML - MR; // largeur de texte utile
 
-            // Hauteur réelle de l'image en mm (ratio conservé)
-            const totalImgH = (canvas.height * printW) / canvas.width;
+            // Couleurs
+            const COL_PURPLE   = [124, 92, 191];
+            const COL_PURPLE_D = [90,  61, 154];
+            const COL_TEXT     = [45,  45,  58];
+            const COL_MUTED    = [136, 136, 136];
+            const COL_BORDER   = [220, 215, 235];
+            const COL_WHITE    = [255, 255, 255];
+            const COL_BG_SEC   = [248, 246, 255];
 
-            // Hauteur disponible par page en mm
-            const usablePageH = pageH - margin * 2;
+            let y = MT;
 
-            let remainingH = totalImgH;
-            let srcOffsetY = 0; // décalage de découpe dans l'image (en mm)
+            // ── helpers ──────────────────────────────────────────────
+            function checkPage(needed) {
+                if (y + needed > PAGE_H - MB) {
+                    pdf.addPage();
+                    y = MT;
+                }
+            }
 
-            while (remainingH > 0) {
-                const sliceH = Math.min(remainingH, usablePageH);
+            // Retourne les lignes wrappées pour une largeur donnée
+            function wrapText(text, maxW, fontSize, style) {
+                pdf.setFontSize(fontSize);
+                pdf.setFont('helvetica', style || 'normal');
+                return pdf.splitTextToSize(text, maxW);
+            }
 
-                // Portion du canvas à imprimer sur cette page
-                const srcY = (srcOffsetY / totalImgH) * canvas.height;
-                const srcH = (sliceH / totalImgH) * canvas.height;
+            // Imprime un bloc de texte avec gestion de pagination propre
+            function printLines(lines, fontSize, style, color, lineH) {
+                pdf.setFontSize(fontSize);
+                pdf.setFont('helvetica', style || 'normal');
+                pdf.setTextColor(...color);
+                for (const line of lines) {
+                    checkPage(lineH);
+                    pdf.text(line, ML, y);
+                    y += lineH;
+                }
+            }
 
-                // Créer un canvas temporaire pour la tranche
-                const sliceCanvas = document.createElement('canvas');
-                sliceCanvas.width  = canvas.width;
-                sliceCanvas.height = Math.ceil(srcH);
-                const ctx = sliceCanvas.getContext('2d');
-                ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
-                const sliceData = sliceCanvas.toDataURL('image/png');
+            // Dessine un rectangle arrondi rempli
+            function filledRect(x, rx, ry, w, h, r, fill) {
+                pdf.setFillColor(...fill);
+                pdf.roundedRect(rx, ry, w, h, r, r, 'F');
+            }
 
-                pdf.addImage(sliceData, 'PNG', margin, margin, printW, sliceH);
+            // ── HEADER ───────────────────────────────────────────────
+            // Bandeau violet dégradé simulé (deux rectangles)
+            pdf.setFillColor(...COL_PURPLE_D);
+            pdf.rect(ML, y, TW, 12, 'F');
+            pdf.setFillColor(...COL_PURPLE);
+            pdf.rect(ML, y, TW * 0.6, 12, 'F');
 
-                remainingH -= sliceH;
-                srcOffsetY += sliceH;
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(...COL_WHITE);
+            // Centrage vertical dans le bandeau
+            const headerTextY = y + 8;
+            pdf.text('📋  ' + title, ML + 4, headerTextY);
+            y += 12 + 5;
 
-                if (remainingH > 0) pdf.addPage();
+            // ── SECTIONS ─────────────────────────────────────────────
+            const sections = ficheEl.querySelectorAll('.axiome-fiche-section');
+            sections.forEach((sec, i) => {
+                const headingEl = sec.querySelector('.axiome-fiche-heading');
+                const bodyEl    = sec.querySelector('.axiome-fiche-body');
+                if (!headingEl || !bodyEl) return;
+
+                const headingTxt = headingEl.textContent.trim().toUpperCase();
+                const bodyTxt    = bodyEl.innerText.trim();
+
+                // Calculer la hauteur nécessaire pour la section entière
+                const headLines = wrapText(headingTxt, TW - 6, 8, 'bold');
+                const bodyLines = wrapText(bodyTxt, TW - 6, 10, 'normal');
+                const secH = 4 + headLines.length * 4.5 + 2 + bodyLines.length * 6 + 5;
+
+                // Si toute la section tient sur la page courante, on ne coupe pas
+                if (y + secH > PAGE_H - MB) {
+                    pdf.addPage();
+                    y = MT;
+                }
+
+                // Fond léger de la section
+                pdf.setFillColor(...COL_BG_SEC);
+                pdf.setDrawColor(...COL_BORDER);
+                pdf.roundedRect(ML, y, TW, secH - 2, 2, 2, 'FD');
+
+                y += 4;
+
+                // Heading (violet, uppercase, petit)
+                pdf.setFontSize(8);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(...COL_PURPLE);
+                for (const l of headLines) {
+                    pdf.text(l, ML + 3, y);
+                    y += 4.5;
+                }
+
+                y += 1;
+
+                // Séparateur fin
+                pdf.setDrawColor(...COL_BORDER);
+                pdf.setLineWidth(0.2);
+                pdf.line(ML + 3, y, ML + TW - 3, y);
+                y += 3;
+
+                // Body (texte normal)
+                pdf.setFontSize(10);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(...COL_TEXT);
+                for (const l of bodyLines) {
+                    pdf.text(l, ML + 3, y);
+                    y += 6;
+                }
+
+                y += 4; // espace entre sections
+            });
+
+            // ── PIED DE PAGE sur chaque page ─────────────────────────
+            const totalPages = pdf.internal.getNumberOfPages();
+            for (let p = 1; p <= totalPages; p++) {
+                pdf.setPage(p);
+                pdf.setFontSize(7.5);
+                pdf.setFont('helvetica', 'italic');
+                pdf.setTextColor(...COL_MUTED);
+                pdf.text('mathenlarge.fr — Fiche générée par Axiome', ML, PAGE_H - 7);
+                pdf.text(p + ' / ' + totalPages, PAGE_W - MR, PAGE_H - 7, { align: 'right' });
+                // Ligne de pied
+                pdf.setDrawColor(...COL_BORDER);
+                pdf.setLineWidth(0.3);
+                pdf.line(ML, PAGE_H - 10, PAGE_W - MR, PAGE_H - 10);
             }
 
             const fileName = 'fiche-' + title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') + '.pdf';
             pdf.save(fileName);
         } catch(e) {
             console.error('PDF error', e);
+            alert('Erreur lors de la génération du PDF : ' + e.message);
         }
         if (btn) { btn.textContent = '📄 Télécharger PDF'; btn.disabled = false; }
     }
