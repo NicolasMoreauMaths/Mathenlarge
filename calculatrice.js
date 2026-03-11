@@ -63,12 +63,14 @@
       right: 28px;
       z-index: 99997;
       width: 320px;
+      max-height: calc(100vh - 110px);
       background: var(--calc-bg);
       border: 1px solid var(--calc-border);
       border-radius: var(--calc-radius);
       box-shadow: var(--calc-shadow);
       font-family: 'Nunito', sans-serif;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       transform-origin: bottom right;
       transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), opacity 0.18s;
       transform: scale(0.85) translateY(8px);
