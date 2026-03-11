@@ -3783,16 +3783,55 @@ ${buildCatalogueSummary()}`;
         const btn = ficheEl.querySelector('.axiome-fiche-btn-pdf');
         if (btn) { btn.textContent = '⏳ Génération…'; btn.disabled = true; }
         try {
-            const canvas = await html2canvas(ficheEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            const canvas = await html2canvas(ficheEl, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                scrollY: -window.scrollY,
+                windowWidth: ficheEl.scrollWidth,
+                windowHeight: ficheEl.scrollHeight
+            });
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const pageW = pdf.internal.pageSize.getWidth();
-            const pageH = pdf.internal.pageSize.getHeight();
-            const imgW = pageW - 20;
-            const imgH = (canvas.height * imgW) / canvas.width;
-            const y = imgH < pageH - 20 ? (pageH - imgH) / 2 : 10;
-            pdf.addImage(imgData, 'PNG', 10, y, imgW, Math.min(imgH, pageH - 20));
+
+            const pageW = pdf.internal.pageSize.getWidth();   // 210 mm
+            const pageH = pdf.internal.pageSize.getHeight();  // 297 mm
+            const margin = 10; // mm
+            const printW = pageW - margin * 2;                // largeur utile
+
+            // Hauteur réelle de l'image en mm (ratio conservé)
+            const totalImgH = (canvas.height * printW) / canvas.width;
+
+            // Hauteur disponible par page en mm
+            const usablePageH = pageH - margin * 2;
+
+            let remainingH = totalImgH;
+            let srcOffsetY = 0; // décalage de découpe dans l'image (en mm)
+
+            while (remainingH > 0) {
+                const sliceH = Math.min(remainingH, usablePageH);
+
+                // Portion du canvas à imprimer sur cette page
+                const srcY = (srcOffsetY / totalImgH) * canvas.height;
+                const srcH = (sliceH / totalImgH) * canvas.height;
+
+                // Créer un canvas temporaire pour la tranche
+                const sliceCanvas = document.createElement('canvas');
+                sliceCanvas.width  = canvas.width;
+                sliceCanvas.height = Math.ceil(srcH);
+                const ctx = sliceCanvas.getContext('2d');
+                ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+                const sliceData = sliceCanvas.toDataURL('image/png');
+
+                pdf.addImage(sliceData, 'PNG', margin, margin, printW, sliceH);
+
+                remainingH -= sliceH;
+                srcOffsetY += sliceH;
+
+                if (remainingH > 0) pdf.addPage();
+            }
+
             const fileName = 'fiche-' + title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') + '.pdf';
             pdf.save(fileName);
         } catch(e) {
