@@ -3780,157 +3780,133 @@ ${buildCatalogueSummary()}`;
 
     // ── Export PDF de la fiche ──
     function exportFichePDF(ficheEl, title) {
-        const btn = ficheEl.querySelector('.axiome-fiche-btn-pdf');
-        if (btn) { btn.textContent = '⏳ Génération…'; btn.disabled = true; }
-        try {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-            const PAGE_W = 210, PAGE_H = 297;
-            const ML = 14, MR = 14, MT = 14, MB = 16;
-            const TW = PAGE_W - ML - MR;
-
-            const COL_PURPLE   = [124, 92, 191];
-            const COL_PURPLE_D = [90,  61, 154];
-            const COL_TEXT     = [45,  45,  58];
-            const COL_MUTED    = [136, 136, 136];
-            const COL_BORDER   = [220, 215, 235];
-            const COL_WHITE    = [255, 255, 255];
-            const COL_BG_SEC   = [248, 246, 255];
-
-            let y = MT;
-
-            // Nettoie les délimiteurs KaTeX $...$ pour un texte lisible
-            // Supprime les emojis (non supportés par jsPDF)
-            function stripEmojis(text) {
-                return text.replace(/[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27FF}|\u{FE00}-\u{FEFF}|\u{1F300}-\u{1F9FF}|\u{1FA00}-\u{1FAFF}]/gu, '')
-                           .replace(/[\u2700-\u27BF]/g, '')
-                           .trim();
-            }
-
-            // Convertit les commandes LaTeX courantes en texte lisible
-            function cleanMath(text) {
-                return text
-                    // Supprimer délimiteurs $$ et $
-                    .replace(/\$\$([\s\S]*?)\$\$/g, (_, m) => convertLatex(m.trim()))
-                    .replace(/\$([^$\n]+)\$/g, (_, m) => convertLatex(m.trim()));
-            }
-
-            function convertLatex(s) {
-                return s
-                    // Fractions : \frac{a}{b} → a/b
-                    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '($1)/($2)')
-                    // Racine : \sqrt{x} → √x
-                    .replace(/\\sqrt\{([^}]*)\}/g, '√($1)')
-                    // Puissances : x^{n} → x^n  ou  x^2 tel quel
-                    .replace(/\^{([^}]*)}/g, '^$1')
-                    // Indices : x_{n} → x_n
-                    .replace(/_{([^}]*)}/g, '_$1')
-                    // Opérateurs
-                    .replace(/\\times/g, '×')
-                    .replace(/\\cdot/g, '·')
-                    .replace(/\\div/g, '÷')
-                    .replace(/\\pm/g, '±')
-                    .replace(/\\leq/g, '≤')
-                    .replace(/\\geq/g, '≥')
-                    .replace(/\\neq/g, '≠')
-                    .replace(/\\approx/g, '≈')
-                    .replace(/\\infty/g, '∞')
-                    .replace(/\\pi/g, 'π')
-                    .replace(/\\alpha/g, 'α')
-                    .replace(/\\beta/g, 'β')
-                    .replace(/\\theta/g, 'θ')
-                    // Supprimer accolades restantes
-                    .replace(/[{}]/g, '')
-                    // Supprimer autres commandes inconnues \cmd
-                    .replace(/\\[a-zA-Z]+/g, '')
-                    .trim();
-            }
-
-            function checkPage(needed) {
-                if (y + needed > PAGE_H - MB) { pdf.addPage(); y = MT; }
-            }
-
-            function wrapText(text, maxW, fontSize, style) {
-                pdf.setFontSize(fontSize);
-                pdf.setFont('helvetica', style || 'normal');
-                return pdf.splitTextToSize(text, maxW);
-            }
-
-            // ── HEADER ──
-            pdf.setFillColor(...COL_PURPLE_D);
-            pdf.rect(ML, y, TW, 12, 'F');
-            pdf.setFillColor(...COL_PURPLE);
-            pdf.rect(ML, y, TW * 0.6, 12, 'F');
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(...COL_WHITE);
-            pdf.text(stripEmojis(title), ML + 4, y + 8);
-            y += 17;
-
-            // ── SECTIONS ──
-            const sections = ficheEl.querySelectorAll('.axiome-fiche-section');
-            sections.forEach(sec => {
-                const headingEl = sec.querySelector('.axiome-fiche-heading');
-                const bodyEl    = sec.querySelector('.axiome-fiche-body');
-                if (!headingEl || !bodyEl) return;
-
-                const headingTxt = stripEmojis(headingEl.textContent.trim()).toUpperCase();
-                // Utiliser le texte brut stocké avant rendu KaTeX, sinon fallback innerText
-                const rawBody = bodyEl.dataset.rawText || bodyEl.innerText;
-                const bodyTxt = cleanMath(rawBody).trim();
-
-                const headLines = wrapText(headingTxt, TW - 6, 8, 'bold');
-                const bodyLines = wrapText(bodyTxt, TW - 6, 10, 'normal');
-                const secH = 4 + headLines.length * 4.5 + 3 + bodyLines.length * 6 + 5;
-
-                if (y + secH > PAGE_H - MB) { pdf.addPage(); y = MT; }
-
-                pdf.setFillColor(...COL_BG_SEC);
-                pdf.setDrawColor(...COL_BORDER);
-                pdf.roundedRect(ML, y, TW, secH - 2, 2, 2, 'FD');
-
-                y += 4;
-
-                pdf.setFontSize(8);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setTextColor(...COL_PURPLE);
-                for (const l of headLines) { pdf.text(l, ML + 3, y); y += 4.5; }
-
-                pdf.setDrawColor(...COL_BORDER);
-                pdf.setLineWidth(0.2);
-                pdf.line(ML + 3, y, ML + TW - 3, y);
-                y += 3;
-
-                pdf.setFontSize(10);
-                pdf.setFont('helvetica', 'normal');
-                pdf.setTextColor(...COL_TEXT);
-                for (const l of bodyLines) { pdf.text(l, ML + 3, y); y += 6; }
-
-                y += 4;
+        // Cloner la fiche pour ne pas modifier l'original
+        const clone = ficheEl.cloneNode(true);
+        // Retirer les boutons d'action du clone
+        const actions = clone.querySelector('.axiome-fiche-actions');
+        if (actions) actions.remove();
+        const resources = clone.querySelector('.axiome-fiche-resources');
+        // Garder les ressources mais sans liens cliquables
+        if (resources) {
+            resources.querySelectorAll('a').forEach(a => {
+                const span = document.createElement('span');
+                span.textContent = a.textContent;
+                a.replaceWith(span);
             });
-
-            // ── PIED DE PAGE ──
-            const totalPages = pdf.internal.getNumberOfPages();
-            for (let p = 1; p <= totalPages; p++) {
-                pdf.setPage(p);
-                pdf.setFontSize(7.5);
-                pdf.setFont('helvetica', 'italic');
-                pdf.setTextColor(...COL_MUTED);
-                pdf.text('mathenlarge.fr — Fiche générée par Axiome', ML, PAGE_H - 7);
-                pdf.text(p + ' / ' + totalPages, PAGE_W - MR, PAGE_H - 7, { align: 'right' });
-                pdf.setDrawColor(...COL_BORDER);
-                pdf.setLineWidth(0.3);
-                pdf.line(ML, PAGE_H - 10, PAGE_W - MR, PAGE_H - 10);
-            }
-
-            const fileName = 'fiche-' + title.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') + '.pdf';
-            pdf.save(fileName);
-        } catch(e) {
-            console.error('PDF error', e);
-            alert('Erreur PDF : ' + e.message);
         }
-        if (btn) { btn.textContent = '📄 Télécharger PDF'; btn.disabled = false; }
+
+        const printWin = window.open('', '_blank', 'width=900,height=700');
+        if (!printWin) { alert('Autorisez les popups pour générer le PDF.'); return; }
+
+        printWin.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>${title.replace(/</g,'&lt;')}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #fff;
+    color: #2d2d3a;
+    padding: 20px 28px;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  .axiome-fiche {
+    max-width: 740px;
+    margin: 0 auto;
+    border: 1.5px solid rgba(124,92,191,0.25);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: none;
+  }
+  .axiome-fiche-header {
+    background: linear-gradient(135deg, #7c5cbf, #5a3d9a);
+    color: white;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .axiome-fiche-section {
+    padding: 10px 16px 12px;
+    border-bottom: 1px solid #ede9f8;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .axiome-fiche-section:last-of-type { border-bottom: none; }
+  .axiome-fiche-heading {
+    font-weight: 800;
+    font-size: 10px;
+    color: #7c5cbf;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+  }
+  .axiome-fiche-body {
+    font-size: 13px;
+    color: #2d2d3a;
+    line-height: 1.7;
+  }
+  .axiome-fiche-resources {
+    padding: 8px 16px 12px;
+    background: rgba(124,92,191,0.04);
+    border-top: 1px solid #ede9f8;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .axiome-fiche-res-title {
+    font-size: 9px; font-weight: 800;
+    color: #888; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .axiome-fiche-res-links { display: flex; flex-direction: column; gap: 3px; }
+  .axiome-fiche-res-links span {
+    font-size: 11px; color: #7c5cbf; font-weight: 600;
+    padding: 2px 0;
+  }
+  /* Pied de page */
+  .print-footer {
+    max-width: 740px; margin: 14px auto 0;
+    font-size: 9.5px; color: #aaa;
+    display: flex; justify-content: space-between;
+    border-top: 1px solid #ddd; padding-top: 6px;
+  }
+  /* KaTeX inline */
+  .katex { font-size: 1em !important; }
+  .katex-display { margin: 6px 0; }
+
+  @media print {
+    body { padding: 0; }
+    .axiome-fiche { border-radius: 0; border: none; max-width: 100%; }
+    .axiome-fiche-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .axiome-fiche-section { break-inside: avoid; page-break-inside: avoid; }
+    .axiome-fiche-resources { break-inside: avoid; page-break-inside: avoid; }
+    .print-footer { position: fixed; bottom: 10px; left: 28px; right: 28px; }
+  }
+</style>
+</head>
+<body>
+${clone.outerHTML}
+<div class="print-footer">
+  <span>mathenlarge.fr — Fiche générée par Axiome</span>
+  <span>${new Date().toLocaleDateString('fr-FR')}</span>
+</div>
+</body>
+</html>`);
+        printWin.document.close();
+
+        // Attendre que KaTeX et les polices soient chargés avant d'imprimer
+        printWin.onload = function() {
+            setTimeout(function() {
+                printWin.focus();
+                printWin.print();
+            }, 800);
+        };
     }
 
     // ── Rendu d'une fiche depuis le format [FICHE]...[/FICHE] ──
