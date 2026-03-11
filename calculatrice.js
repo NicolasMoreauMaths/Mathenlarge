@@ -349,10 +349,10 @@
 
     // Mode buttons
     panel.querySelectorAll(".calc-mode-btn").forEach(b => {
-      b.addEventListener("click", (e) => {
-        e.stopPropagation();
+      b.addEventListener("click", () => {
         mode = b.dataset.mode;
         buildPanel();
+        panel.classList.add("calc-visible");
       });
     });
 
@@ -482,12 +482,12 @@
 
   // Close on outside click
   document.addEventListener("click", (e) => {
-    if (open && !panel.contains(e.target) && e.target !== fab) {
+    if (open && !panel.contains(e.target) && e.target !== fab && !fab.contains(e.target)) {
       open = false;
       fab.classList.remove("calc-open");
       panel.classList.remove("calc-visible");
     }
-  });
+  }, true);
 
   // Keyboard support
   document.addEventListener("keydown", (e) => {
