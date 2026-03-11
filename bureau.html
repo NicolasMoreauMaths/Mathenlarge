@@ -667,6 +667,136 @@ document.addEventListener('DOMContentLoaded', () => {
     const XP_CATEGORY = 50;
     const XP_CHAPTER  = 100;
 
+    // ════════════════════════════════════════════════════
+    //   SYSTÈME XP TEMPOREL (partagé avec index.html)
+    //   Paliers : 2min=5XP, 5min=10XP, 10min=20XP,
+    //             20min=40XP, 30min=60XP (plafond/ressource)
+    // ════════════════════════════════════════════════════
+    const XP_TIME_TOTAL_KEY = 'mathenlarge_time_total_sec';
+    const XP_TIME_REWARDED  = 'mathenlarge_time_rewarded';
+
+    const XP_TIME_TIERS = [
+        { min: 2,  xp: 5  },
+        { min: 5,  xp: 10 },
+        { min: 10, xp: 20 },
+        { min: 20, xp: 40 },
+        { min: 30, xp: 60 },
+    ];
+
+    // Compteurs en mémoire pour chaque zone (url → secondes écoulées cette session)
+    const zoneTimers = { gauche: { url: null, sec: 0 }, droite: { url: null, sec: 0 } };
+
+    function loadTimeTotalSec() {
+        try { return parseInt(localStorage.getItem(XP_TIME_TOTAL_KEY)) || 0; } catch { return 0; }
+    }
+    function addTimeTotalSec(sec) {
+        try { localStorage.setItem(XP_TIME_TOTAL_KEY, String(loadTimeTotalSec() + sec)); } catch {}
+    }
+    function loadTimeRewarded() {
+        try { return JSON.parse(localStorage.getItem(XP_TIME_REWARDED)) || {}; } catch { return {}; }
+    }
+    function saveTimeRewarded(d) {
+        try { localStorage.setItem(XP_TIME_REWARDED, JSON.stringify(d)); } catch {}
+    }
+
+    // Appelée chaque seconde pour une zone donnée
+    function tickZone(side) {
+        const zone = zoneTimers[side];
+        if (!zone.url) return;
+
+        // Ne pas compter si l'onglet est en arrière-plan
+        if (document.visibilityState !== 'visible') return;
+
+        zone.sec += 1;
+        addTimeTotalSec(1);
+
+        const elapsedMin = zone.sec / 60;
+        const rewarded   = loadTimeRewarded();
+        const alreadyMin = rewarded[zone.url] || 0;
+        const totalMin   = Math.min(alreadyMin + elapsedMin, 30);
+
+        // XP déjà accordé pour cette ressource (sessions précédentes)
+        let xpAlready = 0;
+        for (const tier of XP_TIME_TIERS) {
+            if (alreadyMin >= tier.min) xpAlready = tier.xp;
+        }
+        // XP correspondant au nouveau total
+        let xpNew = 0;
+        for (const tier of XP_TIME_TIERS) {
+            if (totalMin >= tier.min) xpNew = tier.xp;
+        }
+
+        const xpToGain = xpNew - xpAlready;
+        if (xpToGain > 0) {
+            // Sauvegarder le nouveau total de minutes pour cette ressource
+            rewarded[zone.url] = totalMin;
+            saveTimeRewarded(rewarded);
+
+            gainXP(xpToGain, '⏱️ Temps de travail');
+
+            // Vérifier les badges temps
+            checkTimeBadgesBureau();
+        }
+    }
+
+    // Lance le timer de zone quand une iframe charge une nouvelle ressource
+    function startZoneTimer(side, url) {
+        const zone = zoneTimers[side];
+        // Sauvegarder le temps accumulé de la ressource précédente
+        if (zone.url && zone.sec > 0) {
+            saveZoneTime(zone.url, zone.sec);
+        }
+        zone.url = url;
+        zone.sec = 0;
+    }
+
+    // Sauvegarde le temps cumulé d'une ressource dans le localStorage global
+    function saveZoneTime(url, sec) {
+        if (sec < 30) return; // Ignorer les passages < 30 secondes
+        const rewarded  = loadTimeRewarded();
+        const alreadyMin = rewarded[url] || 0;
+        const addedMin   = sec / 60;
+        rewarded[url]    = Math.min(alreadyMin + addedMin, 30);
+        saveTimeRewarded(rewarded);
+        addTimeTotalSec(sec);
+    }
+
+    // Vérifier et attribuer les badges temps depuis bureau.html
+    function checkTimeBadgesBureau() {
+        const totalSec = loadTimeTotalSec();
+        const totalMin = totalSec / 60;
+        const eb  = (function(){ try{ return JSON.parse(localStorage.getItem('mathenlarge_badges'))||{}; }catch(e){ return {}; } })();
+        const newB = (function(){ try{ return JSON.parse(localStorage.getItem('mathenlarge_badges_new'))||{}; }catch(e){ return {}; } })();
+        let changed = false;
+
+        if (totalMin >= 10  && !eb['time_10min'])    { eb['time_10min']    = Date.now(); newB['time_10min']    = 1; changed = true; }
+        if (totalMin >= 60  && !eb['time_1h'])        { eb['time_1h']       = Date.now(); newB['time_1h']       = 1; changed = true; }
+        if (totalMin >= 300 && !eb['time_5h'])        { eb['time_5h']       = Date.now(); newB['time_5h']       = 1; changed = true; }
+
+        const rewarded    = loadTimeRewarded();
+        const maxSingle   = Math.max(0, ...Object.values(rewarded));
+        if (maxSingle >= 30 && !eb['time_immersion']) { eb['time_immersion'] = Date.now(); newB['time_immersion'] = 1; changed = true; }
+
+        if (changed) {
+            try { localStorage.setItem('mathenlarge_badges', JSON.stringify(eb)); } catch(e) {}
+            try { localStorage.setItem('mathenlarge_badges_new', JSON.stringify(newB)); } catch(e) {}
+        }
+    }
+
+    // Tick toutes les secondes pour les deux zones
+    setInterval(() => {
+        tickZone('gauche');
+        tickZone('droite');
+    }, 1000);
+
+    // Sauvegarde propre au départ de la page
+    window.addEventListener('beforeunload', () => {
+        for (const side of ['gauche', 'droite']) {
+            const zone = zoneTimers[side];
+            if (zone.url && zone.sec > 0) saveZoneTime(zone.url, zone.sec);
+        }
+    });
+
     function loadProgress() {
         try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch { return {}; }
     }
@@ -720,11 +850,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return cats.length > 0 && cats.every(c => isCatComplete(key, c));
     }
 
-    function gainXP(amount) {
+    function gainXP(amount, msg) {
         const old = loadXP();
         saveXP(old + amount);
         addPendingXP(amount);
-        showXPToast(amount);
+        showXPToast(amount, msg);
         document.getElementById('header-xp-val').textContent = old + amount;
     }
 
@@ -826,6 +956,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         iframe.src = url;
+
+        // Démarrer le chrono pour cette zone
+        startZoneTimer(side, normalizeUrl(url));
 
         // Titre dans la barre
         document.getElementById(titleId).textContent = label || url;

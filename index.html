@@ -2064,7 +2064,7 @@
     // ============================================
     (function() {
         if (location.search.includes('reset')) {
-            ['mathenlarge_progress','mathenlarge_completion','mathenlarge_xp_rewarded','mathenlarge_xp_total','mathenlarge_xp_pending'].forEach(k => localStorage.removeItem(k));
+            ['mathenlarge_progress','mathenlarge_completion','mathenlarge_xp_rewarded','mathenlarge_xp_total','mathenlarge_xp_pending','mathenlarge_time_session','mathenlarge_time_total_sec','mathenlarge_time_rewarded'].forEach(k => localStorage.removeItem(k));
             history.replaceState(null, '', location.pathname);
             const t = document.createElement('div');
             t.textContent = '\uD83D\uDDD1\uFE0F Progression r\u00e9initialis\u00e9e !';
@@ -2219,6 +2219,165 @@
     const XP_ITEM        = 10;   // Ouvrir un fichier
     const XP_CATEGORY    = 50;   // Compléter une catégorie (leçon / exos / exerciseurs)
     const XP_CHAPTER     = 100;  // Compléter un chapitre entier
+
+    // ============================================
+    //   SYSTÈME XP TEMPOREL
+    //   Récompense le temps passé sur un fichier
+    //   Paliers : 2min=5XP, 5min=10XP, 10min=20XP,
+    //             20min=40XP, 30min=60XP (plafond)
+    // ============================================
+    const XP_TIME_KEY       = 'mathenlarge_time_session';   // { url, startTs }
+    const XP_TIME_TOTAL_KEY = 'mathenlarge_time_total_sec'; // secondes cumulées toutes ressources
+    const XP_TIME_REWARDED  = 'mathenlarge_time_rewarded';  // { url: minutes_deja_recompensees }
+
+    // Paliers (minutes → XP cumulé total pour cette ressource)
+    const XP_TIME_TIERS = [
+        { min: 2,  xp: 5  },
+        { min: 5,  xp: 10 },
+        { min: 10, xp: 20 },
+        { min: 20, xp: 40 },
+        { min: 30, xp: 60 }, // plafond
+    ];
+
+    function loadTimeSession() {
+        try { return JSON.parse(localStorage.getItem(XP_TIME_KEY)) || null; }
+        catch { return null; }
+    }
+    function saveTimeSession(data) {
+        try { localStorage.setItem(XP_TIME_KEY, JSON.stringify(data)); }
+        catch {}
+    }
+    function clearTimeSession() {
+        try { localStorage.removeItem(XP_TIME_KEY); }
+        catch {}
+    }
+    function loadTimeTotalSec() {
+        try { return parseInt(localStorage.getItem(XP_TIME_TOTAL_KEY)) || 0; }
+        catch { return 0; }
+    }
+    function addTimeTotalSec(sec) {
+        try { localStorage.setItem(XP_TIME_TOTAL_KEY, String(loadTimeTotalSec() + sec)); }
+        catch {}
+    }
+    function loadTimeRewarded() {
+        try { return JSON.parse(localStorage.getItem(XP_TIME_REWARDED)) || {}; }
+        catch { return {}; }
+    }
+    function saveTimeRewarded(d) {
+        try { localStorage.setItem(XP_TIME_REWARDED, JSON.stringify(d)); }
+        catch {}
+    }
+
+    // Calcule et attribue les XP temps gagnés depuis le dernier palier atteint
+    function processTimeXP(url, elapsedSec) {
+        if (elapsedSec <= 0) return 0;
+        const elapsedMin = elapsedSec / 60;
+        const rewarded = loadTimeRewarded();
+        const alreadyMin = rewarded[url] || 0;
+        const totalMin = Math.min(alreadyMin + elapsedMin, 30); // plafond 30 min
+
+        // XP déjà accordé pour cette ressource
+        let xpAlready = 0;
+        for (const tier of XP_TIME_TIERS) {
+            if (alreadyMin >= tier.min) xpAlready = tier.xp;
+        }
+        // XP qui correspond au nouveau total de minutes
+        let xpNew = 0;
+        for (const tier of XP_TIME_TIERS) {
+            if (totalMin >= tier.min) xpNew = tier.xp;
+        }
+
+        const xpToGain = xpNew - xpAlready;
+
+        // Sauvegarder le nouveau total de minutes pour cette ressource
+        rewarded[url] = totalMin;
+        saveTimeRewarded(rewarded);
+
+        // Ajouter au compteur global de temps
+        addTimeTotalSec(Math.round(elapsedSec));
+
+        return xpToGain;
+    }
+
+    // Appelée quand on revient sur l'index après avoir navigué vers un fichier
+    function onReturnFromFile() {
+        const session = loadTimeSession();
+        if (!session || !session.url || !session.startTs) return;
+
+        const elapsedSec = Math.round((Date.now() - session.startTs) / 1000);
+        clearTimeSession();
+
+        // Ignorer si moins de 30 secondes (faux positif) ou plus de 2h (oubli d'onglet)
+        if (elapsedSec < 30 || elapsedSec > 7200) return;
+
+        const xpToGain = processTimeXP(session.url, elapsedSec);
+
+        if (xpToGain > 0) {
+            gainXP(xpToGain, null, true);
+            addPendingXP(xpToGain);
+        }
+
+        // Vérifier les badges temps
+        setTimeout(() => checkTimeBadges(), 800);
+    }
+
+    // Vérifier les badges liés au temps
+    function checkTimeBadges() {
+        const totalSec = loadTimeTotalSec();
+        const totalMin = totalSec / 60;
+        const eb = (function(){ try{ return JSON.parse(localStorage.getItem('mathenlarge_badges'))||{}; }catch(e){ return {}; } })();
+        const newB = (function(){ try{ return JSON.parse(localStorage.getItem('mathenlarge_badges_new'))||{}; }catch(e){ return {}; } })();
+        let changed = false;
+
+        // Badge "Concentré" : 10 min cumulées
+        if (totalMin >= 10 && !eb['time_10min']) {
+            eb['time_10min'] = Date.now(); newB['time_10min'] = 1; changed = true;
+        }
+        // Badge "Bosseur" : 1h cumulée
+        if (totalMin >= 60 && !eb['time_1h']) {
+            eb['time_1h'] = Date.now(); newB['time_1h'] = 1; changed = true;
+        }
+        // Badge "Chercheur acharné" : 5h cumulées
+        if (totalMin >= 300 && !eb['time_5h']) {
+            eb['time_5h'] = Date.now(); newB['time_5h'] = 1; changed = true;
+        }
+
+        // Badge "En immersion" : 30 min d'une traite sur un fichier
+        const rewarded = loadTimeRewarded();
+        const maxSingle = Math.max(0, ...Object.values(rewarded));
+        if (maxSingle >= 30 && !eb['time_immersion']) {
+            eb['time_immersion'] = Date.now(); newB['time_immersion'] = 1; changed = true;
+        }
+
+        if (changed) {
+            try { localStorage.setItem('mathenlarge_badges', JSON.stringify(eb)); } catch(e) {}
+            try { localStorage.setItem('mathenlarge_badges_new', JSON.stringify(newB)); } catch(e) {}
+            // Afficher les toasts pour les nouveaux badges
+            const badgeToasts = [];
+            if (eb['time_10min'] && newB['time_10min']) badgeToasts.push({ icon:'&#x23F1;&#xFE0F;', name:'Concentré', desc:'10 minutes de travail cumulées !', color:'#3b9fd4' });
+            if (eb['time_1h']    && newB['time_1h'])    badgeToasts.push({ icon:'&#x1F4DA;',         name:'Bosseur',    desc:'1 heure de travail cumulée !',    color:'#7c5cbf' });
+            if (eb['time_5h']    && newB['time_5h'])    badgeToasts.push({ icon:'&#x1F9E0;',         name:'Chercheur acharné', desc:'5 heures de travail cumulées !', color:'#ff9f43' });
+            if (eb['time_immersion'] && newB['time_immersion']) badgeToasts.push({ icon:'&#x1F525;', name:'En immersion', desc:'30 minutes d\'une traite sur un fichier !', color:'#e8734a' });
+
+            badgeToasts.forEach((badge, i) => {
+                setTimeout(() => {
+                    const toast = document.getElementById('badgeToast');
+                    if (!toast) return;
+                    document.getElementById('badgeToastIcon').innerHTML = badge.icon;
+                    document.getElementById('badgeToastName').textContent = badge.name;
+                    document.getElementById('badgeToastDesc').textContent = badge.desc;
+                    toast.style.borderColor = badge.color;
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 4000);
+                }, i * 2200);
+            });
+
+            // Mettre à jour le bouton badges
+            setTimeout(() => {
+                if (typeof updateBtn === 'function') updateBtn();
+            }, 200);
+        }
+    }
 
     // 8 paliers calibrés pour ~300 fichiers
     // XP max naturel : ~300*10 + ~80catégories*50 + ~80chapitres*100 ≈ 15 000 XP
@@ -2647,6 +2806,9 @@
         renderXPWidget();
         initBubbleStates();
         checkAllBonusesOnLoad();
+
+        // Traiter le temps passé sur le fichier précédent
+        onReturnFromFile();
 
         // Jouer l'animation XP en attente (accumulée lors d'une navigation vers un exerciseur)
         const pending = loadPendingXP();
@@ -3109,6 +3271,8 @@
 
                 // 3. Navigation — Mode Bureau ou navigation directe
                 const bureauToggle = document.getElementById('modeBureauToggle');
+                // Enregistrer la session temporelle avant de quitter la page
+                saveTimeSession({ url: item.url, startTs: Date.now() });
                 if (bureauToggle && bureauToggle.checked) {
                     const typeParam = (id === 'lecon') ? 'lecon' : 'exo';
                     const params = new URLSearchParams({ type: typeParam, chap: chapKey, file: item.url });
@@ -4197,6 +4361,24 @@ ${buildCatalogueSummary()}`;
               desc:'Tu as utilisé la barre de recherche.',
               how:'Tape quelque chose dans la barre de recherche.',
               color:'#3b9fd4', cat:'Spéciaux' },
+
+            // ── Temps de travail ──
+            { id:'time_10min',   icon:'&#x23F1;&#xFE0F;', name:'Concentré',
+              desc:'10 minutes de travail cumulées sur les ressources.',
+              how:'Passe du temps sur les leçons et exercices.',
+              color:'#3b9fd4', cat:'Temps' },
+            { id:'time_1h',      icon:'&#x1F4DA;',        name:'Bosseur',
+              desc:'1 heure de travail cumulée au total.',
+              how:'Continue de travailler régulièrement sur le site.',
+              color:'#7c5cbf', cat:'Temps' },
+            { id:'time_5h',      icon:'&#x1F9E0;',        name:'Chercheur acharné',
+              desc:'5 heures de travail cumulées.',
+              how:'Accumule 5h de travail sur les ressources.',
+              color:'#ff9f43', cat:'Temps' },
+            { id:'time_immersion', icon:'&#x1F525;',      name:'En immersion',
+              desc:'30 minutes d\'une traite sur un seul fichier.',
+              how:'Reste au moins 30 min sur une ressource sans revenir en arrière.',
+              color:'#e8734a', cat:'Temps' },
         ];
 
         // ─────────────────────────────────────────────
@@ -4241,6 +4423,10 @@ ${buildCatalogueSummary()}`;
                 'brevet_warrior':         !!earned['brevet_warrior'],
                 'dark_mode':              !!earned['dark_mode'],
                 'search_used':            !!earned['search_used'],
+                'time_10min':             !!earned['time_10min'],
+                'time_1h':                !!earned['time_1h'],
+                'time_5h':                !!earned['time_5h'],
+                'time_immersion':         !!earned['time_immersion'],
             };
         }
 
