@@ -1,0 +1,49 @@
+name: Retirer la calculatrice
+
+on:
+  workflow_dispatch:
+
+jobs:
+  retirer-calculatrice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Retirer le script calculatrice des fichiers concernés
+        run: |
+          FILES=(
+            # Ajoutez ici les fichiers dont vous voulez retirer la calculatrice
+            # Exemple :
+            # "5eme_ch3_exercice1.html"
+            # "5eme_ch3_exercice2.html"
+          )
+
+          COUNT=0
+          SKIPPED=0
+          for FILE in "${FILES[@]}"; do
+            if [ ! -f "$FILE" ]; then
+              echo "⚠️  Introuvable : $FILE"
+              SKIPPED=$((SKIPPED+1))
+              continue
+            fi
+            if ! grep -q "calculatrice.js" "$FILE"; then
+              echo "✅ Déjà absent : $FILE"
+              SKIPPED=$((SKIPPED+1))
+              continue
+            fi
+            sed -i '/<!-- Calculatrice flottante -->/d' "$FILE"
+            sed -i '/calculatrice\.js/d' "$FILE"
+            echo "✔  Retiré : $FILE"
+            COUNT=$((COUNT+1))
+          done
+          echo ""
+          echo "✔ $COUNT fichiers modifiés, $SKIPPED ignorés"
+
+      - name: Committer les modifications
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "🗑️ Retrait de la calculatrice flottante"
+          git push
