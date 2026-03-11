@@ -3801,10 +3801,50 @@ ${buildCatalogueSummary()}`;
             let y = MT;
 
             // Nettoie les délimiteurs KaTeX $...$ pour un texte lisible
+            // Supprime les emojis (non supportés par jsPDF)
+            function stripEmojis(text) {
+                return text.replace(/[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27FF}|\u{FE00}-\u{FEFF}|\u{1F300}-\u{1F9FF}|\u{1FA00}-\u{1FAFF}]/gu, '')
+                           .replace(/[\u2700-\u27BF]/g, '')
+                           .trim();
+            }
+
+            // Convertit les commandes LaTeX courantes en texte lisible
             function cleanMath(text) {
                 return text
-                    .replace(/\$\$[\s\S]*?\$\$/g, m => m.slice(2, -2).trim())
-                    .replace(/\$([^$]+)\$/g, (_, inner) => inner.trim());
+                    // Supprimer délimiteurs $$ et $
+                    .replace(/\$\$([\s\S]*?)\$\$/g, (_, m) => convertLatex(m.trim()))
+                    .replace(/\$([^$\n]+)\$/g, (_, m) => convertLatex(m.trim()));
+            }
+
+            function convertLatex(s) {
+                return s
+                    // Fractions : \frac{a}{b} → a/b
+                    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '($1)/($2)')
+                    // Racine : \sqrt{x} → √x
+                    .replace(/\\sqrt\{([^}]*)\}/g, '√($1)')
+                    // Puissances : x^{n} → x^n  ou  x^2 tel quel
+                    .replace(/\^{([^}]*)}/g, '^$1')
+                    // Indices : x_{n} → x_n
+                    .replace(/_{([^}]*)}/g, '_$1')
+                    // Opérateurs
+                    .replace(/\\times/g, '×')
+                    .replace(/\\cdot/g, '·')
+                    .replace(/\\div/g, '÷')
+                    .replace(/\\pm/g, '±')
+                    .replace(/\\leq/g, '≤')
+                    .replace(/\\geq/g, '≥')
+                    .replace(/\\neq/g, '≠')
+                    .replace(/\\approx/g, '≈')
+                    .replace(/\\infty/g, '∞')
+                    .replace(/\\pi/g, 'π')
+                    .replace(/\\alpha/g, 'α')
+                    .replace(/\\beta/g, 'β')
+                    .replace(/\\theta/g, 'θ')
+                    // Supprimer accolades restantes
+                    .replace(/[{}]/g, '')
+                    // Supprimer autres commandes inconnues \cmd
+                    .replace(/\\[a-zA-Z]+/g, '')
+                    .trim();
             }
 
             function checkPage(needed) {
@@ -3825,7 +3865,7 @@ ${buildCatalogueSummary()}`;
             pdf.setFontSize(11);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(...COL_WHITE);
-            pdf.text('📋  ' + title, ML + 4, y + 8);
+            pdf.text(stripEmojis(title), ML + 4, y + 8);
             y += 17;
 
             // ── SECTIONS ──
@@ -3835,7 +3875,7 @@ ${buildCatalogueSummary()}`;
                 const bodyEl    = sec.querySelector('.axiome-fiche-body');
                 if (!headingEl || !bodyEl) return;
 
-                const headingTxt = headingEl.textContent.trim().toUpperCase();
+                const headingTxt = stripEmojis(headingEl.textContent.trim()).toUpperCase();
                 // Utiliser le texte brut stocké avant rendu KaTeX, sinon fallback innerText
                 const rawBody = bodyEl.dataset.rawText || bodyEl.innerText;
                 const bodyTxt = cleanMath(rawBody).trim();
