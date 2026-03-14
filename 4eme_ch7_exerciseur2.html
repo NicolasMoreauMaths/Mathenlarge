@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Mise au même dénominateur</title>
+<style>
+:root {
+  --bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;
+  --acc:#5b4fc4;--acc-lt:#eeedfe;--ok:#1d9e75;--ok-bg:#e1f5ee;
+  --ko:#e24b4a;
+  --pxoff:#dddcd5;--pxon:#2d2d2d;--pxbdr:#c5c4bc;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;
+  --acc:#8b82e8;--acc-lt:#2a2650;--ok:#5dcaa5;--ok-bg:#0a2e22;
+  --ko:#f09595;
+  --pxoff:#3a3a3a;--pxon:#e0e0e0;--pxbdr:#555;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--txt);
+  max-width:920px;margin:0 auto;padding:12px;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+}
+h1{font-size:18px;text-align:center;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+
+.main{display:flex;gap:16px;align-items:flex-start}
+@media(max-width:660px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+
+/* Board */
+.board{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
+  width:min(82vw,360px);padding:5px;
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;
+}
+.tile{
+  position:relative;border:2px solid var(--bdr);border-radius:4px;
+  overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;
+}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}
+.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{
+  position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);
+  pointer-events:none;z-index:2;opacity:.55;line-height:1;
+}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr)}
+.tg .px.off{background:var(--pxoff)}
+.tg .px.on{background:var(--pxon)}
+/* Pixels only interactive when tile is selected */
+.tile:not(.sel) .tg{pointer-events:none}
+
+/* Panel */
+.panel{
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;
+}
+.panel-empty{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--txt2);font-size:13px;min-height:100px;text-align:center;line-height:1.6;
+}
+.pcontent{display:none}
+.panel-calc{
+  text-align:center;margin-bottom:14px;padding-bottom:10px;
+  border-bottom:1px solid var(--bdr);
+}
+.badge{
+  display:inline-block;background:var(--acc);color:#fff;
+  font-size:11px;font-weight:700;padding:2px 10px;
+  border-radius:10px;margin-bottom:6px;
+}
+.pfrac{font-size:22px;font-weight:500}
+.frac{
+  display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:middle;line-height:1.1;margin:0 2px;
+}
+.frac .bar{display:block;height:2px;background:currentColor;width:100%;min-width:12px;margin:2px 0}
+.cop{font-weight:500;margin:0 4px;font-size:22px}
+
+/* Mini editor */
+.ed-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}
+.ed-label{font-size:12px;color:var(--txt2)}
+.mini{
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  width:72px;height:72px;border:2.5px solid var(--acc);border-radius:6px;overflow:hidden;
+}
+.mini .mx{cursor:pointer;border:.5px solid var(--pxbdr);transition:background .1s}
+.mini .mx.off{background:var(--pxoff)}
+.mini .mx.on{background:var(--pxon)}
+
+/* Legend */
+.leg-t{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--txt2)}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:4px}
+.li{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 6px;border:1px solid var(--bdr);border-radius:6px;background:var(--bg);
+}
+.lp{
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  width:27px;height:27px;border:1px solid var(--bdr);border-radius:2px;
+  flex-shrink:0;overflow:hidden;
+}
+.lp .lon{background:var(--pxon)}.lp .loff{background:var(--pxoff);border:.5px solid var(--pxbdr)}
+.lf{font-size:14px;font-weight:700}
+
+/* Actions */
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{
+  padding:8px 14px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--bdr);background:var(--card);
+  color:var(--txt);border-radius:8px;cursor:pointer;
+}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0}
+.score b{color:var(--acc)}
+
+/* Correction */
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{
+  display:inline-grid;
+  grid-template-columns:repeat(15,min(4.5vw,18px));
+  grid-template-rows:repeat(15,min(4.5vw,18px));
+  gap:0;border:2px solid var(--txt);border-radius:4px;
+}
+.corr-g div{border:.25px solid var(--pxbdr)}
+.corr-g .con{background:var(--pxon)}.corr-g .coff{background:var(--pxoff)}
+
+@media(max-width:660px){
+  .board{width:min(92vw,360px)}
+  .panel{width:min(92vw,400px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(82px,1fr))}
+  .corr-g{grid-template-columns:repeat(15,min(5.5vw,18px));grid-template-rows:repeat(15,min(5.5vw,18px))}
+}
+</style>
+</head>
+<body>
+
+<h1>Pixel Art — Mise au même dénominateur</h1>
+<p class="sub">Clique sur une tuile pour voir son calcul, puis colorie-la selon le code.</p>
+
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:4px">Image révélée</p>
+  </div>
+</div>
+
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">
+      &#x2190; Clique sur une tuile<br>pour voir son calcul
+    </div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc">
+        <div class="badge" id="pbadge">Tuile 1</div>
+        <div class="pfrac" id="pfrac"></div>
+      </div>
+      <div class="ed-row">
+        <span class="ed-label">Colorie :</span>
+        <div class="mini" id="mini"></div>
+      </div>
+      <div class="leg-t">Code : résultat &#x2192; motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const T=[[0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 1, 0, 0, 0, 0, 1, 0], [1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 1], [0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 1, 0, 0, 1], [0, 0, 0, 1, 0, 0, 1, 0, 0]];
+const P=[{"num": 1, "a": 3, "b": 4, "c": 2, "d": 3, "op": "-", "an": 1, "ad": 12}, {"num": 2, "a": 1, "b": 4, "c": 1, "d": 3, "op": "+", "an": 7, "ad": 12}, {"num": 3, "a": 5, "b": 6, "c": 1, "d": 4, "op": "-", "an": 7, "ad": 12}, {"num": 4, "a": 3, "b": 4, "c": 1, "d": 6, "op": "-", "an": 7, "ad": 12}, {"num": 5, "a": 1, "b": 3, "c": 1, "d": 4, "op": "-", "an": 1, "ad": 12}, {"num": 6, "a": 1, "b": 2, "c": 1, "d": 12, "op": "+", "an": 7, "ad": 12}, {"num": 7, "a": 1, "b": 2, "c": 1, "d": 5, "op": "-", "an": 3, "ad": 10}, {"num": 8, "a": 11, "b": 12, "c": 1, "d": 3, "op": "-", "an": 7, "ad": 12}, {"num": 9, "a": 4, "b": 5, "c": 1, "d": 2, "op": "-", "an": 3, "ad": 10}, {"num": 10, "a": 2, "b": 3, "c": 1, "d": 12, "op": "-", "an": 7, "ad": 12}, {"num": 11, "a": 1, "b": 2, "c": 1, "d": 3, "op": "-", "an": 1, "ad": 6}, {"num": 12, "a": 2, "b": 3, "c": 1, "d": 5, "op": "-", "an": 7, "ad": 15}, {"num": 13, "a": 2, "b": 3, "c": 2, "d": 5, "op": "-", "an": 4, "ad": 15}, {"num": 14, "a": 2, "b": 3, "c": 1, "d": 4, "op": "-", "an": 5, "ad": 12}, {"num": 15, "a": 2, "b": 3, "c": 1, "d": 2, "op": "-", "an": 1, "ad": 6}, {"num": 16, "a": 1, "b": 4, "c": 1, "d": 6, "op": "-", "an": 1, "ad": 12}, {"num": 17, "a": 5, "b": 6, "c": 1, "d": 2, "op": "-", "an": 1, "ad": 3}, {"num": 18, "a": 5, "b": 6, "c": 1, "d": 3, "op": "-", "an": 1, "ad": 2}, {"num": 19, "a": 9, "b": 10, "c": 1, "d": 2, "op": "-", "an": 2, "ad": 5}, {"num": 20, "a": 5, "b": 6, "c": 3, "d": 4, "op": "-", "an": 1, "ad": 12}, {"num": 21, "a": 3, "b": 5, "c": 1, "d": 2, "op": "-", "an": 1, "ad": 10}, {"num": 22, "a": 1, "b": 2, "c": 3, "d": 10, "op": "-", "an": 1, "ad": 5}, {"num": 23, "a": 1, "b": 2, "c": 5, "d": 12, "op": "-", "an": 1, "ad": 12}, {"num": 24, "a": 3, "b": 4, "c": 1, "d": 2, "op": "-", "an": 1, "ad": 4}, {"num": 25, "a": 4, "b": 5, "c": 2, "d": 3, "op": "-", "an": 2, "ad": 15}];
+const L=[{"pattern": [0, 0, 0, 0, 0, 0, 0, 0, 0], "n": 1, "d": 12}, {"pattern": [0, 0, 0, 0, 0, 1, 0, 0, 1], "n": 1, "d": 10}, {"pattern": [0, 0, 0, 1, 0, 0, 1, 0, 0], "n": 2, "d": 15}, {"pattern": [1, 1, 1, 0, 0, 0, 0, 0, 0], "n": 1, "d": 6}, {"pattern": [0, 1, 1, 1, 0, 0, 1, 0, 0], "n": 1, "d": 5}, {"pattern": [1, 1, 0, 0, 0, 1, 0, 0, 1], "n": 1, "d": 4}, {"pattern": [1, 1, 1, 0, 0, 0, 0, 1, 0], "n": 4, "d": 15}, {"pattern": [1, 1, 1, 0, 0, 0, 1, 1, 1], "n": 3, "d": 10}, {"pattern": [1, 1, 1, 1, 1, 1, 0, 0, 1], "n": 1, "d": 3}, {"pattern": [1, 1, 1, 1, 1, 1, 1, 0, 0], "n": 2, "d": 5}, {"pattern": [1, 1, 1, 0, 1, 1, 1, 1, 1], "n": 5, "d": 12}, {"pattern": [1, 1, 1, 1, 1, 0, 1, 1, 1], "n": 7, "d": 15}, {"pattern": [1, 1, 1, 1, 1, 1, 1, 0, 1], "n": 1, "d": 2}, {"pattern": [1, 1, 1, 1, 1, 1, 1, 1, 1], "n": 7, "d": 12}];
+const IM=[[0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0]];
+
+const NP = 9;
+let G = Array.from({length:25}, () => Array(NP).fill(0));
+let sel = -1;
+
+function fh(n, d, s) {
+  s = s || 'inherit';
+  return '<span class="frac" style="font-size:'+s+'"><span>'+n+'</span><span class="bar"></span><span>'+d+'</span></span>';
+}
+
+/* ── Board ── */
+function buildBoard() {
+  const b = document.getElementById('board');
+  for (let t = 0; t < 25; t++) {
+    const d = document.createElement('div');
+    d.className = 'tile'; d.id = 't' + t;
+    d.innerHTML = '<span class="tnum">' + (t+1) + '</span>';
+    const g = document.createElement('div'); g.className = 'tg';
+    for (let p = 0; p < NP; p++) {
+      const c = document.createElement('div');
+      c.className = 'px off'; c.dataset.t = t; c.dataset.p = p;
+      c.addEventListener('click', onPxClick);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    /* Click on tile border/number area = select without coloring */
+    d.addEventListener('click', function(e) {
+      if (e.target.classList.contains('px')) return;
+      selectTile(t);
+    });
+    b.appendChild(d);
+  }
+}
+
+/* Click on a pixel: ONLY works if tile is already selected (CSS pointer-events:none enforces this) */
+function onPxClick(e) {
+  const el = e.target;
+  const t = +el.dataset.t, p = +el.dataset.p;
+  /* Toggle pixel */
+  G[t][p] = G[t][p] ? 0 : 1;
+  el.className = 'px ' + (G[t][p] ? 'on' : 'off');
+  syncMini(t);
+}
+
+/* ── Select tile ── */
+function selectTile(t) {
+  sel = t;
+  document.querySelectorAll('.tile').forEach(el => el.classList.remove('sel'));
+  document.getElementById('t' + t).classList.add('sel');
+  document.getElementById('pempty').style.display = 'none';
+  document.getElementById('pcontent').style.display = 'block';
+  const pr = P[t];
+  document.getElementById('pbadge').textContent = 'Tuile ' + (t+1);
+  const op = pr.op === '+' ? '+' : '\u2212';
+  document.getElementById('pfrac').innerHTML =
+    fh(pr.a, pr.b, '22px') + '<span class="cop">' + op + '</span>' + fh(pr.c, pr.d, '22px') +
+    ' <span class="cop">=</span> <span class="cop" style="color:var(--acc)">?</span>';
+  buildMini(t);
+  if (window.innerWidth <= 660)
+    document.getElementById('panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* ── Mini editor ── */
+function buildMini(t) {
+  const mg = document.getElementById('mini'); mg.innerHTML = '';
+  for (let p = 0; p < NP; p++) {
+    const c = document.createElement('div');
+    c.className = 'mx ' + (G[t][p] ? 'on' : 'off');
+    c.addEventListener('click', function() {
+      G[t][p] = G[t][p] ? 0 : 1;
+      this.className = 'mx ' + (G[t][p] ? 'on' : 'off');
+      syncBoard(t);
+    });
+    mg.appendChild(c);
+  }
+}
+
+function syncBoard(t) {
+  const pxs = document.querySelectorAll('#t' + t + ' .tg .px');
+  for (let p = 0; p < NP; p++) pxs[p].className = 'px ' + (G[t][p] ? 'on' : 'off');
+}
+
+function syncMini(t) {
+  const mxs = document.querySelectorAll('#mini .mx');
+  if (mxs.length === NP) {
+    for (let p = 0; p < NP; p++) mxs[p].className = 'mx ' + (G[t][p] ? 'on' : 'off');
+  }
+}
+
+/* ── Legend ── */
+function buildLeg() {
+  const lg = document.getElementById('leg');
+  L.forEach(l => {
+    const d = document.createElement('div'); d.className = 'li';
+    let ph = '<div class="lp">';
+    l.pattern.forEach(v => { ph += '<div class="' + (v ? 'lon' : 'loff') + '"></div>'; });
+    ph += '</div>';
+    d.innerHTML = ph + '<span class="lf">' + fh(l.n, l.d, '13px') + '</span>';
+    lg.appendChild(d);
+  });
+}
+
+/* ── Correction ── */
+function buildCorr() {
+  const cg = document.getElementById('corrG');
+  IM.forEach(row => row.forEach(v => {
+    const d = document.createElement('div'); d.className = v ? 'con' : 'coff'; cg.appendChild(d);
+  }));
+}
+
+/* ── Actions ── */
+function check() {
+  let ok = 0;
+  for (let t = 0; t < 25; t++) {
+    const el = document.getElementById('t' + t);
+    el.classList.remove('ok', 'ko');
+    const match = T[t].every((v, i) => v === G[t][i]);
+    if (match) { el.classList.add('ok'); ok++; }
+    else if (G[t].some(v => v)) { el.classList.add('ko'); }
+  }
+  const s = document.getElementById('score');
+  if (ok === 25) s.innerHTML = '&#127881; <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML = '<b>' + ok + '/25</b> tuiles correctes';
+}
+
+function raz() {
+  G = Array.from({length:25}, () => Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el => { el.className = 'px off'; });
+  document.querySelectorAll('.tile').forEach(el => { el.classList.remove('ok','ko','sel'); });
+  document.getElementById('score').innerHTML = '';
+  document.getElementById('pempty').style.display = 'flex';
+  document.getElementById('pcontent').style.display = 'none';
+  sel = -1;
+}
+
+function corrTog() {
+  const b = document.getElementById('corrBox'), n = document.getElementById('bcorr');
+  if (b.classList.contains('show')) { b.classList.remove('show'); n.textContent = 'Correction'; }
+  else { b.classList.add('show'); n.textContent = 'Masquer'; }
+}
+
+buildBoard(); buildLeg(); buildCorr();
+</script>
+</body>
+</html>
