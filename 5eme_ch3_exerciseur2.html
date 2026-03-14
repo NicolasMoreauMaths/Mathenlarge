@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Enchaînement d'opérations</title>
+<style>
+:root {
+  --bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;
+  --acc:#c05230;--acc-lt:#fae8e2;--ok:#1d9e75;
+  --ko:#e24b4a;
+  --pxoff:#dddcd5;--pxon:#2d2d2d;--pxbdr:#c5c4bc;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;
+  --acc:#e87850;--acc-lt:#3a2018;--ok:#5dcaa5;
+  --ko:#f09595;
+  --pxoff:#3a3a3a;--pxon:#e0e0e0;--pxbdr:#555;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--txt);
+  max-width:920px;margin:0 auto;padding:12px;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+}
+h1{font-size:18px;text-align:center;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:16px;align-items:flex-start}
+@media(max-width:660px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+.board{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
+  width:min(82vw,360px);padding:5px;
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;
+}
+.tile{
+  position:relative;border:2px solid var(--bdr);border-radius:4px;
+  overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;
+}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}
+.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);pointer-events:none;z-index:2;opacity:.55;line-height:1}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr)}
+.tg .px.off{background:var(--pxoff)}.tg .px.on{background:var(--pxon)}
+.tile:not(.sel) .tg{pointer-events:none}
+.panel{background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;padding:14px}
+.panel-empty{display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:13px;min-height:100px;text-align:center;line-height:1.6}
+.pcontent{display:none}
+.panel-calc{text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr)}
+.badge{display:inline-block;background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;margin-bottom:6px}
+.expr{font-size:20px;font-weight:500;letter-spacing:.3px}
+.expr .eq{color:var(--acc);font-weight:700}
+.ed-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}
+.ed-label{font-size:12px;color:var(--txt2)}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:72px;height:72px;border:2.5px solid var(--acc);border-radius:6px;overflow:hidden}
+.mini .mx{cursor:pointer;border:.5px solid var(--pxbdr);transition:background .1s}
+.mini .mx.off{background:var(--pxoff)}.mini .mx.on{background:var(--pxon)}
+.leg-t{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--txt2)}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:4px}
+.li{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--bdr);border-radius:6px;background:var(--bg)}
+.lp{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:27px;height:27px;border:1px solid var(--bdr);border-radius:2px;flex-shrink:0;overflow:hidden}
+.lp .lon{background:var(--pxon)}.lp .loff{background:var(--pxoff);border:.5px solid var(--pxbdr)}
+.la{font-size:16px;font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{padding:8px 14px;font-size:12px;font-weight:600;border:1.5px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:8px;cursor:pointer}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0}
+.score b{color:var(--acc)}
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{display:inline-grid;grid-template-columns:repeat(15,min(4.5vw,18px));grid-template-rows:repeat(15,min(4.5vw,18px));gap:0;border:2px solid var(--txt);border-radius:4px}
+.corr-g div{border:.25px solid var(--pxbdr)}
+.corr-g .con{background:var(--pxon)}.corr-g .coff{background:var(--pxoff)}
+@media(max-width:660px){
+  .board{width:min(92vw,360px)}.panel{width:min(92vw,400px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+  .corr-g{grid-template-columns:repeat(15,min(5.5vw,18px));grid-template-rows:repeat(15,min(5.5vw,18px))}
+  .expr{font-size:17px}
+}
+</style>
+</head>
+<body>
+<h1>Pixel Art — Enchaînement d'opérations</h1>
+<p class="sub">Clique sur une tuile, calcule en respectant les priorités, puis colorie-la selon le code.</p>
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:4px">Image révélée</p>
+  </div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">&#x2190; Clique sur une tuile<br>pour voir son calcul</div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc">
+        <div class="badge" id="pbadge">Tuile 1</div>
+        <div class="expr" id="pexpr"></div>
+      </div>
+      <div class="ed-row">
+        <span class="ed-label">Colorie :</span>
+        <div class="mini" id="mini"></div>
+      </div>
+      <div class="leg-t">Code : résultat &#x2192; motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+const T=[[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 1, 0, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 0, 1, 1, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 0, 1, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 1, 1, 0, 0, 1], [1, 0, 0, 1, 1, 0, 1, 1, 1], [1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0], [1, 1, 1, 0, 1, 1, 0, 0, 0]];
+const P=[{"num": 1, "expr": "(11 + 37) \u00f7 2", "answer": 24}, {"num": 2, "expr": "(8 + 52) \u00f7 2", "answer": 30}, {"num": 3, "expr": "16 + (9 \u2212 6) \u00d7 2", "answer": 22}, {"num": 4, "expr": "45 \u00f7 3 + 11", "answer": 26}, {"num": 5, "expr": "(1 + 3) \u00d7 3 + 12", "answer": 24}, {"num": 6, "expr": "9 \u00d7 3 \u2212 3", "answer": 24}, {"num": 7, "expr": "(1 + 8) \u00d7 3 + 6", "answer": 33}, {"num": 8, "expr": "22 + (9 \u2212 6) \u00d7 6", "answer": 40}, {"num": 9, "expr": "36 \u00f7 9 + 14", "answer": 18}, {"num": 10, "expr": "3 \u00d7 (14 \u2212 6)", "answer": 24}, {"num": 11, "expr": "9 \u00d7 10 \u00f7 3", "answer": 30}, {"num": 12, "expr": "27 + 39 \u00f7 3", "answer": 40}, {"num": 13, "expr": "5 \u00d7 7 \u2212 1", "answer": 34}, {"num": 14, "expr": "8 \u00d7 8 \u2212 24", "answer": 40}, {"num": 15, "expr": "(2 + 5) \u00d7 3 + 5", "answer": 26}, {"num": 16, "expr": "8 + (7 \u2212 3) \u00d7 3", "answer": 20}, {"num": 17, "expr": "4 \u00d7 5 + 4 \u00d7 3", "answer": 32}, {"num": 18, "expr": "(3 + 7) \u00d7 3 + 10", "answer": 40}, {"num": 19, "expr": "60 \u00f7 3 + 7", "answer": 27}, {"num": 20, "expr": "1 + 48 \u00f7 2", "answer": 25}, {"num": 21, "expr": "4 + (5 \u2212 1) \u00d7 6", "answer": 28}, {"num": 22, "expr": "48 \u2212 6 \u00d7 3", "answer": 30}, {"num": 23, "expr": "(3 + 4) \u00d7 3 + 8", "answer": 29}, {"num": 24, "expr": "4 \u00d7 4 + 5 \u00d7 2", "answer": 26}, {"num": 25, "expr": "3 \u00d7 6 + 2 \u00d7 9", "answer": 36}];
+const L=[{"pattern": [1, 1, 0, 1, 1, 0, 1, 1, 1], "answer": 18}, {"pattern": [0, 0, 1, 0, 1, 1, 1, 1, 1], "answer": 20}, {"pattern": [0, 1, 0, 1, 1, 1, 1, 1, 1], "answer": 22}, {"pattern": [0, 0, 0, 0, 0, 0, 0, 0, 0], "answer": 24}, {"pattern": [1, 0, 0, 1, 1, 0, 1, 1, 1], "answer": 25}, {"pattern": [0, 0, 0, 0, 0, 0, 1, 0, 0], "answer": 26}, {"pattern": [1, 1, 1, 0, 1, 1, 0, 0, 1], "answer": 27}, {"pattern": [1, 1, 1, 1, 1, 0, 0, 0, 0], "answer": 28}, {"pattern": [1, 1, 1, 1, 1, 1, 1, 0, 1], "answer": 29}, {"pattern": [0, 0, 0, 0, 0, 0, 0, 0, 1], "answer": 30}, {"pattern": [1, 1, 1, 1, 1, 0, 1, 0, 0], "answer": 32}, {"pattern": [0, 1, 1, 0, 1, 1, 1, 1, 1], "answer": 33}, {"pattern": [1, 0, 1, 1, 1, 1, 1, 1, 1], "answer": 34}, {"pattern": [1, 1, 1, 0, 1, 1, 0, 0, 0], "answer": 36}, {"pattern": [1, 1, 1, 1, 1, 1, 1, 1, 1], "answer": 40}];
+const IM=[[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0], [1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0]];
+
+const NP=9;let G=Array.from({length:25},()=>Array(NP).fill(0));let sel=-1;
+function buildBoard(){const b=document.getElementById('board');for(let t=0;t<25;t++){const d=document.createElement('div');d.className='tile';d.id='t'+t;d.innerHTML='<span class="tnum">'+(t+1)+'</span>';const g=document.createElement('div');g.className='tg';for(let p=0;p<NP;p++){const c=document.createElement('div');c.className='px off';c.dataset.t=t;c.dataset.p=p;c.addEventListener('click',onPx);g.appendChild(c);}d.appendChild(g);d.addEventListener('click',function(e){if(e.target.classList.contains('px'))return;selectTile(t);});b.appendChild(d);}}
+function onPx(e){const el=e.target;const t=+el.dataset.t,p=+el.dataset.p;G[t][p]=G[t][p]?0:1;el.className='px '+(G[t][p]?'on':'off');syncMini(t);}
+function selectTile(t){sel=t;document.querySelectorAll('.tile').forEach(el=>el.classList.remove('sel'));document.getElementById('t'+t).classList.add('sel');document.getElementById('pempty').style.display='none';document.getElementById('pcontent').style.display='block';const pr=P[t];document.getElementById('pbadge').textContent='Tuile '+(t+1);document.getElementById('pexpr').innerHTML=pr.expr+' <span class="eq">= ?</span>';buildMini(t);if(window.innerWidth<=660)document.getElementById('panel').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function buildMini(t){const mg=document.getElementById('mini');mg.innerHTML='';for(let p=0;p<NP;p++){const c=document.createElement('div');c.className='mx '+(G[t][p]?'on':'off');c.addEventListener('click',function(){G[t][p]=G[t][p]?0:1;this.className='mx '+(G[t][p]?'on':'off');syncBoard(t);});mg.appendChild(c);}}
+function syncBoard(t){const pxs=document.querySelectorAll('#t'+t+' .tg .px');for(let p=0;p<NP;p++)pxs[p].className='px '+(G[t][p]?'on':'off');}
+function syncMini(t){const mxs=document.querySelectorAll('#mini .mx');if(mxs.length===NP)for(let p=0;p<NP;p++)mxs[p].className='mx '+(G[t][p]?'on':'off');}
+function buildLeg(){const lg=document.getElementById('leg');L.forEach(l=>{const d=document.createElement('div');d.className='li';let ph='<div class="lp">';l.pattern.forEach(v=>{ph+='<div class="'+(v?'lon':'loff')+'"></div>';});ph+='</div>';d.innerHTML=ph+'<span class="la">'+l.answer+'</span>';lg.appendChild(d);});}
+function buildCorr(){const cg=document.getElementById('corrG');IM.forEach(row=>row.forEach(v=>{const d=document.createElement('div');d.className=v?'con':'coff';cg.appendChild(d);}));}
+function check(){let ok=0;for(let t=0;t<25;t++){const el=document.getElementById('t'+t);el.classList.remove('ok','ko');const m=T[t].every((v,i)=>v===G[t][i]);if(m){el.classList.add('ok');ok++;}else if(G[t].some(v=>v)){el.classList.add('ko');}}const s=document.getElementById('score');if(ok===25)s.innerHTML='&#127881; <b>Bravo !</b> 25/25 tuiles correctes !';else s.innerHTML='<b>'+ok+'/25</b> tuiles correctes';}
+function raz(){G=Array.from({length:25},()=>Array(NP).fill(0));document.querySelectorAll('.tg .px').forEach(el=>{el.className='px off';});document.querySelectorAll('.tile').forEach(el=>{el.classList.remove('ok','ko','sel');});document.getElementById('score').innerHTML='';document.getElementById('pempty').style.display='flex';document.getElementById('pcontent').style.display='none';sel=-1;}
+function corrTog(){const b=document.getElementById('corrBox'),n=document.getElementById('bcorr');if(b.classList.contains('show')){b.classList.remove('show');n.textContent='Correction';}else{b.classList.add('show');n.textContent='Masquer';}}
+buildBoard();buildLeg();buildCorr();
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+<style>
+.btn-retour-flottant {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    color: #5c67f2;
+    text-decoration: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 10px 18px;
+    border-radius: 50px;
+    border: 2px solid #5c67f2;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+.btn-retour-flottant:hover {
+    transform: scale(1.05);
+    background: #5c67f2;
+    color: white;
+}
+@media (max-width: 600px) {
+    .btn-retour-flottant {
+        top: auto;
+        bottom: 20px;
+        left: 20px;
+        padding: 12px 22px;
+        font-size: 1rem;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    .btn-retour-flottant {
+        background: #262626;
+        color: #e87850;
+        border-color: #e87850;
+    }
+    .btn-retour-flottant:hover {
+        background: #e87850;
+        color: #fff;
+    }
+}
+</style>
+</body>
+</html>
