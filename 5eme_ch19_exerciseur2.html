@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Statistiques 5e</title>
+<style>
+:root {
+  --bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;
+  --acc:#2b7be0;--acc-lt:#e7f0fd;--ok:#1d9e75;--ok-bg:#e1f5ee;--ko:#e24b4a;
+  --pxbdr:#c5c4bc;
+  /* Pinkie Pie : 0=blanc 1=rose foncé 2=rose clair 3=noir 4=cyan */
+  --c0:#ffffff;--c1:#ff007f;--c2:#ffaae8;--c3:#1a1a18;--c4:#7ee8f8;
+  --c0d:#d0d0d0;--c1d:#cc005a;--c2d:#e070c0;--c3d:#000;--c4d:#30b0d0;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;
+  --acc:#5a9ef0;--acc-lt:#0e2340;--ok:#5dcaa5;--ok-bg:#0a2e22;--ko:#f09595;
+  --c0:#2a2a2a;--c1:#ff007f;--c2:#cc6699;--c3:#1a1a18;--c4:#7ee8f8;
+  --c0d:#555;--c1d:#cc005a;--c2d:#994477;--c3d:#000;--c4d:#30b0d0;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);max-width:960px;margin:0 auto;padding:12px;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+h1{font-size:18px;text-align:center;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:16px;align-items:flex-start}
+@media(max-width:680px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+/* Board */
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(82vw,360px);padding:5px;background:var(--card);border:1.5px solid var(--bdr);border-radius:10px}
+.tile{position:relative;border:2px solid var(--bdr);border-radius:4px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}
+.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);pointer-events:none;z-index:2;opacity:.55;line-height:1}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr)}
+.tg .px[data-c="0"]{background:var(--c0)}
+.tg .px[data-c="1"]{background:var(--c1)}
+.tg .px[data-c="2"]{background:var(--c2)}
+.tg .px[data-c="3"]{background:var(--c3)}
+.tg .px[data-c="4"]{background:var(--c4)}
+.tile:not(.sel) .tg{pointer-events:none}
+/* Palette */
+.palette{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.pal-btn{width:28px;height:28px;border-radius:6px;border:2.5px solid transparent;cursor:pointer;transition:transform .1s,border-color .1s;flex-shrink:0}
+.pal-btn.sel-pal{border-color:var(--acc);transform:scale(1.2);box-shadow:0 0 0 2px var(--acc-lt)}
+.pal-btn[data-c="0"]{background:var(--c0);border-color:var(--c0d)}
+.pal-btn[data-c="1"]{background:var(--c1);border-color:var(--c1d)}
+.pal-btn[data-c="2"]{background:var(--c2);border-color:var(--c2d)}
+.pal-btn[data-c="3"]{background:var(--c3);border-color:var(--c3d)}
+.pal-btn[data-c="4"]{background:var(--c4);border-color:var(--c4d)}
+.pal-label{font-size:11px;color:var(--txt2);font-weight:600}
+/* Panel */
+.panel{background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;padding:14px}
+.panel-empty{display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:13px;min-height:100px;text-align:center;line-height:1.6}
+.pcontent{display:none}
+.panel-calc{margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr)}
+.badge{display:inline-block;background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;margin-bottom:8px}
+.type-badge{font-size:10px;padding:1px 7px;border-radius:6px;font-weight:600;display:inline-block;margin-bottom:8px;margin-left:6px}
+.type-voc{background:#ede7f6;color:#6a3fbf}
+.type-moy{background:#e3f2fd;color:#1565c0}
+.type-pond{background:#fff3e0;color:#e07b1a}
+.type-freq{background:#e8f5e9;color:#1d7a4a}
+.type-tab{background:#fce4ec;color:#b71c6a}
+.q-text{font-size:14px;line-height:1.6;margin-bottom:10px;color:var(--txt)}
+.q-text strong{color:var(--acc)}
+.stat-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 10px;border-radius:6px;overflow:hidden}
+.stat-table th{background:var(--acc);color:#fff;padding:5px 7px;text-align:center;font-weight:600}
+.stat-table td{border:1px solid var(--bdr);padding:5px 7px;text-align:center;background:var(--bg)}
+.stat-table tr:first-child td{background:var(--acc-lt)}
+.choices{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;-webkit-user-select:none;user-select:none}
+.choice{padding:6px 12px;font-size:13px;font-weight:600;border:1.5px solid var(--bdr);border-radius:8px;background:var(--bg);color:var(--txt);cursor:pointer;transition:border-color .12s,background .12s}
+.choice:hover{border-color:var(--acc);background:var(--acc-lt)}
+.choice.chosen{border-color:var(--acc);background:var(--acc-lt);color:var(--acc)}
+/* Mini */
+.ed-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}
+.ed-label{font-size:12px;color:var(--txt2)}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:72px;height:72px;border:2.5px solid var(--acc);border-radius:6px;overflow:hidden}
+.mini .mx{cursor:pointer;border:.5px solid var(--pxbdr);transition:background .1s}
+.mini .mx[data-c="0"]{background:var(--c0)}
+.mini .mx[data-c="1"]{background:var(--c1)}
+.mini .mx[data-c="2"]{background:var(--c2)}
+.mini .mx[data-c="3"]{background:var(--c3)}
+.mini .mx[data-c="4"]{background:var(--c4)}
+/* Legend */
+.leg-t{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--txt2)}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px}
+.li{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--bdr);border-radius:6px;background:var(--bg)}
+.lp{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:27px;height:27px;border:1px solid var(--bdr);border-radius:2px;flex-shrink:0;overflow:hidden}
+.lp div[data-c="0"]{background:var(--c0);border:.3px solid var(--c0d)}
+.lp div[data-c="1"]{background:var(--c1)}
+.lp div[data-c="2"]{background:var(--c2)}
+.lp div[data-c="3"]{background:var(--c3)}
+.lp div[data-c="4"]{background:var(--c4)}
+.lf{font-size:12px;font-weight:700;line-height:1.2}
+/* Actions */
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{padding:8px 14px;font-size:12px;font-weight:600;border:1.5px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:8px;cursor:pointer}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0}
+.score b{color:var(--acc)}
+/* Correction */
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{display:inline-grid;grid-template-columns:repeat(15,min(4.5vw,18px));grid-template-rows:repeat(15,min(4.5vw,18px));gap:0;border:2px solid var(--txt);border-radius:4px;overflow:hidden}
+.corr-g div{border:.25px solid rgba(0,0,0,.06)}
+.corr-g .cc0{background:var(--c0)}.corr-g .cc1{background:var(--c1)}
+.corr-g .cc2{background:var(--c2)}.corr-g .cc3{background:var(--c3)}
+.corr-g .cc4{background:var(--c4)}
+@media(max-width:680px){
+  .board{width:min(92vw,360px)}.panel{width:min(92vw,420px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))}
+  .corr-g{grid-template-columns:repeat(15,min(5.5vw,18px));grid-template-rows:repeat(15,min(5.5vw,18px))}
+}
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#2b7be0;text-decoration:none;font-family:sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #2b7be0;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#2b7be0;color:white}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem}}
+</style>
+</head>
+<body>
+<h1>🎨 Pixel Art — Statistiques</h1>
+<p class="sub">Clique sur une tuile · résous le problème · identifie la réponse dans le code · colorie la tuile.</p>
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:4px">Image révélée 🎀</p>
+  </div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">&#x2190; Clique sur une tuile<br>pour voir son exercice</div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc" id="panel-calc"></div>
+      <div class="palette" id="palette"></div>
+      <div class="ed-row">
+        <span class="ed-label">Colorie :</span>
+        <div class="mini" id="mini"></div>
+      </div>
+      <div class="leg-t">Code : réponse &#x2192; motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+
+<script>
+// ══ IMAGE 15×15 Pinkie Pie ══
+// 0=blanc  1=rose foncé  2=rose clair  3=noir  4=cyan
+const GRID = [
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,2,1,1,0,1,1,1,0,0,0,0,0,0],
+  [0,1,1,1,1,1,1,1,2,1,0,0,0,0,0],
+  [1,1,1,1,2,2,2,2,2,1,0,0,0,0,0],
+  [1,1,1,1,2,2,2,2,2,1,0,0,0,0,0],
+  [0,0,2,2,3,2,2,2,1,1,1,0,0,0,0],
+  [0,2,2,2,3,2,2,2,1,1,1,0,0,0,0],
+  [0,2,2,2,2,2,1,1,1,1,0,1,1,1,0],
+  [0,0,0,0,0,1,1,1,1,2,1,1,1,1,0],
+  [0,0,0,0,0,2,1,1,2,4,2,1,1,1,0],
+  [0,0,0,0,0,2,1,1,2,4,2,1,1,1,0],
+  [0,0,0,0,0,2,2,2,2,2,2,0,0,1,0],
+  [0,0,0,0,0,2,2,2,0,2,2,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+];
+
+// Motif attendu pour chaque tuile (extrait de GRID)
+const T = Array.from({length:25}, (_,t) => {
+  const r0=(t/5|0)*3, c0=(t%5)*3;
+  return Array.from({length:9}, (_,i) => GRID[r0+(i/3|0)][c0+(i%3)]);
+});
+
+// ══ LÉGENDE ══
+const L = [
+  {label:'Population', pattern:[0,0,0,0,0,2,0,1,1]},
+  {label:'Individu',   pattern:[0,0,0,1,1,0,1,1,1]},
+  {label:'Valeur',     pattern:[0,0,0,1,1,1,1,1,2]},
+  {label:'Effectif',   pattern:[0,0,0,0,0,0,1,0,0]},
+  {label:'Eff. total', pattern:[0,0,0,0,0,0,0,0,0]},
+  {label:'3',          pattern:[1,1,2,1,1,2,2,2,2]},
+  {label:'4',          pattern:[0,0,0,1,1,0,1,1,0]},
+  {label:'5',          pattern:[0,0,2,0,0,2,0,0,2]},
+  {label:'6',          pattern:[1,1,1,1,1,1,0,0,2]},
+  {label:'7',          pattern:[4,2,1,4,2,1,2,2,0]},
+  {label:'8',          pattern:[2,2,1,1,1,1,1,1,1]},
+  {label:'9',          pattern:[1,1,0,1,1,0,0,1,0]},
+  {label:'10',         pattern:[0,0,2,0,0,0,0,0,0]},
+  {label:'12',         pattern:[2,2,2,2,2,2,2,2,1]},
+  {label:'15',         pattern:[1,1,0,1,0,1,2,1,1]},
+  {label:'19',         pattern:[2,3,2,2,2,2,0,0,1]},
+  {label:'20',         pattern:[1,2,2,1,2,2,2,3,2]},
+  {label:'0,2',        pattern:[1,0,0,1,0,0,1,1,0]},
+  {label:'0,25',       pattern:[0,2,2,0,2,2,0,0,0]},
+  {label:'0,4',        pattern:[2,2,0,0,0,0,0,0,0]},
+];
+
+// ══ EXERCICES — 25 tuiles ══
+const P = [
+
+// ── VOCABULAIRE ──────────────────────────────────
+{ type:'voc', answer:'Population',
+  html:`<p class="q-text">Dans une enquête sur les couleurs préférées des élèves d'un collège, on interroge tous les élèves de 5<sup>e</sup> A.<br><br>
+  Comment appelle-t-on l'ensemble des élèves de 5<sup>e</sup> A étudiés ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['Population','Individu','Effectif','Valeur']
+},
+
+{ type:'voc', answer:'Individu',
+  html:`<p class="q-text">Dans une série statistique sur les notes de 30 élèves, Lucas est l'un des élèves observés.<br><br>
+  Quel mot désigne Lucas dans cette étude ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['Population','Individu','Fréquence','Eff. total']
+},
+
+{ type:'voc', answer:'Valeur',
+  html:`<p class="q-text">On relève les pointures des élèves d'une classe. La pointure « 38 » est observée plusieurs fois.<br><br>
+  Comment appelle-t-on « 38 » dans cette série statistique ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['Effectif','Valeur','Population','Fréquence']
+},
+
+{ type:'voc', answer:'Effectif',
+  html:`<p class="q-text">Dans la série ci-dessous, la note 12 apparaît 7 fois.<br><br>
+  Comment appelle-t-on ce nombre <strong>7</strong> associé à la note 12 ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['Valeur','Fréquence','Effectif','Eff. total']
+},
+
+{ type:'voc', answer:'Eff. total',
+  html:`<p class="q-text">Une classe comporte 28 élèves. On étudie leurs sports pratiqués.<br><br>
+  Comment appelle-t-on ce nombre <strong>28</strong> (somme de tous les effectifs) ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['Effectif','Valeur','Eff. total','Population']
+},
+
+// ── LIRE UN TABLEAU ──────────────────────────────
+{ type:'tab', answer:'6',
+  html:`<p class="q-text">Voici les sports pratiqués par les élèves d'une classe :</p>
+  <table class="stat-table">
+    <tr><th>Sport</th><th>Football</th><th>Natation</th><th>Tennis</th><th>Danse</th></tr>
+    <tr><td>Effectif</td><td>8</td><td>4</td><td>2</td><td>6</td></tr>
+  </table>
+  <p class="q-text">Combien d'élèves pratiquent la <strong>danse</strong> ?</p>`
+},
+
+{ type:'tab', answer:'20',
+  html:`<p class="q-text">Voici les résultats d'une enquête sur le sport préféré des élèves :</p>
+  <table class="stat-table">
+    <tr><th>Sport</th><th>Football</th><th>Natation</th><th>Tennis</th><th>Autre</th></tr>
+    <tr><td>Effectif</td><td>8</td><td>5</td><td>4</td><td>3</td></tr>
+  </table>
+  <p class="q-text">Quel est l'<strong>effectif total</strong> de cette série ?</p>`
+},
+
+{ type:'tab', answer:'12',
+  html:`<p class="q-text">Voici les résultats d'un sondage sur les activités après l'école :</p>
+  <table class="stat-table">
+    <tr><th>Activité</th><th>Sport</th><th>Lecture</th><th>Jeux vidéo</th><th>Musique</th></tr>
+    <tr><td>Effectif</td><td>3</td><td>2</td><td>4</td><td>3</td></tr>
+  </table>
+  <p class="q-text">Quel est l'<strong>effectif total</strong> de cette série ?</p>`
+},
+
+{ type:'tab', answer:'0,2',
+  html:`<p class="q-text">Dans une classe de 25 élèves, 5 ont une note de 15 à un contrôle.</p>
+  <table class="stat-table">
+    <tr><th>Note</th><th>8</th><th>10</th><th>12</th><th>15</th></tr>
+    <tr><td>Effectif</td><td>6</td><td>9</td><td>5</td><td>5</td></tr>
+  </table>
+  <p class="q-text">Quelle est la <strong>fréquence</strong> de la note 15 ?</p>`
+},
+
+{ type:'voc', answer:'Eff. total',
+  html:`<p class="q-text">On interroge des élèves sur leur émission préférée. On obtient 35 réponses au total.<br><br>
+  Comment appelle-t-on ce nombre <strong>35</strong> dans cette étude statistique ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['Effectif','Fréquence','Eff. total','Valeur']
+},
+
+// ── MOYENNE SIMPLE ───────────────────────────────
+{ type:'tab', answer:'0,25',
+  html:`<p class="q-text">Dans un groupe de 20 élèves, 5 ont le trajet domicile-collège le plus long (> 5 km).</p>
+  <table class="stat-table">
+    <tr><th>Distance</th><th>< 1 km</th><th>1–3 km</th><th>3–5 km</th><th>> 5 km</th></tr>
+    <tr><td>Effectif</td><td>6</td><td>7</td><td>2</td><td>5</td></tr>
+  </table>
+  <p class="q-text">Quelle est la <strong>fréquence</strong> des élèves avec un trajet > 5 km ?</p>`
+},
+
+{ type:'moy', answer:'19',
+  html:`<p class="q-text">Un athlète a couru 4 courses avec les temps suivants (en secondes) : <strong>17 · 19 · 21 · 19</strong><br><br>
+  Calcule la <strong>moyenne</strong> de ses temps.</p>`
+},
+
+{ type:'moy', answer:'8',
+  html:`<p class="q-text">La température (en °C) relevée sur 5 jours est : <strong>6 · 9 · 7 · 10 · 8</strong><br><br>
+  Calcule la <strong>moyenne</strong> de ces températures.</p>`
+},
+
+{ type:'moy', answer:'15',
+  html:`<p class="q-text">Un élève a marqué les points suivants en basket sur 4 matchs : <strong>12 · 18 · 16 · 14</strong><br><br>
+  Calcule la <strong>moyenne</strong> de points par match.</p>`
+},
+
+{ type:'moy', answer:'4',
+  html:`<p class="q-text">Une élève a relevé le nombre de pages lues par jour pendant 5 jours : <strong>2 · 4 · 6 · 4 · 4</strong><br><br>
+  Calcule la <strong>moyenne</strong> de pages lues par jour.</p>`
+},
+
+// ── MOYENNE PONDÉRÉE ─────────────────────────────
+{ type:'voc', answer:'Eff. total',
+  html:`<p class="q-text">Un sondage porte sur les animaux de compagnie de 40 élèves. On a relevé : chien (15), chat (12), lapin (8), autre (5).<br><br>
+  Que vaut l'<strong>effectif total</strong> de cette série ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['15','40','12','Eff. total']
+},
+
+{ type:'pond', answer:'5',
+  html:`<p class="q-text">Notes de Clara avec leurs coefficients :</p>
+  <table class="stat-table">
+    <tr><th>Note</th><th>3</th><th>7</th><th>5</th></tr>
+    <tr><td>Coefficient</td><td>1</td><td>1</td><td>2</td></tr>
+  </table>
+  <p class="q-text">Calcule la <strong>moyenne pondérée</strong>.</p>`
+},
+
+{ type:'pond', answer:'3',
+  html:`<p class="q-text">Notes d'un élève avec leurs coefficients :</p>
+  <table class="stat-table">
+    <tr><th>Note</th><th>1</th><th>3</th><th>5</th></tr>
+    <tr><td>Coefficient</td><td>1</td><td>2</td><td>1</td></tr>
+  </table>
+  <p class="q-text">Calcule la <strong>moyenne pondérée</strong>.</p>`
+},
+
+{ type:'pond', answer:'7',
+  html:`<p class="q-text">Notes de Théo avec leurs coefficients :</p>
+  <table class="stat-table">
+    <tr><th>Note</th><th>7</th><th>6</th><th>8</th></tr>
+    <tr><td>Coefficient</td><td>2</td><td>1</td><td>1</td></tr>
+  </table>
+  <p class="q-text">Calcule la <strong>moyenne pondérée</strong>.</p>`
+},
+
+{ type:'pond', answer:'9',
+  html:`<p class="q-text">Résultats de Sarah :</p>
+  <table class="stat-table">
+    <tr><th>Note</th><th>9</th><th>8</th><th>10</th></tr>
+    <tr><td>Coefficient</td><td>2</td><td>1</td><td>1</td></tr>
+  </table>
+  <p class="q-text">Calcule la <strong>moyenne pondérée</strong>.</p>`
+},
+
+// ── FRÉQUENCE ────────────────────────────────────
+{ type:'voc', answer:'Eff. total',
+  html:`<p class="q-text">Dans un sondage sur les langues étrangères étudiées par 45 élèves, on recense : anglais (22), espagnol (15), allemand (8).<br><br>
+  Quelle est la valeur de l'<strong>effectif total</strong> ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['22','45','8','15']
+},
+
+{ type:'moy', answer:'10',
+  html:`<p class="q-text">Bilan de fin de trimestre :</p>
+  <table class="stat-table">
+    <tr><th>Matière</th><th>Maths</th><th>Français</th><th>Histoire</th></tr>
+    <tr><td>Note</td><td>9</td><td>10</td><td>13</td></tr>
+    <tr><td>Coeff.</td><td>3</td><td>2</td><td>1</td></tr>
+  </table>
+  <p class="q-text">Calcule la <strong>moyenne pondérée</strong>.</p>`
+},
+
+{ type:'freq', answer:'0,4',
+  html:`<p class="q-text">Dans une classe de <strong>20 élèves</strong>, <strong>8 élèves</strong> ont les yeux bleus.<br><br>
+  Quelle est la <strong>fréquence</strong> des élèves ayant les yeux bleus ?</p>`
+},
+
+{ type:'freq', answer:'0,4',
+  html:`<p class="q-text">Sur <strong>25 lancers</strong> d'un dé, le dé tombe sur un nombre pair <strong>10 fois</strong>.<br><br>
+  Quelle est la <strong>fréquence</strong> d'apparition d'un nombre pair ?</p>`
+},
+
+{ type:'voc', answer:'Eff. total',
+  html:`<p class="q-text">Une enquête recense les transports utilisés par 48 élèves pour aller au collège : à pied (18), vélo (12), bus (11), voiture (7).<br><br>
+  Quelle est la valeur de l'<strong>effectif total</strong> ?</p>
+  <div class="choices" id="ch"></div>`,
+  choices:['18','48','12','7']
+},
+
+];
+
+// ══ Vérification calculs ══
+// T17 (idx16): (3×1+7×1+5×2)/4 = (3+7+10)/4 = 20/4 = 5 ✓
+// T18 (idx17): (1×1+3×2+5×1)/4 = (1+6+5)/4 = 12/4 = 3 ✓
+// T21 (idx20): Eff.total = 22+15+8 = 45 ✓
+// T22 (idx21): (9×3+10×2+13×1)/(3+2+1) = (27+20+13)/6 = 60/6 = 10 ✓
+// T23 (idx22): 8/20 = 0,4 ✓
+// T24 (idx23): 10/25 = 0,4 ✓
+
+function labelToPattern(lbl){
+  const e = L.find(x => x.label === lbl);
+  return e ? e.pattern.slice() : Array(9).fill(0);
+}
+
+const NP = 9;
+let G = Array.from({length:25}, () => Array(NP).fill(0));
+let sel = -1;
+let selColor = 1;
+
+const TYPE_LABELS = {
+  voc:  {text:'Vocabulaire',    cls:'type-voc'},
+  tab:  {text:'Lire un tableau',cls:'type-tab'},
+  moy:  {text:'Moyenne',        cls:'type-moy'},
+  pond: {text:'Moy. pondérée',  cls:'type-pond'},
+  freq: {text:'Fréquence',      cls:'type-freq'},
+};
+
+const PALETTE_NAMES = ['Blanc','Rose foncé','Rose clair','Noir','Cyan'];
+
+function buildPalette() {
+  const pal = document.getElementById('palette');
+  pal.innerHTML = '<span class="pal-label">Couleur :</span>';
+  [0,1,2,3,4].forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'pal-btn' + (c===selColor?' sel-pal':'');
+    btn.dataset.c = c;
+    btn.title = PALETTE_NAMES[c];
+    btn.addEventListener('click', () => {
+      selColor = c;
+      document.querySelectorAll('.pal-btn').forEach(b => b.classList.toggle('sel-pal', +b.dataset.c===c));
+    });
+    pal.appendChild(btn);
+  });
+}
+
+function buildBoard() {
+  const b = document.getElementById('board');
+  for (let t = 0; t < 25; t++) {
+    const d = document.createElement('div');
+    d.className = 'tile'; d.id = 't' + t;
+    d.innerHTML = '<span class="tnum">' + (t+1) + '</span>';
+    const g = document.createElement('div'); g.className = 'tg';
+    for (let p = 0; p < NP; p++) {
+      const c = document.createElement('div');
+      c.className = 'px'; c.dataset.c = '0'; c.dataset.t = t; c.dataset.p = p;
+      c.addEventListener('click', onPxClick);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    d.addEventListener('click', function(e) {
+      if (e.target.classList.contains('px')) return;
+      selectTile(t);
+    });
+    b.appendChild(d);
+  }
+}
+
+function onPxClick(e) {
+  const el = e.target, t = +el.dataset.t, p = +el.dataset.p;
+  G[t][p] = selColor;
+  el.dataset.c = selColor;
+  syncMini(t);
+}
+
+function selectTile(t) {
+  sel = t;
+  document.querySelectorAll('.tile').forEach(el => el.classList.remove('sel'));
+  document.getElementById('t' + t).classList.add('sel');
+  document.getElementById('pempty').style.display = 'none';
+  document.getElementById('pcontent').style.display = 'block';
+  const pr = P[t];
+  const tl = TYPE_LABELS[pr.type];
+  const pc = document.getElementById('panel-calc');
+  let inner = '<span class="badge">Tuile ' + (t+1) + '</span>';
+  inner += '<span class="type-badge ' + tl.cls + '">' + tl.text + '</span><br>';
+  inner += pr.html;
+  pc.innerHTML = inner;
+  if (pr.choices) {
+    const chDiv = pc.querySelector('#ch');
+    if (chDiv) {
+      pr.choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice'; btn.textContent = c;
+        btn.addEventListener('click', function() {
+          chDiv.querySelectorAll('.choice').forEach(b => b.classList.remove('chosen'));
+          this.classList.add('chosen');
+        });
+        chDiv.appendChild(btn);
+      });
+    }
+  }
+  buildPalette();
+  buildMini(t);
+  buildLeg();
+  if (window.innerWidth <= 680)
+    document.getElementById('panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function buildMini(t) {
+  const mg = document.getElementById('mini'); mg.innerHTML = '';
+  for (let p = 0; p < NP; p++) {
+    const c = document.createElement('div');
+    c.className = 'mx'; c.dataset.c = G[t][p];
+    c.addEventListener('click', function() {
+      G[t][p] = selColor;
+      this.dataset.c = selColor;
+      syncBoard(t);
+    });
+    mg.appendChild(c);
+  }
+}
+
+function syncBoard(t) {
+  document.querySelectorAll('#t' + t + ' .tg .px').forEach((el, p) => { el.dataset.c = G[t][p]; });
+}
+
+function syncMini(t) {
+  if (sel !== t) return;
+  document.querySelectorAll('#mini .mx').forEach((el, p) => { el.dataset.c = G[t][p]; });
+}
+
+function buildLeg() {
+  const lg = document.getElementById('leg'); lg.innerHTML = '';
+  L.forEach(l => {
+    const d = document.createElement('div'); d.className = 'li';
+    let ph = '<div class="lp">';
+    l.pattern.forEach(v => { ph += '<div data-c="' + v + '"></div>'; });
+    ph += '</div>';
+    d.innerHTML = ph + '<span class="lf">' + l.label + '</span>';
+    lg.appendChild(d);
+  });
+}
+
+function buildCorr() {
+  const cg = document.getElementById('corrG');
+  for (let r = 0; r < 15; r++)
+    for (let c = 0; c < 15; c++) {
+      const d = document.createElement('div');
+      d.className = 'cc' + GRID[r][c];
+      cg.appendChild(d);
+    }
+}
+
+function check() {
+  let ok = 0;
+  for (let t = 0; t < 25; t++) {
+    const el = document.getElementById('t' + t);
+    el.classList.remove('ok', 'ko');
+    const match = T[t].every((v, i) => v === G[t][i]);
+    if (match) { el.classList.add('ok'); ok++; }
+    else if (G[t].some(v => v !== 0)) { el.classList.add('ko'); }
+  }
+  const s = document.getElementById('score');
+  if (ok === 25) s.innerHTML = '&#127881; <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML = '<b>' + ok + '/25</b> tuiles correctes';
+}
+
+function raz() {
+  G = Array.from({length:25}, () => Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el => { el.dataset.c = '0'; });
+  document.querySelectorAll('.tile').forEach(el => el.classList.remove('ok','ko','sel'));
+  document.getElementById('score').innerHTML = '';
+  document.getElementById('pempty').style.display = 'flex';
+  document.getElementById('pcontent').style.display = 'none';
+  sel = -1;
+}
+
+function corrTog() {
+  const b = document.getElementById('corrBox'), n = document.getElementById('bcorr');
+  if (b.classList.contains('show')) { b.classList.remove('show'); n.textContent = 'Correction'; }
+  else { b.classList.add('show'); n.textContent = 'Masquer'; }
+}
+
+buildBoard(); buildCorr();
+</script>
+</body>
+</html>

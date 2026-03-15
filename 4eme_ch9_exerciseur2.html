@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — La Médiane</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;
+  --acc:#c0392b;--acc-lt:#fdecea;--ok:#1d9e75;--ko:#e24b4a;--pxbdr:#ccc9c2;
+  --c0:#1e3a6e;--c1:#1a1a1a;--c2:#909090;--c3:#f5f5f5;--c4:#e5c89a;--c5:#ffe020;
+  --c0d:#0e2040;--c1d:#333;--c2d:#606060;--c3d:#ccc;--c4d:#c0a060;--c5d:#c0a000;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;
+  --acc:#e57373;--acc-lt:#3b1010;--ok:#5dcaa5;--ko:#f09595;--pxbdr:#4a4840;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);max-width:960px;margin:0 auto;padding:14px;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+h1{font-size:20px;font-weight:900;text-align:center;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:18px;align-items:flex-start}
+@media(max-width:680px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(82vw,380px);padding:6px;background:var(--card);border:2px solid var(--bdr);border-radius:12px}
+.tile{position:relative;border:2px solid var(--bdr);border-radius:5px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;background:var(--bg)}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);pointer-events:none;z-index:2;opacity:.5;line-height:1}
+.tg{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr);cursor:pointer;transition:background .08s}
+.tg .px[data-c="0"]{background:var(--c0)}.tg .px[data-c="1"]{background:var(--c1)}
+.tg .px[data-c="2"]{background:var(--c2)}.tg .px[data-c="3"]{background:var(--c3)}
+.tg .px[data-c="4"]{background:var(--c4)}.tg .px[data-c="5"]{background:var(--c5)}
+.tile:not(.sel) .tg .px{cursor:default;pointer-events:none}
+.palette{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.pal-btn{width:28px;height:28px;border-radius:6px;border:2.5px solid var(--bdr);cursor:pointer;transition:transform .1s,border-color .1s;flex-shrink:0}
+.pal-btn.sel-pal{border-color:var(--acc);transform:scale(1.15);box-shadow:0 0 0 2px var(--acc-lt)}
+.pal-btn[data-c="0"]{background:var(--c0);border-color:var(--c0d)}.pal-btn[data-c="1"]{background:var(--c1);border-color:var(--c1d)}
+.pal-btn[data-c="2"]{background:var(--c2);border-color:var(--c2d)}.pal-btn[data-c="3"]{background:var(--c3);border-color:var(--c3d)}
+.pal-btn[data-c="4"]{background:var(--c4);border-color:var(--c4d)}.pal-btn[data-c="5"]{background:var(--c5);border-color:var(--c5d)}
+.pal-label{font-size:11px;color:var(--txt2);font-weight:600}
+.panel{background:var(--card);border:2px solid var(--bdr);border-radius:12px;padding:16px}
+.panel-empty{display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:13px;min-height:100px;text-align:center;line-height:1.6}
+.pcontent{display:none}
+.panel-calc{text-align:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1.5px solid var(--bdr)}
+.badge{display:inline-block;background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:3px 11px;border-radius:12px;margin-bottom:6px}
+.enonce{font-size:13px;color:var(--txt);margin-bottom:8px;line-height:1.55;text-align:left}
+.serie{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:8px 0}
+.sval{display:inline-block;min-width:28px;padding:3px 6px;background:var(--acc-lt);border:1.5px solid var(--acc);border-radius:5px;font-size:13px;font-weight:700;text-align:center}
+.question{font-size:13px;font-weight:600;color:var(--acc);text-align:center;margin-top:6px}
+.ed-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px}
+.ed-label{font-size:12px;color:var(--txt2);font-weight:700}
+.mini{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);width:64px;height:64px;border:2.5px solid var(--acc);border-radius:7px;overflow:hidden}
+.mini .mx{border:.5px solid var(--pxbdr);cursor:pointer;transition:background .08s}
+.mini .mx[data-c="0"]{background:var(--c0)}.mini .mx[data-c="1"]{background:var(--c1)}
+.mini .mx[data-c="2"]{background:var(--c2)}.mini .mx[data-c="3"]{background:var(--c3)}
+.mini .mx[data-c="4"]{background:var(--c4)}.mini .mx[data-c="5"]{background:var(--c5)}
+.leg-t{font-size:10px;font-weight:700;margin-bottom:6px;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:4px}
+.li{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1.5px solid var(--bdr);border-radius:7px;background:var(--bg);cursor:pointer;transition:border-color .15s}
+.li:hover{border-color:var(--acc)}.li.hl-ok{border-color:var(--ok);background:#e7f5ec}.li.hl-ko{border-color:var(--ko);background:#fef2f2}
+.lp{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);width:26px;height:26px;border:1px solid var(--bdr);border-radius:3px;flex-shrink:0;overflow:hidden}
+.lp div[data-c="0"]{background:var(--c0)}.lp div[data-c="1"]{background:var(--c1)}
+.lp div[data-c="2"]{background:var(--c2)}.lp div[data-c="3"]{background:var(--c3);border:.3px solid var(--pxbdr)}
+.lp div[data-c="4"]{background:var(--c4)}.lp div[data-c="5"]{background:var(--c5)}
+.lf{font-size:14px;font-weight:700;color:var(--acc);line-height:1.4;flex:1;text-align:center}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{padding:8px 15px;font-size:12px;font-weight:700;border:2px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;transition:transform .1s}
+.btn:active{transform:scale(.97)}.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0;font-weight:600}.score b{color:var(--acc)}
+.corr{display:none;margin-top:10px;text-align:center}.corr.show{display:block}
+.corr-g{display:inline-grid;grid-template-columns:repeat(10,min(6vw,26px));grid-template-rows:repeat(10,min(6vw,26px));gap:0;border:2px solid var(--txt);border-radius:5px;overflow:hidden}
+.corr-g div{border:.2px solid rgba(0,0,0,.06)}
+.corr-g .cc0{background:var(--c0)}.corr-g .cc1{background:var(--c1)}
+.corr-g .cc2{background:var(--c2)}.corr-g .cc3{background:var(--c3)}
+.corr-g .cc4{background:var(--c4)}.corr-g .cc5{background:var(--c5)}
+.btn-retour-flottant{position:fixed;top:16px;left:16px;z-index:9999;display:flex;align-items:center;gap:7px;background:var(--card);color:var(--acc);text-decoration:none;font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;padding:8px 16px;border-radius:50px;border:2px solid var(--acc);box-shadow:0 3px 12px rgba(0,0,0,.1);transition:all .25s}
+.btn-retour-flottant:hover{transform:scale(1.05);background:var(--acc);color:#fff}
+@media(max-width:680px){
+  .board{width:min(92vw,380px)}.panel{width:min(92vw,420px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(82px,1fr))}
+  .corr-g{grid-template-columns:repeat(10,min(7.5vw,26px));grid-template-rows:repeat(10,min(7.5vw,26px))}
+  .btn-retour-flottant{top:auto;bottom:16px;left:16px;padding:10px 18px;font-size:.9rem}
+}
+</style>
+</head>
+<body>
+<h1>🦇 Pixel Art — La Médiane</h1>
+<p class="sub">Clique sur une tuile · trie la série · calcule la médiane · choisis le bon motif · révèle Batman !</p>
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:5px">✦ Image révélée</p>
+  </div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">← Clique sur une tuile<br>pour voir sa série</div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc">
+        <div class="badge" id="pbadge">Tuile 1</div>
+        <div class="enonce" id="penonce"></div>
+        <div class="serie" id="pserie"></div>
+        <div class="question" id="pquestion"></div>
+      </div>
+      <div class="palette" id="palette"></div>
+      <div class="ed-row"><span class="ed-label">Motif :</span><div class="mini" id="mini"></div></div>
+      <div class="leg-t">Médiane → motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<script>
+// BATMAN 10×10 — résolution native 7×10 (chaque pixel source = 1 cellule, dédupliqué)
+// Pillow : vote majoritaire, grille 40px, 1/2 row, 1/2 col
+// 0=bleu(fond) 1=noir 2=gris(remap) 3=blanc(yeux) 4=beige(nez) 5=jaune(badge)
+// Tuiles 2×2, board 5×5, NP=4
+const GRID = [
+  [0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,0,1,1,0,0,0],
+  [0,0,1,1,1,1,1,0,0,0],
+  [0,0,1,1,1,1,1,0,0,0],
+  [0,0,1,3,1,3,1,0,0,0],
+  [0,0,1,4,4,4,1,0,0,0],
+  [0,2,2,2,2,2,2,2,0,0],
+  [0,1,2,5,1,5,2,1,0,0],
+  [0,1,2,2,2,2,2,1,0,0],
+  [0,1,2,1,1,1,2,1,0,0],
+];
+
+const T = Array.from({length:25},(_,t)=>{
+  const r0=Math.floor(t/5)*2,c0=(t%5)*2;
+  return Array.from({length:4},(_,i)=>GRID[r0+(i>>1)][c0+(i&1)]);
+});
+
+const REMAP1=[1,2,0,2,2,2],REMAP2=[2,0,1,1,1,1],REMAPS=[null,REMAP1,REMAP2];
+function applyRemap(pat,remap){return pat.map(c=>remap[c]);}
+function getPattern(t,rm){return rm===0?[...T[t]]:applyRemap(T[t],REMAPS[rm]);}
+
+const P=[
+  {enonce:"Série de 4 valeurs (pair — médiane = moyenne des 2 valeurs centrales) :",vals:[9,2,5,4],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair — médiane = valeur centrale une fois triée) :",vals:[9,1,6,3,4],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[8,1,4,3],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[7,2,4,3],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[10,3,6,5],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[15,4,12,6,9],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[18,2,14,6,10],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[20,8,17,11,14],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[14,6,10,8],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[16,4,11,9],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[20,8,15,13],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[19,3,15,7,11],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[9,2,6,4],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[18,8,13,11],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[20,10,15,13],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[13,1,9,4,6],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[22,6,18,10,14],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[11,3,7,6],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[18,10,15,13],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[12,2,9,5,7],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 5 valeurs (impair) :",vals:[8,1,5,2,3],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[15,3,8,7],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[7,1,3,3],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 4 valeurs (pair) :",vals:[14,2,10,6],question:"Quelle est la médiane ?"},
+  {enonce:"Série de 3 valeurs (impair — médiane = valeur du milieu) :",vals:[8,1,3],question:"Quelle est la médiane ?"},
+];
+
+const ENTRIES=[
+  {ti:0,v:"4,5",ans:true,rm:0},{ti:0,v:"4",ans:false,rm:1},{ti:0,v:"5",ans:false,rm:2},
+  {ti:1,v:"4",ans:true,rm:0},{ti:1,v:"3,5",ans:false,rm:1},{ti:1,v:"4,5",ans:false,rm:2},
+  {ti:2,v:"3,5",ans:true,rm:0},{ti:2,v:"3",ans:false,rm:1},{ti:2,v:"4",ans:false,rm:2},
+  {ti:3,v:"3,5",ans:true,rm:0},{ti:3,v:"3",ans:false,rm:1},{ti:3,v:"4",ans:false,rm:2},
+  {ti:4,v:"5,5",ans:true,rm:0},{ti:4,v:"5",ans:false,rm:1},{ti:4,v:"6",ans:false,rm:2},
+  {ti:5,v:"9",ans:true,rm:0},{ti:5,v:"8",ans:false,rm:1},{ti:5,v:"10",ans:false,rm:2},
+  {ti:6,v:"10",ans:true,rm:0},{ti:6,v:"9",ans:false,rm:1},{ti:6,v:"11",ans:false,rm:2},
+  {ti:7,v:"14",ans:true,rm:0},{ti:7,v:"13",ans:false,rm:1},{ti:7,v:"15",ans:false,rm:2},
+  {ti:8,v:"9",ans:true,rm:0},{ti:8,v:"8",ans:false,rm:1},{ti:8,v:"10",ans:false,rm:2},
+  {ti:9,v:"10",ans:true,rm:0},{ti:9,v:"9",ans:false,rm:1},{ti:9,v:"11",ans:false,rm:2},
+  {ti:10,v:"14",ans:true,rm:0},{ti:10,v:"13",ans:false,rm:1},{ti:10,v:"15",ans:false,rm:2},
+  {ti:11,v:"11",ans:true,rm:0},{ti:11,v:"10",ans:false,rm:1},{ti:11,v:"12",ans:false,rm:2},
+  {ti:12,v:"5",ans:true,rm:0},{ti:12,v:"4,5",ans:false,rm:1},{ti:12,v:"5,5",ans:false,rm:2},
+  {ti:13,v:"12",ans:true,rm:0},{ti:13,v:"11",ans:false,rm:1},{ti:13,v:"13",ans:false,rm:2},
+  {ti:14,v:"14",ans:true,rm:0},{ti:14,v:"13",ans:false,rm:1},{ti:14,v:"15",ans:false,rm:2},
+  {ti:15,v:"6",ans:true,rm:0},{ti:15,v:"5",ans:false,rm:1},{ti:15,v:"7",ans:false,rm:2},
+  {ti:16,v:"14",ans:true,rm:0},{ti:16,v:"13",ans:false,rm:1},{ti:16,v:"15",ans:false,rm:2},
+  {ti:17,v:"6,5",ans:true,rm:0},{ti:17,v:"6",ans:false,rm:1},{ti:17,v:"7",ans:false,rm:2},
+  {ti:18,v:"14",ans:true,rm:0},{ti:18,v:"13",ans:false,rm:1},{ti:18,v:"15",ans:false,rm:2},
+  {ti:19,v:"7",ans:true,rm:0},{ti:19,v:"6,5",ans:false,rm:1},{ti:19,v:"7,5",ans:false,rm:2},
+  {ti:20,v:"3",ans:true,rm:0},{ti:20,v:"2",ans:false,rm:1},{ti:20,v:"4",ans:false,rm:2},
+  {ti:21,v:"7,5",ans:true,rm:0},{ti:21,v:"7",ans:false,rm:1},{ti:21,v:"8",ans:false,rm:2},
+  {ti:22,v:"3",ans:true,rm:0},{ti:22,v:"2",ans:false,rm:1},{ti:22,v:"3,5",ans:false,rm:2},
+  {ti:23,v:"8",ans:true,rm:0},{ti:23,v:"7",ans:false,rm:1},{ti:23,v:"9",ans:false,rm:2},
+  {ti:24,v:"3",ans:true,rm:0},{ti:24,v:"2,5",ans:false,rm:1},{ti:24,v:"4",ans:false,rm:2},
+];
+
+const NP=4;
+let G=Array.from({length:25},()=>Array(NP).fill(0));
+let sel=-1,selColor=1;
+
+function buildPalette(){
+  const pal=document.getElementById('palette');
+  pal.innerHTML='<span class="pal-label">Couleur :</span>';
+  ['Bleu','Noir','Gris','Blanc','Beige','Jaune'].forEach((lbl,c)=>{
+    const btn=document.createElement('button');
+    btn.className='pal-btn'+(c===selColor?' sel-pal':'');
+    btn.dataset.c=c; btn.title=lbl;
+    btn.addEventListener('click',()=>{selColor=c;document.querySelectorAll('.pal-btn').forEach(b=>b.classList.toggle('sel-pal',+b.dataset.c===c));});
+    pal.appendChild(btn);
+  });
+}
+
+function buildBoard(){
+  const b=document.getElementById('board');
+  for(let t=0;t<25;t++){
+    const d=document.createElement('div');
+    d.className='tile'; d.id='t'+t;
+    d.innerHTML='<span class="tnum">'+(t+1)+'</span>';
+    const g=document.createElement('div'); g.className='tg';
+    for(let p=0;p<NP;p++){
+      const c=document.createElement('div');
+      c.className='px'; c.dataset.c='0'; c.dataset.t=t; c.dataset.p=p;
+      c.addEventListener('click',onPxClick);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    d.addEventListener('click',e=>{if(e.target.classList.contains('px'))return;selectTile(t);});
+    b.appendChild(d);
+  }
+}
+
+function onPxClick(e){const el=e.target,t=+el.dataset.t,p=+el.dataset.p;G[t][p]=selColor;el.dataset.c=selColor;syncMini(t);}
+
+function selectTile(t){
+  sel=t;
+  document.querySelectorAll('.tile').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('t'+t).classList.add('sel');
+  document.getElementById('pempty').style.display='none';
+  document.getElementById('pcontent').style.display='block';
+  document.getElementById('pbadge').textContent='Tuile '+(t+1);
+  const pr=P[t];
+  document.getElementById('penonce').textContent=pr.enonce;
+  const sd=document.getElementById('pserie'); sd.innerHTML='';
+  pr.vals.forEach(v=>{const sp=document.createElement('span');sp.className='sval';sp.textContent=v;sd.appendChild(sp);});
+  document.getElementById('pquestion').textContent=pr.question;
+  buildMini(t); updateLeg(t);
+  if(window.innerWidth<=680)document.getElementById('panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildMini(t){
+  const mg=document.getElementById('mini'); mg.innerHTML='';
+  for(let p=0;p<NP;p++){
+    const c=document.createElement('div'); c.className='mx'; c.dataset.c=G[t][p];
+    c.addEventListener('click',()=>{G[t][p]=selColor;c.dataset.c=selColor;syncBoard(t);});
+    mg.appendChild(c);
+  }
+}
+function syncBoard(t){document.querySelectorAll('#t'+t+' .tg .px').forEach((el,p)=>{el.dataset.c=G[t][p];});}
+function syncMini(t){if(sel!==t)return;document.querySelectorAll('#mini .mx').forEach((el,p)=>{el.dataset.c=G[t][p];});}
+
+function updateLeg(t){
+  const lg=document.getElementById('leg'); lg.innerHTML='';
+  const entries=ENTRIES.filter(e=>e.ti===t);
+  [...entries].sort(()=>Math.random()-.5).forEach(e=>{
+    const pat=getPattern(t,e.rm);
+    const d=document.createElement('div'); d.className='li';
+    let ph='<div class="lp">';
+    pat.forEach(v=>{ph+='<div data-c="'+v+'"></div>';});
+    ph+='</div>';
+    const span=document.createElement('span'); span.className='lf'; span.textContent=e.v;
+    d.innerHTML=ph; d.appendChild(span);
+    d.addEventListener('click',()=>{
+      G[t]=[...pat];syncBoard(t);buildMini(t);
+      document.querySelectorAll('.li').forEach(el=>el.classList.remove('hl-ok','hl-ko'));
+      d.classList.add(e.ans?'hl-ok':'hl-ko');
+    });
+    lg.appendChild(d);
+  });
+}
+
+function buildCorr(){
+  const cg=document.getElementById('corrG');
+  for(let r=0;r<10;r++)for(let c=0;c<10;c++){
+    const d=document.createElement('div'); d.className='cc'+GRID[r][c]; cg.appendChild(d);
+  }
+}
+
+function check(){
+  let ok=0;
+  for(let t=0;t<25;t++){
+    const el=document.getElementById('t'+t); el.classList.remove('ok','ko');
+    if(T[t].every((v,i)=>v===G[t][i])){el.classList.add('ok');ok++;}
+    else if(G[t].some(v=>v>0)){el.classList.add('ko');}
+  }
+  const s=document.getElementById('score');
+  if(ok===25)s.innerHTML='🎉 <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML='<b>'+ok+'/25</b> tuiles correctes';
+}
+
+function raz(){
+  G=Array.from({length:25},()=>Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el=>{el.dataset.c='0';});
+  document.querySelectorAll('.tile').forEach(el=>el.classList.remove('ok','ko','sel'));
+  document.getElementById('score').innerHTML='';
+  document.getElementById('pempty').style.display='flex';
+  document.getElementById('pcontent').style.display='none';
+  sel=-1;
+}
+function corrTog(){
+  const b=document.getElementById('corrBox'),n=document.getElementById('bcorr');
+  if(b.classList.contains('show')){b.classList.remove('show');n.textContent='Correction';}
+  else{b.classList.add('show');n.textContent='Masquer';}
+}
+
+buildBoard(); buildPalette(); buildCorr();
+</script>
+</body>
+</html>

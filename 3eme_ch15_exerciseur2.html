@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parcours fléché — Probabilités</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#2d5016;--forest-dark:#1a3409;--forest-light:#e8f5e0;
+  --leaf:#4a9e2f;--leaf-light:#d4edcc;
+  --sky:#4a90c4;--sky-light:#dceefb;
+  --sun:#e8a820;--sun-light:#fef3d0;
+  --earth:#8b6914;
+  --berry:#c0392b;--berry-light:#fde8e5;
+  --purple:#6c3fa0;--purple-light:#ede5f7;
+  --cream:#fefdf8;--card:#fff;
+  --text:#2c3e1a;--text-soft:#6b7c5a;
+  --shadow:rgba(45,80,22,.12);--radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Nunito',sans-serif;background:#e8f0dc;
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(74,158,47,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(74,144,196,.07) 0%,transparent 50%);
+  background-attachment:fixed;color:var(--text);line-height:1.6;padding:1.5rem 1rem;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-3 8-12 15-20 18 8 3 17 10 20 18 3-8 12-15 20-18-8-3-17-10-20-18z' fill='%234a9e2f' fill-opacity='.02'/%3E%3C/svg%3E");opacity:.7}
+.container{max-width:860px;margin:0 auto;position:relative;z-index:1}
+
+header{background:linear-gradient(135deg,var(--forest),var(--forest-dark));padding:1.75rem 2rem;border-radius:var(--radius);box-shadow:0 8px 32px var(--shadow);margin-bottom:1.25rem;color:#fff;position:relative;overflow:hidden}
+header::after{content:'🎲';position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);font-size:2.5rem;opacity:.25}
+h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;letter-spacing:-.3px}
+.subtitle{font-size:.92rem;opacity:.8;margin-top:.2rem}
+.hmeta{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.chip{font-size:.72rem;font-weight:700;padding:.15rem .6rem;border-radius:99px;background:rgba(255,255,255,.18);color:#fff}
+
+/* GENERIC CARDS */
+.card{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:1.75rem;box-shadow:0 6px 24px var(--shadow);margin-bottom:1.25rem;position:relative;overflow:hidden;transition:border-color .4s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--leaf),var(--sky));transition:background .4s}
+.card.st-ok{border-color:var(--leaf)}.card.st-ok::before{background:var(--leaf)}
+.card.st-ko{border-color:var(--berry)}.card.st-ko::before{background:var(--berry)}
+.card.st-rem{border-color:var(--sun)}.card.st-rem::before{background:var(--sun)}
+
+/* SETUP */
+.setup{text-align:center}
+.setup-t{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;color:var(--forest);margin-bottom:.8rem}
+.setup-d{font-size:.92rem;color:var(--text-soft);margin-bottom:1.25rem;max-width:500px;margin-inline:auto}
+.opts{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem}
+.opt{padding:.7rem 1.4rem;border-radius:12px;border:2px solid var(--leaf-light);background:var(--cream);cursor:pointer;transition:all .3s;font-weight:700;font-size:.95rem;color:var(--forest)}
+.opt:hover{border-color:var(--leaf);transform:translateY(-2px)}
+.opt.active{border-color:var(--leaf);background:var(--leaf-light);color:var(--forest-dark)}
+.go-btn{background:var(--forest);color:#fff;border:none;padding:.7rem 2.2rem;border-radius:50px;font-weight:800;font-size:1rem;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(45,80,22,.3)}
+.go-btn:hover{transform:scale(1.04)}
+
+/* MAP */
+.map-w{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;box-shadow:0 4px 16px var(--shadow);overflow-x:auto}
+.map-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:.4rem}
+.map-l{font-size:.85rem;font-weight:700;color:var(--text-soft)}
+.map-st{display:flex;gap:.5rem;flex-wrap:wrap}
+.pill{font-size:.75rem;font-weight:700;padding:.15rem .55rem;border-radius:99px}
+.pill-g{background:var(--leaf-light);color:var(--forest)}
+.pill-r{background:var(--berry-light);color:var(--berry)}
+.pill-o{background:var(--sun-light);color:var(--earth)}
+.map-svg{width:100%;overflow-x:auto;padding:.4rem 0;-webkit-overflow-scrolling:touch}
+.map-svg svg{display:block;margin:0 auto}
+.nlbl{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+
+/* QUESTION ZONE */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.3rem}
+.ex-num{font-family:'Fraunces',serif;font-size:.88rem;font-weight:600;color:var(--text-soft)}
+.badge{font-size:.72rem;font-weight:700;padding:.12rem .5rem;border-radius:99px}
+.b-main{background:var(--leaf-light);color:var(--forest)}
+.b-rem{background:var(--sun-light);color:var(--earth)}
+
+.q-text{font-size:1rem;line-height:1.7;margin-bottom:1rem;color:var(--text)}
+.q-text strong{color:var(--forest)}
+.q-text em{color:var(--berry);font-style:normal;font-weight:700}
+.q-context{background:var(--cream);border:2px solid var(--leaf-light);border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem;font-size:.95rem;line-height:1.7}
+
+/* ANSWER INPUT */
+.ans-row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.3rem}
+.ans-lbl{font-weight:700;color:var(--forest);font-size:.9rem;white-space:nowrap}
+.ans-input{font-family:'Times New Roman',serif;font-style:italic;font-size:1.15rem;font-weight:600;padding:.5rem .8rem;border:2px dashed var(--purple);border-radius:10px;background:#fff;text-align:center;outline:none;transition:all .2s;color:var(--text);width:120px}
+.ans-input:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(45,80,22,.12)}
+.ans-input.ok{border-color:var(--leaf);border-style:solid;background:rgba(74,158,47,.06);color:var(--forest)}
+.ans-input.err{border-color:var(--berry);border-style:solid;background:rgba(192,57,43,.06);animation:shake .3s}
+.ans-input:disabled{opacity:.55}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* MCQ */
+.mcq{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.5rem}
+.mcq-opt{padding:.6rem 1rem;border:2px solid var(--leaf-light);border-radius:10px;cursor:pointer;transition:all .25s;font-size:.95rem;background:var(--cream)}
+.mcq-opt:hover{border-color:var(--leaf);transform:translateX(4px)}
+.mcq-opt.selected{border-color:var(--forest);background:var(--forest-light);font-weight:700}
+.mcq-opt.ok{border-color:var(--leaf);background:rgba(74,158,47,.1);color:var(--forest)}
+.mcq-opt.err{border-color:var(--berry);background:rgba(192,57,43,.06);color:var(--berry)}
+.mcq-opt.disabled{pointer-events:none;opacity:.7}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;margin-bottom:1rem}
+.prob-tbl{border-collapse:collapse;margin:0 auto;font-size:.92rem}
+.prob-tbl th,.prob-tbl td{border:2px solid var(--leaf-light);padding:.4rem .6rem;text-align:center;min-width:48px;min-height:40px}
+.prob-tbl th{background:var(--forest);color:#fff;font-weight:700;font-size:.85rem}
+.prob-tbl .rh{background:var(--berry-light);color:var(--berry);font-weight:700}
+.prob-tbl .ch{background:var(--sky-light);color:var(--sky);font-weight:700}
+.prob-tbl td input{width:55px;text-align:center;border:2px dashed var(--purple);border-radius:6px;padding:.25rem;font-family:'Times New Roman',serif;font-size:1rem;font-weight:600;outline:none;background:var(--cream);color:var(--text)}
+.prob-tbl td input:focus{border-color:var(--forest);box-shadow:inset 0 0 0 1px rgba(45,80,22,.15)}
+.prob-tbl td input.ok{border-color:var(--leaf);border-style:solid;background:rgba(74,158,47,.06);color:var(--forest)}
+.prob-tbl td input.err{border-color:var(--berry);border-style:solid;background:rgba(192,57,43,.06)}
+.prob-tbl td input:disabled{opacity:.55}
+
+/* BUTTONS */
+.val-row{text-align:center;margin-top:1rem}
+.val-btn{background:var(--forest);color:#fff;border:none;padding:.6rem 1.4rem;border-radius:12px;font-weight:800;font-size:.92rem;cursor:pointer;transition:all .25s;box-shadow:0 3px 12px rgba(45,80,22,.25)}
+.val-btn:hover{transform:scale(1.04)}.val-btn:disabled{opacity:.35;cursor:default;transform:none}
+.enter-hint{font-size:.7rem;color:var(--text-soft);margin-top:.3rem;text-align:center}
+.enter-hint kbd{background:#ebedef;border:1px solid #ccc;border-radius:3px;padding:.05rem .25rem;font-size:.68rem}
+
+/* FEEDBACK */
+.fb{margin-top:.8rem;padding:.9rem 1.1rem;border-radius:12px;font-size:.92rem;display:none;animation:fbIn .4s cubic-bezier(.34,1.56,.64,1)}
+.fb.vis{display:block}
+@keyframes fbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.fb-ok{background:var(--leaf-light);border:2px solid rgba(74,158,47,.4);color:var(--forest-dark)}
+.fb-ko{background:var(--berry-light);border:2px solid rgba(192,57,43,.3);color:#922b21}
+.fb-t{font-weight:700;margin-bottom:.25rem}
+.fb-d{font-size:.88rem;line-height:1.7}
+.fb-corr{margin-top:.6rem;background:linear-gradient(135deg,#edf7e8,#e4f2dc);border:2px solid rgba(74,158,47,.3);border-radius:12px;padding:.9rem;display:none;font-family:'Times New Roman',serif;font-style:italic;font-size:1rem;line-height:2}
+.fb-corr.vis{display:block;animation:fbIn .4s ease}
+.nxt{margin-top:.65rem;background:var(--leaf);color:#fff;border:none;padding:.5rem 1.1rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .25s}
+.nxt:hover{transform:scale(1.04);background:var(--forest)}
+.nxt.orange{background:var(--sun)}.nxt.orange:hover{background:var(--earth)}
+
+/* SCORE */
+.score{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:2rem;margin-top:1.25rem;box-shadow:0 8px 32px var(--shadow);text-align:center;display:none;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden}
+.score::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--leaf),var(--sky),var(--sun))}
+@keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.score.vis{display:block}
+.sc-e{font-size:2.8rem;display:block;margin-bottom:.4rem}
+.sc-t{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--forest)}
+.sc-s{font-size:1.6rem;letter-spacing:.15rem;margin:.3rem 0 .6rem}
+.sc-m{font-size:.95rem;color:var(--text-soft);max-width:460px;margin:0 auto}
+.sc-bs{display:flex;justify-content:center;gap:.6rem;margin-top:.8rem;flex-wrap:wrap}
+.sc-b{padding:.3rem .75rem;border-radius:99px;font-size:.78rem;font-weight:700}
+.sc-b.g{background:var(--leaf-light);color:var(--forest)}.sc-b.p{background:var(--sun-light);color:var(--earth)}.sc-b.b{background:var(--sky-light);color:var(--sky)}
+.restart{margin-top:1rem;background:var(--forest);color:#fff;border:none;padding:.65rem 1.8rem;border-radius:50px;font-weight:800;font-size:.95rem;cursor:pointer;transition:all .3s}
+.restart:hover{transform:scale(1.04)}
+
+/* RAPPEL */
+.recap{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1.25rem;box-shadow:0 3px 12px var(--shadow)}
+.recap-tog{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.recap-tog-t{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--forest)}
+.recap-arr{font-size:1rem;transition:transform .3s;color:var(--forest)}.recap-arr.open{transform:rotate(180deg)}
+.recap-body{max-height:0;overflow:hidden;transition:max-height .4s ease}.recap-body.open{max-height:800px}
+.recap-inner{padding-top:.65rem;font-size:.88rem;line-height:1.8;color:var(--text-soft)}
+.recap-inner strong{color:var(--forest)}
+
+.hidden{display:none!important}
+.btn-retour-flottant{position:fixed;top:18px;left:18px;z-index:9999;display:flex;align-items:center;gap:7px;background:var(--card);color:var(--forest);text-decoration:none;font-weight:800;font-size:.85rem;padding:9px 16px;border-radius:50px;border:2px solid var(--forest);box-shadow:0 3px 12px var(--shadow);transition:all .3s}
+.btn-retour-flottant:hover{transform:scale(1.05);background:var(--forest);color:#fff}
+
+@media(max-width:600px){
+  body{padding:.8rem .5rem}header{padding:1.3rem 1.2rem}header::after{font-size:1.8rem;right:.8rem}h1{font-size:1.6rem}
+  .card{padding:1.2rem}
+  .prob-tbl{font-size:.82rem}.prob-tbl th,.prob-tbl td{padding:.3rem .4rem;min-width:40px}
+  .prob-tbl td input{width:44px;font-size:.9rem}
+  .btn-retour-flottant{top:auto;bottom:16px;left:16px;padding:10px 18px;font-size:.9rem}
+}
+@media(max-width:380px){.prob-tbl td input{width:38px;font-size:.85rem}}
+</style>
+</head>
+<body>
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<div class="container">
+  <header>
+    <h1>🌲 Parcours Fléché</h1>
+    <p class="subtitle">Probabilités — Du calcul simple au tableau à double entrée</p>
+    <div class="hmeta"><span class="chip">3ème</span><span class="chip">Probabilités</span><span class="chip">Adaptatif</span></div>
+  </header>
+
+  <div class="recap">
+    <div class="recap-tog" id="recTog"><span class="recap-tog-t">🌱 Rappel — Probabilités</span><span class="recap-arr" id="recArr">▼</span></div>
+    <div class="recap-body" id="recBody"><div class="recap-inner">
+      <strong>Probabilité</strong> = nombre de cas favorables ÷ nombre de cas possibles.<br>
+      Une probabilité est toujours comprise entre <strong>0</strong> et <strong>1</strong>.<br>
+      • <strong>Expérience aléatoire</strong> : on ne peut pas prévoir le résultat.<br>
+      • <strong>Issue</strong> : chaque résultat possible.<br>
+      • <strong>Événement certain</strong> : probabilité = 1. <strong>Impossible</strong> : probabilité = 0.<br>
+      • <strong>Événement contraire</strong> de A : P(Ā) = 1 − P(A).<br>
+      • <strong>Tableau à double entrée</strong> : pour 2 expériences, on liste toutes les combinaisons.
+    </div></div>
+  </div>
+
+  <div id="setupScr" class="card setup">
+    <div class="setup-t">🗺️ Choisis la longueur de ton parcours</div>
+    <div class="setup-d">On commence par des calculs simples, puis le vocabulaire, et enfin des tableaux à double entrée.</div>
+    <div class="opts"><div class="opt" data-n="5">5 étapes</div><div class="opt active" data-n="7">7 étapes</div><div class="opt" data-n="10">10 étapes</div></div>
+    <button class="go-btn" id="goBtn">Commencer →</button>
+  </div>
+
+  <div class="map-w hidden" id="mapW"><div class="map-h"><span class="map-l">🗺️ Ton parcours</span><div class="map-st" id="mapSt"></div></div><div class="map-svg" id="mapSvg"></div><div style="text-align:center;margin-top:.5rem"><button onclick="backToSetup()" style="background:none;border:2px solid var(--leaf-light);border-radius:8px;padding:.35rem .9rem;font-size:.78rem;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .2s;font-family:inherit">← Revenir au choix du parcours</button></div></div>
+
+  <div class="card hidden" id="exCard">
+    <div class="ex-top"><span class="ex-num" id="exNum"></span><span class="badge" id="exBadge"></span></div>
+    <div id="zone"></div>
+    <div class="fb" id="fb"><div class="fb-t" id="fbT"></div><div class="fb-d" id="fbD"></div>
+      <div class="fb-corr" id="fbC"></div>
+      <button class="nxt" id="nxtBtn">Suite →</button>
+    </div>
+  </div>
+
+  <div class="score" id="scoreCard"><span class="sc-e" id="scE"></span><div class="sc-t" id="scT"></div><div class="sc-s" id="scS"></div><div class="sc-m" id="scM"></div><div class="sc-bs" id="scB"></div><button class="restart" id="restBtn">🔄 Recommencer</button></div>
+</div>
+
+<script>
+/* ═══════ STATE ═══════ */
+let N=7, mainPath=[], remPath=[], curI=0, inRem=false, remI=0;
+let curP=null, att=0, done=false, totOk=0, totKo=0, remCt=0;
+
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[ri(0,arr.length-1)];}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+function frac(n,d){const g=gcd(n,d);return{n:n/g,d:d/g};}
+function fracStr(n,d){const f=frac(n,d);return f.d===1?''+f.n:f.n+'/'+f.d;}
+
+/* ═══════ QUESTION GENERATION ═══════ */
+/*
+  Phase 1 (t<=0.35): Simple probability calculations, no jargon
+  Phase 2 (t<=0.7):  Vocabulary — events, P(), complement
+  Phase 3 (t>0.7):   Double entry table
+*/
+
+function genQ(level, mx) {
+    const t = mx > 1 ? (level - 1) / (mx - 1) : 0;
+    if (t <= 0.35) return genPhase1();
+    if (t <= 0.7)  return genPhase2();
+    return genPhase3();
+}
+function genRem(fl, mx) { return genQ(Math.max(1, fl - 1), mx); }
+
+/* ─── PHASE 1: Probability calculations (non-trivial) ─── */
+function genPhase1() {
+    const type = ri(1, 7);
+    if (type <= 2) return genDieRich();
+    if (type === 3) return genBag();
+    if (type === 4) return genSpinnerRich();
+    if (type === 5) return genCardsRich();
+    if (type === 6) return genDieCondition();
+    return genBagMulti();
+}
+
+function genDieRich() {
+    const conditions = [
+        { text: "un nombre pair", test: x => x % 2 === 0 },
+        { text: "un nombre impair", test: x => x % 2 !== 0 },
+        { text: "un nombre supérieur ou égal à 4", test: x => x >= 4 },
+        { text: "un nombre strictement inférieur à 3", test: x => x < 3 },
+        { text: "un nombre supérieur à 4", test: x => x > 4 },
+        { text: "un multiple de 3", test: x => x % 3 === 0 },
+        { text: "un nombre inférieur ou égal à 2", test: x => x <= 2 },
+    ];
+    const cond = pick(conditions);
+    let fav = 0;
+    for (let i = 1; i <= 6; i++) if (cond.test(i)) fav++;
+    return {
+        phase: 1,
+        context: `On lance un dé à 6 faces.`,
+        question: `Quelle est la probabilité d'obtenir <em>${cond.text}</em> ?`,
+        answerN: fav, answerD: 6,
+        correction: `Sur les 6 faces, ${fav} vérifie${fav > 1 ? 'nt' : ''} la condition « ${cond.text} ». Probabilité = ${fracStr(fav, 6)}.`
+    };
+}
+
+function genDieCondition() {
+    const faces = pick([8, 10, 12]);
+    const conditions = [
+        { text: "un nombre pair", test: x => x % 2 === 0 },
+        { text: "un nombre impair", test: x => x % 2 !== 0 },
+        { text: `un nombre supérieur ou égal à ${Math.ceil(faces / 2) + 1}`, test: x => x >= Math.ceil(faces / 2) + 1 },
+        { text: "un multiple de 3", test: x => x % 3 === 0 },
+        { text: `un nombre inférieur ou égal à ${Math.floor(faces / 3)}`, test: x => x <= Math.floor(faces / 3) },
+    ];
+    const cond = pick(conditions);
+    let fav = 0;
+    for (let i = 1; i <= faces; i++) if (cond.test(i)) fav++;
+    return {
+        phase: 1,
+        context: `On lance un dé à <strong>${faces} faces</strong>, numérotées de 1 à ${faces}.`,
+        question: `Quelle est la probabilité d'obtenir <em>${cond.text}</em> ?`,
+        answerN: fav, answerD: faces,
+        correction: `Sur ${faces} faces, ${fav} vérifie${fav > 1 ? 'nt' : ''} « ${cond.text} ». Probabilité = ${fracStr(fav, faces)}.`
+    };
+}
+
+function genBag() {
+    const colors = shuffle(['rouges', 'bleues', 'vertes', 'jaunes', 'noires']).slice(0, ri(2, 4));
+    const counts = colors.map(() => ri(2, 7));
+    const total = counts.reduce((a, b) => a + b, 0);
+    // Ask for one or two colors
+    if (Math.random() < 0.5 && colors.length >= 3) {
+        const idxs = shuffle([...Array(colors.length).keys()]).slice(0, 2);
+        const favCount = counts[idxs[0]] + counts[idxs[1]];
+        const names = `${colors[idxs[0]].replace(/s$/, '')} ou ${colors[idxs[1]].replace(/s$/, '')}`;
+        const desc = colors.map((c, i) => `<strong>${counts[i]}</strong> ${c}`).join(', ');
+        return {
+            phase: 1,
+            context: `Un sac contient ${desc}.`,
+            question: `On tire une bille au hasard. Quelle est la probabilité qu'elle soit <em>${names}</em> ?`,
+            answerN: favCount, answerD: total,
+            correction: `Il y a ${counts[idxs[0]]} ${colors[idxs[0]]} + ${counts[idxs[1]]} ${colors[idxs[1]]} = ${favCount} favorables sur ${total}. P = ${fracStr(favCount, total)}.`
+        };
+    }
+    const targetIdx = ri(0, colors.length - 1);
+    const desc = colors.map((c, i) => `<strong>${counts[i]}</strong> ${c}`).join(', ');
+    return {
+        phase: 1,
+        context: `Un sac contient ${desc}.`,
+        question: `On tire une bille au hasard. Quelle est la probabilité qu'elle soit <em>${colors[targetIdx].replace(/s$/, '')}</em> ?`,
+        answerN: counts[targetIdx], answerD: total,
+        correction: `${counts[targetIdx]} billes ${colors[targetIdx]} sur ${total}. P = ${fracStr(counts[targetIdx], total)}.`
+    };
+}
+
+function genSpinnerRich() {
+    const sectors = ri(5, 10);
+    const conditions = [
+        { text: "un nombre pair", test: x => x % 2 === 0 },
+        { text: "un nombre impair", test: x => x % 2 !== 0 },
+        { text: `un nombre supérieur ou égal à ${Math.ceil(sectors / 2) + 1}`, test: x => x >= Math.ceil(sectors / 2) + 1 },
+        { text: `un nombre inférieur ou égal à ${Math.floor(sectors / 3)}`, test: x => x <= Math.floor(sectors / 3) },
+    ];
+    const cond = pick(conditions);
+    let fav = 0;
+    for (let i = 1; i <= sectors; i++) if (cond.test(i)) fav++;
+    if (fav === 0) fav = 1; // fallback
+    return {
+        phase: 1,
+        context: `Une roue est divisée en <strong>${sectors} secteurs égaux</strong>, numérotés de 1 à ${sectors}.`,
+        question: `Quelle est la probabilité d'obtenir <em>${cond.text}</em> ?`,
+        answerN: fav, answerD: sectors,
+        correction: `${fav} secteur${fav > 1 ? 's' : ''} sur ${sectors} vérifie${fav > 1 ? 'nt' : ''} « ${cond.text} ». P = ${fracStr(fav, sectors)}.`
+    };
+}
+
+function genCardsRich() {
+    const n = ri(8, 15);
+    const conditions = [
+        { text: "un nombre pair", test: x => x % 2 === 0 },
+        { text: "un multiple de 3", test: x => x % 3 === 0 },
+        { text: `un nombre supérieur à ${Math.floor(n / 2)}`, test: x => x > Math.floor(n / 2) },
+        { text: `un nombre inférieur ou égal à ${Math.floor(n / 3)}`, test: x => x <= Math.floor(n / 3) },
+    ];
+    const cond = pick(conditions);
+    let fav = 0;
+    for (let i = 1; i <= n; i++) if (cond.test(i)) fav++;
+    return {
+        phase: 1,
+        context: `On a <strong>${n} cartes</strong> numérotées de 1 à ${n}. On en tire une au hasard.`,
+        question: `Quelle est la probabilité de tirer une carte portant <em>${cond.text}</em> ?`,
+        answerN: fav, answerD: n,
+        correction: `${fav} carte${fav > 1 ? 's' : ''} sur ${n} vérifie${fav > 1 ? 'nt' : ''} « ${cond.text} ». P = ${fracStr(fav, n)}.`
+    };
+}
+
+function genBagMulti() {
+    // "NOT" question — probability of NOT getting a color
+    const colors = shuffle(['rouges', 'bleues', 'vertes', 'jaunes']).slice(0, 3);
+    const counts = colors.map(() => ri(2, 6));
+    const total = counts.reduce((a, b) => a + b, 0);
+    const excludeIdx = ri(0, colors.length - 1);
+    const favCount = total - counts[excludeIdx];
+    const desc = colors.map((c, i) => `<strong>${counts[i]}</strong> ${c}`).join(', ');
+    return {
+        phase: 1,
+        context: `Un sac contient ${desc}.`,
+        question: `On tire une bille au hasard. Quelle est la probabilité qu'elle ne soit <em>pas ${colors[excludeIdx].replace(/s$/, '')}</em> ?`,
+        answerN: favCount, answerD: total,
+        correction: `Il y a ${total} billes au total et ${counts[excludeIdx]} ${colors[excludeIdx]}. Donc ${total} − ${counts[excludeIdx]} = ${favCount} ne sont pas ${colors[excludeIdx]}. P = ${fracStr(favCount, total)}.`
+    };
+}
+
+/* ─── PHASE 2: Vocabulary — same difficulty as Phase 1, with proper terms ─── */
+function genPhase2() {
+    const type = ri(1, 9);
+    if (type === 1) return genV_PnotationDie();
+    if (type === 2) return genV_PnotationBag();
+    if (type === 3) return genV_complement();
+    if (type === 4) return genV_complementContext();
+    if (type === 5) return genV_certainImpossibleRich();
+    if (type === 6) return genV_issuesCount();
+    if (type === 7) return genV_eventDescribe();
+    if (type === 8) return genV_PnotationCards();
+    return genV_complementBag();
+}
+
+function genV_PnotationDie() {
+    // P(A) with a real condition on a die
+    const faces = pick([6, 8, 10]);
+    const conditions = shuffle([
+        { text: "obtenir un nombre pair", test: x => x % 2 === 0 },
+        { text: "obtenir un nombre impair", test: x => x % 2 !== 0 },
+        { text: "obtenir un multiple de 3", test: x => x % 3 === 0 },
+        { text: `obtenir un nombre supérieur ou égal à ${Math.ceil(faces / 2) + 1}`, test: x => x >= Math.ceil(faces / 2) + 1 },
+        { text: `obtenir un nombre strictement inférieur à ${Math.ceil(faces / 3) + 1}`, test: x => x < Math.ceil(faces / 3) + 1 },
+    ]);
+    const cond = conditions[0];
+    let fav = 0;
+    for (let i = 1; i <= faces; i++) if (cond.test(i)) fav++;
+    return {
+        phase: 2,
+        context: `On réalise l'<strong>expérience aléatoire</strong> suivante : lancer un dé à ${faces} faces. Soit A l'<strong>événement</strong> « ${cond.text} ».`,
+        question: `Calculer <strong>P(A)</strong>.`,
+        answerN: fav, answerD: faces,
+        correction: `Les issues favorables à A sont ${fav} sur ${faces} issues possibles. P(A) = ${fracStr(fav, faces)}.`
+    };
+}
+
+function genV_PnotationBag() {
+    const colors = shuffle(['rouges', 'bleues', 'vertes', 'jaunes', 'noires']).slice(0, ri(3, 4));
+    const counts = colors.map(() => ri(2, 6));
+    const total = counts.reduce((a, b) => a + b, 0);
+    const targetIdx = ri(0, colors.length - 1);
+    const desc = colors.map((c, i) => `<strong>${counts[i]}</strong> ${c}`).join(', ');
+    const evtName = pick(['A', 'B', 'E']);
+    return {
+        phase: 2,
+        context: `Un sac contient ${desc}. On réalise l'<strong>expérience aléatoire</strong> : tirer une bille au hasard. Soit ${evtName} l'<strong>événement</strong> « obtenir une bille ${colors[targetIdx].replace(/s$/, '')} ».`,
+        question: `Calculer <strong>P(${evtName})</strong>.`,
+        answerN: counts[targetIdx], answerD: total,
+        correction: `Il y a ${counts[targetIdx]} issues favorables sur ${total} issues possibles. P(${evtName}) = ${fracStr(counts[targetIdx], total)}.`
+    };
+}
+
+function genV_complement() {
+    // P(Ā) from a concrete situation
+    const faces = pick([6, 8]);
+    const conditions = shuffle([
+        { text: "obtenir un nombre pair", test: x => x % 2 === 0 },
+        { text: "obtenir un multiple de 3", test: x => x % 3 === 0 },
+        { text: `obtenir un nombre supérieur ou égal à ${Math.ceil(faces * 0.6)}`, test: x => x >= Math.ceil(faces * 0.6) },
+    ]);
+    const cond = conditions[0];
+    let fav = 0;
+    for (let i = 1; i <= faces; i++) if (cond.test(i)) fav++;
+    const comp = faces - fav;
+    return {
+        phase: 2,
+        context: `On lance un dé à ${faces} faces. A est l'événement « ${cond.text} ». On sait que P(A) = ${fracStr(fav, faces)}.`,
+        question: `Calculer <strong>P(Ā)</strong>, la probabilité de l'<strong>événement contraire</strong> de A.`,
+        answerN: comp, answerD: faces,
+        correction: `P(Ā) = 1 − P(A) = 1 − ${fracStr(fav, faces)} = ${fracStr(comp, faces)}.`
+    };
+}
+
+function genV_complementContext() {
+    // "not red" using complement vocabulary
+    const colors = shuffle(['rouges', 'bleues', 'vertes', 'jaunes']).slice(0, 3);
+    const counts = colors.map(() => ri(2, 6));
+    const total = counts.reduce((a, b) => a + b, 0);
+    const targetIdx = ri(0, colors.length - 1);
+    const favA = counts[targetIdx];
+    const favComp = total - favA;
+    const desc = colors.map((c, i) => `<strong>${counts[i]}</strong> ${c}`).join(', ');
+    return {
+        phase: 2,
+        context: `Un sac contient ${desc}. Soit A l'événement « tirer une bille ${colors[targetIdx].replace(/s$/, '')} ». L'<strong>événement contraire</strong> Ā est « ne pas tirer de bille ${colors[targetIdx].replace(/s$/, '')} ».`,
+        question: `Calculer <strong>P(Ā)</strong>.`,
+        answerN: favComp, answerD: total,
+        correction: `P(A) = ${fracStr(favA, total)}, donc P(Ā) = 1 − ${fracStr(favA, total)} = ${fracStr(favComp, total)}.`
+    };
+}
+
+function genV_certainImpossibleRich() {
+    // Rich certain/impossible with real conditions
+    const n = ri(8, 15);
+    const events = shuffle([
+        { text: `obtenir un nombre entre 1 et ${n}`, type: "certain", fav: n },
+        { text: `obtenir un nombre supérieur à ${n}`, type: "impossible", fav: 0 },
+        { text: `obtenir 0`, type: "impossible", fav: 0 },
+        { text: `obtenir un nombre pair ou impair`, type: "certain", fav: n },
+        { text: `obtenir un nombre pair`, type: "ni certain ni impossible", fav: Math.floor(n / 2) },
+        { text: `obtenir un multiple de 3`, type: "ni certain ni impossible", fav: Math.floor(n / 3) },
+        { text: `obtenir un nombre négatif`, type: "impossible", fav: 0 },
+    ]);
+    const e = events[0];
+    return {
+        phase: 2, mcq: true,
+        context: `On tire au hasard une carte parmi ${n} cartes numérotées de 1 à ${n}. On considère l'<strong>événement</strong> E : « ${e.text} ».`,
+        question: `L'événement E est :`,
+        options: [
+            `Un événement certain (P(E) = 1)`,
+            `Un événement impossible (P(E) = 0)`,
+            `Ni certain ni impossible`
+        ],
+        correctIdx: e.type === "certain" ? 0 : (e.type === "impossible" ? 1 : 2),
+        correction: `E : « ${e.text} » → événement <strong>${e.type}</strong>. ${e.fav} issues favorables sur ${n}.`
+    };
+}
+
+function genV_issuesCount() {
+    // Count issues for a more complex experiment
+    const type = ri(1, 3);
+    if (type === 1) {
+        const faces = pick([6, 8, 10, 12]);
+        const opts = shuffle([`${faces}`, `${faces - 2}`, `${faces + 2}`, `${faces * 2}`]);
+        return {
+            phase: 2, mcq: true,
+            context: `On lance un dé à ${faces} faces. C'est une <strong>expérience aléatoire</strong>.`,
+            question: `Combien cette expérience a-t-elle d'<strong>issues</strong> ?`,
+            options: opts,
+            correctIdx: opts.indexOf(`${faces}`),
+            correction: `Chaque face est une issue. Il y a ${faces} issues.`
+        };
+    } else if (type === 2) {
+        const colors = shuffle(['rouges', 'bleues', 'vertes', 'jaunes', 'noires']).slice(0, ri(3, 4));
+        const counts = colors.map(() => ri(1, 5));
+        const total = counts.reduce((a, b) => a + b, 0);
+        const desc = colors.map((c, i) => `${counts[i]} ${c}`).join(', ');
+        const opts = shuffle([`${total}`, `${colors.length}`, `${total + 2}`, `${total - 1}`]);
+        return {
+            phase: 2, mcq: true,
+            context: `Un sac contient ${desc} (${total} billes au total). On tire une bille. C'est une <strong>expérience aléatoire</strong>.`,
+            question: `Combien cette expérience a-t-elle d'<strong>issues</strong> ?`,
+            options: opts,
+            correctIdx: opts.indexOf(`${total}`),
+            correction: `Chaque bille est une issue possible. Il y a ${total} billes donc ${total} issues.`
+        };
+    } else {
+        const opts = shuffle(["2", "6", "8", "12"]);
+        return {
+            phase: 2, mcq: true,
+            context: `On lance une pièce de monnaie puis un dé à 6 faces.`,
+            question: `Combien d'<strong>issues</strong> cette <strong>expérience aléatoire</strong> a-t-elle au total ?`,
+            options: opts,
+            correctIdx: opts.indexOf("12"),
+            correction: `2 issues pour la pièce × 6 pour le dé = 12 issues au total.`
+        };
+    }
+}
+
+function genV_eventDescribe() {
+    // Describe what an event means, then calculate P
+    const faces = 6;
+    const conditions = shuffle([
+        { text: "obtenir un résultat pair", test: x => x % 2 === 0, desc: "les nombres pairs : 2, 4, 6" },
+        { text: "obtenir un résultat supérieur ou égal à 5", test: x => x >= 5, desc: "5 et 6" },
+        { text: "obtenir un multiple de 3", test: x => x % 3 === 0, desc: "3 et 6" },
+        { text: "obtenir un résultat strictement inférieur à 3", test: x => x < 3, desc: "1 et 2" },
+    ]);
+    const cond = conditions[0];
+    let fav = 0;
+    for (let i = 1; i <= faces; i++) if (cond.test(i)) fav++;
+    return {
+        phase: 2,
+        context: `On lance un dé à 6 faces. Soit A l'<strong>événement</strong> « ${cond.text} ». Les <strong>issues</strong> favorables à A sont : ${cond.desc}.`,
+        question: `Calculer <strong>P(A)</strong>.`,
+        answerN: fav, answerD: faces,
+        correction: `A est réalisé par ${fav} issues sur 6. P(A) = ${fracStr(fav, faces)}.`
+    };
+}
+
+function genV_PnotationCards() {
+    // Cards with P() notation and a real condition
+    const n = ri(10, 20);
+    const conditions = shuffle([
+        { text: "tirer un multiple de 5", test: x => x % 5 === 0 },
+        { text: "tirer un nombre pair", test: x => x % 2 === 0 },
+        { text: "tirer un nombre premier", test: x => [2,3,5,7,11,13,17,19].includes(x) },
+        { text: `tirer un nombre supérieur à ${Math.floor(n * 0.7)}`, test: x => x > Math.floor(n * 0.7) },
+    ]);
+    const cond = conditions[0];
+    let fav = 0;
+    for (let i = 1; i <= n; i++) if (cond.test(i)) fav++;
+    if (fav === 0) { fav = 1; } // safety
+    const evtName = pick(['A', 'B', 'E']);
+    return {
+        phase: 2,
+        context: `On a ${n} cartes numérotées de 1 à ${n}. L'<strong>expérience aléatoire</strong> consiste à en tirer une au hasard. Soit ${evtName} l'<strong>événement</strong> « ${cond.text} ».`,
+        question: `Calculer <strong>P(${evtName})</strong>.`,
+        answerN: fav, answerD: n,
+        correction: `${fav} carte${fav > 1 ? 's' : ''} sur ${n} vérifie${fav > 1 ? 'nt' : ''} « ${cond.text} ». P(${evtName}) = ${fracStr(fav, n)}.`
+    };
+}
+
+function genV_complementBag() {
+    // Event complement with "au moins une" logic
+    const faces = 6;
+    const cond = pick([
+        { text: "obtenir 6", test: x => x === 6 },
+        { text: "obtenir 1", test: x => x === 1 },
+        { text: "obtenir un multiple de 3", test: x => x % 3 === 0 },
+    ]);
+    let fav = 0;
+    for (let i = 1; i <= faces; i++) if (cond.test(i)) fav++;
+    const comp = faces - fav;
+    const evtName = pick(['A', 'B']);
+    return {
+        phase: 2,
+        context: `On lance un dé à 6 faces. ${evtName} est l'événement « ${cond.text} ». On a P(${evtName}) = ${fracStr(fav, faces)}.`,
+        question: `Sans recalculer directement, utilise l'<strong>événement contraire</strong> pour trouver <strong>P(${evtName}̄)</strong>, la probabilité de « ne pas ${cond.text.replace('obtenir', 'obtenir')} ».`,
+        answerN: comp, answerD: faces,
+        correction: `P(${evtName}̄) = 1 − P(${evtName}) = 1 − ${fracStr(fav, faces)} = ${fracStr(comp, faces)}.`
+    };
+}
+
+/* ─── PHASE 3: Double entry table — two dice, sums, or urn ─── */
+function genPhase3() {
+    const type = ri(1, 4);
+    if (type === 1) return genTableSum6();
+    if (type === 2) return genTableSum4();
+    if (type === 3) return genTableProduct();
+    return genTableUrn();
+}
+
+function genTableSum6() {
+    // Two 6-faced dice, sum table
+    const faces = 6;
+    const rows = [], cols = [];
+    for (let i = 1; i <= faces; i++) { rows.push(i); cols.push(i); }
+    const total = faces * faces; // 36
+
+    // Build expected cells (sums)
+    const cells = [];
+    for (let r = 0; r < faces; r++) {
+        cells[r] = [];
+        for (let c = 0; c < faces; c++) {
+            cells[r][c] = rows[r] + cols[c];
+        }
+    }
+
+    // Generate 2 questions
+    const questions = [];
+    const qTypes = shuffle(['gte', 'eq', 'lte', 'even', 'odd', 'double']).slice(0, 2);
+
+    for (const qt of qTypes) {
+        let text, fav = 0;
+        if (qt === 'gte') {
+            const threshold = pick([7, 8, 9, 10]);
+            text = `P(somme ≥ ${threshold})`;
+            for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] >= threshold) fav++;
+        } else if (qt === 'eq') {
+            const target = pick([5, 6, 7, 8, 9]);
+            text = `P(somme = ${target})`;
+            for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] === target) fav++;
+        } else if (qt === 'lte') {
+            const threshold = pick([4, 5, 6]);
+            text = `P(somme ≤ ${threshold})`;
+            for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] <= threshold) fav++;
+        } else if (qt === 'even') {
+            text = `P(somme paire)`;
+            for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] % 2 === 0) fav++;
+        } else if (qt === 'odd') {
+            text = `P(somme impaire)`;
+            for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] % 2 !== 0) fav++;
+        } else {
+            text = `P(obtenir un double, c'est-à-dire les deux dés identiques)`;
+            fav = faces; // (1,1), (2,2), ... (6,6)
+        }
+        questions.push({ text, ansN: fav, ansD: total });
+    }
+
+    const corrLines = questions.map(q => `${q.text} = ${fracStr(q.ansN, q.ansD)} (${q.ansN} cas favorables sur ${total})`).join('<br>');
+
+    return {
+        phase: 3,
+        context: `On lance <strong>deux dés à 6 faces</strong>. On s'intéresse à la <strong>somme</strong> des deux résultats. Remplis le tableau avec la somme obtenue pour chaque combinaison.`,
+        tableLabel: `Dé 1 \\ Dé 2`,
+        rows, cols, cells, total,
+        questions,
+        correction: corrLines
+    };
+}
+
+function genTableSum4() {
+    // Two 4-faced dice (smaller table for variety / remediation)
+    const faces = 4;
+    const rows = [], cols = [];
+    for (let i = 1; i <= faces; i++) { rows.push(i); cols.push(i); }
+    const total = faces * faces; // 16
+
+    const cells = [];
+    for (let r = 0; r < faces; r++) {
+        cells[r] = [];
+        for (let c = 0; c < faces; c++) {
+            cells[r][c] = rows[r] + cols[c];
+        }
+    }
+
+    const threshold = pick([5, 6]);
+    let fav = 0;
+    for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] >= threshold) fav++;
+
+    const questions = [
+        { text: `P(somme ≥ ${threshold})`, ansN: fav, ansD: total }
+    ];
+
+    return {
+        phase: 3,
+        context: `On lance <strong>deux dés à 4 faces</strong> (numérotés de 1 à 4). On s'intéresse à la <strong>somme</strong>. Remplis le tableau.`,
+        tableLabel: `Dé 1 \\ Dé 2`,
+        rows, cols, cells, total,
+        questions,
+        correction: `${total} issues au total. ${fav} donnent une somme ≥ ${threshold}. P = ${fracStr(fav, total)}.`
+    };
+}
+
+function genTableProduct() {
+    // Two small dice, product table
+    const faces = pick([4, 5]);
+    const rows = [], cols = [];
+    for (let i = 1; i <= faces; i++) { rows.push(i); cols.push(i); }
+    const total = faces * faces;
+
+    const cells = [];
+    for (let r = 0; r < faces; r++) {
+        cells[r] = [];
+        for (let c = 0; c < faces; c++) {
+            cells[r][c] = rows[r] * cols[c];
+        }
+    }
+
+    // Question: P(product even) or P(product >= X)
+    const qType = ri(1, 2);
+    let text, fav = 0;
+    if (qType === 1) {
+        text = `P(produit pair)`;
+        for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] % 2 === 0) fav++;
+    } else {
+        const threshold = pick([6, 8, 10]);
+        text = `P(produit ≥ ${threshold})`;
+        for (let r = 0; r < faces; r++) for (let c = 0; c < faces; c++) if (cells[r][c] >= threshold) fav++;
+    }
+
+    return {
+        phase: 3,
+        context: `On lance <strong>deux dés à ${faces} faces</strong>. On s'intéresse au <strong>produit</strong> des deux résultats. Remplis le tableau.`,
+        tableLabel: `Dé 1 \\ Dé 2`,
+        rows, cols, cells, total,
+        questions: [{ text, ansN: fav, ansD: total }],
+        correction: `${total} issues au total. ${fav} vérifient « ${text.replace('P(','').replace(')','')} ». P = ${fracStr(fav, total)}.`
+    };
+}
+
+function genTableUrn() {
+    // Build an urn with 3-4 colors, some duplicates
+    const allColors = shuffle([
+        {name:'Rouge', short:'R', count:2},
+        {name:'Vert', short:'V', count:1},
+        {name:'Jaune', short:'J', count:1},
+        {name:'Bleu', short:'B', count:1},
+        {name:'Noir', short:'N', count:1}
+    ]);
+
+    // Pick 3-4 colors, at least one with count 2
+    const palette = allColors.slice(0, ri(3, 4));
+    // Ensure at least one has count > 1
+    if (!palette.some(c => c.count > 1)) palette[0].count = 2;
+
+    // Build the list of balls (with duplicates)
+    const balls = [];
+    for (const c of palette) {
+        for (let i = 0; i < c.count; i++) balls.push(c.short);
+    }
+    const totalBalls = balls.length;
+    const total = totalBalls * totalBalls; // with replacement
+
+    // Description
+    const desc = palette.map(c => {
+        const label = c.count > 1 ? `${c.count} boules ${c.name.toLowerCase()}s` : `1 boule ${c.name.toLowerCase()}`;
+        return `<strong>${label}</strong>`;
+    }).join(', ');
+
+    // Row/col headers = each individual ball
+    const rows = [...balls];
+    const cols = [...balls];
+
+    // Build cells: text like "(R;V)"
+    const cells = [];
+    const cellsText = [];
+    for (let r = 0; r < rows.length; r++) {
+        cells[r] = [];
+        cellsText[r] = [];
+        for (let c = 0; c < cols.length; c++) {
+            const val = `(${rows[r]};${cols[c]})`;
+            cells[r][c] = val;
+            cellsText[r][c] = val;
+        }
+    }
+
+    // Pick 2-3 cells to prefill as examples
+    const prefilled = new Set();
+    // Always prefill (0,0) and one off-diagonal
+    prefilled.add('0_0');
+    prefilled.add(`0_${cols.length - 1}`);
+    if (rows.length > 2) prefilled.add(`${rows.length - 1}_0`);
+
+    // Generate 1-2 questions about color combinations
+    const questions = [];
+    const qTypes = shuffle(['specific', 'atLeastOne', 'sameColor', 'different']).slice(0, 2);
+
+    for (const qt of qTypes) {
+        let text, fav = 0;
+        if (qt === 'specific') {
+            const c1 = pick(palette), c2 = pick(palette);
+            text = `P(obtenir ${c1.name} puis ${c2.name})`;
+            for (let r = 0; r < rows.length; r++)
+                for (let c = 0; c < cols.length; c++)
+                    if (rows[r] === c1.short && cols[c] === c2.short) fav++;
+        } else if (qt === 'atLeastOne') {
+            const target = pick(palette);
+            text = `P(obtenir au moins une boule ${target.name.toLowerCase()})`;
+            for (let r = 0; r < rows.length; r++)
+                for (let c = 0; c < cols.length; c++)
+                    if (rows[r] === target.short || cols[c] === target.short) fav++;
+        } else if (qt === 'sameColor') {
+            text = `P(obtenir deux boules de la même couleur)`;
+            for (let r = 0; r < rows.length; r++)
+                for (let c = 0; c < cols.length; c++)
+                    if (rows[r] === cols[c]) fav++;
+        } else {
+            text = `P(obtenir deux boules de couleurs différentes)`;
+            for (let r = 0; r < rows.length; r++)
+                for (let c = 0; c < cols.length; c++)
+                    if (rows[r] !== cols[c]) fav++;
+        }
+        questions.push({ text, ansN: fav, ansD: total });
+    }
+
+    const corrLines = questions.map(q => `${q.text} = ${fracStr(q.ansN, q.ansD)} (${q.ansN}/${q.ansD})`).join('<br>');
+
+    return {
+        phase: 3, isUrn: true,
+        context: `Une urne contient ${desc}. On tire une boule, on note sa couleur, <strong>on la remet</strong>, puis on tire à nouveau. Remplis le tableau avec les résultats possibles (ex : <strong>(R;V)</strong> pour Rouge puis Vert).`,
+        tableLabel: `1er tirage \\ 2e tirage`,
+        rows, cols, cells, cellsText, total, prefilled,
+        // For display, use color names as headers but group duplicates
+        rowHeaders: rows.map((s, i) => {
+            const c = palette.find(p => p.short === s);
+            const idx = rows.slice(0, i).filter(x => x === s).length + 1;
+            return c.count > 1 ? `${c.name} ${idx}` : c.name;
+        }),
+        colHeaders: cols.map((s, i) => {
+            const c = palette.find(p => p.short === s);
+            const idx = cols.slice(0, i).filter(x => x === s).length + 1;
+            return c.count > 1 ? `${c.short}${idx}` : c.short;
+        }),
+        questions,
+        correction: corrLines
+    };
+}
+
+/* ═══════ RENDER QUESTION ═══════ */
+function renderQ(p) {
+    let h = `<div class="q-context">${p.context}</div>`;
+    if (p.question) h += `<div class="q-text">${p.question}</div>`;
+
+    if (p.phase === 3) {
+        // Column headers
+        const colH = p.isUrn ? p.colHeaders : p.cols;
+        const rowH = p.isUrn ? p.rowHeaders : p.rows;
+
+        h += `<div class="tbl-wrap"><table class="prob-tbl"><thead><tr><th>${p.tableLabel}</th>`;
+        for (const c of colH) h += `<th class="ch">${c}</th>`;
+        h += `</tr></thead><tbody>`;
+        for (let r = 0; r < p.rows.length; r++) {
+            h += `<tr><td class="rh">${rowH[r]}</td>`;
+            for (let c = 0; c < p.cols.length; c++) {
+                const key = `${r}_${c}`;
+                const isPre = p.prefilled && p.prefilled.has(key);
+                if (isPre) {
+                    // Prefilled example cell
+                    const val = p.isUrn ? p.cellsText[r][c] : p.cells[r][c];
+                    h += `<td style="background:var(--leaf-light);font-weight:700;font-size:.9rem;color:var(--forest)">${val}</td>`;
+                } else {
+                    h += `<td><input type="text" id="tc_${r}_${c}" placeholder="?" autocomplete="off" spellcheck="false"></td>`;
+                }
+            }
+            h += `</tr>`;
+        }
+        h += `</tbody></table></div>`;
+
+        // Questions below table
+        for (let i = 0; i < p.questions.length; i++) {
+            h += `<div class="ans-row" style="margin-top:.6rem">`;
+            h += `<span class="ans-lbl">${p.questions[i].text}</span> `;
+            h += `<input type="text" class="ans-input" id="qa_${i}" placeholder="?" autocomplete="off">`;
+            h += `</div>`;
+        }
+    } else if (p.mcq) {
+        h += `<div class="mcq" id="mcqZone">`;
+        for (let i = 0; i < p.options.length; i++) {
+            h += `<div class="mcq-opt" data-idx="${i}" onclick="selectMcq(this)">${p.options[i]}</div>`;
+        }
+        h += `</div>`;
+    } else {
+        h += `<div class="ans-row">`;
+        h += `<span class="ans-lbl">Réponse :</span>`;
+        h += `<input type="text" class="ans-input" id="mainAns" placeholder="ex : 1/6" autocomplete="off" spellcheck="false">`;
+        h += `</div>`;
+    }
+
+    h += `<div class="val-row"><button class="val-btn" id="valBtn" onclick="doVal()">Vérifier</button></div>`;
+    h += `<div class="enter-hint">Appuie sur <kbd>Entrée</kbd> pour valider</div>`;
+
+    document.getElementById('zone').innerHTML = h;
+
+    // Enter key on inputs
+    document.querySelectorAll('.ans-input, .prob-tbl input').forEach(i => {
+        i.addEventListener('keypress', e => { if (e.key === 'Enter') doVal(); });
+    });
+}
+
+let selectedMcqIdx = -1;
+function selectMcq(el) {
+    document.querySelectorAll('.mcq-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedMcqIdx = parseInt(el.dataset.idx);
+}
+
+/* ═══════ CHECK ANSWER ═══════ */
+function parseFrac(s) {
+    s = s.trim().replace(/−/g, '-').replace(/÷/g, '/').replace(/,/g, '.');
+    const direct = Number(s);
+    if (!isNaN(direct) && s !== '') return direct;
+    const m = s.match(/^(-?\d+)\s*[/:]\s*(-?\d+)$/);
+    if (m) return parseInt(m[1]) / parseInt(m[2]);
+    return NaN;
+}
+
+function chkFrac(id, n, d) {
+    const el = document.getElementById(id);
+    if (!el) return true;
+    const v = parseFrac(el.value);
+    const expected = d === 1 ? n : n / d;
+    const ok = !isNaN(v) && Math.abs(v - expected) < 1e-9;
+    el.classList.remove('ok', 'err');
+    el.classList.add(ok ? 'ok' : 'err');
+    if (ok) el.disabled = true;
+    return ok;
+}
+
+function doVal() {
+    if (done) return;
+    const p = curP;
+    let ok = true;
+    att++;
+
+    if (p.phase === 3) {
+        // Check table cells — skip prefilled, verify values
+        for (let r = 0; r < p.rows.length; r++) {
+            for (let c = 0; c < p.cols.length; c++) {
+                const key = `${r}_${c}`;
+                if (p.prefilled && p.prefilled.has(key)) continue; // skip prefilled
+                const el = document.getElementById(`tc_${r}_${c}`);
+                if (!el) continue;
+                const userVal = el.value.trim();
+                const expected = p.cells[r][c];
+                let cellOk = false;
+                if (p.isUrn) {
+                    // Text comparison: normalize parentheses, spaces, case, semicolons
+                    const norm = s => s.replace(/[\s()]/g, '').replace(/,/g, ';').toUpperCase();
+                    cellOk = norm(userVal) === norm('' + expected);
+                } else {
+                    cellOk = !isNaN(parseInt(userVal)) && parseInt(userVal) === expected;
+                }
+                el.classList.remove('ok', 'err');
+                if (cellOk) { el.classList.add('ok'); el.disabled = true; }
+                else { el.classList.add('err'); ok = false; }
+            }
+        }
+
+        // Check probability questions
+        for (let i = 0; i < p.questions.length; i++) {
+            if (!chkFrac('qa_' + i, p.questions[i].ansN, p.questions[i].ansD)) ok = false;
+        }
+    } else if (p.mcq) {
+        if (selectedMcqIdx === -1) {
+            ok = false;
+        } else {
+            const opts = document.querySelectorAll('.mcq-opt');
+            opts.forEach(o => {
+                o.classList.add('disabled');
+                const idx = parseInt(o.dataset.idx);
+                if (idx === p.correctIdx) o.classList.add('ok');
+                else if (idx === selectedMcqIdx) o.classList.add('err');
+            });
+            if (selectedMcqIdx !== p.correctIdx) ok = false;
+        }
+    } else {
+        if (!chkFrac('mainAns', p.answerN, p.answerD)) ok = false;
+    }
+
+    handleResult(ok);
+}
+
+/* ═══════ RESULT HANDLING ═══════ */
+function handleResult(ok) {
+    const fb = document.getElementById('fb'), fbT = document.getElementById('fbT'), fbD = document.getElementById('fbD');
+    const card = document.getElementById('exCard'), nxt = document.getElementById('nxtBtn');
+
+    if (ok) {
+        done = true;
+        fb.className = 'fb vis fb-ok';
+        fbT.textContent = '✅ Bravo !';
+        fbD.textContent = 'Bonne réponse !';
+        card.classList.remove('st-rem'); card.classList.add('st-ok');
+        document.getElementById('valBtn').disabled = true;
+
+        if (inRem) {
+            remPath[remI].status = 'success'; remCt++;
+            nxt.textContent = remI < remPath.length - 1 ? 'Remédiation suivante →' : 'Retenter l\'étape ' + (curI + 1) + ' →';
+            nxt.className = 'nxt orange';
+        } else {
+            mainPath[curI].status = 'success'; totOk++;
+            nxt.textContent = curI >= N - 1 ? 'Voir le bilan →' : 'Étape suivante →';
+            nxt.className = 'nxt';
+        }
+        nxt.classList.remove('hidden');
+        renderMap();
+    } else {
+        if (att >= 2) {
+            done = true;
+            fb.className = 'fb vis fb-ko';
+            fbT.textContent = '❌ Ce n\'est pas ça.';
+            document.getElementById('valBtn').disabled = true;
+            // Show correction
+            const corrBox = document.getElementById('fbC');
+            corrBox.innerHTML = curP.correction;
+            corrBox.classList.add('vis');
+
+            if (inRem) {
+                remPath[remI].status = 'fail'; remCt++;
+                fbD.innerHTML = 'Voici la correction.';
+                nxt.textContent = remI < remPath.length - 1 ? 'Remédiation suivante →' : 'Retenter l\'étape ' + (curI + 1) + ' →';
+                nxt.className = 'nxt orange';
+            } else {
+                mainPath[curI].status = 'fail'; totKo++;
+                fbD.innerHTML = 'Tu vas faire 2 exercices plus simples avant de retenter.';
+                remPath = [
+                    { problem: genRem(mainPath[curI].level, N), status: 'pending' },
+                    { problem: genRem(mainPath[curI].level, N), status: 'pending' }
+                ];
+                inRem = true; remI = 0;
+                nxt.textContent = 'Commencer la remédiation →';
+                nxt.className = 'nxt orange';
+            }
+            nxt.classList.remove('hidden');
+            renderMap();
+        } else {
+            fb.className = 'fb vis fb-ko';
+            fbT.textContent = '🤔 Essaie encore !';
+            fbD.textContent = 'Vérifie ta réponse.';
+            nxt.classList.add('hidden');
+            // Clear errors for retry
+            document.querySelectorAll('.err').forEach(e => {
+                e.classList.remove('err');
+                if (e.tagName === 'INPUT' && !e.disabled) e.value = '';
+                if (e.classList.contains('mcq-opt')) e.classList.remove('disabled', 'ok');
+            });
+            selectedMcqIdx = -1;
+            document.querySelectorAll('.mcq-opt').forEach(o => o.classList.remove('selected', 'disabled', 'ok', 'err'));
+        }
+    }
+}
+
+/* ═══════ MAP ═══════ */
+function renderMap() {
+    const w = document.getElementById('mapSvg'), R = 18, gap = 65, ry = 50, px = 35, py = 28;
+    const W = px * 2 + (N - 1) * gap, H = py * 2 + ry + R * 2;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="${Math.min(W, 680)}" xmlns="http://www.w3.org/2000/svg">`;
+
+    for (let i = 0; i < N - 1; i++) {
+        const x1 = px + i * gap, x2 = px + (i + 1) * gap, y = py + R;
+        let c = '#c5d9b2';
+        if (mainPath[i]?.status === 'success') c = '#4a9e2f';
+        else if (mainPath[i]?.status === 'fail') c = '#e8bdb5';
+        s += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+    }
+
+    for (let i = 0; i < N; i++) {
+        if (mainPath[i]?.status !== 'fail' && !(i === curI && inRem)) continue;
+        const cx = px + i * gap, cy = py + R, ey = cy + ry;
+        s += `<line x1="${cx}" y1="${cy + R}" x2="${cx}" y2="${ey - R + 2}" stroke="#e8a820" stroke-width="2.5" stroke-dasharray="5,4"/>`;
+        const act = i === curI && inRem;
+        s += `<circle cx="${cx}" cy="${ey}" r="${R - 3}" fill="${act ? '#e8a820' : '#fff'}" stroke="#e8a820" stroke-width="2.5"/>`;
+        s += `<text x="${cx}" y="${ey}" fill="${act ? '#fff' : '#e8a820'}" class="nlbl" font-size="10">↩</text>`;
+    }
+
+    for (let i = 0; i < N; i++) {
+        const cx = px + i * gap, cy = py + R, st = mainPath[i]?.status || 'pending';
+        let f = '#fff', sk = '#c5d9b2', tx = '#8a9a78';
+        const cur = i === curI && !inRem;
+        if (cur) { f = '#2d5016'; sk = '#2d5016'; tx = '#fff'; }
+        else if (st === 'success') { f = '#4a9e2f'; sk = '#4a9e2f'; tx = '#fff'; }
+        else if (st === 'fail') { f = '#fde8e5'; sk = '#c0392b'; tx = '#c0392b'; }
+        s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${f}" stroke="${sk}" stroke-width="3"${cur ? ' style="filter:drop-shadow(0 0 5px rgba(45,80,22,.3))"' : ''}/>`;
+        s += `<text x="${cx}" y="${cy}" fill="${tx}" class="nlbl">${i + 1}</text>`;
+    }
+    s += '</svg>'; w.innerHTML = s;
+    document.getElementById('mapSt').innerHTML = `<span class="pill pill-g">✓ ${totOk}</span><span class="pill pill-r">✗ ${totKo}</span>${remCt ? `<span class="pill pill-o">↩ ${remCt}</span>` : ''}`;
+}
+
+/* ═══════ SETUP ═══════ */
+document.querySelectorAll('.opt').forEach(el => {
+    el.addEventListener('click', () => {
+        document.querySelectorAll('.opt').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+    });
+});
+document.getElementById('goBtn').addEventListener('click', startGame);
+document.getElementById('restBtn').addEventListener('click', backToSetup);
+
+function backToSetup() {
+    document.getElementById('scoreCard').classList.remove('vis');
+    document.getElementById('scoreCard').style.display = 'none';
+    document.getElementById('setupScr').classList.remove('hidden');
+    ['mapW', 'exCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
+}
+
+function startGame() {
+    N = parseInt(document.querySelector('.opt.active').dataset.n);
+    mainPath = [];
+    for (let i = 0; i < N; i++) mainPath.push({ level: i + 1, problem: genQ(i + 1, N), status: 'pending' });
+    curI = 0; inRem = false; remPath = []; remI = 0;
+    totOk = 0; totKo = 0; remCt = 0; done = false;
+    document.getElementById('setupScr').classList.add('hidden');
+    ['mapW', 'exCard'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+    document.getElementById('scoreCard').classList.remove('vis');
+    document.getElementById('scoreCard').style.display = 'none';
+    renderMap(); showQ();
+}
+
+/* ═══════ SHOW QUESTION ═══════ */
+function showQ() {
+    done = false; att = 0; selectedMcqIdx = -1;
+    let prob, label, bC, bT;
+    if (inRem) {
+        prob = remPath[remI].problem;
+        label = `Remédiation ${remI + 1}`;
+        bC = 'b-rem'; bT = '↩ Remédiation';
+    } else {
+        prob = mainPath[curI].problem;
+        label = `Étape ${curI + 1} / ${N}`;
+        bC = 'b-main';
+        const t = N > 1 ? curI / (N - 1) : 0;
+        bT = t <= 0.35 ? '🟢 Calcul simple' : (t <= 0.7 ? '🟡 Vocabulaire' : '🔴 Tableau');
+    }
+    curP = prob;
+    document.getElementById('exNum').textContent = label;
+    const bg = document.getElementById('exBadge');
+    bg.className = 'badge ' + bC; bg.textContent = bT;
+    const card = document.getElementById('exCard');
+    card.classList.remove('st-ok', 'st-ko', 'st-rem');
+    if (inRem) card.classList.add('st-rem');
+
+    renderQ(prob);
+
+    document.getElementById('fb').className = 'fb';
+    document.getElementById('fbC').classList.remove('vis');
+    document.getElementById('nxtBtn').classList.remove('hidden');
+
+    setTimeout(() => {
+        const f = document.querySelector('.ans-input, .mcq-opt, .prob-tbl input');
+        if (f && f.tagName === 'INPUT') f.focus();
+    }, 150);
+}
+
+/* ═══════ NEXT ═══════ */
+document.getElementById('nxtBtn').addEventListener('click', doNxt);
+function doNxt() {
+    if (inRem) {
+        if (remI < remPath.length - 1) { remI++; showQ(); }
+        else {
+            inRem = false; remPath = []; remI = 0;
+            mainPath[curI].status = 'pending';
+            mainPath[curI].problem = genQ(mainPath[curI].level, N);
+            renderMap(); showQ();
+        }
+    } else {
+        curI++;
+        if (curI >= N) showScore();
+        else { renderMap(); showQ(); }
+    }
+}
+
+/* ═══════ SCORE ═══════ */
+function showScore() {
+    document.getElementById('exCard').classList.add('hidden');
+    const card = document.getElementById('scoreCard');
+    let e, t, s, m;
+    if (totKo === 0) { e = '🌳'; t = 'Parcours parfait !'; s = '⭐⭐⭐'; m = 'Les probabilités n\'ont plus de secret !'; }
+    else if (totKo <= 1) { e = '🌿'; t = 'Très bien !'; s = '⭐⭐⭐'; m = 'Presque parfait !'; }
+    else if (totKo <= Math.ceil(N / 3)) { e = '🌱'; t = 'Bien !'; s = '⭐⭐'; m = 'Continue, tu progresses !'; }
+    else { e = '🌰'; t = 'Courage !'; s = '⭐'; m = 'Revois le cours et réessaie !'; }
+    document.getElementById('scE').textContent = e;
+    document.getElementById('scT').textContent = t;
+    document.getElementById('scS').textContent = s;
+    document.getElementById('scM').textContent = m;
+    document.getElementById('scB').innerHTML = `<span class="sc-b g">✓ ${totOk}/${N} du 1er coup</span><span class="sc-b p">↩ ${remCt} remédiation${remCt > 1 ? 's' : ''}</span><span class="sc-b b">🎲 3ème</span>`;
+    card.style.display = 'block'; card.classList.add('vis');
+    renderMap();
+}
+
+/* ═══════ KEYS & RAPPEL ═══════ */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (done) doNxt();
+        else doVal();
+    }
+});
+
+document.getElementById('recTog').addEventListener('click', function() {
+    document.getElementById('recBody').classList.toggle('open');
+    document.getElementById('recArr').classList.toggle('open');
+});
+</script>
+</body>
+</html>

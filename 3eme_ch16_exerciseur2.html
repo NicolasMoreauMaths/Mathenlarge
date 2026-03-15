@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — L'Étendue</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;
+  --acc:#c0392b;--acc-lt:#fdecea;--ok:#1d9e75;--ko:#e24b4a;
+  --pxbdr:#ccc9c2;
+  /* 5 couleurs lapin — lues avec Pillow */
+  --c0:#f5f0f0;   /* fond blanc */
+  --c1:#e08080;   /* rose foncé (contour/oreilles) */
+  --c2:#f5c0c0;   /* rose clair (corps) */
+  --c3:#1a1a1a;   /* noir (yeux) */
+  --c4:#e8b870;   /* beige/nez */
+  --c0d:#ccc9c2;--c1d:#b05050;--c2d:#d09090;--c3d:#333;--c4d:#c09040;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;
+  --acc:#e57373;--acc-lt:#3b1010;--ok:#5dcaa5;--ko:#f09595;
+  --pxbdr:#4a4840;
+  --c0:#2a2020;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--bg);color:var(--txt);
+  max-width:960px;margin:0 auto;padding:14px;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+}
+h1{font-size:20px;font-weight:900;text-align:center;margin-bottom:2px;letter-spacing:-.3px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:18px;align-items:flex-start}
+@media(max-width:680px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+
+/* ── Board ── */
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(82vw,380px);padding:6px;background:var(--card);border:2px solid var(--bdr);border-radius:12px}
+.tile{position:relative;border:2px solid var(--bdr);border-radius:5px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;background:var(--bg)}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}
+.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);pointer-events:none;z-index:2;opacity:.5;line-height:1}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr);cursor:pointer;transition:background .08s}
+.tg .px[data-c="0"]{background:var(--c0)}.tg .px[data-c="1"]{background:var(--c1)}
+.tg .px[data-c="2"]{background:var(--c2)}.tg .px[data-c="3"]{background:var(--c3)}
+.tg .px[data-c="4"]{background:var(--c4)}
+.tile:not(.sel) .tg .px{cursor:default;pointer-events:none}
+
+/* ── Palette ── */
+.palette{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.pal-btn{width:28px;height:28px;border-radius:6px;border:2.5px solid var(--bdr);cursor:pointer;transition:transform .1s,border-color .1s;flex-shrink:0}
+.pal-btn.sel-pal{border-color:var(--acc);transform:scale(1.15);box-shadow:0 0 0 2px var(--acc-lt)}
+.pal-btn[data-c="0"]{background:var(--c0);border-color:var(--c0d)}.pal-btn[data-c="1"]{background:var(--c1);border-color:var(--c1d)}
+.pal-btn[data-c="2"]{background:var(--c2);border-color:var(--c2d)}.pal-btn[data-c="3"]{background:var(--c3);border-color:var(--c3d)}
+.pal-btn[data-c="4"]{background:var(--c4);border-color:var(--c4d)}
+.pal-label{font-size:11px;color:var(--txt2);font-weight:600}
+
+/* ── Panel ── */
+.panel{background:var(--card);border:2px solid var(--bdr);border-radius:12px;padding:16px}
+.panel-empty{display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:13px;min-height:100px;text-align:center;line-height:1.6}
+.pcontent{display:none}
+.panel-calc{text-align:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1.5px solid var(--bdr)}
+.badge{display:inline-block;background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:3px 11px;border-radius:12px;margin-bottom:6px}
+.enonce{font-size:13px;color:var(--txt);margin-bottom:8px;line-height:1.55;text-align:left}
+.serie{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:8px 0}
+.sval{display:inline-block;min-width:28px;padding:3px 6px;background:var(--acc-lt);border:1.5px solid var(--acc);border-radius:5px;font-size:13px;font-weight:700;text-align:center}
+.question{font-size:13px;font-weight:600;color:var(--acc);text-align:center;margin-top:6px}
+
+/* ── Mini ── */
+.ed-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px}
+.ed-label{font-size:12px;color:var(--txt2);font-weight:700}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:72px;height:72px;border:2.5px solid var(--acc);border-radius:7px;overflow:hidden}
+.mini .mx{border:.5px solid var(--pxbdr);cursor:pointer;transition:background .08s}
+.mini .mx[data-c="0"]{background:var(--c0)}.mini .mx[data-c="1"]{background:var(--c1)}
+.mini .mx[data-c="2"]{background:var(--c2)}.mini .mx[data-c="3"]{background:var(--c3)}
+.mini .mx[data-c="4"]{background:var(--c4)}
+
+/* ── Legend ── */
+.leg-t{font-size:10px;font-weight:700;margin-bottom:6px;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:4px}
+.li{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1.5px solid var(--bdr);border-radius:7px;background:var(--bg);cursor:pointer;transition:border-color .15s}
+.li:hover{border-color:var(--acc)}
+.li.hl-ok{border-color:var(--ok);background:#e7f5ec}
+.li.hl-ko{border-color:var(--ko);background:#fef2f2}
+.lp{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:27px;height:27px;border:1px solid var(--bdr);border-radius:3px;flex-shrink:0;overflow:hidden}
+.lp div[data-c="0"]{background:var(--c0);border:.3px solid var(--pxbdr)}.lp div[data-c="1"]{background:var(--c1)}
+.lp div[data-c="2"]{background:var(--c2)}.lp div[data-c="3"]{background:var(--c3)}
+.lp div[data-c="4"]{background:var(--c4)}
+.lf{font-size:14px;font-weight:700;color:var(--acc);line-height:1.4;flex:1}
+
+/* ── Actions ── */
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{padding:8px 15px;font-size:12px;font-weight:700;border:2px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0;font-weight:600}
+.score b{color:var(--acc)}
+
+/* ── Correction ── */
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{display:inline-grid;grid-template-columns:repeat(15,min(4.2vw,17px));grid-template-rows:repeat(15,min(4.2vw,17px));gap:0;border:2px solid var(--txt);border-radius:5px;overflow:hidden}
+.corr-g div{border:.2px solid rgba(0,0,0,.06)}
+.corr-g .cc0{background:var(--c0)}.corr-g .cc1{background:var(--c1)}
+.corr-g .cc2{background:var(--c2)}.corr-g .cc3{background:var(--c3)}
+.corr-g .cc4{background:var(--c4)}
+
+.btn-retour-flottant{position:fixed;top:16px;left:16px;z-index:9999;display:flex;align-items:center;gap:7px;background:var(--card);color:var(--acc);text-decoration:none;font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;padding:8px 16px;border-radius:50px;border:2px solid var(--acc);box-shadow:0 3px 12px rgba(0,0,0,.1);transition:all .25s}
+.btn-retour-flottant:hover{transform:scale(1.05);background:var(--acc);color:#fff}
+@media(max-width:680px){
+  .board{width:min(92vw,380px)}.panel{width:min(92vw,420px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+  .corr-g{grid-template-columns:repeat(15,min(5.2vw,17px));grid-template-rows:repeat(15,min(5.2vw,17px))}
+  .btn-retour-flottant{top:auto;bottom:16px;left:16px;padding:10px 18px;font-size:.9rem}
+}
+</style>
+</head>
+<body>
+
+<h1>🐰 Pixel Art — L'Étendue</h1>
+<p class="sub">Clique sur une tuile · calcule l'étendue · choisis le bon motif · révèle le lapin !</p>
+
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:5px">✦ Image révélée</p>
+  </div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">
+      ← Clique sur une tuile<br>pour voir sa série
+    </div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc">
+        <div class="badge" id="pbadge">Tuile 1</div>
+        <div class="enonce" id="penonce"></div>
+        <div class="serie" id="pserie"></div>
+        <div class="question" id="pquestion"></div>
+      </div>
+      <div class="palette" id="palette"></div>
+      <div class="ed-row">
+        <span class="ed-label">Motif :</span>
+        <div class="mini" id="mini"></div>
+      </div>
+      <div class="leg-t">Étendue → motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+
+<script>
+// ═══════════════════════════════════════════════
+//  LAPIN 15×15 — lu pixel par pixel avec Pillow
+//  0=fond  1=rose foncé(contour)  2=rose clair(corps)  3=noir(yeux)  4=beige(nez)
+// ═══════════════════════════════════════════════
+const GRID = [
+  [0,0,0,1,1,0,0,0,0,0,1,1,0,0,0],
+  [0,0,1,2,2,1,0,0,0,1,2,2,1,0,0],
+  [0,0,1,2,2,1,0,0,0,1,2,2,1,0,0],
+  [0,0,1,2,2,1,0,0,0,1,2,2,1,0,0],
+  [0,0,1,2,2,1,0,0,0,1,2,2,1,0,0],
+  [0,0,0,1,2,2,1,1,1,2,2,1,0,0,0],
+  [0,0,0,0,1,2,2,2,2,2,1,0,0,0,0],
+  [0,0,0,1,2,2,2,2,2,2,2,1,0,0,0],
+  [0,0,1,2,2,1,1,1,1,1,2,2,1,0,0],
+  [0,0,1,2,1,0,0,0,0,0,1,2,1,0,0],
+  [0,0,1,1,0,3,0,0,0,3,0,1,1,0,0],
+  [0,0,1,0,0,3,0,4,0,3,0,0,1,0,0],
+  [0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+  [0,0,0,0,1,1,1,1,1,1,1,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+];
+
+// T[t] extrait de GRID
+const T = Array.from({length:25}, (_,t) => {
+  const r0=Math.floor(t/5)*3, c0=(t%5)*3;
+  return Array.from({length:9}, (_,i) => GRID[r0+(i/3|0)][c0+(i%3)]);
+});
+
+// ═══════════════════════════════════════════════
+//  REMAPPINGS — patterns colorés distincts pour mauvaises réponses
+//  REMAP1 : fond→roseFoncé, roseFoncé→beige, roseC→noir, noir→roseC, beige→roseFoncé
+//  REMAP2 : fond→roseC, roseFoncé→roseC, roseC→roseFoncé, noir→beige, beige→noir
+// ═══════════════════════════════════════════════
+const REMAP1 = [1, 4, 3, 2, 1];
+const REMAP2 = [2, 2, 1, 4, 3];
+const REMAPS = [null, REMAP1, REMAP2];
+
+function applyRemap(pat, remap){ return pat.map(c => remap[c]); }
+function getPattern(t, rm){ return rm===0 ? [...T[t]] : applyRemap(T[t], REMAPS[rm]); }
+
+// ═══════════════════════════════════════════════
+//  EXERCICES — séries statistiques, étendue = max − min
+// ═══════════════════════════════════════════════
+const P = [
+  {enonce:"Série de 5 valeurs :", vals:[2,5,18,10,7],        question:"Quelle est l'étendue ?"},  // T1  → 16
+  {enonce:"Série de 5 valeurs :", vals:[12,3,8,6,10],        question:"Quelle est l'étendue ?"},  // T2  → 9
+  {enonce:"Série de 5 valeurs :", vals:[10,7,4,9,6],         question:"Quelle est l'étendue ?"},  // T3  → 6
+  {enonce:"Série de 5 valeurs :", vals:[5,15,9,11,7],        question:"Quelle est l'étendue ?"},  // T4  → 10
+  {enonce:"Série de 5 valeurs :", vals:[18,1,9,14,6],        question:"Quelle est l'étendue ?"},  // T5  → 17
+  {enonce:"Série de 4 valeurs :", vals:[9,6,8,7],            question:"Quelle est l'étendue ?"},  // T6  → 3
+  {enonce:"Série de 6 valeurs :", vals:[17,3,11,8,14,6],     question:"Quelle est l'étendue ?"},  // T7  → 14
+  {enonce:"Série de 6 valeurs :", vals:[20,0,15,8,5,12],     question:"Quelle est l'étendue ?"},  // T8  → 20
+  {enonce:"Série de 5 valeurs :", vals:[17,2,10,6,13],       question:"Quelle est l'étendue ?"},  // T9  → 15
+  {enonce:"Série de 4 valeurs :", vals:[13,10,11,12],        question:"Quelle est l'étendue ?"},  // T10 → 3
+  {enonce:"Série de 4 valeurs :", vals:[8,5,7,6],            question:"Quelle est l'étendue ?"},  // T11 → 3
+  {enonce:"Série de 5 valeurs :", vals:[23,3,14,9,18],       question:"Quelle est l'étendue ?"},  // T12 → 20
+  {enonce:"Série de 5 valeurs :", vals:[15,4,9,12,7],        question:"Quelle est l'étendue ?"},  // T13 → 11
+  {enonce:"Série de 6 valeurs :", vals:[25,5,18,11,15,9],    question:"Quelle est l'étendue ?"},  // T14 → 20
+  {enonce:"Série de 4 valeurs :", vals:[10,7,9,8],           question:"Quelle est l'étendue ?"},  // T15 → 3
+  {enonce:"Série de 5 valeurs :", vals:[13,6,10,8,11],       question:"Quelle est l'étendue ?"},  // T16 → 7
+  {enonce:"Série de 6 valeurs :", vals:[20,2,12,7,16,9],     question:"Quelle est l'étendue ?"},  // T17 → 18
+  {enonce:"Série de 5 valeurs :", vals:[24,4,10,18,14],      question:"Quelle est l'étendue ?"},  // T18 → 20
+  {enonce:"Série de 5 valeurs :", vals:[20,1,13,7,16],       question:"Quelle est l'étendue ?"},  // T19 → 19
+  {enonce:"Série de 5 valeurs :", vals:[12,4,9,7,10],        question:"Quelle est l'étendue ?"},  // T20 → 8
+  {enonce:"Série de 5 valeurs :", vals:[15,3,9,11,6],        question:"Quelle est l'étendue ?"},  // T21 → 12
+  {enonce:"Série de 4 valeurs :", vals:[12,8,10,9],          question:"Quelle est l'étendue ?"},  // T22 → 4
+  {enonce:"Série de 5 valeurs :", vals:[30,10,20,15,25],     question:"Quelle est l'étendue ?"},  // T23 → 20
+  {enonce:"Série de 5 valeurs :", vals:[12,7,9,10,8],        question:"Quelle est l'étendue ?"},  // T24 → 5
+  {enonce:"Série de 5 valeurs :", vals:[17,4,11,8,14],       question:"Quelle est l'étendue ?"},  // T25 → 13
+];
+
+// ═══════════════════════════════════════════════
+//  LÉGENDE — bonne réponse (rm=0) + 2 distracteurs (rm=1,2)
+// ═══════════════════════════════════════════════
+const ENTRIES = [
+  {ti:0,  val:"16", ans:true,  rm:0}, {ti:0,  val:"18", ans:false, rm:1}, {ti:0,  val:"14", ans:false, rm:2},
+  {ti:1,  val:"9",  ans:true,  rm:0}, {ti:1,  val:"11", ans:false, rm:1}, {ti:1,  val:"7",  ans:false, rm:2},
+  {ti:2,  val:"6",  ans:true,  rm:0}, {ti:2,  val:"8",  ans:false, rm:1}, {ti:2,  val:"4",  ans:false, rm:2},
+  {ti:3,  val:"10", ans:true,  rm:0}, {ti:3,  val:"12", ans:false, rm:1}, {ti:3,  val:"8",  ans:false, rm:2},
+  {ti:4,  val:"17", ans:true,  rm:0}, {ti:4,  val:"19", ans:false, rm:1}, {ti:4,  val:"15", ans:false, rm:2},
+  {ti:5,  val:"3",  ans:true,  rm:0}, {ti:5,  val:"5",  ans:false, rm:1}, {ti:5,  val:"1",  ans:false, rm:2},
+  {ti:6,  val:"14", ans:true,  rm:0}, {ti:6,  val:"16", ans:false, rm:1}, {ti:6,  val:"12", ans:false, rm:2},
+  {ti:7,  val:"20", ans:true,  rm:0}, {ti:7,  val:"22", ans:false, rm:1}, {ti:7,  val:"18", ans:false, rm:2},
+  {ti:8,  val:"15", ans:true,  rm:0}, {ti:8,  val:"17", ans:false, rm:1}, {ti:8,  val:"13", ans:false, rm:2},
+  {ti:9,  val:"3",  ans:true,  rm:0}, {ti:9,  val:"5",  ans:false, rm:1}, {ti:9,  val:"2",  ans:false, rm:2},
+  {ti:10, val:"3",  ans:true,  rm:0}, {ti:10, val:"4",  ans:false, rm:1}, {ti:10, val:"2",  ans:false, rm:2},
+  {ti:11, val:"20", ans:true,  rm:0}, {ti:11, val:"22", ans:false, rm:1}, {ti:11, val:"18", ans:false, rm:2},
+  {ti:12, val:"11", ans:true,  rm:0}, {ti:12, val:"13", ans:false, rm:1}, {ti:12, val:"9",  ans:false, rm:2},
+  {ti:13, val:"20", ans:true,  rm:0}, {ti:13, val:"22", ans:false, rm:1}, {ti:13, val:"18", ans:false, rm:2},
+  {ti:14, val:"3",  ans:true,  rm:0}, {ti:14, val:"4",  ans:false, rm:1}, {ti:14, val:"2",  ans:false, rm:2},
+  {ti:15, val:"7",  ans:true,  rm:0}, {ti:15, val:"9",  ans:false, rm:1}, {ti:15, val:"5",  ans:false, rm:2},
+  {ti:16, val:"18", ans:true,  rm:0}, {ti:16, val:"20", ans:false, rm:1}, {ti:16, val:"16", ans:false, rm:2},
+  {ti:17, val:"20", ans:true,  rm:0}, {ti:17, val:"22", ans:false, rm:1}, {ti:17, val:"18", ans:false, rm:2},
+  {ti:18, val:"19", ans:true,  rm:0}, {ti:18, val:"21", ans:false, rm:1}, {ti:18, val:"17", ans:false, rm:2},
+  {ti:19, val:"8",  ans:true,  rm:0}, {ti:19, val:"10", ans:false, rm:1}, {ti:19, val:"6",  ans:false, rm:2},
+  {ti:20, val:"12", ans:true,  rm:0}, {ti:20, val:"14", ans:false, rm:1}, {ti:20, val:"10", ans:false, rm:2},
+  {ti:21, val:"4",  ans:true,  rm:0}, {ti:21, val:"6",  ans:false, rm:1}, {ti:21, val:"2",  ans:false, rm:2},
+  {ti:22, val:"20", ans:true,  rm:0}, {ti:22, val:"22", ans:false, rm:1}, {ti:22, val:"18", ans:false, rm:2},
+  {ti:23, val:"5",  ans:true,  rm:0}, {ti:23, val:"7",  ans:false, rm:1}, {ti:23, val:"3",  ans:false, rm:2},
+  {ti:24, val:"13", ans:true,  rm:0}, {ti:24, val:"15", ans:false, rm:1}, {ti:24, val:"11", ans:false, rm:2},
+];
+
+// ═══════════════════════════════════════════════
+//  ÉTAT
+// ═══════════════════════════════════════════════
+const NP = 9;
+let G = Array.from({length:25}, () => Array(NP).fill(0));
+let sel = -1, selColor = 2;
+
+// ── Palette ──
+function buildPalette(){
+  const pal = document.getElementById('palette');
+  pal.innerHTML = '<span class="pal-label">Couleur :</span>';
+  ['Fond','Rose foncé','Rose clair','Noir','Beige'].forEach((lbl,c) => {
+    const btn = document.createElement('button');
+    btn.className = 'pal-btn' + (c===selColor?' sel-pal':'');
+    btn.dataset.c = c; btn.title = lbl;
+    btn.addEventListener('click', () => {
+      selColor = c;
+      document.querySelectorAll('.pal-btn').forEach(b => b.classList.toggle('sel-pal', +b.dataset.c===c));
+    });
+    pal.appendChild(btn);
+  });
+}
+
+// ── Board ──
+function buildBoard(){
+  const b = document.getElementById('board');
+  for(let t=0; t<25; t++){
+    const d = document.createElement('div');
+    d.className='tile'; d.id='t'+t;
+    d.innerHTML='<span class="tnum">'+(t+1)+'</span>';
+    const g = document.createElement('div'); g.className='tg';
+    for(let p=0; p<NP; p++){
+      const c = document.createElement('div');
+      c.className='px'; c.dataset.c='0'; c.dataset.t=t; c.dataset.p=p;
+      c.addEventListener('click', onPxClick);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    d.addEventListener('click', e => { if(e.target.classList.contains('px')) return; selectTile(t); });
+    b.appendChild(d);
+  }
+}
+
+function onPxClick(e){
+  const el=e.target, t=+el.dataset.t, p=+el.dataset.p;
+  G[t][p]=selColor; el.dataset.c=selColor; syncMini(t);
+}
+
+// ── Select ──
+function selectTile(t){
+  sel=t;
+  document.querySelectorAll('.tile').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('t'+t).classList.add('sel');
+  document.getElementById('pempty').style.display='none';
+  document.getElementById('pcontent').style.display='block';
+  document.getElementById('pbadge').textContent='Tuile '+(t+1);
+  const pr=P[t];
+  document.getElementById('penonce').textContent=pr.enonce;
+  const sd=document.getElementById('pserie'); sd.innerHTML='';
+  pr.vals.forEach(v=>{ const sp=document.createElement('span'); sp.className='sval'; sp.textContent=v; sd.appendChild(sp); });
+  document.getElementById('pquestion').textContent=pr.question;
+  buildMini(t); updateLeg(t);
+  if(window.innerWidth<=680) document.getElementById('panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── Mini ──
+function buildMini(t){
+  const mg=document.getElementById('mini'); mg.innerHTML='';
+  for(let p=0; p<NP; p++){
+    const c=document.createElement('div');
+    c.className='mx'; c.dataset.c=G[t][p];
+    c.addEventListener('click', ()=>{ G[t][p]=selColor; c.dataset.c=selColor; syncBoard(t); });
+    mg.appendChild(c);
+  }
+}
+function syncBoard(t){ document.querySelectorAll('#t'+t+' .tg .px').forEach((el,p)=>{ el.dataset.c=G[t][p]; }); }
+function syncMini(t){ if(sel!==t)return; document.querySelectorAll('#mini .mx').forEach((el,p)=>{ el.dataset.c=G[t][p]; }); }
+
+// ── Légende — chaque choix a son propre motif coloré ──
+function updateLeg(t){
+  const lg=document.getElementById('leg'); lg.innerHTML='';
+  const entries=ENTRIES.filter(e=>e.ti===t);
+  [...entries].sort(()=>Math.random()-.5).forEach(e=>{
+    const pat=getPattern(t, e.rm);
+    const d=document.createElement('div'); d.className='li';
+    let ph='<div class="lp">';
+    pat.forEach(v=>{ ph+='<div data-c="'+v+'"></div>'; });
+    ph+='</div>';
+    const span=document.createElement('span'); span.className='lf';
+    span.textContent=e.val;
+    d.innerHTML=ph; d.appendChild(span);
+    d.addEventListener('click', ()=>{
+      G[t]=[...pat]; syncBoard(t); buildMini(t);
+      document.querySelectorAll('.li').forEach(el=>{ el.classList.remove('hl-ok','hl-ko'); });
+      d.classList.add(e.ans?'hl-ok':'hl-ko');
+    });
+    lg.appendChild(d);
+  });
+}
+
+// ── Correction ──
+function buildCorr(){
+  const cg=document.getElementById('corrG');
+  for(let r=0;r<15;r++) for(let c=0;c<15;c++){
+    const d=document.createElement('div'); d.className='cc'+GRID[r][c]; cg.appendChild(d);
+  }
+}
+
+// ── Check ──
+function check(){
+  let ok=0;
+  for(let t=0;t<25;t++){
+    const el=document.getElementById('t'+t); el.classList.remove('ok','ko');
+    if(T[t].every((v,i)=>v===G[t][i])){ el.classList.add('ok'); ok++; }
+    else if(G[t].some(v=>v>0)){ el.classList.add('ko'); }
+  }
+  const s=document.getElementById('score');
+  if(ok===25) s.innerHTML='🎉 <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML='<b>'+ok+'/25</b> tuiles correctes';
+}
+
+function raz(){
+  G=Array.from({length:25},()=>Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el=>{ el.dataset.c='0'; });
+  document.querySelectorAll('.tile').forEach(el=>el.classList.remove('ok','ko','sel'));
+  document.getElementById('score').innerHTML='';
+  document.getElementById('pempty').style.display='flex';
+  document.getElementById('pcontent').style.display='none';
+  sel=-1;
+}
+function corrTog(){
+  const b=document.getElementById('corrBox'), n=document.getElementById('bcorr');
+  if(b.classList.contains('show')){ b.classList.remove('show'); n.textContent='Correction'; }
+  else{ b.classList.add('show'); n.textContent='Masquer'; }
+}
+
+buildBoard(); buildPalette(); buildCorr();
+</script>
+</body>
+</html>
