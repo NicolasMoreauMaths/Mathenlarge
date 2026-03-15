@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Coloriage Magique — Périmètres, Aires & Volumes</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf9f6;--card:#fff;--txt:#2d2d2d;--txt2:#888;--bdr:#e0ddd5;--acc:#1a7a5a;--acc-lt:#d5f5e3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Quicksand',sans-serif;background:var(--bg);color:var(--txt);max-width:920px;margin:0 auto;padding:12px;-webkit-user-select:none;user-select:none}
+h1{font-size:19px;text-align:center;font-weight:700;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:12px}
+.layout{display:flex;gap:16px;align-items:flex-start}
+@media(max-width:700px){.layout{flex-direction:column;align-items:center}}
+.col-draw{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-panel{flex:1;min-width:0}
+.svg-wrap{background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;padding:10px;width:min(85vw,400px)}
+.svg-wrap svg{width:100%;height:auto}
+.zone{fill:#f5f4ef;stroke:#333;stroke-width:1.8;cursor:pointer;transition:fill .2s}
+.zone:hover{filter:brightness(.95)}
+.zone-num{font-family:'Quicksand',sans-serif;font-weight:700;font-size:11px;fill:#666;pointer-events:none;text-anchor:middle;dominant-baseline:central}
+.panel{background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;padding:14px}
+.panel-empty{display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:14px;min-height:100px;text-align:center;line-height:1.6}
+.pcontent{display:none}
+.zone-badge{display:inline-block;background:var(--acc);color:#fff;font-size:12px;font-weight:700;padding:3px 12px;border-radius:12px;margin-bottom:8px}
+.equation{text-align:center;font-size:16px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bdr);line-height:1.5}
+.qcm{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.qcm-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:10px;background:var(--card);cursor:pointer;transition:all .15s;font-size:14px;font-weight:600;font-family:'Quicksand',sans-serif}
+.qcm-btn:hover{background:var(--acc-lt);border-color:var(--acc)}
+.qcm-btn.picked{border-color:var(--acc);background:var(--acc-lt)}
+.qcm-swatch{width:24px;height:24px;border-radius:6px;border:1px solid rgba(0,0,0,.1);flex-shrink:0}
+.qcm-letter{width:22px;height:22px;line-height:22px;text-align:center;background:var(--acc);color:#fff;font-weight:700;font-size:11px;border-radius:6px;flex-shrink:0}
+.qcm-expr{flex:1;min-width:0}
+.leg-title{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--txt2)}
+.leg-grid{display:flex;flex-wrap:wrap;gap:4px}
+.leg-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--bdr);border-radius:8px;background:var(--bg);font-size:12px}
+.leg-swatch{width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.1);flex-shrink:0}
+.leg-text{font-weight:600}
+.eq-title{font-size:13px;font-weight:700;margin:12px 0 6px;color:var(--txt2)}
+.eq-list{display:flex;flex-direction:column;gap:3px}
+.eq-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s}
+.eq-item:hover{background:var(--acc-lt)}
+.eq-item.done{background:#e8f8f0;border-color:#1d9e75}
+.eq-num{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;background:var(--acc);color:#fff;font-weight:700;font-size:10px;border-radius:5px;flex-shrink:0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.btn{padding:9px 16px;font-size:13px;font-weight:700;font-family:'Quicksand',sans-serif;border:1.5px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:8px;cursor:pointer}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:#1d9e75;color:#fff;border-color:#1d9e75}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:20px;padding:6px 0}
+.score b{color:var(--acc)}
+
+/* Formula modal */
+.formula-btn{
+  padding:8px 14px;font-size:12px;font-weight:700;font-family:'Quicksand',sans-serif;
+  border:1.5px solid #e67e22;background:#fef9e7;color:#e67e22;border-radius:8px;cursor:pointer;
+  transition:all .15s;
+}
+.formula-btn:hover{background:#e67e22;color:#fff}
+.modal-overlay{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.45);z-index:10000;
+  justify-content:center;align-items:center;padding:16px;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--card);border-radius:14px;padding:20px;
+  max-width:500px;width:100%;max-height:85vh;overflow-y:auto;
+  box-shadow:0 8px 30px rgba(0,0,0,.2);position:relative;
+}
+.modal h2{font-size:17px;margin-bottom:12px;text-align:center}
+.modal-close{
+  position:absolute;top:10px;right:14px;font-size:22px;cursor:pointer;
+  color:var(--txt2);font-weight:700;line-height:1;
+}
+.formula-section{margin-bottom:14px}
+.formula-section h3{font-size:14px;font-weight:700;color:var(--acc);margin-bottom:6px;border-bottom:1px solid var(--bdr);padding-bottom:3px}
+.formula-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;border-bottom:1px dotted var(--bdr)}
+.formula-row:last-child{border-bottom:none}
+.formula-name{color:var(--txt2);font-weight:600}
+.formula-val{font-weight:700;font-size:13px}
+
+@media(max-width:700px){.svg-wrap{width:min(95vw,400px)}.panel{width:min(95vw,400px)}.equation{font-size:14px}.qcm-btn{font-size:13px;padding:8px 10px}}
+</style>
+</head>
+<body>
+<h1>Coloriage Magique — Périmètres, Aires & Volumes</h1>
+<p class="sub">Calcule le périmètre, l'aire ou le volume demandé, choisis la bonne réponse, et colorie.</p>
+
+<div class="layout">
+<div class="col-draw">
+  <div class="svg-wrap">
+    <svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg">
+      <!-- Castle -->
+      <!-- Left tower -->
+      <rect class="zone" id="z1" x="30" y="120" width="60" height="160"/>
+      <text class="zone-num" x="60" y="200">1</text>
+      <!-- Left tower top (battlement) -->
+      <rect class="zone" id="z2" x="25" y="95" width="70" height="30"/>
+      <text class="zone-num" x="60" y="112">2</text>
+      <!-- Left tower roof -->
+      <polygon class="zone" id="z3" points="60,50 25,95 95,95"/>
+      <text class="zone-num" x="60" y="82">3</text>
+
+      <!-- Right tower -->
+      <rect class="zone" id="z4" x="310" y="120" width="60" height="160"/>
+      <text class="zone-num" x="340" y="200">4</text>
+      <!-- Right tower top -->
+      <rect class="zone" id="z5" x="305" y="95" width="70" height="30"/>
+      <text class="zone-num" x="340" y="112">5</text>
+      <!-- Right tower roof -->
+      <polygon class="zone" id="z6" points="340,50 305,95 375,95"/>
+      <text class="zone-num" x="340" y="82">6</text>
+
+      <!-- Main wall -->
+      <rect class="zone" id="z7" x="90" y="160" width="220" height="120"/>
+      <text class="zone-num" x="200" y="215">7</text>
+
+      <!-- Gate arch -->
+      <path class="zone" id="z8" d="M170,280 L170,220 Q200,190 230,220 L230,280 Z"/>
+      <text class="zone-num" x="200" y="250">8</text>
+
+      <!-- Left window -->
+      <rect class="zone" id="z9" x="110" y="190" width="30" height="35" rx="3"/>
+      <text class="zone-num" x="125" y="210">9</text>
+      <!-- Right window -->
+      <rect class="zone" id="z10" x="260" y="190" width="30" height="35" rx="3"/>
+      <text class="zone-num" x="275" y="210">10</text>
+
+      <!-- Battlement center -->
+      <rect class="zone" id="z11" x="90" y="140" width="220" height="25"/>
+      <text class="zone-num" x="200" y="155">11</text>
+
+      <!-- Flag pole + flag on left -->
+      <line x1="60" y1="50" x2="60" y2="15" stroke="#333" stroke-width="2"/>
+      <polygon class="zone" id="z12" points="60,15 60,38 85,26"/>
+      <text class="zone-num" x="70" y="27" style="font-size:9px">12</text>
+
+      <!-- Flag pole + flag on right -->
+      <line x1="340" y1="50" x2="340" y2="15" stroke="#333" stroke-width="2"/>
+      <polygon class="zone" id="z13" points="340,15 340,38 365,26"/>
+      <text class="zone-num" x="350" y="27" style="font-size:9px">13</text>
+
+      <!-- Ground -->
+      <rect class="zone" id="z14" x="0" y="280" width="400" height="40"/>
+      <text class="zone-num" x="355" y="303">14</text>
+
+      <!-- Left bush -->
+      <ellipse class="zone" id="z15" cx="20" cy="295" rx="22" ry="18"/>
+      <text class="zone-num" x="20" y="296">15</text>
+
+      <!-- Right bush -->
+      <ellipse class="zone" id="z16" cx="380" cy="295" rx="22" ry="18"/>
+      <text class="zone-num" x="380" y="296">16</text>
+
+      <!-- Path -->
+      <path class="zone" id="z17" d="M170,320 L160,370 L240,370 L230,320 Z"/>
+      <text class="zone-num" x="200" y="350">17</text>
+
+      <!-- Moat -->
+      <rect class="zone" id="z18" x="0" y="365" width="400" height="40"/>
+      <text class="zone-num" x="30" y="388">18</text>
+
+      <!-- Sun -->
+      <circle class="zone" id="z19" cx="360" cy="42" r="22"/>
+      <text class="zone-num" x="360" y="42">19</text>
+
+      <!-- Cloud -->
+      <ellipse class="zone" id="z20" cx="180" cy="30" rx="40" ry="16"/>
+      <text class="zone-num" x="180" y="31">20</text>
+    </svg>
+  </div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="razAll()">Tout effacer</button>
+    <button class="btn btn-a" onclick="checkAll()">Vérifier</button>
+    <button class="formula-btn" onclick="toggleFormulas()">📐 Formules</button>
+  </div>
+</div>
+<div class="col-panel">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">← Clique sur une zone<br>pour voir son calcul</div>
+    <div class="pcontent" id="pcontent">
+      <div class="zone-badge" id="zbadge">Zone 1</div>
+      <div class="equation" id="peq"></div>
+      <div class="qcm" id="qcm"></div>
+    </div>
+    <div class="leg-title" style="margin-top:12px">Couleurs</div>
+    <div class="leg-grid" id="legGrid"></div>
+    <div class="eq-title">Tous les calculs</div>
+    <div class="eq-list" id="eqList"></div>
+  </div>
+</div>
+</div>
+
+<!-- Formula modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <span class="modal-close" onclick="toggleFormulas()">✕</span>
+    <h2>📐 Formulaire</h2>
+    <div class="formula-section">
+      <h3>Périmètres</h3>
+      <div class="formula-row"><span class="formula-name">Carré (côté c)</span><span class="formula-val">P = 4 × c</span></div>
+      <div class="formula-row"><span class="formula-name">Rectangle (L × l)</span><span class="formula-val">P = 2 × (L + l)</span></div>
+      <div class="formula-row"><span class="formula-name">Triangle</span><span class="formula-val">P = a + b + c</span></div>
+      <div class="formula-row"><span class="formula-name">Cercle (rayon r)</span><span class="formula-val">P = 2 × π × r</span></div>
+    </div>
+    <div class="formula-section">
+      <h3>Aires</h3>
+      <div class="formula-row"><span class="formula-name">Carré</span><span class="formula-val">A = c × c</span></div>
+      <div class="formula-row"><span class="formula-name">Rectangle</span><span class="formula-val">A = L × l</span></div>
+      <div class="formula-row"><span class="formula-name">Triangle</span><span class="formula-val">A = (b × h) ÷ 2</span></div>
+      <div class="formula-row"><span class="formula-name">Disque</span><span class="formula-val">A = π × r²</span></div>
+      <div class="formula-row"><span class="formula-name">Parallélogramme</span><span class="formula-val">A = b × h</span></div>
+    </div>
+    <div class="formula-section">
+      <h3>Volumes</h3>
+      <div class="formula-row"><span class="formula-name">Cube (arête a)</span><span class="formula-val">V = a³</span></div>
+      <div class="formula-row"><span class="formula-name">Pavé droit</span><span class="formula-val">V = L × l × h</span></div>
+      <div class="formula-row"><span class="formula-name">Cylindre</span><span class="formula-val">V = π × r² × h</span></div>
+      <div class="formula-row"><span class="formula-name">Prisme</span><span class="formula-val">V = Aire base × h</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS={
+  rouge:{name:"Rouge",css:"#e74c3c"},
+  orange:{name:"Orange",css:"#e67e22"},
+  jaune:{name:"Jaune",css:"#f1c40f"},
+  vert:{name:"Vert",css:"#27ae60"},
+  bleu:{name:"Bleu",css:"#5dade2"},
+  violet:{name:"Violet",css:"#8e44ad"},
+  gris:{name:"Gris",css:"#7f8c8d"},
+  marron:{name:"Marron",css:"#8B4513"},
+  beige:{name:"Beige",css:"#d4a574"},
+  blanc:{name:"Blanc",css:"#ecf0f1"}
+};
+
+const ZONES=[
+  // z1: Left tower → gris. Aire rectangle 6×16
+  {id:1, eq:"Aire d'un rectangle de longueur 16 cm et largeur 6 cm", choices:[
+    {val:"96 cm²",color:"gris",correct:true},
+    {val:"44 cm²",color:"rouge"},
+    {val:"22 cm²",color:"bleu"},
+    {val:"192 cm²",color:"vert"}]},
+  // z2: Left battlement → gris. Périmètre rectangle 7×3
+  {id:2, eq:"Périmètre d'un rectangle de longueur 7 cm et largeur 3 cm", choices:[
+    {val:"20 cm",color:"gris",correct:true},
+    {val:"21 cm²",color:"rouge"},
+    {val:"10 cm",color:"jaune"},
+    {val:"40 cm",color:"bleu"}]},
+  // z3: Left roof → rouge. Aire triangle base 7, hauteur 4,5
+  {id:3, eq:"Aire d'un triangle de base 8 cm et hauteur 6 cm", choices:[
+    {val:"24 cm²",color:"rouge",correct:true},
+    {val:"48 cm²",color:"gris"},
+    {val:"14 cm²",color:"vert"},
+    {val:"12 cm²",color:"bleu"}]},
+  // z4: Right tower → gris. Volume pavé 6×6×16
+  {id:4, eq:"Volume d'un pavé droit de longueur 8 cm, largeur 4 cm et hauteur 3 cm", choices:[
+    {val:"96 cm³",color:"gris",correct:true},
+    {val:"30 cm³",color:"orange"},
+    {val:"15 cm³",color:"vert"},
+    {val:"48 cm³",color:"bleu"}]},
+  // z5: Right battlement → gris. Périmètre carré côté 5
+  {id:5, eq:"Périmètre d'un carré de côté 5 cm", choices:[
+    {val:"25 cm",color:"violet"},
+    {val:"10 cm",color:"orange"},
+    {val:"20 cm",color:"gris",correct:true},
+    {val:"15 cm",color:"rouge"}]},
+  // z6: Right roof → rouge. Aire triangle base 7, hauteur 4
+  {id:6, eq:"Aire d'un triangle de base 12 cm et hauteur 4 cm", choices:[
+    {val:"24 cm²",color:"rouge",correct:true},
+    {val:"48 cm²",color:"bleu"},
+    {val:"16 cm²",color:"gris"},
+    {val:"32 cm²",color:"jaune"}]},
+  // z7: Main wall → beige. Aire rectangle 22×12
+  {id:7, eq:"Aire d'un rectangle de longueur 11 cm et largeur 8 cm", choices:[
+    {val:"88 cm²",color:"beige",correct:true},
+    {val:"38 cm²",color:"rouge"},
+    {val:"19 cm²",color:"gris"},
+    {val:"44 cm²",color:"bleu"}]},
+  // z8: Gate → marron. Volume cube arête 3
+  {id:8, eq:"Volume d'un cube d'arête 3 cm", choices:[
+    {val:"9 cm³",color:"gris"},
+    {val:"12 cm³",color:"rouge"},
+    {val:"27 cm³",color:"marron",correct:true},
+    {val:"18 cm³",color:"bleu"}]},
+  // z9: Left window → bleu. Aire carré côté 6
+  {id:9, eq:"Aire d'un carré de côté 6 cm", choices:[
+    {val:"36 cm²",color:"bleu",correct:true},
+    {val:"24 cm²",color:"marron"},
+    {val:"12 cm²",color:"rouge"},
+    {val:"48 cm²",color:"vert"}]},
+  // z10: Right window → bleu. Périmètre rectangle 5×4
+  {id:10, eq:"Périmètre d'un rectangle de longueur 5 cm et largeur 4 cm", choices:[
+    {val:"18 cm",color:"bleu",correct:true},
+    {val:"20 cm²",color:"gris"},
+    {val:"9 cm",color:"rouge"},
+    {val:"40 cm",color:"orange"}]},
+  // z11: Battlements center → gris. Périmètre rectangle 22×2,5
+  {id:11, eq:"Aire d'un parallélogramme de base 10 cm et hauteur 4 cm", choices:[
+    {val:"40 cm²",color:"gris",correct:true},
+    {val:"28 cm²",color:"rouge"},
+    {val:"14 cm²",color:"jaune"},
+    {val:"20 cm²",color:"vert"}]},
+  // z12: Left flag → rouge. Aire triangle base 2,5 hauteur 2,3 → too decimal. Use base 5, h 4
+  {id:12, eq:"Aire d'un triangle de base 10 cm et hauteur 5 cm", choices:[
+    {val:"50 cm²",color:"vert"},
+    {val:"25 cm²",color:"rouge",correct:true},
+    {val:"15 cm²",color:"bleu"},
+    {val:"30 cm²",color:"jaune"}]},
+  // z13: Right flag → rouge. Périmètre triangle 5+4+3
+  {id:13, eq:"Périmètre d'un triangle dont les côtés mesurent 7 cm, 3 cm et 2 cm", choices:[
+    {val:"12 cm",color:"rouge",correct:true},
+    {val:"42 cm²",color:"bleu"},
+    {val:"21 cm",color:"gris"},
+    {val:"6 cm",color:"vert"}]},
+  // z14: Ground → vert. Volume pavé 10×5×2
+  {id:14, eq:"Volume d'un pavé droit de longueur 10 cm, largeur 5 cm et hauteur 2 cm", choices:[
+    {val:"17 cm³",color:"marron"},
+    {val:"50 cm³",color:"orange"},
+    {val:"100 cm³",color:"vert",correct:true},
+    {val:"200 cm³",color:"bleu"}]},
+  // z15: Left bush → vert. Aire carré côté 10
+  {id:15, eq:"Aire d'un carré de côté 10 cm", choices:[
+    {val:"40 cm²",color:"gris"},
+    {val:"100 cm²",color:"vert",correct:true},
+    {val:"20 cm²",color:"rouge"},
+    {val:"400 cm²",color:"orange"}]},
+  // z16: Right bush → vert. Périmètre carré côté 7
+  {id:16, eq:"Périmètre d'un carré de côté 7 cm", choices:[
+    {val:"28 cm",color:"vert",correct:true},
+    {val:"49 cm²",color:"bleu"},
+    {val:"14 cm",color:"rouge"},
+    {val:"21 cm",color:"gris"}]},
+  // z17: Path → beige. Aire rectangle 8×7
+  {id:17, eq:"Aire d'un rectangle de longueur 8 cm et largeur 7 cm", choices:[
+    {val:"56 cm²",color:"beige",correct:true},
+    {val:"30 cm²",color:"bleu"},
+    {val:"15 cm²",color:"vert"},
+    {val:"112 cm²",color:"rouge"}]},
+  // z18: Moat → bleu. Volume pavé 40×4×2
+  {id:18, eq:"Volume d'un pavé droit de longueur 8 cm, largeur 5 cm et hauteur 4 cm", choices:[
+    {val:"160 cm³",color:"bleu",correct:true},
+    {val:"80 cm³",color:"vert"},
+    {val:"17 cm³",color:"rouge"},
+    {val:"320 cm³",color:"gris"}]},
+  // z19: Sun → jaune. Périmètre carré côté 9
+  {id:19, eq:"Périmètre d'un carré de côté 9 cm", choices:[
+    {val:"81 cm²",color:"rouge"},
+    {val:"36 cm",color:"jaune",correct:true},
+    {val:"18 cm",color:"bleu"},
+    {val:"27 cm",color:"vert"}]},
+  // z20: Cloud → blanc. Volume cube arête 5
+  {id:20, eq:"Volume d'un cube d'arête 5 cm", choices:[
+    {val:"125 cm³",color:"blanc",correct:true},
+    {val:"25 cm³",color:"jaune"},
+    {val:"75 cm³",color:"bleu"},
+    {val:"150 cm³",color:"gris"}]},
+];
+
+let zoneColors={},selZone=-1;
+function init(){buildLegend();buildEqList();ZONES.forEach(z=>{const el=document.getElementById('z'+z.id);if(el)el.addEventListener('click',()=>selectZone(z.id));});}
+function selectZone(id){selZone=id;document.getElementById('pempty').style.display='none';document.getElementById('pcontent').style.display='block';const z=ZONES.find(z=>z.id===id);document.getElementById('zbadge').textContent='Zone '+id;document.getElementById('peq').textContent=z.eq;buildQCM(z);document.querySelectorAll('.eq-item').forEach(el=>{el.style.outline=el.dataset.id==id?'2px solid var(--acc)':'none';});if(window.innerWidth<=700)document.getElementById('panel').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function buildQCM(z){const qcm=document.getElementById('qcm');qcm.innerHTML='';const L=['A','B','C','D'];z.choices.forEach((ch,i)=>{const btn=document.createElement('div');btn.className='qcm-btn'+(zoneColors[z.id]===ch.color?' picked':'');btn.innerHTML='<span class="qcm-letter">'+L[i]+'</span><div class="qcm-swatch" style="background:'+COLORS[ch.color].css+'"></div><span class="qcm-expr">'+ch.val+'</span>';btn.addEventListener('click',()=>pickChoice(z.id,ch.color));qcm.appendChild(btn);});}
+function pickChoice(zid,ck){zoneColors[zid]=ck;const el=document.getElementById('z'+zid);if(el){el.style.fill=COLORS[ck].css;el.classList.add('colored');}const z=ZONES.find(z=>z.id===zid);buildQCM(z);const ei=document.querySelector('.eq-item[data-id="'+zid+'"]');if(ei)ei.classList.add('done');}
+function buildLegend(){const g=document.getElementById('legGrid');const r=document.createElement('div');r.style.cssText='font-size:12px;color:var(--txt2);margin-bottom:6px;line-height:1.5;width:100%';r.innerHTML='Calcule puis choisis <b>la bonne réponse</b>. Attention aux unités !';g.appendChild(r);for(const[k,c] of Object.entries(COLORS)){const i=document.createElement('div');i.className='leg-item';i.innerHTML='<div class="leg-swatch" style="background:'+c.css+'"></div><span class="leg-text">'+c.name+'</span>';g.appendChild(i);}}
+function buildEqList(){const l=document.getElementById('eqList');ZONES.forEach(z=>{const i=document.createElement('div');i.className='eq-item';i.dataset.id=z.id;i.innerHTML='<span class="eq-num">'+z.id+'</span> '+z.eq;i.addEventListener('click',()=>selectZone(z.id));l.appendChild(i);});}
+function checkAll(){let ok=0;ZONES.forEach(z=>{const el=document.getElementById('z'+z.id);const c=z.choices.find(c=>c.correct).color;if(zoneColors[z.id]===c){ok++;el.style.stroke='#1d9e75';el.style.strokeWidth='3';}else if(zoneColors[z.id]!==undefined){el.style.stroke='#e24b4a';el.style.strokeWidth='3';}});const s=document.getElementById('score');if(ok===ZONES.length)s.innerHTML='🎉 <b>Parfait !</b> '+ok+'/'+ZONES.length+' zones correctes !';else s.innerHTML='<b>'+ok+'/'+ZONES.length+'</b> zones correctes';}
+function razAll(){zoneColors={};ZONES.forEach(z=>{const el=document.getElementById('z'+z.id);if(el){el.style.fill='#f5f4ef';el.style.stroke='#333';el.style.strokeWidth='1.8';el.classList.remove('colored');}});document.querySelectorAll('.eq-item').forEach(el=>{el.classList.remove('done');el.style.outline='none';});document.getElementById('score').innerHTML='';document.getElementById('pempty').style.display='flex';document.getElementById('pcontent').style.display='none';selZone=-1;}
+function toggleFormulas(){const m=document.getElementById('modalOverlay');m.classList.toggle('show');}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)toggleFormulas();});
+init();
+</script>
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'Quicksand',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all .3s ease}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem}}
+</style>
+</body>
+</html>
