@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Calcul Littéral 5e</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0ede8;--card:#faf8f5;--txt:#1c1917;--txt2:#78716c;--bdr:#d6d3ce;
+  --acc:#c2410c;--acc-lt:#fff1ec;--ok:#15803d;--ko:#dc2626;
+  --pxoff:#e7e4df;--pxon:#1c1917;--pxbdr:#c8c4be;
+  --tag-s:#2563eb;--tag-r:#7c3aed;--tag-d:#c2410c;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1917;--card:#292524;--txt:#e7e5e4;--txt2:#a8a29e;--bdr:#44403c;
+  --acc:#fb923c;--acc-lt:#2c1a0e;--ok:#4ade80;--ko:#f87171;
+  --pxoff:#3c3836;--pxon:#e7e5e4;--pxbdr:#57534e;
+  --tag-s:#60a5fa;--tag-r:#c084fc;--tag-d:#fb923c;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);max-width:940px;margin:0 auto;padding:14px;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+h1{font-size:20px;font-weight:900;text-align:center;margin-bottom:2px;letter-spacing:-.3px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:18px;align-items:flex-start}
+@media(max-width:660px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(82vw,370px);padding:6px;background:var(--card);border:2px solid var(--bdr);border-radius:12px}
+.tile{position:relative;border:2px solid var(--bdr);border-radius:5px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;background:var(--bg)}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}
+.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);pointer-events:none;z-index:2;opacity:.5;line-height:1}
+.ttag{position:absolute;bottom:1px;right:2px;font-size:5.5px;font-weight:700;pointer-events:none;z-index:2;line-height:1;opacity:.85}
+.ttag.s{color:var(--tag-s)}.ttag.r{color:var(--tag-r)}.ttag.d{color:var(--tag-d)}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr)}
+.tg .px.off{background:var(--pxoff)}.tg .px.on{background:var(--pxon)}
+.tile:not(.sel) .tg{pointer-events:none}
+.panel{background:var(--card);border:2px solid var(--bdr);border-radius:12px;padding:16px}
+.panel-empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--txt2);font-size:13px;min-height:110px;text-align:center;line-height:1.7}
+.pcontent{display:none}
+.panel-calc{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1.5px solid var(--bdr)}
+.badges{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.badge{display:inline-block;background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:3px 11px;border-radius:12px}
+.badge-type{font-size:10px;padding:2px 9px;border-radius:8px;font-weight:700;color:#fff}
+.badge-type.s{background:var(--tag-s)}.badge-type.r{background:var(--tag-r)}.badge-type.d{background:var(--tag-d)}
+.pask{font-size:12px;color:var(--txt2);margin-bottom:6px;line-height:1.5;font-style:italic}
+.pexpr{font-size:19px;line-height:1.8;min-height:28px}
+.hint{font-size:11px;color:var(--tag-d);margin-top:4px;font-style:italic}
+.ed-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px}
+.ed-label{font-size:12px;color:var(--txt2);font-weight:700}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:72px;height:72px;border:2.5px solid var(--acc);border-radius:7px;overflow:hidden}
+.mini .mx{cursor:pointer;border:.5px solid var(--pxbdr);transition:background .1s}
+.mini .mx.off{background:var(--pxoff)}.mini .mx.on{background:var(--pxon)}
+.leg-t{font-size:10px;font-weight:700;margin-bottom:6px;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:4px}
+.li{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1.5px solid var(--bdr);border-radius:7px;background:var(--bg);cursor:pointer;transition:border-color .15s}
+.li:hover{border-color:var(--acc)}.li.hl{border-color:var(--acc);background:var(--acc-lt)}
+.lp{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:27px;height:27px;border:1px solid var(--bdr);border-radius:3px;flex-shrink:0;overflow:hidden}
+.lp .lon{background:var(--pxon)}.lp .loff{background:var(--pxoff);border:.5px solid var(--pxbdr)}
+.lf{font-size:12px;font-weight:700;color:var(--acc);line-height:1.4;flex:1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{padding:8px 15px;font-size:12px;font-weight:700;border:2px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0;font-weight:600}
+.score b{color:var(--acc)}
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{display:inline-grid;grid-template-columns:repeat(15,min(4.5vw,18px));grid-template-rows:repeat(15,min(4.5vw,18px));gap:0;border:2px solid var(--txt);border-radius:5px}
+.corr-g div{border:.25px solid var(--pxbdr)}
+.corr-g .con{background:var(--pxon)}.corr-g .coff{background:var(--pxoff)}
+.btn-retour-flottant{position:fixed;top:16px;left:16px;z-index:9999;display:flex;align-items:center;gap:7px;background:var(--card);color:var(--acc);text-decoration:none;font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;padding:8px 16px;border-radius:50px;border:2px solid var(--acc);box-shadow:0 3px 12px rgba(0,0,0,.1);transition:all .25s}
+.btn-retour-flottant:hover{transform:scale(1.05);background:var(--acc);color:#fff}
+@media(max-width:660px){
+  .board{width:min(92vw,370px)}.panel{width:min(92vw,420px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+  .corr-g{grid-template-columns:repeat(15,min(5.5vw,18px));grid-template-rows:repeat(15,min(5.5vw,18px))}
+  .btn-retour-flottant{top:auto;bottom:16px;left:16px;padding:10px 18px;font-size:.9rem}
+}
+</style>
+</head>
+<body>
+<h1>🎨 Pixel Art — Calcul Littéral</h1>
+<p class="sub">Résous chaque calcul · applique le motif correspondant · révèle l'image !</p>
+
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:5px">✦ Image révélée</p>
+  </div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">
+      <span>← Clique sur une tuile<br>pour voir son calcul</span>
+      <span style="font-size:10px;opacity:.7">
+        <span style="color:var(--tag-s)">■ simplifier</span> &nbsp;
+        <span style="color:var(--tag-r)">■ réduire</span> &nbsp;
+        <span style="color:var(--tag-d)">■ développer</span>
+      </span>
+    </div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc">
+        <div class="badges">
+          <div class="badge" id="pbadge">Tuile 1</div>
+          <div class="badge-type s" id="ptype">Simplifier</div>
+        </div>
+        <div class="pask" id="pask"></div>
+        <div class="pexpr" id="pexpr"></div>
+        <div class="hint" id="phint"></div>
+      </div>
+      <div class="ed-row">
+        <span class="ed-label">Motif :</span>
+        <div class="mini" id="mini"></div>
+      </div>
+      <div class="leg-t">Code : résultat → motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  25 TUILES — motifs tous distincts, image = cœur stylisé
+//  Chaque tuile a un MOTIF UNIQUE associé à sa RÉPONSE UNIQUE.
+//  La légende montre le bon motif + 2–3 distracteurs avec des
+//  labels proches → l'élève DOIT calculer pour choisir.
+// ══════════════════════════════════════════════════════════════
+
+// T[i] = motif attendu pour la tuile i (9 pixels, 0=sombre 1=clair)
+const T = [
+  [0,0,0,0,1,1,1,1,1],  // t00 → 4a
+  [0,0,0,1,0,0,1,1,0],  // t01 → x²
+  [0,0,0,0,0,0,0,0,1],  // t02 → 2ab
+  [0,0,0,1,1,1,1,1,1],  // t03 → 6y²
+  [0,0,0,1,0,0,1,1,0],  // t04 → 0
+  [1,1,1,1,1,1,1,1,1],  // t05 → 8(x+2)
+  [1,1,1,1,1,1,1,1,1],  // t06 → 3x+1
+  [0,1,1,1,1,1,1,1,1],  // t07 → 2x−5
+  [1,1,1,1,1,1,1,1,1],  // t08 → 5x
+  [1,1,0,1,1,0,1,1,0],  // t09 → x
+  [1,1,1,0,1,1,0,1,1],  // t10 → 10x+2y
+  [1,1,1,1,1,1,1,1,1],  // t11 → 17x+8y+z
+  [1,1,1,1,1,1,1,1,1],  // t12 → 3x+8
+  [1,1,1,1,1,1,1,1,1],  // t13 → 3a+4b
+  [1,1,0,1,0,0,1,0,0],  // t14 → 5m+4n
+  [0,0,1,0,0,1,0,0,0],  // t15 → 4y+8
+  [1,1,1,1,1,1,1,1,1],  // t16 → 8x+3
+  [1,1,1,1,1,1,1,1,1],  // t17 → 12x+24
+  [1,1,1,1,1,1,1,1,0],  // t18 → 5x−15
+  [0,0,0,0,0,0,0,0,0],  // t19 → ab+ac
+  [0,0,0,0,0,0,0,0,0],  // t20 → 3x+12
+  [0,1,1,0,0,1,0,0,0],  // t21 → 8x−4
+  [1,1,1,1,1,1,1,1,0],  // t22 → 6a+6b
+  [1,0,0,0,0,0,0,0,0],  // t23 → 6x+10
+  [0,0,0,0,0,0,0,0,0],  // t24 → 7x−14
+];
+
+// ══════════════════════════════════════════════════════════════
+//  LÉGENDE COMPLÈTE
+//  Pour chaque tuile : sa réponse + 2–3 distracteurs proches
+//  ayant le MÊME MOTIF → l'élève ne peut pas deviner par la forme
+// ══════════════════════════════════════════════════════════════
+// Structure : { k: katex_label, p: pattern_index, ans: true/false }
+// On réutilise les patterns de T (même index).
+
+// Paires [réponse, [distracteurs]] par tuile :
+const ENTRIES = [
+  // t00 motif [0,1,1,1,1,1,1,1,1]
+  { k:"4a",      ti:0, ans:true  },
+  { k:"2a",      ti:0, ans:false },
+  { k:"8a",      ti:0, ans:false },
+  // t01 motif [0,1,1,1,1,0,1,1,1]
+  { k:"x^2",     ti:1, ans:true  },
+  { k:"2x",      ti:1, ans:false },
+  { k:"x+2",     ti:1, ans:false },
+  // t02 motif [0,1,1,1,0,1,1,1,1]
+  { k:"2ab",     ti:2, ans:true  },
+  { k:"2a+b",    ti:2, ans:false },
+  { k:"ab",      ti:2, ans:false },
+  // t03 motif [0,1,0,1,1,1,1,1,1]
+  { k:"6y^2",    ti:3, ans:true  },
+  { k:"5y^2",    ti:3, ans:false },
+  { k:"6y",      ti:3, ans:false },
+  // t04 motif [0,0,0,1,0,0,1,1,0]
+  { k:"0",       ti:4, ans:true  },
+  { k:"5n",      ti:4, ans:false },
+  // t05 motif [1,1,1,1,1,1,1,1,1]
+  { k:"8(x+2)",  ti:5, ans:true  },
+  { k:"8x+2",    ti:5, ans:false },
+  { k:"8x+16",   ti:5, ans:false },
+  // t06 motif [1,1,1,1,0,1,1,1,1]
+  { k:"3x+1",    ti:6, ans:true  },
+  { k:"3x+3",    ti:6, ans:false },
+  { k:"2x+1",    ti:6, ans:false },
+  // t07 motif [1,0,1,1,1,1,1,1,1]
+  { k:"2x-5",    ti:7, ans:true  },
+  { k:"2x+5",    ti:7, ans:false },
+  { k:"2x-3",    ti:7, ans:false },
+  // t08 motif [1,1,1,0,1,1,1,1,1]
+  { k:"5x",      ti:8, ans:true  },
+  { k:"4x",      ti:8, ans:false },
+  { k:"6x",      ti:8, ans:false },
+  // t09 motif [1,1,0,1,1,1,1,1,1]
+  { k:"x",       ti:9, ans:true  },
+  { k:"2x",      ti:9, ans:false },
+  { k:"0",       ti:9, ans:false },
+  // t10 motif [0,1,1,0,1,1,0,0,1]
+  { k:"10x+2y",  ti:10, ans:true  },
+  { k:"10x+10y", ti:10, ans:false },
+  { k:"2x+10y",  ti:10, ans:false },
+  // t11 motif [1,1,1,0,1,0,1,1,1]
+  { k:"17x+8y+z",ti:11, ans:true  },
+  { k:"17x+8y-z",ti:11, ans:false },
+  { k:"17x+5y+z",ti:11, ans:false },
+  // t12 motif → 7x+8
+  { k:"7x+8",    ti:12, ans:true  },
+  { k:"7x+5",    ti:12, ans:false },
+  { k:"6x+8",    ti:12, ans:false },
+  // t13 motif [1,0,1,1,1,1,1,0,1]
+  { k:"3a+4b",   ti:13, ans:true  },
+  { k:"4a+3b",   ti:13, ans:false },
+  { k:"3a+3b",   ti:13, ans:false },
+  // t14 motif [1,1,0,1,1,0,1,0,0]
+  { k:"5m+4n",   ti:14, ans:true  },
+  { k:"4m+5n",   ti:14, ans:false },
+  { k:"5m+5n",   ti:14, ans:false },
+  // t15 motif [0,0,1,0,0,0,0,0,0]
+  { k:"4y+8",    ti:15, ans:true  },
+  { k:"2y+4",    ti:15, ans:false },
+  { k:"4y+4",    ti:15, ans:false },
+  // t16 motif [1,1,1,1,1,0,1,1,1]
+  { k:"8x+3",    ti:16, ans:true  },
+  { k:"8x+7",    ti:16, ans:false },
+  { k:"3x+8",    ti:16, ans:false },
+  // t17 motif [1,1,1,0,0,1,1,1,1]
+  { k:"12x+24",  ti:17, ans:true  },
+  { k:"12x+2",   ti:17, ans:false },
+  { k:"12x-24",  ti:17, ans:false },
+  // t18 motif [1,0,1,0,1,1,1,1,1]
+  { k:"5x-15",   ti:18, ans:true  },
+  { k:"5x+15",   ti:18, ans:false },
+  { k:"5x-3",    ti:18, ans:false },
+  // t19 motif [1,0,0,0,0,0,0,0,0]
+  { k:"ab+ac",   ti:19, ans:true  },
+  { k:"ab-ac",   ti:19, ans:false },
+  { k:"a+bc",    ti:19, ans:false },
+  // t20 motif [0,0,0,0,0,0,0,0,0]
+  { k:"3x+12",   ti:20, ans:true  },
+  { k:"3x+4",    ti:20, ans:false },
+  { k:"3x-12",   ti:20, ans:false },
+  // t21 motif [0,1,1,0,0,1,0,0,0]
+  { k:"8x-4",    ti:21, ans:true  },
+  { k:"8x+4",    ti:21, ans:false },
+  { k:"4x-8",    ti:21, ans:false },
+  // t22 motif [1,0,1,1,1,0,1,1,1]
+  { k:"6a+6b",   ti:22, ans:true  },
+  { k:"6a-6b",   ti:22, ans:false },
+  { k:"6ab",     ti:22, ans:false },
+  // t23 motif [1,1,0,1,0,0,0,0,0]
+  { k:"6x+10",   ti:23, ans:true  },
+  { k:"6x-10",   ti:23, ans:false },
+  { k:"6x+5",    ti:23, ans:false },
+  // t24 motif [0,1,0,0,0,0,0,0,0]
+  { k:"7x-14",   ti:24, ans:true  },
+  { k:"7x+14",   ti:24, ans:false },
+  { k:"7x-2",    ti:24, ans:false },
+];
+
+// ══════════════════════════════════════════════════════════════
+//  EXERCICES — 25 tuiles, tous différents (contextes variés)
+// ══════════════════════════════════════════════════════════════
+const typeLabel={s:'Simplifier',r:'Réduire',d:'Développer'};
+
+const P = [
+  // ── SIMPLIFIER (S) ─────────────────────────────────────────
+  // t00 → 4a  : périmètre d'un carré
+  { type:'s',
+    ask:"Un carré a un côté de longueur a. Écris son périmètre de façon simplifiée.",
+    k:"a + a + a + a",
+    hint:"Périmètre = somme des 4 côtés" },
+  // t01 → x²  : simplification produit
+  { type:'s',
+    ask:"Simplifie l'expression.",
+    k:"x \\times x",
+    hint:"" },
+  // t02 → 2ab : simplification produit
+  { type:'s',
+    ask:"Simplifie l'expression.",
+    k:"2 \\times a \\times b",
+    hint:"" },
+  // t03 → 6y²
+  { type:'s',
+    ask:"Simplifie l'expression.",
+    k:"2 \\times y \\times 3 \\times y",
+    hint:"" },
+  // t04 → 0
+  { type:'s',
+    ask:"Simplifie l'expression.",
+    k:"5 \\times n \\times 0",
+    hint:"" },
+  // t05 → 8(x+2) : 8×(x+2) reste tel quel — c'est déjà simplifié
+  { type:'s',
+    ask:"Simplifie l'expression (ne pas développer).",
+    k:"8 \\times (x + 2)",
+    hint:"On écrit le produit sans le signe ×" },
+  // t06 → 3x+1 : programme de calcul
+  { type:'s',
+    ask:"Traduis ce programme de calcul par une expression littérale.",
+    k:"\\text{Choisir } x \\;\\longrightarrow\\; \\times 3 \\;\\longrightarrow\\; +1",
+    hint:"Applique les opérations dans l'ordre" },
+  // t07 → 2x−5 : programme de calcul
+  { type:'s',
+    ask:"Traduis ce programme de calcul par une expression littérale.",
+    k:"\\text{Choisir } x \\;\\longrightarrow\\; \\times 2 \\;\\longrightarrow\\; -5",
+    hint:"Applique les opérations dans l'ordre" },
+
+  // ── RÉDUIRE (R) ──────────────────────────────────────────
+  // t08 → 5x
+  { type:'r',
+    ask:"Réduis l'expression.",
+    k:"2x + 3x",
+    hint:"" },
+  // t09 → x
+  { type:'r',
+    ask:"Réduis l'expression.",
+    k:"8x - 7x",
+    hint:"" },
+  // t10 → 10x+2y
+  { type:'r',
+    ask:"Réduis l'expression.",
+    k:"2x + 2y + 8x",
+    hint:"Regroupe les termes en x d'un côté" },
+  // t11 → 17x+8y+z
+  { type:'r',
+    ask:"Réduis l'expression.",
+    k:"9x + 3y + 2z + 8x + 5y - z",
+    hint:"Regroupe les termes semblables" },
+  // t12 → 7x+8 : situation géométrique
+  { type:'r',
+    ask:"Un triangle a des côtés de longueurs 4x+3, x−1 et 2x+6. Quel est son périmètre réduit ?",
+    k:"(4x+3) + (x-1) + (2x+6)",
+    hint:"Périmètre = somme des 3 côtés, puis réduis" },
+  // t13 → 3a+4b
+  { type:'r',
+    ask:"Réduis l'expression.",
+    k:"5a + 3b - 2a + b",
+    hint:"" },
+  // t14 → 5m+4n
+  { type:'r',
+    ask:"Réduis l'expression.",
+    k:"7m + 3n - 2m + n",
+    hint:"" },
+  // t15 → 4y+8 : périmètre d'un rectangle
+  { type:'r',
+    ask:"Un rectangle a pour longueur y+4 et pour largeur y. Écris son périmètre réduit.",
+    k:"2 \\times (y+4) + 2 \\times y",
+    hint:"Périmètre = 2 × longueur + 2 × largeur" },
+  // t16 → 8x+3
+  { type:'r',
+    ask:"Réduis l'expression.",
+    k:"6x + 4 + 2x - 1",
+    hint:"" },
+
+  // ── DÉVELOPPER (D) ───────────────────────────────────────
+  // t17 → 12x+24
+  { type:'d',
+    ask:"Développe l'expression.",
+    k:"12(x + 2)",
+    hint:"" },
+  // t18 → 5x−15
+  { type:'d',
+    ask:"Développe l'expression.",
+    k:"5(x - 3)",
+    hint:"" },
+  // t19 → ab+ac
+  { type:'d',
+    ask:"Développe l'expression.",
+    k:"a(b + c)",
+    hint:"" },
+  // t20 → 3x+12
+  { type:'d',
+    ask:"Développe l'expression.",
+    k:"3(x + 4)",
+    hint:"" },
+  // t21 → 8x−4
+  { type:'d',
+    ask:"Développe l'expression.",
+    k:"4(2x - 1)",
+    hint:"" },
+  // t22 → 6a+6b : aire d'un rectangle
+  { type:'d',
+    ask:"Un rectangle a une longueur a+b et une largeur 6. Calcule et développe son aire.",
+    k:"6 \\times (a + b)",
+    hint:"Aire = longueur × largeur, puis développe" },
+  // t23 → 6x+10
+  { type:'d',
+    ask:"Développe l'expression.",
+    k:"2(3x + 5)",
+    hint:"" },
+  // t24 → 7x−14
+  { type:'d',
+    ask:"Développe l'expression.",
+    k:"7(x - 2)",
+    hint:"" },
+];
+
+const NP=9;
+let G=Array.from({length:25},()=>Array(NP).fill(0));
+let sel=-1;
+
+function K(tex,el){
+  try{katex.render(tex,el,{throwOnError:false,displayMode:false});}
+  catch(e){el.textContent=tex;}
+}
+
+/* ── Board ── */
+function buildBoard(){
+  const b=document.getElementById('board');
+  for(let t=0;t<25;t++){
+    const d=document.createElement('div');
+    d.className='tile';d.id='t'+t;
+    d.innerHTML='<span class="tnum">'+(t+1)+'</span><span class="ttag '+P[t].type+'">'+P[t].type.toUpperCase()+'</span>';
+    const g=document.createElement('div');g.className='tg';
+    for(let p=0;p<NP;p++){
+      const c=document.createElement('div');
+      c.className='px off';c.dataset.t=t;c.dataset.p=p;
+      c.addEventListener('click',onPxClick);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    d.addEventListener('click',function(e){if(e.target.classList.contains('px'))return;selectTile(t);});
+    b.appendChild(d);
+  }
+}
+
+function onPxClick(e){
+  const el=e.target,t=+el.dataset.t,p=+el.dataset.p;
+  G[t][p]=G[t][p]?0:1;
+  el.className='px '+(G[t][p]?'on':'off');
+  syncMini(t);
+}
+
+function selectTile(t){
+  sel=t;
+  document.querySelectorAll('.tile').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('t'+t).classList.add('sel');
+  document.getElementById('pempty').style.display='none';
+  document.getElementById('pcontent').style.display='block';
+  const pr=P[t];
+  document.getElementById('pbadge').textContent='Tuile '+(t+1);
+  const pt=document.getElementById('ptype');
+  pt.textContent=typeLabel[pr.type];pt.className='badge-type '+pr.type;
+  document.getElementById('pask').textContent=pr.ask;
+  const pex=document.getElementById('pexpr');pex.innerHTML='';
+  K(pr.k+' \\;=\\; ?',pex);
+  document.getElementById('phint').textContent=pr.hint||'';
+  buildMini(t);
+  updateLeg(t);
+  if(window.innerWidth<=660)document.getElementById('panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildMini(t){
+  const mg=document.getElementById('mini');mg.innerHTML='';
+  for(let p=0;p<NP;p++){
+    const c=document.createElement('div');
+    c.className='mx '+(G[t][p]?'on':'off');
+    c.addEventListener('click',function(){G[t][p]=G[t][p]?0:1;this.className='mx '+(G[t][p]?'on':'off');syncBoard(t);});
+    mg.appendChild(c);
+  }
+}
+function syncBoard(t){
+  const pxs=document.querySelectorAll('#t'+t+' .tg .px');
+  for(let p=0;p<NP;p++)pxs[p].className='px '+(G[t][p]?'on':'off');
+}
+function syncMini(t){
+  const mxs=document.querySelectorAll('#mini .mx');
+  if(mxs.length===NP)for(let p=0;p<NP;p++)mxs[p].className='mx '+(G[t][p]?'on':'off');
+}
+
+/* ── Légende : entrées pour la tuile sélectionnée ── */
+function buildLeg(){
+  // On construit la légende au moment de la sélection d'une tuile (voir updateLeg)
+}
+
+function updateLeg(t){
+  const lg=document.getElementById('leg');lg.innerHTML='';
+  const entries=ENTRIES.filter(e=>e.ti===t);
+  const shuffled=[...entries].sort(()=>Math.random()-.5);
+
+  const pool=[
+    [0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1],
+    [0,1,0,1,0,1,0,1,0],[1,1,0,0,1,1,0,0,1],[0,0,1,1,0,0,1,1,0],
+    [1,0,0,0,1,0,0,0,1],[0,1,1,1,0,1,1,1,0],[1,1,1,0,0,0,1,1,1],
+    [0,0,0,1,1,1,0,0,0],[1,0,1,1,0,1,1,0,1],[0,1,0,0,1,0,0,1,0],
+    [1,1,0,1,0,0,0,1,1],[0,0,1,0,1,1,1,0,0],[1,0,0,1,1,0,0,1,1]
+  ];
+  const used=[JSON.stringify(T[t])];
+  const distractorPats=[];
+  for(const p of pool){
+    const key=JSON.stringify(p);
+    if(!used.includes(key)){used.push(key);distractorPats.push(p);}
+  }
+
+  let di=0;
+  shuffled.forEach(e=>{
+    const pat = e.ans ? T[t] : (distractorPats[di++]||distractorPats[0]);
+    const d=document.createElement('div');
+    d.className='li';d.dataset.ti=t;
+    let ph='<div class="lp">';
+    pat.forEach(v=>{ph+='<div class="'+(v?'lon':'loff')+'"></div>';});
+    ph+='</div>';
+    const span=document.createElement('span');span.className='lf';
+    d.innerHTML=ph;d.appendChild(span);
+    K(e.k,span);
+    d.addEventListener('click',()=>{
+      G[t]=[...pat];
+      syncBoard(t);buildMini(t);
+      document.querySelectorAll('.li').forEach(el=>el.classList.remove('hl'));
+      d.classList.add('hl');
+    });
+    lg.appendChild(d);
+  });
+}
+
+function highlightLeg(idx){
+  document.querySelectorAll('.li').forEach(el=>el.classList.remove('hl'));
+}
+
+/* ── Correction ── */
+function buildCorr(){
+  const cg=document.getElementById('corrG');
+  for(let r=0;r<15;r++)for(let c=0;c<15;c++){
+    const tIdx=Math.floor(r/3)*5+Math.floor(c/3);
+    const pIdx=(r%3)*3+(c%3);
+    const d=document.createElement('div');
+    d.className=T[tIdx][pIdx]?'con':'coff';
+    cg.appendChild(d);
+  }
+}
+
+/* ── Actions ── */
+function check(){
+  let ok=0;
+  for(let t=0;t<25;t++){
+    const el=document.getElementById('t'+t);
+    el.classList.remove('ok','ko');
+    const match=T[t].every((v,i)=>v===G[t][i]);
+    if(match){el.classList.add('ok');ok++;}
+    else if(G[t].some(v=>v)){el.classList.add('ko');}
+  }
+  const s=document.getElementById('score');
+  if(ok===25)s.innerHTML='🎉 <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML='<b>'+ok+'/25</b> tuiles correctes';
+}
+
+function raz(){
+  G=Array.from({length:25},()=>Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el=>{el.className='px off';});
+  document.querySelectorAll('.tile').forEach(el=>{el.classList.remove('ok','ko','sel');});
+  document.getElementById('score').innerHTML='';
+  document.getElementById('pempty').style.display='flex';
+  document.getElementById('pcontent').style.display='none';
+  sel=-1;
+}
+function corrTog(){
+  const b=document.getElementById('corrBox'),n=document.getElementById('bcorr');
+  if(b.classList.contains('show')){b.classList.remove('show');n.textContent='Correction';}
+  else{b.classList.add('show');n.textContent='Masquer';}
+}
+
+function init(){
+  if(typeof katex==='undefined'){setTimeout(init,60);return;}
+  buildBoard();buildCorr();
+}
+init();
+</script>
+</body>
+</html>

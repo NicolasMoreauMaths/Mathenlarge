@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Probabilités (4ème)</title>
+<style>
+:root {
+  --bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;
+  --acc:#5b4fc4;--acc-lt:#eeedfe;--ok:#1d9e75;--ok-bg:#e1f5ee;
+  --ko:#e24b4a;
+  --pxoff:#dddcd5;--pxon:#2d2d2d;--pxbdr:#c5c4bc;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;
+  --acc:#8b82e8;--acc-lt:#2a2650;--ok:#5dcaa5;--ok-bg:#0a2e22;
+  --ko:#f09595;
+  --pxoff:#3a3a3a;--pxon:#e0e0e0;--pxbdr:#555;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--txt);
+  max-width:920px;margin:0 auto;padding:12px;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+}
+h1{font-size:18px;text-align:center;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:16px;align-items:flex-start}
+@media(max-width:660px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+.board{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
+  width:min(82vw,360px);padding:5px;
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;
+}
+.tile{
+  position:relative;border:2px solid var(--bdr);border-radius:4px;
+  overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;
+}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}
+.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{
+  position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);
+  pointer-events:none;z-index:2;opacity:.55;line-height:1;
+}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr)}
+.tg .px.off{background:var(--pxoff)}
+.tg .px.on{background:var(--pxon)}
+.tile:not(.sel) .tg{pointer-events:none}
+.panel{
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;
+}
+.panel-empty{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--txt2);font-size:13px;min-height:100px;text-align:center;line-height:1.6;
+}
+.pcontent{display:none}
+.panel-calc{
+  text-align:center;margin-bottom:14px;padding-bottom:10px;
+  border-bottom:1px solid var(--bdr);
+}
+.badge{
+  display:inline-block;background:var(--acc);color:#fff;
+  font-size:11px;font-weight:700;padding:2px 10px;
+  border-radius:10px;margin-bottom:6px;
+}
+.enonce{font-size:13px;color:var(--txt);margin-bottom:8px;line-height:1.55;text-align:left}
+.question{font-size:13px;font-weight:600;color:var(--acc);text-align:center;margin-bottom:2px}
+.frac{
+  display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:middle;line-height:1.1;margin:0 2px;
+}
+.frac .bar{display:block;height:2px;background:currentColor;width:100%;min-width:12px;margin:2px 0}
+.ed-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}
+.ed-label{font-size:12px;color:var(--txt2)}
+.mini{
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  width:72px;height:72px;border:2.5px solid var(--acc);border-radius:6px;overflow:hidden;
+}
+.mini .mx{cursor:pointer;border:.5px solid var(--pxbdr);transition:background .1s}
+.mini .mx.off{background:var(--pxoff)}
+.mini .mx.on{background:var(--pxon)}
+.leg-t{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--txt2)}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:4px}
+.li{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 6px;border:1px solid var(--bdr);border-radius:6px;background:var(--bg);
+}
+.lp{
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  width:27px;height:27px;border:1px solid var(--bdr);border-radius:2px;
+  flex-shrink:0;overflow:hidden;
+}
+.lp .lon{background:var(--pxon)}.lp .loff{background:var(--pxoff);border:.5px solid var(--pxbdr)}
+.lf{font-size:14px;font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{
+  padding:8px 14px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--bdr);background:var(--card);
+  color:var(--txt);border-radius:8px;cursor:pointer;
+}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0}
+.score b{color:var(--acc)}
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{
+  display:inline-grid;
+  grid-template-columns:repeat(15,min(4.5vw,18px));
+  grid-template-rows:repeat(15,min(4.5vw,18px));
+  gap:0;border:2px solid var(--txt);border-radius:4px;
+}
+.corr-g div{border:.25px solid var(--pxbdr)}
+.corr-g .con{background:var(--pxon)}.corr-g .coff{background:var(--pxoff)}
+@media(max-width:660px){
+  .board{width:min(92vw,360px)}
+  .panel{width:min(92vw,400px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(82px,1fr))}
+  .corr-g{grid-template-columns:repeat(15,min(5.5vw,18px));grid-template-rows:repeat(15,min(5.5vw,18px))}
+}
+</style>
+</head>
+<body>
+
+<h1>Pixel Art — Probabilités (4ème)</h1>
+<p class="sub">Clique sur une tuile, lis l'énoncé, calcule la probabilité, puis colorie selon le code.</p>
+
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:4px">Image révélée</p>
+  </div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">
+      &#x2190; Clique sur une tuile<br>pour voir son énoncé
+    </div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc">
+        <div class="badge" id="pbadge">Tuile 1</div>
+        <div class="enonce" id="penonce"></div>
+        <div class="question" id="pquestion"></div>
+      </div>
+      <div class="ed-row">
+        <span class="ed-label">Colorie :</span>
+        <div class="mini" id="mini"></div>
+      </div>
+      <div class="leg-t">Code : probabilité &#x2192; motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── T : motifs corrects extraits pixel par pixel de l'image (blocs 3×3) ──
+const T = [
+  [0,0,0,0,0,1,0,1,1], // tuile 1  → 1/3
+  [1,1,1,1,1,1,1,0,0], // tuile 2  → 2/3
+  [1,1,1,1,1,1,1,1,1], // tuile 3  → 1
+  [1,1,1,1,1,1,0,0,1], // tuile 4  → 3/4
+  [0,0,0,1,0,0,1,1,0], // tuile 5  → 1/4
+  [1,1,1,1,1,1,1,1,1], // tuile 6  → 1
+  [1,0,0,1,0,0,1,1,1], // tuile 7  → 1/2
+  [1,1,1,1,1,1,1,1,1], // tuile 8  → 1
+  [0,0,1,0,0,1,1,1,1], // tuile 9  → 2/5
+  [1,1,1,1,1,1,1,1,1], // tuile 10 → 1
+  [1,1,1,1,1,0,1,1,1], // tuile 11 → 5/6
+  [1,1,1,1,1,1,0,1,1], // tuile 12 → 4/5
+  [1,1,1,1,1,1,1,1,1], // tuile 13 → 1
+  [1,1,1,1,1,1,1,1,0], // tuile 14 → 5/6
+  [1,1,1,0,1,1,1,1,1], // tuile 15 → 4/5
+  [1,1,1,1,1,1,0,1,1], // tuile 16 → 4/5
+  [1,0,1,1,1,0,1,1,1], // tuile 17 → 5/6
+  [1,1,1,0,1,0,0,1,0], // tuile 18 → 3/5
+  [1,0,1,0,1,1,1,1,1], // tuile 19 → 4/5
+  [1,1,1,1,1,1,1,1,0], // tuile 20 → 5/6
+  [0,1,1,0,0,1,0,0,0], // tuile 21 → 1/6
+  [1,1,1,1,1,1,1,1,1], // tuile 22 → 1
+  [1,1,1,1,1,1,1,1,1], // tuile 23 → 1
+  [1,1,1,1,1,1,1,1,1], // tuile 24 → 1
+  [1,1,0,1,0,0,0,0,0], // tuile 25 → 1/5
+];
+
+// ── L : légende — chaque motif est un bloc réellement présent dans l'image ──
+const L = [
+  {pattern:[0,1,1,0,0,1,0,0,0], n:1, d:6},
+  {pattern:[1,1,0,1,0,0,0,0,0], n:1, d:5},
+  {pattern:[0,0,0,1,0,0,1,1,0], n:1, d:4},
+  {pattern:[0,0,0,0,0,1,0,1,1], n:1, d:3},
+  {pattern:[0,0,1,0,0,1,1,1,1], n:2, d:5},
+  {pattern:[1,0,0,1,0,0,1,1,1], n:1, d:2},
+  {pattern:[1,1,1,0,1,0,0,1,0], n:3, d:5},
+  {pattern:[1,1,1,1,1,1,1,0,0], n:2, d:3},
+  {pattern:[1,1,1,1,1,1,0,0,1], n:3, d:4},
+  {pattern:[1,0,1,0,1,1,1,1,1], n:4, d:5},
+  {pattern:[1,1,1,1,1,1,0,1,1], n:4, d:5},
+  {pattern:[1,1,1,0,1,1,1,1,1], n:4, d:5},
+  {pattern:[1,0,1,1,1,0,1,1,1], n:5, d:6},
+  {pattern:[1,1,1,1,1,0,1,1,1], n:5, d:6},
+  {pattern:[1,1,1,1,1,1,1,1,0], n:5, d:6},
+  {pattern:[1,1,1,1,1,1,1,1,1], n:1, d:1},
+];
+
+// ── IM : image de correction 15×15 (smiley, construit en assemblant les blocs) ──
+const IM = [
+  [0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,1,1,1,1,0,0],
+  [0,1,1,1,0,0,1,1,1,0,0,1,1,1,0],
+  [1,1,1,1,0,0,1,1,1,0,0,1,1,1,1],
+  [1,1,1,1,0,0,1,1,1,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,0,1,1,1,1,1,1,1,1,1,0,1,1],
+  [1,1,1,0,1,1,1,1,1,1,1,0,1,1,1],
+  [1,1,1,1,0,1,1,1,1,1,0,1,1,1,1],
+  [1,1,1,1,1,0,0,1,0,0,1,1,1,1,1],
+  [0,1,1,1,1,1,0,1,0,1,1,1,1,1,0],
+  [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+  [0,0,1,1,1,1,1,1,1,1,1,1,1,0,0],
+  [0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
+];
+
+// ── P : 25 énoncés — vocabulaire 4ème ──
+const P = [
+  // 1 → 1/3
+  {enonce:"On lance un dé équilibré à 6 faces (expérience aléatoire). L'univers des issues est Ω = {1 ; 2 ; 3 ; 4 ; 5 ; 6}, toutes équiprobables.",
+   question:"Quelle est la probabilité de l'événement A = « obtenir un multiple de 3 » ?"},
+  // 2 → 2/3
+  {enonce:"On lance un dé équilibré à 6 faces. On considère l'événement A = « obtenir un multiple de 3 ».",
+   question:"Quelle est la probabilité de l'événement contraire Ā = « ne pas obtenir un multiple de 3 » ?"},
+  // 3 → 1
+  {enonce:"On tire une bille dans un sac contenant uniquement des billes rouges et bleues.",
+   question:"L'événement A = « tirer une bille rouge ou bleue » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 4 → 3/4
+  {enonce:"On tire au sort une carte parmi 4 cartes numérotées 1, 2, 3, 4 — expérience aléatoire à 4 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement contraire Ā de l'événement A = « tirer le 4 » ?"},
+  // 5 → 1/4
+  {enonce:"On tire au sort une carte parmi 4 cartes numérotées 1, 2, 3, 4 — expérience aléatoire à 4 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement A = « tirer le chiffre 1 » ?"},
+  // 6 → 1
+  {enonce:"On lance un dé équilibré à 6 faces numérotées de 1 à 6.",
+   question:"L'événement A = « obtenir un entier compris entre 1 et 6 » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 7 → 1/2
+  {enonce:"Une urne contient 3 billes rouges et 3 billes bleues. On tire une bille au hasard : 6 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement A = « tirer une bille rouge » ?"},
+  // 8 → 1
+  {enonce:"On lance une pièce équilibrée (expérience aléatoire). L'univers des issues est Ω = {Pile ; Face}.",
+   question:"L'événement A = « obtenir Pile ou Face » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 9 → 2/5
+  {enonce:"Un sac contient 5 jetons numérotés de 1 à 5. On en tire un au hasard : 5 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement A = « obtenir un nombre pair » (issues favorables : 2 et 4) ?"},
+  // 10 → 1
+  {enonce:"On tire une lettre au sort dans le mot « MATHS ».",
+   question:"L'événement A = « tirer une lettre du mot MATHS » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 11 → 5/6
+  {enonce:"On lance un dé équilibré à 6 faces. On considère l'événement A = « obtenir un 1 ».",
+   question:"Quelle est la probabilité de l'événement contraire Ā = « ne pas obtenir un 1 » ?"},
+  // 12 → 4/5
+  {enonce:"Une urne contient 5 boules numérotées 1 à 5 — expérience aléatoire à 5 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement contraire Ā de l'événement A = « tirer la boule 3 » ?"},
+  // 13 → 1
+  {enonce:"On lance un dé équilibré à 6 faces.",
+   question:"L'événement A = « obtenir un nombre strictement positif » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 14 → 5/6
+  {enonce:"On lance un dé équilibré à 6 faces. On considère l'événement A = « obtenir un 6 ».",
+   question:"Quelle est la probabilité de l'événement contraire Ā = « ne pas obtenir un 6 » ?"},
+  // 15 → 4/5
+  {enonce:"On tire au sort un jour parmi les 5 jours de la semaine scolaire (lundi à vendredi) — 5 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement contraire Ā de l'événement A = « tirer le lundi » ?"},
+  // 16 → 4/5
+  {enonce:"Une roue est divisée en 5 secteurs égaux numérotés de 1 à 5 — expérience aléatoire à 5 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement A = « ne pas tomber sur le secteur 2 » ?"},
+  // 17 → 5/6
+  {enonce:"On lance un dé équilibré à 6 faces numérotées de 1 à 6.",
+   question:"Quelle est la probabilité de l'événement A = « obtenir un nombre différent de 3 » ?"},
+  // 18 → 3/5
+  {enonce:"Un sac contient 5 billes : 3 vertes et 2 jaunes. On tire une bille au hasard dans cette expérience aléatoire.",
+   question:"Quelle est la probabilité de l'événement A = « tirer une bille verte » ?"},
+  // 19 → 4/5
+  {enonce:"On tire au sort une lettre parmi les 5 voyelles A, E, I, O, U — 5 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement contraire Ā de l'événement A = « tirer la lettre O » ?"},
+  // 20 → 5/6
+  {enonce:"On lance un dé équilibré à 6 faces. On considère l'événement A = « obtenir un 4 ».",
+   question:"Quelle est la probabilité de l'événement contraire Ā = « ne pas obtenir un 4 » ?"},
+  // 21 → 1/6
+  {enonce:"On lance un dé équilibré à 6 faces. L'univers des issues Ω = {1 ; 2 ; 3 ; 4 ; 5 ; 6} est équiprobable.",
+   question:"Quelle est la probabilité de l'événement A = « obtenir le 5 » ?"},
+  // 22 → 1
+  {enonce:"On tire une bille dans une urne contenant uniquement des billes blanches et noires.",
+   question:"L'événement A = « tirer une bille blanche ou noire » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 23 → 1
+  {enonce:"On lance une pièce équilibrée (expérience aléatoire à 2 issues équiprobables).",
+   question:"L'événement A = « obtenir Pile ou Face » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 24 → 1
+  {enonce:"On tire un jeton dans un sac contenant uniquement des jetons rouges.",
+   question:"L'événement A = « tirer un jeton rouge » est-il un événement certain ? Quelle est sa probabilité ?"},
+  // 25 → 1/5
+  {enonce:"On tire au sort une lettre parmi les 5 voyelles A, E, I, O, U — 5 issues équiprobables.",
+   question:"Quelle est la probabilité de l'événement A = « tirer la lettre A » ?"},
+];
+
+const NP = 9;
+let G = Array.from({length:25}, () => Array(NP).fill(0));
+let sel = -1;
+
+function fh(n, d, s) {
+  if (d === 1 && n === 0) return '<span style="font-size:'+(s||'inherit')+'">0</span>';
+  if (d === 1 && n === 1) return '<span style="font-size:'+(s||'inherit')+'">1</span>';
+  s = s || 'inherit';
+  return '<span class="frac" style="font-size:'+s+'"><span>'+n+'</span><span class="bar"></span><span>'+d+'</span></span>';
+}
+
+function buildBoard() {
+  const b = document.getElementById('board');
+  for (let t = 0; t < 25; t++) {
+    const d = document.createElement('div');
+    d.className = 'tile'; d.id = 't' + t;
+    d.innerHTML = '<span class="tnum">' + (t+1) + '</span>';
+    const g = document.createElement('div'); g.className = 'tg';
+    for (let p = 0; p < NP; p++) {
+      const c = document.createElement('div');
+      c.className = 'px off'; c.dataset.t = t; c.dataset.p = p;
+      c.addEventListener('click', onPxClick);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    d.addEventListener('click', function(e) {
+      if (e.target.classList.contains('px')) return;
+      selectTile(t);
+    });
+    b.appendChild(d);
+  }
+}
+
+function onPxClick(e) {
+  const el = e.target;
+  const t = +el.dataset.t, p = +el.dataset.p;
+  G[t][p] = G[t][p] ? 0 : 1;
+  el.className = 'px ' + (G[t][p] ? 'on' : 'off');
+  syncMini(t);
+}
+
+function selectTile(t) {
+  sel = t;
+  document.querySelectorAll('.tile').forEach(el => el.classList.remove('sel'));
+  document.getElementById('t' + t).classList.add('sel');
+  document.getElementById('pempty').style.display = 'none';
+  document.getElementById('pcontent').style.display = 'block';
+  const pr = P[t];
+  document.getElementById('pbadge').textContent = 'Tuile ' + (t+1);
+  document.getElementById('penonce').textContent = pr.enonce;
+  document.getElementById('pquestion').textContent = pr.question;
+  buildMini(t);
+  buildLeg();
+  if (window.innerWidth <= 660)
+    document.getElementById('panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function buildMini(t) {
+  const mg = document.getElementById('mini'); mg.innerHTML = '';
+  for (let p = 0; p < NP; p++) {
+    const c = document.createElement('div');
+    c.className = 'mx ' + (G[t][p] ? 'on' : 'off');
+    c.addEventListener('click', function() {
+      G[t][p] = G[t][p] ? 0 : 1;
+      this.className = 'mx ' + (G[t][p] ? 'on' : 'off');
+      syncBoard(t);
+    });
+    mg.appendChild(c);
+  }
+}
+
+function syncBoard(t) {
+  const pxs = document.querySelectorAll('#t' + t + ' .tg .px');
+  for (let p = 0; p < NP; p++) pxs[p].className = 'px ' + (G[t][p] ? 'on' : 'off');
+}
+
+function syncMini(t) {
+  const mxs = document.querySelectorAll('#mini .mx');
+  if (mxs.length === NP) {
+    for (let p = 0; p < NP; p++) mxs[p].className = 'mx ' + (G[t][p] ? 'on' : 'off');
+  }
+}
+
+function buildLeg() {
+  const lg = document.getElementById('leg');
+  lg.innerHTML = '';
+  L.forEach(l => {
+    const d = document.createElement('div'); d.className = 'li';
+    let ph = '<div class="lp">';
+    l.pattern.forEach(v => { ph += '<div class="' + (v ? 'lon' : 'loff') + '"></div>'; });
+    ph += '</div>';
+    d.innerHTML = ph + '<span class="lf">' + fh(l.n, l.d, '13px') + '</span>';
+    lg.appendChild(d);
+  });
+}
+
+function buildCorr() {
+  const cg = document.getElementById('corrG');
+  IM.forEach(row => row.forEach(v => {
+    const d = document.createElement('div'); d.className = v ? 'con' : 'coff'; cg.appendChild(d);
+  }));
+}
+
+function check() {
+  let ok = 0;
+  for (let t = 0; t < 25; t++) {
+    const el = document.getElementById('t' + t);
+    el.classList.remove('ok', 'ko');
+    const match = T[t].every((v, i) => v === G[t][i]);
+    if (match) { el.classList.add('ok'); ok++; }
+    else if (G[t].some(v => v)) { el.classList.add('ko'); }
+  }
+  const s = document.getElementById('score');
+  if (ok === 25) s.innerHTML = '&#127881; <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML = '<b>' + ok + '/25</b> tuiles correctes';
+}
+
+function raz() {
+  G = Array.from({length:25}, () => Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el => { el.className = 'px off'; });
+  document.querySelectorAll('.tile').forEach(el => { el.classList.remove('ok','ko','sel'); });
+  document.getElementById('score').innerHTML = '';
+  document.getElementById('pempty').style.display = 'flex';
+  document.getElementById('pcontent').style.display = 'none';
+  sel = -1;
+}
+
+function corrTog() {
+  const b = document.getElementById('corrBox'), n = document.getElementById('bcorr');
+  if (b.classList.contains('show')) { b.classList.remove('show'); n.textContent = 'Correction'; }
+  else { b.classList.add('show'); n.textContent = 'Masquer'; }
+}
+
+buildBoard(); buildCorr();
+</script>
+
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+<style>
+.btn-retour-flottant {
+    position: fixed;top: 20px;left: 20px;z-index: 9999;
+    display: flex;align-items: center;gap: 8px;
+    background: white;color: #5b4fc4;text-decoration: none;
+    font-family: 'Quicksand', sans-serif;font-weight: 700;font-size: 0.9rem;
+    padding: 10px 18px;border-radius: 50px;border: 2px solid #5b4fc4;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);transition: all 0.3s ease;
+}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5b4fc4;color:white;}
+@media(max-width:600px){
+    .btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}
+}
+</style>
+</body>
+</html>

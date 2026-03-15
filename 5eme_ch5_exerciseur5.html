@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Arithmétique</title>
+<style>
+:root{--bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;--acc:#d63384;--acc-lt:#fce4ec;--ok:#1d9e75;--ko:#e24b4a;--pxbdr:#c5c4bc}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;--acc:#ff69b4;--acc-lt:#3d1a2e;--ok:#5dcaa5;--ko:#f09595;--pxbdr:#555}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);max-width:920px;margin:0 auto;padding:12px;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+h1{font-size:18px;text-align:center;margin-bottom:2px}.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:16px;align-items:flex-start}@media(max-width:660px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}.col-p{flex:1;min-width:0}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(82vw,360px);padding:5px;background:var(--card);border:1.5px solid var(--bdr);border-radius:10px}
+.tile{position:relative;border:2px solid var(--bdr);border-radius:4px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}.tile.ok{border-color:var(--ok)}.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);pointer-events:none;z-index:2;opacity:.55;line-height:1}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr);cursor:pointer;transition:background .15s}
+.tile:not(.sel) .tg{pointer-events:none}
+.panel{background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;padding:14px}
+.panel-empty{display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:13px;min-height:100px;text-align:center;line-height:1.6}
+.pcontent{display:none}.panel-calc{text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr)}
+.badge{display:inline-block;background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;margin-bottom:6px}
+.question{font-size:16px;font-weight:500;line-height:1.5;padding:0 4px}.question .eq{color:var(--acc);font-weight:700}
+.ed-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}.ed-label{font-size:12px;color:var(--txt2)}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:72px;height:72px;border:2.5px solid var(--acc);border-radius:6px;overflow:hidden}
+.mini .mx{border:.5px solid var(--pxbdr);transition:background .15s;cursor:pointer}
+.leg-t{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--txt2)}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:4px}
+.li{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--bdr);border-radius:6px;background:var(--bg)}
+.lp{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:27px;height:27px;border:1px solid var(--bdr);border-radius:2px;flex-shrink:0;overflow:hidden}
+.lp div{border:.5px solid rgba(0,0,0,.08)}
+.la{font-size:16px;font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{padding:8px 14px;font-size:12px;font-weight:600;border:1.5px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:8px;cursor:pointer}.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0}.score b{color:var(--acc)}
+.corr{display:none;margin-top:10px;text-align:center}.corr.show{display:block}
+.corr-g{display:inline-grid;grid-template-columns:repeat(15,min(4.5vw,18px));grid-template-rows:repeat(15,min(4.5vw,18px));gap:0;border:2px solid var(--txt);border-radius:4px}
+.corr-g div{border:.25px solid rgba(0,0,0,.05)}
+/* Color palette toolbar */
+.palette{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:6px}
+.pal-btn{width:28px;height:28px;border-radius:6px;border:2.5px solid transparent;cursor:pointer;transition:all .15s}
+.pal-btn.pick{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.pal-label{font-size:10px;color:var(--txt2);text-align:center;margin-bottom:8px}
+@media(max-width:660px){.board{width:min(92vw,360px)}.panel{width:min(92vw,400px)}.leg{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}.corr-g{grid-template-columns:repeat(15,min(5.5vw,18px));grid-template-rows:repeat(15,min(5.5vw,18px))}.question{font-size:15px}}
+</style>
+</head>
+<body>
+<h1>Pixel Art — Arithmétique</h1>
+<p class="sub">Clique sur une tuile, réponds à la question, puis colorie-la avec les bonnes couleurs.</p>
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox"><div class="corr-g" id="corrG"></div><p style="font-size:10px;color:var(--txt2);margin-top:4px">Image révélée</p></div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">&#x2190; Clique sur une tuile<br>pour voir sa question</div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc"><div class="badge" id="pbadge">Tuile 1</div><div class="question" id="pq"></div></div>
+      <div class="pal-label">Couleur sélectionnée :</div>
+      <div class="palette" id="palette"></div>
+      <div class="ed-row"><span class="ed-label">Colorie :</span><div class="mini" id="mini"></div></div>
+      <div class="leg-t">Code : réponse &#x2192; motif</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+const T=[[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 2, 1, 2, 2, 2, 2, 2, 2], [1, 0, 0, 1, 0, 5, 1, 0, 0], [1, 1, 0, 0, 1, 6, 1, 6, 6], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 0, 0, 2, 0, 0, 2], [2, 3, 2, 3, 3, 3, 3, 3, 3], [1, 1, 1, 2, 1, 1, 2, 2, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [2, 3, 2, 2, 2, 4, 2, 4, 4], [2, 0, 0, 4, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 4, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]];
+const P=[{"num": 1, "q": "Dans la décomposition en facteurs premiers de 48, combien y a-t-il de facteurs (avec répétitions) ?", "answer": 5}, {"num": 2, "q": "Combien vaut 15 ÷ 5 ?", "answer": 3}, {"num": 3, "q": "Quel est le plus petit facteur premier de 49 ?", "answer": 7}, {"num": 4, "q": "Combien y a-t-il de nombres premiers entre 2 et 3 (inclus) ?", "answer": 2}, {"num": 5, "q": "Quel est le plus petit facteur premier de 35 ?", "answer": 5}, {"num": 6, "q": "Quel est le plus grand nombre premier inférieur à 6 ?", "answer": 5}, {"num": 7, "q": "Quel est le reste de la division euclidienne de 28 par 10 ?", "answer": 8}, {"num": 8, "q": "Quel est le plus grand diviseur commun de 27 et 45 ?", "answer": 9}, {"num": 9, "q": "Combien vaut 46 ÷ 2 ?", "answer": 23}, {"num": 10, "q": "Combien y a-t-il de nombres premiers entre 2 et 11 (inclus) ?", "answer": 5}, {"num": 11, "q": "Par quel chiffre remplacer ▢ dans 12▢ pour que ce nombre soit divisible par 7 ?", "answer": 6}, {"num": 12, "q": "Quel est le reste de la division euclidienne de 65 par 23 ?", "answer": 19}, {"num": 13, "q": "Combien vaut 33 ÷ 3 ?", "answer": 11}, {"num": 14, "q": "Combien y a-t-il de nombres premiers entre 1 et 29 (inclus) ?", "answer": 10}, {"num": 15, "q": "Parmi 72 ; 54 ; 18 ; 50 ; 45 ; 90, combien sont divisibles par 9 ?", "answer": 5}, {"num": 16, "q": "Combien vaut 12 ÷ 3 ?", "answer": 4}, {"num": 17, "q": "Quel est le plus grand nombre premier inférieur à 18 ?", "answer": 17}, {"num": 18, "q": "Quel est le reste de la division euclidienne de 47 par 17 ?", "answer": 13}, {"num": 19, "q": "Combien vaut 15 ÷ 3 ?", "answer": 5}, {"num": 20, "q": "Par quel chiffre remplacer ▢ dans 10▢ pour que ce nombre soit divisible par 7 ?", "answer": 5}, {"num": 21, "q": "Quel est le plus grand diviseur commun de 45 et 55 ?", "answer": 5}, {"num": 22, "q": "Quel est le plus grand diviseur commun de 36 et 48 ?", "answer": 12}, {"num": 23, "q": "Quel est le 3ème nombre premier ?", "answer": 5}, {"num": 24, "q": "Quel est le plus grand nombre premier inférieur à 7 ?", "answer": 5}, {"num": 25, "q": "Combien de diviseurs possède 81 ?", "answer": 5}];
+const L=[{"pattern": [0, 0, 0, 0, 0, 0, 1, 0, 0], "answer": 2}, {"pattern": [0, 0, 0, 0, 0, 0, 0, 0, 1], "answer": 3}, {"pattern": [0, 0, 2, 0, 0, 0, 0, 0, 0], "answer": 4}, {"pattern": [0, 0, 0, 0, 0, 0, 0, 0, 0], "answer": 5}, {"pattern": [0, 0, 2, 0, 0, 2, 0, 0, 2], "answer": 6}, {"pattern": [0, 0, 0, 1, 1, 1, 1, 1, 1], "answer": 7}, {"pattern": [0, 2, 1, 2, 2, 2, 2, 2, 2], "answer": 8}, {"pattern": [1, 0, 0, 1, 0, 5, 1, 0, 0], "answer": 9}, {"pattern": [1, 0, 0, 0, 0, 0, 0, 0, 0], "answer": 10}, {"pattern": [1, 1, 1, 2, 1, 1, 2, 2, 0], "answer": 11}, {"pattern": [2, 4, 0, 2, 0, 0, 0, 0, 0], "answer": 12}, {"pattern": [2, 0, 0, 4, 0, 0, 0, 0, 0], "answer": 13}, {"pattern": [2, 3, 2, 2, 2, 4, 2, 4, 4], "answer": 17}, {"pattern": [2, 3, 2, 3, 3, 3, 3, 3, 3], "answer": 19}, {"pattern": [1, 1, 0, 0, 1, 6, 1, 6, 6], "answer": 23}];
+const IM=[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0], [0, 0, 0, 2, 2, 2, 1, 0, 5, 0, 1, 6, 0, 0, 0], [0, 0, 0, 2, 2, 2, 1, 0, 0, 1, 6, 6, 0, 0, 0], [0, 0, 2, 2, 3, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 2, 3, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 2, 3, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+const COL={"0": "#f0efe8", "1": "#e63946", "2": "#d63384", "3": "#ff69b4", "4": "#ffa62b", "5": "#2d2d2d", "6": "#e67e22"};
+const COLD={"0": "#3a3a3a", "1": "#e63946", "2": "#d63384", "3": "#ff69b4", "4": "#ffa62b", "5": "#e0e0e0", "6": "#e67e22"};
+
+const NP=9,NC=7; // 7 colors (0-6)
+let G=Array.from({length:25},()=>Array(NP).fill(0));
+let sel=-1, curColor=0;
+const isDark=()=>window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+function cc(c){return isDark()?COLD[c]:COL[c];}
+
+function buildBoard(){
+  const b=document.getElementById('board');
+  for(let t=0;t<25;t++){
+    const d=document.createElement('div');d.className='tile';d.id='t'+t;
+    d.innerHTML='<span class="tnum">'+(t+1)+'</span>';
+    const g=document.createElement('div');g.className='tg';
+    for(let p=0;p<NP;p++){
+      const c=document.createElement('div');c.className='px';
+      c.style.background=cc(0);
+      c.dataset.t=t;c.dataset.p=p;
+      c.addEventListener('click',onPx);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    d.addEventListener('click',function(e){if(e.target.classList.contains('px'))return;selectTile(t);});
+    b.appendChild(d);
+  }
+}
+
+function onPx(e){
+  const el=e.target,t=+el.dataset.t,p=+el.dataset.p;
+  G[t][p]=curColor;
+  el.style.background=cc(curColor);
+  syncMini(t);
+}
+
+function selectTile(t){
+  sel=t;
+  document.querySelectorAll('.tile').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('t'+t).classList.add('sel');
+  document.getElementById('pempty').style.display='none';
+  document.getElementById('pcontent').style.display='block';
+  document.getElementById('pbadge').textContent='Tuile '+(t+1);
+  document.getElementById('pq').innerHTML=P[t].q+' <span class="eq">= ?</span>';
+  buildMini(t);buildPalette();
+  if(window.innerWidth<=660)document.getElementById('panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildPalette(){
+  const pal=document.getElementById('palette');pal.innerHTML='';
+  for(let c=0;c<NC;c++){
+    const b=document.createElement('div');
+    b.className='pal-btn'+(c===curColor?' pick':'');
+    b.style.background=cc(c);
+    b.addEventListener('click',function(){curColor=c;document.querySelectorAll('.pal-btn').forEach((p,i)=>p.classList.toggle('pick',i===c));});
+    pal.appendChild(b);
+  }
+}
+
+function buildMini(t){
+  const mg=document.getElementById('mini');mg.innerHTML='';
+  for(let p=0;p<NP;p++){
+    const c=document.createElement('div');c.className='mx';
+    c.style.background=cc(G[t][p]);
+    c.addEventListener('click',function(){
+      G[t][p]=curColor;
+      this.style.background=cc(curColor);
+      syncBoard(t);
+    });
+    mg.appendChild(c);
+  }
+}
+
+function syncBoard(t){
+  const pxs=document.querySelectorAll('#t'+t+' .tg .px');
+  for(let p=0;p<NP;p++) pxs[p].style.background=cc(G[t][p]);
+}
+function syncMini(t){
+  const mxs=document.querySelectorAll('#mini .mx');
+  if(mxs.length===NP) for(let p=0;p<NP;p++) mxs[p].style.background=cc(G[t][p]);
+}
+
+function buildLeg(){
+  const lg=document.getElementById('leg');
+  L.forEach(l=>{
+    const d=document.createElement('div');d.className='li';
+    let ph='<div class="lp">';
+    l.pattern.forEach(v=>{ph+='<div style="background:'+cc(v)+'"></div>';});
+    ph+='</div>';
+    d.innerHTML=ph+'<span class="la">'+l.answer+'</span>';
+    lg.appendChild(d);
+  });
+}
+
+function buildCorr(){
+  const cg=document.getElementById('corrG');
+  IM.forEach(row=>row.forEach(v=>{
+    const d=document.createElement('div');d.style.background=cc(v);cg.appendChild(d);
+  }));
+}
+
+function check(){
+  let ok=0;
+  for(let t=0;t<25;t++){
+    const el=document.getElementById('t'+t);el.classList.remove('ok','ko');
+    const match=T[t].every((v,i)=>v===G[t][i]);
+    if(match){el.classList.add('ok');ok++;}
+    else if(G[t].some(v=>v!==0)){el.classList.add('ko');}
+  }
+  const s=document.getElementById('score');
+  if(ok===25)s.innerHTML='&#127881; <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML='<b>'+ok+'/25</b> tuiles correctes';
+}
+
+function raz(){
+  G=Array.from({length:25},()=>Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el=>{el.style.background=cc(0);});
+  document.querySelectorAll('.tile').forEach(el=>{el.classList.remove('ok','ko','sel');});
+  document.getElementById('score').innerHTML='';
+  document.getElementById('pempty').style.display='flex';
+  document.getElementById('pcontent').style.display='none';
+  sel=-1;
+}
+
+function corrTog(){
+  const b=document.getElementById('corrBox'),n=document.getElementById('bcorr');
+  if(b.classList.contains('show')){b.classList.remove('show');n.textContent='Correction';}
+  else{b.classList.add('show');n.textContent='Masquer';}
+}
+
+buildBoard();buildLeg();buildCorr();
+</script>
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all .3s ease}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem}}
+@media(prefers-color-scheme:dark){.btn-retour-flottant{background:#262626;color:#ff69b4;border-color:#ff69b4}.btn-retour-flottant:hover{background:#ff69b4;color:#fff}}
+</style>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Symétrie Axiale</title>
+<style>
+:root {
+  --bg:#f5f5f0;--card:#fff;--txt:#1a1a1a;--txt2:#777;--bdr:#d0d0d0;
+  --acc:#2e86c1;--acc-lt:#d6eaf8;--ok:#1d9e75;
+  --ko:#e24b4a;
+  --pxoff:#e0dfda;--pxon:#2d2d2d;--pxbdr:#c5c4bc;
+  --axis:#e74c3c;--given:#2e86c1;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--card:#262626;--txt:#e8e8e8;--txt2:#999;--bdr:#444;
+  --acc:#5dade2;--acc-lt:#1a3a50;--ok:#5dcaa5;
+  --ko:#f09595;
+  --pxoff:#3a3a3a;--pxon:#e0e0e0;--pxbdr:#555;
+  --axis:#e74c3c;--given:#5dade2;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--txt);
+  max-width:700px;margin:0 auto;padding:12px;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+}
+h1{font-size:18px;text-align:center;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:10px}
+.levels{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;justify-content:center}
+.lv-btn{
+  padding:7px 14px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--bdr);background:var(--card);
+  color:var(--txt);border-radius:8px;cursor:pointer;transition:all .15s;
+}
+.lv-btn:active{transform:scale(.97)}
+.lv-btn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.lv-btn.done{background:var(--ok);color:#fff;border-color:var(--ok)}
+.info{text-align:center;margin-bottom:8px;font-size:13px;color:var(--txt2)}
+.info .axis-tag{
+  display:inline-block;background:var(--axis);color:#fff;
+  font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;margin-right:6px;
+}
+.hint{font-size:11px;color:var(--txt2);text-align:center;margin-bottom:10px;font-style:italic}
+.legend{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+  font-size:11px;color:var(--txt2);margin-bottom:10px;
+}
+.legend-item{display:flex;align-items:center;gap:4px}
+.legend-swatch{width:16px;height:16px;border-radius:3px;border:1px solid var(--bdr)}
+.grid-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.grid{
+  --cs:min(5.5vw,28px);
+  display:inline-grid;gap:0;
+  grid-template-columns:repeat(15,var(--cs));
+  grid-template-rows:repeat(15,var(--cs));
+  border:2px solid var(--txt);border-radius:4px;background:var(--card);
+  touch-action:none;
+}
+.cell{width:var(--cs);height:var(--cs);border:.5px solid var(--pxbdr);transition:background .1s}
+.cell.off{background:var(--pxoff)}
+.cell.on{background:var(--pxon)}
+.cell.given-on{background:var(--given);cursor:default;pointer-events:none}
+.cell.given-off{background:var(--pxoff);cursor:default;pointer-events:none;opacity:.6}
+.cell.axis-v{
+  background:var(--axis);opacity:.25;cursor:default;pointer-events:none;
+  border-left:1.5px solid var(--axis);border-right:1.5px solid var(--axis);
+}
+.cell.axis-h{
+  background:var(--axis);opacity:.25;cursor:default;pointer-events:none;
+  border-top:1.5px solid var(--axis);border-bottom:1.5px solid var(--axis);
+}
+.cell.editable{cursor:pointer}
+.cell.ok-on{background:var(--ok)}.cell.ko-on{background:var(--ko)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.btn{
+  padding:8px 14px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--bdr);background:var(--card);
+  color:var(--txt);border-radius:8px;cursor:pointer;
+}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:20px;padding:6px 0}
+.score b{color:var(--acc)}
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{
+  display:inline-grid;
+  grid-template-columns:repeat(15,min(4vw,16px));grid-template-rows:repeat(15,min(4vw,16px));
+  gap:0;border:2px solid var(--txt);border-radius:4px;
+}
+.corr-g div{border:.25px solid var(--pxbdr)}
+.corr-g .con{background:var(--pxon)}.corr-g .coff{background:var(--pxoff)}
+@media(max-width:500px){
+  .grid{--cs:min(6.2vw,28px)}
+  .corr-g{grid-template-columns:repeat(15,min(5.5vw,16px));grid-template-rows:repeat(15,min(5.5vw,16px))}
+}
+</style>
+</head>
+<body>
+<h1>Pixel Art — Symétrie Axiale</h1>
+<p class="sub">Complète l'image en coloriant le symétrique de chaque pixel par rapport à l'axe.</p>
+<div class="levels" id="levels"></div>
+<div class="info" id="info"></div>
+<div class="hint" id="hint"></div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--given)"></div> Modèle</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--axis);opacity:.25"></div> Axe</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--pxoff);border:2px dashed var(--bdr)"></div> À compléter</div>
+</div>
+<div class="grid-wrap">
+  <div class="grid" id="grid"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="clearStudent()">Effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:4px">Image complète</p>
+  </div>
+</div>
+<script>
+const LEVELS=[{"name": "Fus\u00e9e", "axis": "vertical", "axisLabel": "Axe vertical", "image": [[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0], [1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0]], "hint": "Reproduis la moiti\u00e9 gauche de l'autre c\u00f4t\u00e9 de l'axe."}, {"name": "Alien", "axis": "vertical", "axisLabel": "Axe vertical", "image": [[0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0]], "hint": "Chaque pixel \u00e0 gauche a son sym\u00e9trique \u00e0 droite, \u00e0 \u00e9gale distance de l'axe."}, {"name": "C\u0153ur", "axis": "vertical", "axisLabel": "Axe vertical", "image": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0], [0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], "hint": "Le pixel en colonne 5 se retrouve en colonne 9, celui en 3 en 11, etc."}, {"name": "\u00c9toile", "axis": "vertical", "axisLabel": "Axe vertical", "image": [[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0], [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0], [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], "hint": "Attention aux d\u00e9tails dans les pointes !"}, {"name": "Papillon", "axis": "horizontal", "axisLabel": "Axe horizontal", "image": [[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1], [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1], [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]], "hint": "Reproduis la moiti\u00e9 haute en dessous de l'axe."}, {"name": "Diamant", "axis": "horizontal", "axisLabel": "Axe horizontal", "image": [[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]], "hint": "Le pixel en ligne 2 se retrouve en ligne 12, celui en 0 en 14, etc."}];
+
+let cur=0,studentGrid=[],drawing=false,drawMode=1;
+
+function init(){buildLvBtns();loadLevel(0)}
+
+function buildLvBtns(){
+  const c=document.getElementById('levels');c.innerHTML='';
+  LEVELS.forEach((lv,i)=>{
+    const b=document.createElement('button');
+    b.className='lv-btn'+(i===cur?' on':'');
+    b.textContent=lv.name;b.id='lvb'+i;
+    b.addEventListener('click',()=>loadLevel(i));
+    c.appendChild(b);
+  });
+}
+
+function loadLevel(idx){
+  cur=idx;
+  document.querySelectorAll('.lv-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));
+  const lv=LEVELS[idx];
+  document.getElementById('info').innerHTML='<span class="axis-tag">'+lv.axisLabel+'</span> '+lv.name;
+  document.getElementById('hint').textContent=lv.hint;
+  document.getElementById('score').innerHTML='';
+  document.getElementById('corrBox').classList.remove('show');
+  document.getElementById('bcorr').textContent='Correction';
+  buildGrid(lv);buildCorrG(lv);
+}
+
+function buildGrid(lv){
+  const g=document.getElementById('grid');g.innerHTML='';studentGrid=[];
+  const img=lv.image,ax=lv.axis;
+  for(let y=0;y<15;y++){
+    const row=[];
+    for(let x=0;x<15;x++){
+      const c=document.createElement('div');
+      c.className='cell';c.dataset.y=y;c.dataset.x=x;
+      let role;
+      if(ax==='vertical'){
+        if(x===7) role='axis';
+        else if(x<7) role='given';
+        else role='edit';
+      } else {
+        if(y===7) role='axis';
+        else if(y<7) role='given';
+        else role='edit';
+      }
+      if(role==='axis'){
+        c.classList.add(ax==='vertical'?'axis-v':'axis-h');
+        row.push(null);
+      } else if(role==='given'){
+        c.classList.add(img[y][x]?'given-on':'given-off');
+        row.push(null);
+      } else {
+        c.classList.add('off','editable');
+        row.push(0);
+        c.addEventListener('pointerdown',onDown);
+        c.addEventListener('pointerenter',onEnter);
+      }
+      g.appendChild(c);
+    }
+    studentGrid.push(row);
+  }
+}
+
+function onDown(e){
+  e.preventDefault();drawing=true;
+  const y=+e.target.dataset.y,x=+e.target.dataset.x;
+  if(studentGrid[y]===undefined||studentGrid[y][x]===null)return;
+  drawMode=studentGrid[y][x]?0:1;
+  paint(e.target,y,x);
+}
+function onEnter(e){
+  if(!drawing)return;
+  const y=+e.target.dataset.y,x=+e.target.dataset.x;
+  paint(e.target,y,x);
+}
+function paint(el,y,x){
+  if(studentGrid[y]===undefined||studentGrid[y][x]===null)return;
+  studentGrid[y][x]=drawMode;
+  el.classList.remove('off','on','ok-on','ko-on');
+  el.classList.add(drawMode?'on':'off');
+}
+
+document.addEventListener('pointerup',()=>{drawing=false});
+document.addEventListener('pointercancel',()=>{drawing=false});
+
+function clearStudent(){
+  for(let y=0;y<15;y++)for(let x=0;x<15;x++)
+    if(studentGrid[y]&&studentGrid[y][x]!==null)studentGrid[y][x]=0;
+  document.querySelectorAll('.cell.editable').forEach(c=>{
+    c.classList.remove('on','ok-on','ko-on');c.classList.add('off');
+  });
+  document.getElementById('score').innerHTML='';
+}
+
+function check(){
+  const img=LEVELS[cur].image;let total=0,correct=0;
+  for(let y=0;y<15;y++)for(let x=0;x<15;x++){
+    if(studentGrid[y]===undefined||studentGrid[y][x]===null)continue;
+    total++;
+    const exp=img[y][x],act=studentGrid[y][x];
+    const cell=document.querySelector('.grid .cell[data-y="'+y+'"][data-x="'+x+'"]');
+    cell.classList.remove('off','on','ok-on','ko-on');
+    if(act===exp){correct++;cell.classList.add(act?'ok-on':'off')}
+    else cell.classList.add(act?'ko-on':'off');
+  }
+  const s=document.getElementById('score');
+  if(correct===total){
+    s.innerHTML='&#127881; <b>Parfait !</b> Symétrie correcte !';
+    document.getElementById('lvb'+cur).classList.add('done');
+  } else {
+    const pct=Math.round(100*correct/total);
+    s.innerHTML='<b>'+correct+'/'+total+'</b> pixels corrects ('+pct+'%)';
+  }
+}
+
+function buildCorrG(lv){
+  const cg=document.getElementById('corrG');cg.innerHTML='';
+  lv.image.forEach(row=>row.forEach(v=>{
+    const d=document.createElement('div');d.className=v?'con':'coff';cg.appendChild(d);
+  }));
+}
+
+function corrTog(){
+  const b=document.getElementById('corrBox'),n=document.getElementById('bcorr');
+  if(b.classList.contains('show')){b.classList.remove('show');n.textContent='Correction'}
+  else{b.classList.add('show');n.textContent='Masquer'}
+}
+
+init();
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all .3s ease}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem}}
+@media(prefers-color-scheme:dark){.btn-retour-flottant{background:#262626;color:#5dade2;border-color:#5dade2}.btn-retour-flottant:hover{background:#5dade2;color:#fff}}
+</style>
+</body>
+</html>

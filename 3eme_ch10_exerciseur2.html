@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Puzzle Trigonométrie</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f4f8;--card:#fff;--txt:#2d2d2d;--txt2:#777;--bdr:#d5dbe3;--acc:#2980b9;--acc-lt:#d6eaf8;--ok:#1d9e75;--ko:#e74c3c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Quicksand',sans-serif;background:var(--bg);color:var(--txt);max-width:960px;margin:0 auto;padding:12px;-webkit-user-select:none;user-select:none}
+h1{font-size:19px;text-align:center;font-weight:700;margin-bottom:2px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:12px}
+.layout{display:flex;gap:16px;align-items:flex-start}
+@media(max-width:720px){.layout{flex-direction:column;align-items:center}}
+.col-puzzle{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-panel{flex:1;min-width:0}
+
+/* Puzzle board */
+.board{
+  position:relative;
+  width:min(88vw,420px);
+  aspect-ratio:4/3;
+  border:3px solid var(--bdr);
+  border-radius:12px;
+  overflow:hidden;
+  background:#d5e8d4;
+}
+/* Full landscape SVG behind the grid */
+.landscape{position:absolute;top:0;left:0;width:100%;height:100%}
+/* Grid overlay with slots */
+.board-grid{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);
+  width:100%;height:100%;
+}
+.slot{
+  border:1px solid rgba(255,255,255,.5);
+  position:relative;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:#dce6ef;
+  transition:all .3s;
+}
+.slot:hover{background:#cdd8e4}
+.slot.active{background:#c4d4e4;outline:2px solid var(--acc)}
+.slot-num{font-size:22px;font-weight:700;color:rgba(0,0,0,.18);pointer-events:none}
+.slot.solved{background:transparent;border-color:transparent;cursor:default}
+.slot.solved .slot-num{display:none}
+.slot.wrong{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.progress{text-align:center;font-size:13px;color:var(--txt2);padding:4px 0}
+.progress b{color:var(--acc)}
+.progress-bar{width:min(88vw,420px);height:8px;background:#dde3e9;border-radius:4px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--ok));border-radius:4px;transition:width .5s ease}
+
+/* Panel */
+.panel{background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;padding:14px}
+.panel-empty{display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:14px;min-height:140px;text-align:center;line-height:1.6}
+.pcontent{display:none}
+.piece-badge{display:inline-block;background:var(--acc);color:#fff;font-size:12px;font-weight:700;padding:3px 12px;border-radius:12px;margin-bottom:10px}
+.tri-wrap{display:flex;justify-content:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.question{text-align:center;font-size:15px;font-weight:600;margin-bottom:12px;color:var(--txt)}
+.qcm{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.qcm-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:10px;background:var(--card);cursor:pointer;transition:all .15s;font-size:15px;font-weight:600;font-family:'Quicksand',sans-serif}
+.qcm-btn:hover{background:var(--acc-lt);border-color:var(--acc)}
+.qcm-btn.correct{border-color:var(--ok);background:#e8f8f0}
+.qcm-btn.wrong-pick{border-color:var(--ko);background:#fdecea}
+.qcm-letter{width:24px;height:24px;line-height:24px;text-align:center;background:var(--acc);color:#fff;font-weight:700;font-size:12px;border-radius:6px;flex-shrink:0}
+
+.formula-btn{padding:8px 14px;font-size:12px;font-weight:700;font-family:'Quicksand',sans-serif;border:1.5px solid #e67e22;background:#fef9e7;color:#e67e22;border-radius:8px;cursor:pointer}
+.formula-btn:hover{background:#e67e22;color:#fff}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:10000;justify-content:center;align-items:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:14px;padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2);position:relative}
+.modal h2{font-size:17px;margin-bottom:12px;text-align:center}
+.modal-close{position:absolute;top:10px;right:14px;font-size:22px;cursor:pointer;color:var(--txt2);font-weight:700}
+.formula-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;border-bottom:1px dotted var(--bdr)}
+.formula-row:last-child{border-bottom:none}
+.formula-name{color:var(--txt2);font-weight:600}
+.formula-val{font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.btn{padding:8px 14px;font-size:13px;font-weight:700;font-family:'Quicksand',sans-serif;border:1.5px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:8px;cursor:pointer}
+.btn:active{transform:scale(.97)}
+
+.solved-overlay{
+  display:none;position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;
+  background:rgba(255,255,255,.2);border-radius:12px;
+  justify-content:center;align-items:center;
+  font-size:28px;font-weight:700;color:var(--ok);
+  text-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.solved-overlay.show{display:flex}
+
+@media(max-width:720px){.board{width:min(95vw,420px)}.panel{width:min(95vw,400px)}.progress-bar{width:min(95vw,420px)}}
+
+/* ── Calculatrice scientifique ── */
+.calc-modal{max-width:360px;padding:16px 14px 18px}
+.calc-mode-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.calc-mode-btn{padding:4px 12px;font-size:12px;font-weight:700;font-family:'Quicksand',sans-serif;border:1.5px solid var(--bdr);border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer;transition:all .15s}
+.calc-mode-btn.active{background:#2980b9;color:#fff;border-color:#2980b9}
+.calc-mode-label{font-size:11px;color:var(--txt2);margin-left:2px}
+.calc-display-wrap{background:#1a2330;border-radius:10px;padding:8px 12px;margin-bottom:10px;min-height:60px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;overflow:hidden}
+.calc-expr{font-size:12px;color:#7a9bbf;min-height:16px;word-break:break-all;text-align:right;width:100%}
+.calc-screen{font-size:26px;font-weight:700;color:#e8f4ff;word-break:break-all;text-align:right;width:100%;line-height:1.2}
+.calc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.cb{height:42px;font-size:14px;font-weight:700;font-family:'Quicksand',sans-serif;border:none;border-radius:8px;cursor:pointer;background:#eef2f7;color:#2d2d2d;transition:transform .1s,background .15s;-webkit-tap-highlight-color:transparent;padding:0}
+.cb:active{transform:scale(.93)}
+.cb-fn{background:#d6eaf8;color:#1a5276;font-size:12px}
+.cb-op{background:#2980b9;color:#fff}
+.cb-eq{background:#1d9e75;color:#fff;font-size:17px}
+.cb-del{background:#f5cba7;color:#784212}
+.cb-clr{background:#fadbd8;color:#922b21}
+.cb-s2{grid-column:span 2}
+@media(max-width:420px){
+  .calc-modal{padding:12px 8px 14px}
+  .cb{height:38px;font-size:13px}
+  .cb-fn{font-size:11px}
+  .calc-screen{font-size:22px}
+  .calc-grid{gap:4px}
+}
+@media(max-width:340px){
+  .cb{height:34px;font-size:11px}
+  .cb-fn{font-size:10px}
+  .calc-screen{font-size:18px}
+  .calc-grid{gap:3px}
+}
+</style>
+</head>
+<body>
+<h1>Puzzle Trigonométrie</h1>
+<p class="sub">Résous chaque calcul de trigonométrie pour débloquer les pièces du puzzle.</p>
+
+<div class="layout">
+<div class="col-puzzle">
+  <div class="board" id="board">
+    <!-- Landscape drawn as one SVG behind the grid -->
+    <svg class="landscape" viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sky gradient -->
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#4FC3F7"/>
+          <stop offset="100%" stop-color="#B3E5FC"/>
+        </linearGradient>
+        <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#039BE5"/>
+          <stop offset="100%" stop-color="#0277BD"/>
+        </linearGradient>
+      </defs>
+      <rect width="480" height="360" fill="url(#sky)"/>
+      <!-- Sun -->
+      <circle cx="400" cy="55" r="40" fill="#FDD835" opacity=".9"/>
+      <circle cx="400" cy="55" r="30" fill="#FFEE58"/>
+      <!-- Clouds -->
+      <ellipse cx="90" cy="50" rx="45" ry="18" fill="white" opacity=".85"/>
+      <ellipse cx="65" cy="55" rx="30" ry="14" fill="white" opacity=".75"/>
+      <ellipse cx="115" cy="56" rx="28" ry="12" fill="white" opacity=".7"/>
+      <ellipse cx="280" cy="35" rx="35" ry="14" fill="white" opacity=".7"/>
+      <ellipse cx="260" cy="40" rx="25" ry="11" fill="white" opacity=".6"/>
+      <!-- Mountains back -->
+      <polygon points="0,220 80,90 160,220" fill="#66BB6A"/>
+      <polygon points="100,220 200,60 300,220" fill="#43A047"/>
+      <polygon points="250,220 370,100 480,220" fill="#388E3C"/>
+      <!-- Snow caps -->
+      <polygon points="195,68 200,60 205,68 200,75" fill="white" opacity=".8"/>
+      <polygon points="365,108 370,100 375,108 370,115" fill="white" opacity=".7"/>
+      <!-- Green hills -->
+      <ellipse cx="120" cy="250" rx="160" ry="50" fill="#81C784"/>
+      <ellipse cx="380" cy="245" rx="140" ry="45" fill="#66BB6A"/>
+      <!-- Ground -->
+      <rect x="0" y="240" width="480" height="120" fill="#A5D6A7"/>
+      <!-- Lake -->
+      <ellipse cx="350" cy="290" rx="80" ry="30" fill="url(#water)" opacity=".8"/>
+      <ellipse cx="355" cy="285" rx="50" ry="15" fill="#4FC3F7" opacity=".3"/>
+      <!-- Trees -->
+      <rect x="55" y="210" width="8" height="30" fill="#5D4037" rx="2"/>
+      <polygon points="59,170 40,215 78,215" fill="#2E7D32"/>
+      <polygon points="59,185 44,218 74,218" fill="#388E3C"/>
+      <rect x="145" y="215" width="7" height="25" fill="#5D4037" rx="2"/>
+      <polygon points="148,180 133,218 164,218" fill="#1B5E20"/>
+      <polygon points="148,192 137,220 160,220" fill="#2E7D32"/>
+      <rect x="440" y="215" width="6" height="22" fill="#5D4037" rx="2"/>
+      <polygon points="443,185 430,218 456,218" fill="#2E7D32"/>
+      <!-- House -->
+      <rect x="185" y="255" width="50" height="40" fill="#FFCC80" stroke="#E65100" stroke-width="1"/>
+      <polygon points="183,258 210,230 237,258" fill="#E53935"/>
+      <rect x="203" y="275" width="14" height="20" fill="#6D4C41"/>
+      <rect x="191" y="262" width="10" height="10" fill="#B3E5FC" stroke="#333" stroke-width=".5"/>
+      <rect x="219" y="262" width="10" height="10" fill="#B3E5FC" stroke="#333" stroke-width=".5"/>
+      <!-- Path -->
+      <path d="M210,295 Q220,320 215,360" fill="none" stroke="#D7CCC8" stroke-width="14" stroke-linecap="round"/>
+      <!-- Flowers -->
+      <circle cx="130" cy="280" r="3" fill="#E91E63"/>
+      <circle cx="270" cy="275" r="3" fill="#FF5722"/>
+      <circle cx="100" cy="285" r="2.5" fill="#FF9800"/>
+      <circle cx="300" cy="285" r="3" fill="#E91E63"/>
+      <circle cx="160" cy="290" r="2" fill="#9C27B0"/>
+      <!-- Birds -->
+      <path d="M320,70 Q328,62 336,70" fill="none" stroke="#333" stroke-width="1.5"/>
+      <path d="M340,65 Q346,59 352,65" fill="none" stroke="#333" stroke-width="1.2"/>
+    </svg>
+    <div class="board-grid" id="grid"></div>
+    <div class="solved-overlay" id="solvedOv">🎉 Bravo !</div>
+  </div>
+  <div class="progress" id="progress"><b>0</b>/12 pièces</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="actions">
+    <button class="btn" onclick="razAll()">Recommencer</button>
+    <button class="formula-btn" onclick="toggleFormulas()">📐 Formules</button>
+    <button class="formula-btn" style="border-color:#2980b9;color:#2980b9;background:#eaf4fb" onclick="toggleCalc()">🧮 Calculatrice</button>
+  </div>
+</div>
+
+<div class="col-panel">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty">← Clique sur une pièce du puzzle<br>pour voir le calcul à résoudre</div>
+    <div class="pcontent" id="pcontent">
+      <div class="piece-badge" id="pbadge">Pièce 1</div>
+      <div class="tri-wrap" id="triWrap"></div>
+      <div class="question" id="question"></div>
+      <div class="qcm" id="qcm"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Calculator modal -->
+<div class="modal-overlay" id="calcOverlay">
+  <div class="modal calc-modal">
+    <span class="modal-close" onclick="toggleCalc()">✕</span>
+    <h2>🧮 Calculatrice scientifique</h2>
+    <div class="calc-mode-row">
+      <button class="calc-mode-btn active" id="modeDeg" onclick="setMode('deg')">DEG</button>
+      <button class="calc-mode-btn" id="modeRad" onclick="setMode('rad')">RAD</button>
+      <span class="calc-mode-label" id="modeLabel">Mode : degrés</span>
+    </div>
+    <div class="calc-display-wrap">
+      <div class="calc-expr" id="calcExpr">&nbsp;</div>
+      <div class="calc-screen" id="calcScreen">0</div>
+    </div>
+    <div class="calc-grid">
+      <button class="cb cb-fn" onclick="cIn('sin(')">sin</button>
+      <button class="cb cb-fn" onclick="cIn('cos(')">cos</button>
+      <button class="cb cb-fn" onclick="cIn('tan(')">tan</button>
+      <button class="cb cb-fn" onclick="cIn('asin(')">sin⁻¹</button>
+      <button class="cb cb-fn" onclick="cIn('acos(')">cos⁻¹</button>
+      <button class="cb cb-fn" onclick="cIn('atan(')">tan⁻¹</button>
+      <button class="cb cb-fn" onclick="cIn('sqrt(')">√</button>
+      <button class="cb cb-fn" onclick="cIn('^')">xⁿ</button>
+      <button class="cb cb-fn" onclick="cIn('pi')">π</button>
+      <button class="cb cb-op" onclick="cIn('(')">(</button>
+      <button class="cb cb-op" onclick="cIn(')')">)</button>
+      <button class="cb cb-del" onclick="cDel()">⌫</button>
+      <button class="cb" onclick="cIn('7')">7</button>
+      <button class="cb" onclick="cIn('8')">8</button>
+      <button class="cb" onclick="cIn('9')">9</button>
+      <button class="cb cb-op" onclick="cIn('/')">÷</button>
+      <button class="cb cb-clr" onclick="cClr()">C</button>
+      <button class="cb cb-clr" onclick="cAC()">AC</button>
+      <button class="cb" onclick="cIn('4')">4</button>
+      <button class="cb" onclick="cIn('5')">5</button>
+      <button class="cb" onclick="cIn('6')">6</button>
+      <button class="cb cb-op" onclick="cIn('*')">×</button>
+      <button class="cb cb-op cb-s2" onclick="cIn('+')">+</button>
+      <button class="cb" onclick="cIn('1')">1</button>
+      <button class="cb" onclick="cIn('2')">2</button>
+      <button class="cb" onclick="cIn('3')">3</button>
+      <button class="cb cb-op" onclick="cIn('-')">−</button>
+      <button class="cb cb-eq cb-s2" onclick="cEq()">=</button>
+      <button class="cb cb-s2" onclick="cIn('0')">0</button>
+      <button class="cb" onclick="cIn('.')">.</button>
+      <button class="cb cb-fn" onclick="cPM()">+/−</button>
+      <button class="cb cb-fn" onclick="cPct()">%</button>
+    </div>
+  </div>
+</div>
+
+<!-- Formula modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <span class="modal-close" onclick="toggleFormulas()">✕</span>
+    <h2>📐 Trigonométrie</h2>
+    <div style="text-align:center;margin:12px 0">
+      <svg width="220" height="150" viewBox="0 0 220 150">
+        <polygon points="20,130 200,130 200,25" fill="#EBF5FB" stroke="#2c3e50" stroke-width="2.5" stroke-linejoin="round"/>
+        <rect x="188" y="118" width="12" height="12" fill="none" stroke="#2c3e50" stroke-width="1.5"/>
+        <text x="100" y="148" font-family="Quicksand" font-size="13" font-weight="700" fill="#2c3e50" text-anchor="middle">adjacent</text>
+        <text x="215" y="82" font-family="Quicksand" font-size="13" font-weight="700" fill="#2c3e50" text-anchor="start">opposé</text>
+        <text x="95" y="70" font-family="Quicksand" font-size="13" font-weight="700" fill="#2980b9" text-anchor="middle" transform="rotate(-30,95,70)">hypoténuse</text>
+        <text x="38" y="125" font-family="Quicksand" font-size="16" font-weight="700" fill="#e74c3c">α</text>
+      </svg>
+    </div>
+    <div class="formula-row"><span class="formula-name">Cosinus</span><span class="formula-val">cos(α) = adj / hyp</span></div>
+    <div class="formula-row"><span class="formula-name">Sinus</span><span class="formula-val">sin(α) = opp / hyp</span></div>
+    <div class="formula-row"><span class="formula-name">Tangente</span><span class="formula-val">tan(α) = opp / adj</span></div>
+    <div style="margin-top:14px;font-size:13px;color:var(--txt2);line-height:1.6">
+      <b>Trouver un côté :</b> isole-le dans la formule.<br>
+      <b>Trouver un angle :</b> utilise cos⁻¹, sin⁻¹ ou tan⁻¹.<br>
+      <b>Arrondir</b> au dixième.
+    </div>
+  </div>
+</div>
+
+<script>
+const PI=Math.PI;
+function rad(d){return d*PI/180}
+
+const PIECES=[
+  {id:1,angle:35,hyp:10,find:"opp",q:"Calcule le côté opposé à l'angle",answer:5.7,wrongs:[8.2,4.2,3.5]},
+  {id:2,angle:50,adj:8,find:"opp",q:"Calcule le côté opposé à l'angle",answer:9.5,wrongs:[6.1,5.1,12.4]},
+  {id:3,angle:42,hyp:15,find:"adj",q:"Calcule le côté adjacent à l'angle",answer:11.1,wrongs:[10.0,7.5,13.2]},
+  {id:4,angle:28,adj:12,find:"hyp",q:"Calcule l'hypoténuse",answer:13.6,wrongs:[10.8,15.2,6.4]},
+  {id:5,angle:60,hyp:14,find:"adj",q:"Calcule le côté adjacent à l'angle",answer:7.0,wrongs:[12.1,9.9,4.0]},
+  {id:6,angle:0,opp:6,hyp:10,find:"angle",q:"Calcule la mesure de l'angle α",answer:36.9,wrongs:[53.1,30.0,42.0]},
+  {id:7,angle:0,opp:7,adj:9,find:"angle",q:"Calcule la mesure de l'angle α",answer:37.9,wrongs:[52.1,45.0,28.4]},
+  {id:8,angle:55,adj:6,find:"opp",q:"Calcule le côté opposé à l'angle",answer:8.6,wrongs:[4.9,3.4,10.5]},
+  {id:9,angle:40,hyp:20,find:"opp",q:"Calcule le côté opposé à l'angle",answer:12.9,wrongs:[15.3,10.0,8.4]},
+  {id:10,angle:0,adj:8,hyp:11,find:"angle",q:"Calcule la mesure de l'angle α",answer:43.3,wrongs:[46.7,36.9,55.2]},
+  {id:11,angle:33,opp:5,find:"hyp",q:"Calcule l'hypoténuse",answer:9.2,wrongs:[6.1,7.5,12.3]},
+  {id:12,angle:48,hyp:18,find:"adj",q:"Calcule le côté adjacent à l'angle",answer:12.0,wrongs:[13.4,8.9,15.6]},
+];
+
+// ── Clean triangle SVG ──
+function drawTriangle(p){
+  // Clean right triangle: right angle at C (bottom-right)
+  // A = bottom-left (angle α), B = top-right, C = bottom-right
+  const W=240,H=170;
+  const ax=25,ay=145,cx=215,cy=145,bx=215,by=25;
+  const isAngleQ=p.find==="angle";
+  const angleText=isAngleQ?"α = ?":p.angle+"°";
+
+  // Build side labels
+  const hypVal=p.hyp||(p.find==="hyp"?"?":"");
+  const oppVal=p.opp||(p.find==="opp"?"?":"");
+  const adjVal=p.adj||(p.find==="adj"?"?":"");
+
+  function labelClass(field){return p.find===field?'font-weight:800;fill:#e74c3c;font-size:16px':'font-weight:700;fill:#2c3e50;font-size:14px'}
+
+  let svg=`<svg width="240" height="170" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  // Triangle fill
+  svg+=`<polygon points="${ax},${ay} ${cx},${cy} ${bx},${by}" fill="#EBF5FB" stroke="#2c3e50" stroke-width="2.5" stroke-linejoin="round"/>`;
+  // Right angle marker at C
+  svg+=`<rect x="${cx-12}" y="${cy-12}" width="12" height="12" fill="none" stroke="#2c3e50" stroke-width="1.5"/>`;
+  // Angle arc at A
+  // Angle arc at A — small arc inside triangle
+  svg+=`<path d="M${ax+25},${ay} A20,20 0 0,0 ${ax+18},${ay-14}" fill="none" stroke="#e74c3c" stroke-width="1.5"/>`;
+  // Angle label
+  const angleLabelStyle=isAngleQ?'font-weight:800;fill:#e74c3c;font-size:15px':'font-weight:700;fill:#2980b9;font-size:14px';
+  svg+=`<text x="${ax+32}" y="${ay-12}" style="font-family:Quicksand;${angleLabelStyle}">${angleText}</text>`;
+
+  // Hypotenuse label (A→B diagonal) — middle of hyp, offset left
+  if(hypVal){
+    const mx=(ax+bx)/2-18,my=(ay+by)/2;
+    svg+=`<text x="${mx}" y="${my}" style="font-family:Quicksand;${labelClass('hyp')}" text-anchor="middle" transform="rotate(-32,${mx},${my})">${hypVal}</text>`;
+  }
+  // Opposite label (B→C right side)
+  if(oppVal){
+    svg+=`<text x="${bx+12}" y="${(by+cy)/2+5}" style="font-family:Quicksand;${labelClass('opp')}" text-anchor="start">${oppVal}</text>`;
+  }
+  // Adjacent label (A→C bottom)
+  if(adjVal){
+    svg+=`<text x="${(ax+cx)/2}" y="${ay+18}" style="font-family:Quicksand;${labelClass('adj')}" text-anchor="middle">${adjVal}</text>`;
+  }
+  svg+='</svg>';
+  return svg;
+}
+
+// ── State ──
+let solved=new Set(),selSlot=-1,attempts={};
+
+function init(){buildGrid()}
+
+function buildGrid(){
+  const grid=document.getElementById('grid');grid.innerHTML='';
+  for(let i=0;i<12;i++){
+    const slot=document.createElement('div');
+    slot.className='slot'+(solved.has(i+1)?' solved':'');
+    slot.id='slot'+(i+1);
+    slot.innerHTML=`<span class="slot-num">${i+1}</span>`;
+    slot.addEventListener('click',()=>{if(!solved.has(i+1))selectSlot(i+1)});
+    grid.appendChild(slot);
+  }
+}
+
+function selectSlot(id){
+  selSlot=id;
+  document.querySelectorAll('.slot').forEach(s=>s.classList.remove('active'));
+  document.getElementById('slot'+id).classList.add('active');
+  document.getElementById('pempty').style.display='none';
+  document.getElementById('pcontent').style.display='block';
+  const p=PIECES[id-1];
+  document.getElementById('pbadge').textContent='Pièce '+id;
+  document.getElementById('triWrap').innerHTML=drawTriangle(p);
+  document.getElementById('question').textContent=p.q+' (arrondir au dixième)';
+  buildQCM(p);
+  if(window.innerWidth<=720)document.getElementById('panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildQCM(p){
+  const qcm=document.getElementById('qcm');qcm.innerHTML='';
+  const L=['A','B','C','D'];
+  let choices=[{val:p.answer,correct:true}];
+  p.wrongs.forEach(w=>choices.push({val:w,correct:false}));
+  choices.sort((a,b)=>((a.val*1e3+p.id*7)%97)-((b.val*1e3+p.id*7)%97));
+  const unit=p.find==="angle"?"°":" cm";
+  choices.forEach((ch,i)=>{
+    const btn=document.createElement('div');
+    let cls='qcm-btn';
+    if(attempts[p.id]!==undefined){
+      if(ch.correct)cls+=' correct';
+      else if(attempts[p.id]===ch.val&&!ch.correct)cls+=' wrong-pick';
+    }
+    btn.className=cls;
+    btn.innerHTML=`<span class="qcm-letter">${L[i]}</span><span>${ch.val}${unit}</span>`;
+    if(!solved.has(p.id))btn.addEventListener('click',()=>submitAnswer(p.id,ch.val,ch.correct));
+    qcm.appendChild(btn);
+  });
+}
+
+function submitAnswer(id,val,correct){
+  attempts[id]=val;
+  if(correct){
+    solved.add(id);
+    const slot=document.getElementById('slot'+id);
+    slot.classList.add('solved');slot.classList.remove('active');
+    updateProgress();
+  }else{
+    const slot=document.getElementById('slot'+id);
+    slot.classList.add('wrong');
+    setTimeout(()=>slot.classList.remove('wrong'),400);
+  }
+  buildQCM(PIECES[id-1]);
+}
+
+function updateProgress(){
+  const n=solved.size;
+  document.getElementById('progress').innerHTML=`<b>${n}</b>/12 pièces`;
+  document.getElementById('progressFill').style.width=(n/12*100)+'%';
+  if(n===12){
+    document.getElementById('solvedOv').classList.add('show');
+    document.getElementById('pempty').style.display='flex';
+    document.getElementById('pcontent').style.display='none';
+    document.getElementById('pempty').innerHTML='🎉 Puzzle complet !<br>Tous les calculs sont justes.';
+  }
+}
+
+function razAll(){
+  solved=new Set();attempts={};selSlot=-1;
+  document.getElementById('solvedOv').classList.remove('show');
+  document.getElementById('pempty').style.display='flex';
+  document.getElementById('pcontent').style.display='none';
+  document.getElementById('pempty').innerHTML='← Clique sur une pièce du puzzle<br>pour voir le calcul à résoudre';
+  updateProgress();buildGrid();
+}
+
+function toggleFormulas(){document.getElementById('modalOverlay').classList.toggle('show')}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)toggleFormulas()});
+
+function toggleCalc(){document.getElementById('calcOverlay').classList.toggle('show')}
+document.getElementById('calcOverlay').addEventListener('click',function(e){if(e.target===this)toggleCalc()});
+
+var cMode='deg',cCur='0',cExpr='',cEvaled=false;
+function cDisp(){document.getElementById('calcScreen').textContent=cCur;document.getElementById('calcExpr').innerHTML=cExpr||'&nbsp;';}
+function setMode(m){cMode=m;document.getElementById('modeDeg').classList.toggle('active',m==='deg');document.getElementById('modeRad').classList.toggle('active',m==='rad');document.getElementById('modeLabel').textContent='Mode : '+(m==='deg'?'degrés':'radians');}
+var cMap={'sin(':'sin(','cos(':'cos(','tan(':'tan(','asin(':'sin⁻¹(','acos(':'cos⁻¹(','atan(':'tan⁻¹(','sqrt(':'√(','pi':'π','*':'×','/':'÷','-':'−'};
+function cIn(v){
+  if(cEvaled){if(/^[0-9.]$/.test(v)||v==='pi'){cCur='';cExpr='';}cEvaled=false;}
+  if(cCur==='0'&&v!=='.'){cCur='';cExpr='';}
+  var d=cMap[v]!==undefined?cMap[v]:v;
+  cExpr+=d; cCur+=(v==='pi'?'π':v); cDisp();
+}
+function cDel(){if(cEvaled){cClr();return;}var tk=['asin(','acos(','atan(','sin(','cos(','tan(','sqrt('];var r=false;for(var i=0;i<tk.length;i++){if(cCur.endsWith(tk[i])){cCur=cCur.slice(0,-tk[i].length);cExpr=cExpr.slice(0,-tk[i].length);r=true;break;}}if(!r){cCur=cCur.slice(0,-1)||'0';cExpr=cExpr.slice(0,-1)||'';}if(!cCur)cCur='0';cDisp();}
+function cClr(){cCur='0';cExpr='';cEvaled=false;cDisp();}
+function cAC(){cClr();}
+function cPM(){if(cCur.startsWith('-'))cCur=cCur.slice(1);else if(cCur!=='0')cCur='-'+cCur;cExpr=cCur;cDisp();}
+function cPct(){try{var v=cEval(cCur);cCur=String(Math.round(v/100*1e10)/1e10);cExpr=cCur+'%';cDisp();}catch(e){}}
+function toR(x){return cMode==='deg'?x*Math.PI/180:x;}
+function toD(x){return cMode==='deg'?x*180/Math.PI:x;}
+function cEval(raw){
+  var s=raw.replace(/π/g,'Math.PI').replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+  s=s.replace(/asin\(/g,'_as(').replace(/acos\(/g,'_ac(').replace(/atan\(/g,'_at(');
+  s=s.replace(/sin\(/g,'_s(').replace(/cos\(/g,'_c(').replace(/tan\(/g,'_t(');
+  s=s.replace(/sqrt\(/g,'Math.sqrt(').replace(/\^/g,'**');
+  var _s=function(x){return Math.sin(toR(x));};
+  var _c=function(x){return Math.cos(toR(x));};
+  var _t=function(x){return Math.tan(toR(x));};
+  var _as=function(x){return toD(Math.asin(x));};
+  var _ac=function(x){return toD(Math.acos(x));};
+  var _at=function(x){return toD(Math.atan(x));};
+  return (new Function('_s','_c','_t','_as','_ac','_at','return '+s+';'))(_s,_c,_t,_as,_ac,_at);
+}
+function cEq(){
+  try{var r=cEval(cCur);if(!isFinite(r)){cExpr=cCur+' =';cCur='Erreur';cEvaled=true;cDisp();return;}cExpr=cCur+' =';cCur=String(Math.round(r*1e10)/1e10);cEvaled=true;}
+  catch(e){cExpr=cCur+' =';cCur='Erreur';cEvaled=true;}
+  cDisp();
+}
+
+init();
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'Quicksand',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all .3s ease}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem}}
+</style>
+</body>
+</html>

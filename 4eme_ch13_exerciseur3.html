@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parcours fléché — Équations</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#2d5016;--forest-dark:#1a3409;--forest-light:#e8f5e0;
+  --leaf:#4a9e2f;--leaf-light:#d4edcc;
+  --sky:#4a90c4;--sky-light:#dceefb;
+  --sun:#e8a820;--sun-light:#fef3d0;
+  --earth:#8b6914;
+  --berry:#c0392b;--berry-light:#fde8e5;
+  --purple:#6c3fa0;--purple-light:#ede5f7;
+  --cream:#fefdf8;--card:#fff;
+  --text:#2c3e1a;--text-soft:#6b7c5a;
+  --shadow:rgba(45,80,22,.12);--radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Nunito',sans-serif;background:#e8f0dc;
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(74,158,47,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(74,144,196,.07) 0%,transparent 50%);
+  background-attachment:fixed;color:var(--text);line-height:1.6;padding:1.5rem 1rem;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-3 8-12 15-20 18 8 3 17 10 20 18 3-8 12-15 20-18-8-3-17-10-20-18z' fill='%234a9e2f' fill-opacity='.02'/%3E%3C/svg%3E");opacity:.7}
+.container{max-width:820px;margin:0 auto;position:relative;z-index:1}
+
+header{background:linear-gradient(135deg,var(--forest),var(--forest-dark));padding:1.75rem 2rem;border-radius:var(--radius);box-shadow:0 8px 32px var(--shadow);margin-bottom:1.25rem;color:#fff;position:relative;overflow:hidden}
+header::after{content:'⚖️';position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);font-size:2.5rem;opacity:.25}
+h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;letter-spacing:-.3px}
+.subtitle{font-size:.92rem;opacity:.8;margin-top:.2rem}
+.header-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.chip{font-size:.72rem;font-weight:700;padding:.15rem .6rem;border-radius:99px;background:rgba(255,255,255,.18);color:#fff}
+
+/* SETUP */
+.setup{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:2rem;box-shadow:0 6px 24px var(--shadow);text-align:center}
+.setup-t{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;color:var(--forest);margin-bottom:.8rem}
+.setup-d{font-size:.92rem;color:var(--text-soft);margin-bottom:1.25rem;max-width:500px;margin-inline:auto}
+.opts{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem}
+.opt{padding:.7rem 1.4rem;border-radius:12px;border:2px solid var(--leaf-light);background:var(--cream);cursor:pointer;transition:all .3s;font-weight:700;font-size:.95rem;color:var(--forest)}
+.opt:hover{border-color:var(--leaf);transform:translateY(-2px)}
+.opt.active{border-color:var(--leaf);background:var(--leaf-light);color:var(--forest-dark)}
+.go-btn{background:var(--forest);color:#fff;border:none;padding:.7rem 2.2rem;border-radius:50px;font-weight:800;font-size:1rem;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(45,80,22,.3)}
+.go-btn:hover{transform:scale(1.04);background:var(--forest-dark)}
+
+/* MAP */
+.map-w{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;box-shadow:0 4px 16px var(--shadow);overflow-x:auto}
+.map-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:.4rem}
+.map-l{font-size:.85rem;font-weight:700;color:var(--text-soft)}
+.map-st{display:flex;gap:.5rem;flex-wrap:wrap}
+.pill{font-size:.75rem;font-weight:700;padding:.15rem .55rem;border-radius:99px}
+.pill-g{background:var(--leaf-light);color:var(--forest)}
+.pill-r{background:var(--berry-light);color:var(--berry)}
+.pill-o{background:var(--sun-light);color:var(--earth)}
+.map-svg{width:100%;overflow-x:auto;padding:.4rem 0;-webkit-overflow-scrolling:touch}
+.map-svg svg{display:block;margin:0 auto}
+.nlbl{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+
+/* EX CARD */
+.ex{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:1.75rem;box-shadow:0 6px 24px var(--shadow);margin-bottom:1.25rem;position:relative;overflow:hidden;transition:border-color .4s}
+.ex::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--leaf),var(--sky));transition:background .4s}
+.ex.st-ok{border-color:var(--leaf)}.ex.st-ok::before{background:var(--leaf)}
+.ex.st-ko{border-color:var(--berry)}.ex.st-ko::before{background:var(--berry)}
+.ex.st-rem{border-color:var(--sun)}.ex.st-rem::before{background:var(--sun)}
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.3rem}
+.ex-num{font-family:'Fraunces',serif;font-size:.88rem;font-weight:600;color:var(--text-soft)}
+.badge{font-size:.72rem;font-weight:700;padding:.12rem .5rem;border-radius:99px}
+.b-main{background:var(--leaf-light);color:var(--forest)}
+.b-rem{background:var(--sun-light);color:var(--earth)}
+.b-auto{background:var(--sky-light);color:var(--sky)}
+.auto-note{font-size:.76rem;color:var(--earth);font-weight:700;text-align:center;margin-bottom:.7rem;padding:.35rem .7rem;background:var(--sun-light);border-radius:8px;border:1px solid rgba(232,168,32,.3);display:none}
+.auto-note.vis{display:block}
+
+/* ARROWS SYSTEM */
+.arrows{margin:10px auto;max-width:600px}
+.eq-line{font-size:1.4em;text-align:center;margin:.4rem 0;font-family:'Times New Roman',serif;font-style:italic;line-height:1.6}
+.eq-line i{font-style:italic}
+.circled{display:inline-block;border:3px solid var(--berry);border-radius:50%;padding:.15em .5em;color:var(--berry);font-weight:bold;font-style:normal}
+.arrow-sec{position:relative;height:75px;margin:.6rem 0}
+.arrow-svg{position:absolute;width:100%;height:100%}
+.op-input{position:absolute;transform:translateY(-50%);font-family:'Times New Roman',serif;font-style:italic;font-size:1em;font-weight:600;padding:7px 14px;border:2px dashed var(--purple);border-radius:10px;background:#fff;text-align:center;outline:none;width:90px;transition:all .2s;color:var(--text)}
+.op-input:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(45,80,22,.12)}
+.op-input.ok{border-color:var(--leaf);border-style:solid;background:rgba(74,158,47,.08);color:var(--forest)}
+.op-input.err{border-color:var(--berry);border-style:solid;background:rgba(192,57,43,.06);animation:shake .3s}
+.l-op{left:22%;top:8px}.r-op{right:22%;top:8px}
+@keyframes shake{0%,100%{transform:translateY(-50%) translateX(0)}25%{transform:translateY(-50%) translateX(-6px)}75%{transform:translateY(-50%) translateX(6px)}}
+
+.step-input,.sol-input{font-family:'Times New Roman',serif;font-style:italic;font-size:1.3em;font-weight:600;width:200px;padding:9px;text-align:center;border:3px dashed var(--purple);border-radius:12px;background:#fff;outline:none;transition:all .2s;display:inline-block;color:var(--text)}
+.step-input:focus,.sol-input:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(45,80,22,.12)}
+.step-input.ok,.sol-input.ok{border-color:var(--leaf);border-style:solid;background:rgba(74,158,47,.08);color:var(--forest)}
+.step-input.err,.sol-input.err{border-color:var(--berry);border-style:solid;background:rgba(192,57,43,.06);animation:shake .3s}
+
+.val-row{text-align:center;margin-top:1rem}
+.val-btn{background:var(--forest);color:#fff;border:none;padding:.6rem 1.4rem;border-radius:12px;font-weight:800;font-size:.92rem;cursor:pointer;transition:all .25s;box-shadow:0 3px 12px rgba(45,80,22,.25)}
+.val-btn:hover{transform:scale(1.04);background:var(--forest-dark)}
+.val-btn:disabled{opacity:.35;cursor:default;transform:none}
+.enter-hint{font-size:.7rem;color:var(--text-soft);margin-top:.3rem;text-align:center}
+.enter-hint kbd{background:#ebedef;border:1px solid #ccc;border-radius:3px;padding:.05rem .25rem;font-size:.68rem}
+
+/* FEEDBACK */
+.fb{margin-top:.8rem;padding:.9rem 1.1rem;border-radius:12px;font-size:.92rem;display:none;animation:fbIn .4s cubic-bezier(.34,1.56,.64,1)}
+.fb.vis{display:block}
+@keyframes fbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.fb-ok{background:var(--leaf-light);border:2px solid rgba(74,158,47,.4);color:var(--forest-dark)}
+.fb-ko{background:var(--berry-light);border:2px solid rgba(192,57,43,.3);color:#922b21}
+.fb-t{font-weight:700;margin-bottom:.25rem}
+.fb-d{font-size:.88rem;line-height:1.7}
+.fb-corr{margin-top:.6rem;background:linear-gradient(135deg,#edf7e8,#e4f2dc);border:2px solid rgba(74,158,47,.3);border-radius:12px;padding:.9rem;display:none}
+.fb-corr.vis{display:block;animation:fbIn .4s ease}
+.fb-corr-t{font-family:'Fraunces',serif;font-weight:700;color:var(--forest);margin-bottom:.4rem;font-size:.92rem}
+.fb-corr-s{font-family:'Times New Roman',serif;font-style:italic;font-size:1rem;line-height:2}
+.nxt{margin-top:.65rem;background:var(--leaf);color:#fff;border:none;padding:.5rem 1.1rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .25s}
+.nxt:hover{transform:scale(1.04);background:var(--forest)}
+.nxt.orange{background:var(--sun)}.nxt.orange:hover{background:var(--earth)}
+
+/* SCORE */
+.score{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:2rem;margin-top:1.25rem;box-shadow:0 8px 32px var(--shadow);text-align:center;display:none;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden}
+.score::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--leaf),var(--sky),var(--sun))}
+@keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.score.vis{display:block}
+.sc-e{font-size:2.8rem;display:block;margin-bottom:.4rem}
+.sc-t{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--forest)}
+.sc-s{font-size:1.6rem;letter-spacing:.15rem;margin:.3rem 0 .6rem}
+.sc-m{font-size:.95rem;color:var(--text-soft);max-width:460px;margin:0 auto}
+.sc-bs{display:flex;justify-content:center;gap:.6rem;margin-top:.8rem;flex-wrap:wrap}
+.sc-b{padding:.3rem .75rem;border-radius:99px;font-size:.78rem;font-weight:700}
+.sc-b.g{background:var(--leaf-light);color:var(--forest)}.sc-b.p{background:var(--sun-light);color:var(--earth)}.sc-b.b{background:var(--sky-light);color:var(--sky)}
+.restart{margin-top:1rem;background:var(--forest);color:#fff;border:none;padding:.65rem 1.8rem;border-radius:50px;font-weight:800;font-size:.95rem;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(45,80,22,.25)}
+.restart:hover{transform:scale(1.04)}
+
+/* RAPPEL */
+.recap{background:var(--card);border:2px solid var(--leaf-light);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1.25rem;box-shadow:0 3px 12px var(--shadow)}
+.recap-tog{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.recap-tog-t{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--forest)}
+.recap-arr{font-size:1rem;transition:transform .3s;color:var(--forest)}.recap-arr.open{transform:rotate(180deg)}
+.recap-body{max-height:0;overflow:hidden;transition:max-height .4s ease}.recap-body.open{max-height:600px}
+.recap-inner{padding-top:.65rem;font-size:.88rem;line-height:1.8;color:var(--text-soft)}
+.recap-inner strong{color:var(--forest)}
+
+.hidden{display:none!important}
+.btn-retour-flottant{position:fixed;top:18px;left:18px;z-index:9999;display:flex;align-items:center;gap:7px;background:var(--card);color:var(--forest);text-decoration:none;font-weight:800;font-size:.85rem;padding:9px 16px;border-radius:50px;border:2px solid var(--forest);box-shadow:0 3px 12px var(--shadow);transition:all .3s}
+.btn-retour-flottant:hover{transform:scale(1.05);background:var(--forest);color:#fff}
+
+@media(max-width:600px){
+  body{padding:.8rem .5rem}header{padding:1.3rem 1.2rem}header::after{font-size:1.8rem;right:.8rem}h1{font-size:1.6rem}
+  .ex,.setup{padding:1.2rem}
+  .eq-line{font-size:1.15em}.op-input{width:75px;font-size:.9em;padding:5px 10px}
+  .step-input,.sol-input{width:150px;font-size:1.1em;padding:7px}
+  .l-op{left:15%}.r-op{right:15%}
+  .btn-retour-flottant{top:auto;bottom:16px;left:16px;padding:10px 18px;font-size:.9rem}
+}
+@media(max-width:380px){.eq-line{font-size:1em}.step-input,.sol-input{width:130px;font-size:1em}}
+</style>
+</head>
+<body>
+
+<!-- SVG arrow markers -->
+<svg style="position:absolute;width:0;height:0"><defs>
+  <marker id="al" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto"><polygon points="0 0,10 5,0 10" fill="#6c3fa0"/></marker>
+  <marker id="ar" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto"><polygon points="10 0,0 5,10 10" fill="#6c3fa0"/></marker>
+</defs></svg>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<div class="container">
+  <header>
+    <h1>🌲 Parcours Fléché</h1>
+    <p class="subtitle">Équations — Résolution par la méthode des flèches</p>
+    <div class="header-meta"><span class="chip">4ème</span><span class="chip">Algèbre</span><span class="chip">Adaptatif</span></div>
+  </header>
+
+  <div class="recap">
+    <div class="recap-tog" id="recTog"><span class="recap-tog-t">🌱 Rappel — Résoudre une équation</span><span class="recap-arr" id="recArr">▼</span></div>
+    <div class="recap-body" id="recBody"><div class="recap-inner">
+      Pour isoler <em>x</em>, on fait la <strong>même opération des deux côtés</strong> du signe =.<br>
+      • Pour enlever <strong>+ a</strong> → on fait <strong>− a</strong> des deux côtés.<br>
+      • Pour enlever <strong>− a</strong> → on fait <strong>+ a</strong> des deux côtés.<br>
+      • Pour enlever un <strong>coefficient</strong> (ex: 3<em>x</em>) → on <strong>divise</strong> des deux côtés par ce coefficient.<br>
+      • S'il y a des <em>x</em> des deux côtés → on les <strong>regroupe</strong> d'abord.
+    </div></div>
+  </div>
+
+  <div id="setupScr" class="setup">
+    <div class="setup-t">🗺️ Choisis la longueur de ton parcours</div>
+    <div class="setup-d">La difficulté augmente à chaque étape. Si tu te trompes, tu feras des exercices de remédiation avant de continuer.</div>
+    <div class="opts"><div class="opt" data-n="5">5 étapes</div><div class="opt active" data-n="7">7 étapes</div><div class="opt" data-n="10">10 étapes</div></div>
+    <button class="go-btn" id="goBtn">Commencer →</button>
+  </div>
+
+  <div class="map-w hidden" id="mapW"><div class="map-h"><span class="map-l">🗺️ Ton parcours</span><div class="map-st" id="mapSt"></div></div><div class="map-svg" id="mapSvg"></div></div>
+
+  <div class="ex hidden" id="exCard">
+    <div class="ex-top"><span class="ex-num" id="exNum"></span><span class="badge" id="exBadge"></span></div>
+    <div class="auto-note" id="autoNote">🚀 Mode autonome</div>
+    <div id="zone"></div>
+    <div class="fb" id="fb"><div class="fb-t" id="fbT"></div><div class="fb-d" id="fbD"></div>
+      <div class="fb-corr" id="fbC"><div class="fb-corr-t">📝 Correction :</div><div class="fb-corr-s" id="fbCS"></div></div>
+      <button class="nxt" id="nxtBtn">Suite →</button>
+    </div>
+  </div>
+
+  <div class="score" id="scoreCard"><span class="sc-e" id="scE"></span><div class="sc-t" id="scT"></div><div class="sc-s" id="scS"></div><div class="sc-m" id="scM"></div><div class="sc-bs" id="scB"></div><button class="restart" id="restBtn">🔄 Recommencer</button></div>
+</div>
+
+<script>
+/* ═══════ STATE ═══════ */
+let N=7,mainPath=[],remPath=[],curI=0,inRem=false,remI=0;
+let curP=null,att=0,done=false,totOk=0,totKo=0,remCt=0;
+
+function isAuto(){return!inRem&&(curI+1)>Math.ceil(N/2);}
+
+/* ═══════ EQUATION TYPES ═══════
+   Type 1: x + a = b   or   x - a = b        → 1 arrow (±a)
+   Type 2: ax = b                             → 1 arrow (÷a)
+   Type 3: ax + c = d   or  ax - c = d       → 2 arrows (±c then ÷a)
+   Type 4: ax + c = bx + d                   → 3 arrows (±bx, ±c, ÷coef)
+*/
+function genEq(level, maxLv){
+  const t = maxLv>1?(level-1)/(maxLv-1):0;
+  if(t<=0.2) return genType1();
+  if(t<=0.4) return genType2();
+  if(t<=0.7) return genType3();
+  return genType4();
+}
+function genRem(failLv,mx){return genEq(Math.max(1,failLv-1),mx);}
+
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+
+function genType1(){
+  // x + a = b  or  x - a = b
+  const isAdd=Math.random()<.5;
+  const a=ri(2,12);
+  if(isAdd){const x=ri(1,20);return{type:1,x,a,b:x+a,isAdd:true};}
+  else{const b=ri(1,15);return{type:1,x:b+a,a,b,isAdd:false};}
+}
+
+function genType2(){
+  // ax = b (integer solution)
+  const x=ri(2,12);const a=ri(2,6);
+  return{type:2,x,a,b:a*x};
+}
+
+function genType3(){
+  // ax + c = d  or  ax - c = d (integer solution)
+  const x=ri(1,10);const a=ri(2,5);
+  const isAdd=Math.random()<.5;
+  const c=ri(1,9);
+  const d=isAdd?a*x+c:a*x-c;
+  return{type:3,x,a,c,d,isAdd};
+}
+
+function genType4(){
+  // ax ± c = bx ± d  (a>b, integer or simple fraction)
+  let a,b,c,d,isAddL,isAddR;
+  for(let i=0;i<50;i++){
+    a=ri(3,7);b=ri(1,a-1);c=ri(1,9);d=ri(1,9);
+    isAddL=Math.random()<.6;isAddR=Math.random()<.6;
+    const coef=a-b;
+    let cDiff;
+    if(isAddL&&isAddR)cDiff=d-c;
+    else if(isAddL&&!isAddR)cDiff=-d-c;
+    else if(!isAddL&&isAddR)cDiff=d+c;
+    else cDiff=c-d;
+    if(cDiff===0)continue;
+    if(cDiff%coef===0){
+      return{type:4,x:cDiff/coef,a,b,c,d,isAddL,isAddR,coef,cDiff};
+    }
+  }
+  // Fallback: simple case
+  const x=ri(2,8);a=ri(3,6);b=ri(1,a-1);c=ri(1,8);d=(a-b)*x+c;
+  return{type:4,x,a,b,c,d,isAddL:true,isAddR:true,coef:a-b,cDiff:d-c};
+}
+
+/* ═══════ ARROW HTML BUILDER ═══════ */
+function arrowSection(idL,idR){
+  return`<div class="arrow-sec">
+    <svg class="arrow-svg" viewBox="0 0 400 75" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 80 8 Q 60 38 90 66" stroke="#6c3fa0" stroke-width="3" fill="none" marker-end="url(#al)"/>
+      <path d="M 320 8 Q 340 38 310 66" stroke="#6c3fa0" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+    </svg>
+    <input type="text" class="op-input l-op" id="${idL}" placeholder="?" autocomplete="off" spellcheck="false">
+    <input type="text" class="op-input r-op" id="${idR}" placeholder="?" autocomplete="off" spellcheck="false">
+  </div>`;
+}
+
+/* ═══════ RENDER QUESTION ═══════ */
+function renderQ(p){
+  let h='<div class="arrows">';
+  if(p.type===1){
+    const sign=p.isAdd?'+':'−';
+    h+=`<div class="eq-line"><i>x</i> <span class="circled">${sign} ${p.a}</span> = ${p.b}</div>`;
+    h+=arrowSection('op1L','op1R');
+    h+=`<div class="eq-line"><i>x</i> = <input type="text" class="sol-input" id="sol" placeholder="?" autocomplete="off"></div>`;
+  }
+  else if(p.type===2){
+    h+=`<div class="eq-line"><span class="circled">${p.a}</span><i>x</i> = ${p.b}</div>`;
+    h+=arrowSection('op1L','op1R');
+    h+=`<div class="eq-line"><i>x</i> = <input type="text" class="sol-input" id="sol" placeholder="?" autocomplete="off"></div>`;
+  }
+  else if(p.type===3){
+    const sign=p.isAdd?'+':'−';
+    h+=`<div class="eq-line">${p.a}<i>x</i> <span class="circled">${sign} ${p.c}</span> = ${p.d}</div>`;
+    h+=arrowSection('op1L','op1R');
+    h+=`<div class="eq-line"><input type="text" class="step-input" id="step1" placeholder="? = ?" autocomplete="off" style="width:220px"></div>`;
+    h+=arrowSection('op2L','op2R');
+    h+=`<div class="eq-line"><i>x</i> = <input type="text" class="sol-input" id="sol" placeholder="?" autocomplete="off"></div>`;
+  }
+  else if(p.type===4){
+    const bD=p.b===1?'<i>x</i>':p.b+'<i>x</i>';
+    const sL=p.isAddL?'+':'−', sR=p.isAddR?'+':'−';
+    h+=`<div class="eq-line">${p.a}<i>x</i> ${sL} ${p.c} = <span class="circled">${bD}</span> ${sR} ${p.d}</div>`;
+    h+=arrowSection('op1L','op1R');
+    h+=`<div class="eq-line"><input type="text" class="step-input" id="step1" placeholder="après regroupement des x" autocomplete="off" style="width:260px"></div>`;
+    h+=arrowSection('op2L','op2R');
+    if(p.coef>1){
+      h+=`<div class="eq-line"><input type="text" class="step-input" id="step2" placeholder="après déplacement" autocomplete="off" style="width:220px"></div>`;
+      h+=arrowSection('op3L','op3R');
+    }
+    h+=`<div class="eq-line"><i>x</i> = <input type="text" class="sol-input" id="sol" placeholder="?" autocomplete="off"></div>`;
+  }
+  h+=`</div><div class="val-row"><button class="val-btn" id="valBtn" onclick="doVal()">Vérifier</button></div>`;
+  h+=`<div class="enter-hint">Appuie sur <kbd>Entrée</kbd> pour valider</div>`;
+  document.getElementById('zone').innerHTML=h;
+
+  // Enter key on all inputs
+  document.querySelectorAll('.op-input,.step-input,.sol-input').forEach(i=>{
+    i.addEventListener('keypress',e=>{if(e.key==='Enter')doVal();});
+    // Replace / with ÷ in operation inputs
+    if(i.classList.contains('op-input'))
+      i.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\//g,'÷');});
+  });
+}
+
+/* ═══════ NORMALIZE & CHECK ═══════ */
+function norm(s){return s.trim().replace(/\s/g,'').replace(/−/g,'-').replace(/÷/g,'/').toLowerCase();}
+
+function chkOp(id, valids){
+  const el=document.getElementById(id);if(!el)return true;
+  const v=norm(el.value);
+  const ok=valids.some(f=>v===norm(f)||v.includes(norm(f)));
+  el.classList.remove('ok','err');el.classList.add(ok?'ok':'err');
+  if(ok)el.disabled=true;
+  return ok;
+}
+
+function chkStep(id, valids){
+  const el=document.getElementById(id);if(!el)return true;
+  const v=norm(el.value);
+  const ok=valids.some(f=>norm(f)===v);
+  el.classList.remove('ok','err');el.classList.add(ok?'ok':'err');
+  if(ok)el.disabled=true;
+  return ok;
+}
+
+function chkSol(id, expected){
+  const el=document.getElementById(id);if(!el)return true;
+  const s=norm(el.value).replace(/,/g,'.');
+  let val=Number(s);
+  if(isNaN(val)){const m=s.match(/^(-?\d+)\/(-?\d+)$/);if(m)val=parseInt(m[1])/parseInt(m[2]);}
+  const ok=Math.abs(val-expected)<1e-9;
+  el.classList.remove('ok','err');el.classList.add(ok?'ok':'err');
+  if(ok)el.disabled=true;
+  return ok;
+}
+
+function doVal(){
+  if(done)return;
+  const p=curP;let ok=true;att++;
+
+  if(p.type===1){
+    const expectedOp=p.isAdd?[`-${p.a}`,`−${p.a}`]:[`+${p.a}`];
+    if(!chkOp('op1L',expectedOp))ok=false;
+    if(!chkOp('op1R',expectedOp))ok=false;
+    if(!chkSol('sol',p.x))ok=false;
+  }
+  else if(p.type===2){
+    const expectedOp=[`÷${p.a}`,`/${p.a}`,`:${p.a}`];
+    if(!chkOp('op1L',expectedOp))ok=false;
+    if(!chkOp('op1R',expectedOp))ok=false;
+    if(!chkSol('sol',p.x))ok=false;
+  }
+  else if(p.type===3){
+    // Step 1: remove c
+    const ops1=p.isAdd?[`-${p.c}`,`−${p.c}`]:[`+${p.c}`];
+    if(!chkOp('op1L',ops1))ok=false;
+    if(!chkOp('op1R',ops1))ok=false;
+    // Intermediate: ax = d∓c
+    const mid=p.isAdd?p.d-p.c:p.d+p.c;
+    const stepForms=[`${p.a}x=${mid}`];
+    if(p.a===1)stepForms.push(`x=${mid}`);
+    if(!chkStep('step1',stepForms))ok=false;
+    // Step 2: divide
+    if(p.a>1){
+      const ops2=[`÷${p.a}`,`/${p.a}`,`:${p.a}`];
+      if(!chkOp('op2L',ops2))ok=false;
+      if(!chkOp('op2R',ops2))ok=false;
+    }
+    if(!chkSol('sol',p.x))ok=false;
+  }
+  else if(p.type===4){
+    // Step 1: remove bx
+    const xOps=p.b===1?['-x','−x','-1x','−1x']:[`-${p.b}x`,`−${p.b}x`];
+    if(!chkOp('op1L',xOps))ok=false;
+    if(!chkOp('op1R',xOps))ok=false;
+    // Intermediate step1: coef·x ± c = ± d
+    const sL=p.isAddL?'+':'-', sR=p.isAddR?'+':'-';
+    const coefStr=p.coef===1?'x':p.coef+'x';
+    const step1Forms=[];
+    const addVar=(lhs,rhs)=>{step1Forms.push(lhs+'='+rhs);step1Forms.push(lhs.replace(/-/g,'−')+'='+rhs.replace(/-/g,'−'));};
+    addVar(`${coefStr}${sL}${p.c}`,`${sR}${p.d}`);
+    if(sR==='+')addVar(`${coefStr}${sL}${p.c}`,`${p.d}`);
+    if(!chkStep('step1',step1Forms))ok=false;
+    // Step 2: remove constant c
+    const cOps=p.isAddL?[`-${p.c}`,`−${p.c}`]:[`+${p.c}`];
+    if(!chkOp('op2L',cOps))ok=false;
+    if(!chkOp('op2R',cOps))ok=false;
+    // Intermediate step2 (if coef>1)
+    if(p.coef>1){
+      const step2Forms=[`${p.coef}x=${p.cDiff}`];
+      step2Forms.push(`${p.coef}x=${p.cDiff}`.replace(/-/g,'−'));
+      if(!chkStep('step2',step2Forms))ok=false;
+      // Step 3: divide
+      const dOps=[`÷${p.coef}`,`/${p.coef}`,`:${p.coef}`];
+      if(!chkOp('op3L',dOps))ok=false;
+      if(!chkOp('op3R',dOps))ok=false;
+    }
+    if(!chkSol('sol',p.x))ok=false;
+  }
+
+  handleResult(ok);
+}
+
+/* ═══════ RESULT HANDLING ═══════ */
+function handleResult(ok){
+  const fb=document.getElementById('fb'),fbT=document.getElementById('fbT'),fbD=document.getElementById('fbD');
+  const card=document.getElementById('exCard'),nxt=document.getElementById('nxtBtn');
+
+  if(ok){
+    done=true;fb.className='fb vis fb-ok';fbT.textContent='✅ Bravo !';
+    fbD.textContent=`x = ${curP.x}`;
+    card.classList.remove('st-rem');card.classList.add('st-ok');
+    document.getElementById('valBtn').disabled=true;
+    if(inRem){remPath[remI].status='success';remCt++;
+      nxt.textContent=remI<remPath.length-1?'Remédiation suivante →':'Retenter l\'étape '+(curI+1)+' →';nxt.className='nxt orange';}
+    else{mainPath[curI].status='success';totOk++;
+      nxt.textContent=curI>=N-1?'Voir le bilan →':'Étape suivante →';nxt.className='nxt';}
+    nxt.classList.remove('hidden');renderMap();
+  } else {
+    if(att>=2){
+      done=true;fb.className='fb vis fb-ko';fbT.textContent='❌ Ce n\'est pas ça.';
+      document.getElementById('valBtn').disabled=true;
+      showCorr();
+      if(inRem){remPath[remI].status='fail';remCt++;fbD.innerHTML='Voici la correction.';
+        nxt.textContent=remI<remPath.length-1?'Remédiation suivante →':'Retenter l\'étape '+(curI+1)+' →';nxt.className='nxt orange';}
+      else{mainPath[curI].status='fail';totKo++;fbD.innerHTML='Tu vas faire 2 exercices plus simples avant de retenter.';
+        remPath=[{problem:genRem(mainPath[curI].level,N),status:'pending'},{problem:genRem(mainPath[curI].level,N),status:'pending'}];
+        inRem=true;remI=0;nxt.textContent='Commencer la remédiation →';nxt.className='nxt orange';}
+      nxt.classList.remove('hidden');renderMap();
+    } else {
+      fb.className='fb vis fb-ko';fbT.textContent='🤔 Essaie encore !';fbD.textContent='Vérifie chaque étape.';
+      nxt.classList.add('hidden');
+      // Clear err fields for retry
+      document.querySelectorAll('.err').forEach(e=>{e.classList.remove('err');if(!e.disabled)e.value='';});
+    }
+  }
+}
+
+function showCorr(){
+  const p=curP,box=document.getElementById('fbC'),st=document.getElementById('fbCS');
+  st.innerHTML='';
+  let lines=[];
+  if(p.type===1){
+    const op=p.isAdd?`− ${p.a}`:`+ ${p.a}`;
+    lines.push(`On fait ${op} des deux côtés`);
+    lines.push(`<em>x</em> = ${p.x}`);
+  } else if(p.type===2){
+    lines.push(`On divise par ${p.a} des deux côtés`);
+    lines.push(`<em>x</em> = ${p.b} ÷ ${p.a} = ${p.x}`);
+  } else if(p.type===3){
+    const op1=p.isAdd?`− ${p.c}`:`+ ${p.c}`;
+    const mid=p.isAdd?p.d-p.c:p.d+p.c;
+    lines.push(`1) ${op1} des deux côtés → ${p.a}<em>x</em> = ${mid}`);
+    if(p.a>1)lines.push(`2) ÷ ${p.a} des deux côtés → <em>x</em> = ${p.x}`);
+    else lines.push(`→ <em>x</em> = ${p.x}`);
+  } else if(p.type===4){
+    const bS=p.b===1?'<em>x</em>':p.b+'<em>x</em>';
+    lines.push(`1) − ${bS} des deux côtés → on regroupe les <em>x</em>`);
+    const sL=p.isAddL?'+':'-',sR=p.isAddR?'+':'-';
+    lines.push(`   ${p.coef===1?'':p.coef}<em>x</em> ${sL} ${p.c} = ${sR==='+'?'':'-'}${p.d}`);
+    const op2=p.isAddL?`− ${p.c}`:`+ ${p.c}`;
+    lines.push(`2) ${op2} des deux côtés → ${p.coef===1?'':p.coef}<em>x</em> = ${p.cDiff}`);
+    if(p.coef>1)lines.push(`3) ÷ ${p.coef} → <em>x</em> = ${p.x}`);
+    else lines.push(`→ <em>x</em> = ${p.x}`);
+  }
+  st.innerHTML=lines.join('<br>');
+  box.classList.add('vis');
+}
+
+/* ═══════ MAP ═══════ */
+function renderMap(){
+  const w=document.getElementById('mapSvg'),R=18,gap=65,ry=50,px=35,py=28;
+  const W=px*2+(N-1)*gap,H=py*2+ry+R*2;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${Math.min(W,680)}" xmlns="http://www.w3.org/2000/svg">`;
+  for(let i=0;i<N-1;i++){const x1=px+i*gap,x2=px+(i+1)*gap,y=py+R;
+    let c='#c5d9b2';if(mainPath[i]?.status==='success')c='#4a9e2f';else if(mainPath[i]?.status==='fail')c='#e8bdb5';
+    s+=`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;}
+  for(let i=0;i<N;i++){
+    if(mainPath[i]?.status!=='fail'&&!(i===curI&&inRem))continue;
+    const cx=px+i*gap,cy=py+R,ey=cy+ry;
+    s+=`<line x1="${cx}" y1="${cy+R}" x2="${cx}" y2="${ey-R+2}" stroke="#e8a820" stroke-width="2.5" stroke-dasharray="5,4"/>`;
+    const act=i===curI&&inRem;
+    s+=`<circle cx="${cx}" cy="${ey}" r="${R-3}" fill="${act?'#e8a820':'#fff'}" stroke="#e8a820" stroke-width="2.5"/>`;
+    s+=`<text x="${cx}" y="${ey}" fill="${act?'#fff':'#e8a820'}" class="nlbl" font-size="10">↩</text>`;}
+  for(let i=0;i<N;i++){const cx=px+i*gap,cy=py+R,st=mainPath[i]?.status||'pending';
+    let f='#fff',sk='#c5d9b2',tx='#8a9a78';const cur=i===curI&&!inRem;
+    if(cur){f='#2d5016';sk='#2d5016';tx='#fff';}
+    else if(st==='success'){f='#4a9e2f';sk='#4a9e2f';tx='#fff';}
+    else if(st==='fail'){f='#fde8e5';sk='#c0392b';tx='#c0392b';}
+    s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="${f}" stroke="${sk}" stroke-width="3"${cur?' style="filter:drop-shadow(0 0 5px rgba(45,80,22,.3))"':''}/>`;
+    s+=`<text x="${cx}" y="${cy}" fill="${tx}" class="nlbl">${i+1}</text>`;}
+  s+='</svg>';w.innerHTML=s;
+  document.getElementById('mapSt').innerHTML=`<span class="pill pill-g">✓ ${totOk}</span><span class="pill pill-r">✗ ${totKo}</span>${remCt?`<span class="pill pill-o">↩ ${remCt}</span>`:''}`;}
+
+/* ═══════ SETUP ═══════ */
+document.querySelectorAll('.opt').forEach(el=>{el.addEventListener('click',()=>{document.querySelectorAll('.opt').forEach(e=>e.classList.remove('active'));el.classList.add('active');});});
+document.getElementById('goBtn').addEventListener('click',startGame);
+document.getElementById('restBtn').addEventListener('click',()=>{
+  document.getElementById('scoreCard').classList.remove('vis');document.getElementById('scoreCard').style.display='none';
+  document.getElementById('setupScr').classList.remove('hidden');
+  ['mapW','exCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));});
+
+function startGame(){
+  N=parseInt(document.querySelector('.opt.active').dataset.n);
+  mainPath=[];for(let i=0;i<N;i++)mainPath.push({level:i+1,problem:genEq(i+1,N),status:'pending'});
+  curI=0;inRem=false;remPath=[];remI=0;totOk=0;totKo=0;remCt=0;done=false;
+  document.getElementById('setupScr').classList.add('hidden');
+  ['mapW','exCard'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
+  document.getElementById('scoreCard').classList.remove('vis');document.getElementById('scoreCard').style.display='none';
+  renderMap();showQ();}
+
+/* ═══════ SHOW QUESTION ═══════ */
+function showQ(){
+  done=false;att=0;
+  let prob,label,bC,bT;
+  if(inRem){prob=remPath[remI].problem;label=`Remédiation ${remI+1}`;bC='b-rem';bT='↩ Remédiation';}
+  else{prob=mainPath[curI].problem;label=`Étape ${curI+1} / ${N}`;bC='b-main';
+    const t=N>1?curI/(N-1):0;
+    bT=t<=.2?'🟢 x+a=b':t<=.4?'🟡 ax=b':t<=.7?'🟠 ax+c=d':'🔴 ax+c=bx+d';
+    if(isAuto()){bC='b-auto';bT+=' — Autonome';}}
+  curP=prob;
+  document.getElementById('exNum').textContent=label;
+  const bg=document.getElementById('exBadge');bg.className='badge '+bC;bg.textContent=bT;
+  document.getElementById('autoNote').classList.toggle('vis',isAuto());
+  const card=document.getElementById('exCard');card.classList.remove('st-ok','st-ko','st-rem');
+  if(inRem)card.classList.add('st-rem');
+
+  renderQ(prob);
+
+  document.getElementById('fb').className='fb';
+  document.getElementById('fbC').classList.remove('vis');
+  document.getElementById('nxtBtn').classList.remove('hidden');
+
+  // Focus first input
+  setTimeout(()=>{const f=document.querySelector('.op-input,.sol-input');if(f)f.focus();},150);
+}
+
+/* ═══════ NEXT ═══════ */
+document.getElementById('nxtBtn').addEventListener('click',doNxt);
+function doNxt(){
+  if(inRem){if(remI<remPath.length-1){remI++;showQ();}
+    else{inRem=false;remPath=[];remI=0;mainPath[curI].status='pending';mainPath[curI].problem=genEq(mainPath[curI].level,N);renderMap();showQ();}}
+  else{curI++;if(curI>=N)showScore();else{renderMap();showQ();}}}
+
+/* ═══════ SCORE ═══════ */
+function showScore(){
+  document.getElementById('exCard').classList.add('hidden');
+  const card=document.getElementById('scoreCard');let e,t,s,m;
+  if(totKo===0){e='🌳';t='Parcours parfait !';s='⭐⭐⭐';m='Les équations n\'ont plus de secret !';}
+  else if(totKo<=1){e='🌿';t='Très bien !';s='⭐⭐⭐';m='Presque parfait !';}
+  else if(totKo<=Math.ceil(N/3)){e='🌱';t='Bien !';s='⭐⭐';m='Continue, tu progresses !';}
+  else{e='🌰';t='Courage !';s='⭐';m='Revois le cours et réessaie !';}
+  document.getElementById('scE').textContent=e;document.getElementById('scT').textContent=t;
+  document.getElementById('scS').textContent=s;document.getElementById('scM').textContent=m;
+  document.getElementById('scB').innerHTML=`<span class="sc-b g">✓ ${totOk}/${N} du 1er coup</span><span class="sc-b p">↩ ${remCt} remédiation${remCt>1?'s':''}</span><span class="sc-b b">⚖️ 4ème</span>`;
+  card.style.display='block';card.classList.add('vis');renderMap();}
+
+/* ═══════ KEYS & RAPPEL ═══════ */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (done) doNxt();
+        else doVal();
+    }
+});
+
+document.getElementById('recTog').addEventListener('click', function() {
+    document.getElementById('recBody').classList.toggle('open');
+    document.getElementById('recArr').classList.toggle('open');
+});
+</script>
+</body>
+</html>
