@@ -4488,6 +4488,14 @@ ${clone.outerHTML}
               desc:'Tu as utilisé la barre de recherche.',
               how:'Tape quelque chose dans la barre de recherche.',
               color:'#3b9fd4', cat:'Spéciaux' },
+            { id:'nombre_or',      icon:'&#x1F341;', name:'Nombre d&#x27;or',
+              desc:'Tu as découvert quelque chose de rare...',
+              how:'Ouvre le site au bon moment.',
+              color:'#c9a84c', cat:'Spéciaux' },
+            { id:'pi_sequence',    icon:'&#x1F9FF;', name:'&#x03C0;',
+              desc:'&#x2014; &#x2014; &#x2014;',
+              how:'???',
+              color:'#7c5cbf', cat:'Spéciaux' },
 
             // ── Temps de travail ──
             { id:'time_10min',   icon:'&#x23F1;&#xFE0F;', name:'Concentré',
@@ -4550,6 +4558,8 @@ ${clone.outerHTML}
                 'brevet_warrior':         !!earned['brevet_warrior'],
                 'dark_mode':              !!earned['dark_mode'],
                 'search_used':            !!earned['search_used'],
+                'nombre_or':              !!earned['nombre_or'],
+                'pi_sequence':            !!earned['pi_sequence'],
                 'time_10min':             !!earned['time_10min'],
                 'time_1h':                !!earned['time_1h'],
                 'time_5h':                !!earned['time_5h'],
@@ -5032,6 +5042,124 @@ ${clone.outerHTML}
         });
 
         // ─────────────────────────────────────────────
+        //  SÉQUENCE π — 3, 1, 4  (clavier + tactile)
+        // ─────────────────────────────────────────────
+        (function(){
+
+            // ── Célébration : pluie de chiffres de π ──
+            function celebratePi(){
+                var PI_DIGITS = '31415926535897932384626433832795028841971';
+                var overlay = document.createElement('div');
+                overlay.style.cssText = [
+                    'position:fixed','top:0','left:0','width:100%','height:100%',
+                    'pointer-events:none','z-index:9999','overflow:hidden'
+                ].join(';');
+                document.body.appendChild(overlay);
+
+                // Flash doré
+                var flash = document.createElement('div');
+                flash.style.cssText = [
+                    'position:fixed','top:0','left:0','width:100%','height:100%',
+                    'background:radial-gradient(ellipse at center, rgba(201,168,76,0.18) 0%, transparent 70%)',
+                    'animation:pi-flash 0.6s ease-out forwards','pointer-events:none','z-index:9998'
+                ].join(';');
+                document.body.appendChild(flash);
+
+                // Injection du keyframe flash
+                if(!document.getElementById('pi-styles')){
+                    var st = document.createElement('style');
+                    st.id = 'pi-styles';
+                    st.textContent = [
+                        '@keyframes pi-flash{0%{opacity:1}100%{opacity:0}}',
+                        '@keyframes pi-fall{0%{transform:translateY(-60px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}'
+                    ].join('');
+                    document.head.appendChild(st);
+                }
+
+                // Génération des chiffres tombants
+                var count = 55;
+                for(var i=0;i<count;i++){
+                    (function(idx){
+                        setTimeout(function(){
+                            var span = document.createElement('span');
+                            var digit = PI_DIGITS[idx % PI_DIGITS.length];
+                            span.textContent = digit;
+                            var size = 1.1 + Math.random() * 1.6;
+                            var dur  = 1.6 + Math.random() * 1.8;
+                            var left = Math.random() * 100;
+                            var delay = Math.random() * 0.8;
+                            span.style.cssText = [
+                                'position:absolute',
+                                'left:'+left+'%',
+                                'top:0',
+                                'font-family:"Fredoka One",cursive',
+                                'font-size:'+size+'rem',
+                                'color:'+(Math.random()>0.35?'#c9a84c':'#7c5cbf'),
+                                'opacity:0.9',
+                                'animation:pi-fall '+dur+'s '+delay+'s ease-in forwards',
+                                'pointer-events:none',
+                                'user-select:none'
+                            ].join(';');
+                            overlay.appendChild(span);
+                        }, idx * 35);
+                    })(i);
+                }
+
+                // Nettoyage
+                setTimeout(function(){
+                    if(overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                    if(flash.parentNode)   flash.parentNode.removeChild(flash);
+                }, 4200);
+            }
+
+            function unlockPi(){
+                var eb = loadEarned();
+                if(eb['pi_sequence']) return;
+                eb['pi_sequence'] = Date.now();
+                saveEarned(eb);
+                celebratePi();
+                setTimeout(checkAndAward, 300);
+            }
+
+            // ── Clavier (PC) ──
+            var PI_SEQ = ['3','1','4'];
+            var buf = [];
+            var timer = null;
+            document.addEventListener('keydown', function(e){
+                if(loadEarned()['pi_sequence']) return;
+                if(!['1','3','4'].includes(e.key)){ buf = []; return; }
+                buf.push(e.key);
+                if(buf.length > PI_SEQ.length) buf.shift();
+                clearTimeout(timer);
+                timer = setTimeout(function(){ buf = []; }, 3000);
+                if(buf.join('') === PI_SEQ.join('')){
+                    buf = [];
+                    unlockPi();
+                }
+            });
+
+            // ── Tactile : 3 taps rapides sur le logo ✦ ──
+            var tapCount  = 0;
+            var tapTimer  = null;
+            var logoIcon  = document.querySelector('.nav-logo-icon');
+            if(logoIcon){
+                logoIcon.addEventListener('touchend', function(e){
+                    if(loadEarned()['pi_sequence']) return;
+                    e.stopPropagation();
+                    tapCount++;
+                    clearTimeout(tapTimer);
+                    tapTimer = setTimeout(function(){ tapCount = 0; }, 1000);
+                    if(tapCount >= 3){
+                        tapCount = 0;
+                        clearTimeout(tapTimer);
+                        unlockPi();
+                    }
+                });
+            }
+
+        })();
+
+        // ─────────────────────────────────────────────
         //  INIT
         // ─────────────────────────────────────────────
         updateBtn();
@@ -5042,10 +5170,12 @@ ${clone.outerHTML}
         // Badges temporels
         (function(){
             var h  = new Date().getHours();
+            var m  = new Date().getMinutes();
             var eb = loadEarned();
             var ch = false;
             if((h>=22||h<1) && !eb['night_owl']){ eb['night_owl']=Date.now(); ch=true; }
             if(h>=5&&h<7    && !eb['early_bird']){ eb['early_bird']=Date.now(); ch=true; }
+            if(h===16&&m===18 && !eb['nombre_or']){ eb['nombre_or']=Date.now(); ch=true; }
             if(ch) saveEarned(eb);
         })();
         setTimeout(checkAndAward, 600);
