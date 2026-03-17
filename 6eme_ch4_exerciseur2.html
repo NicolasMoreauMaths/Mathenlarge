@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Art — Égalités de fractions</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+:root{
+  --bg:#f5f5f0;--card:#fff;--txt:#1c1917;--txt2:#78716c;--bdr:#d6d3ce;
+  --acc:#7a3a10;--acc-lt:#f5e8e0;--ok:#15803d;--ko:#dc2626;
+  --pxbdr:#ccc9c2;
+  /* 0=blanc/crème  1=noir  2=brun chocolat  3=crème foncé  4=bleu cyan */
+  --c0:#f8f4ee;--c1:#1a1a18;--c2:#5a2010;--c3:#d4bea0;--c4:#30b8e8;
+  --c0d:#d0c8ba;--c1d:#000;--c2d:#3a1008;--c3d:#a89070;--c4d:#1888b0;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a18;--card:#262620;--txt:#e7e5e0;--txt2:#a8a29e;--bdr:#44403a;
+  --acc:#d08050;--acc-lt:#3a1e0a;--ok:#4ade80;--ko:#f87171;
+  --c0:#f8f4ee;--c1:#1a1a18;--c2:#5a2010;--c3:#d4bea0;--c4:#30b8e8;
+  --c0d:#aaa;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);max-width:960px;margin:0 auto;padding:14px;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+h1{font-size:20px;font-weight:900;text-align:center;margin-bottom:2px;letter-spacing:-.3px}
+.sub{text-align:center;font-size:11px;color:var(--txt2);margin-bottom:14px}
+.main{display:flex;gap:18px;align-items:flex-start}
+@media(max-width:680px){.main{flex-direction:column;align-items:center}}
+.col-g{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.col-p{flex:1;min-width:0}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(82vw,380px);padding:6px;background:var(--card);border:2px solid var(--bdr);border-radius:12px}
+.tile{position:relative;border:2px solid var(--bdr);border-radius:5px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;background:var(--bg)}
+.tile.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-lt)}
+.tile.ok{border-color:var(--ok)}
+.tile.ko{border-color:var(--ko);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.tnum{position:absolute;top:0;left:2px;font-size:7px;color:var(--txt2);pointer-events:none;z-index:2;opacity:.5;line-height:1}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tg .px{aspect-ratio:1;border:.5px solid var(--pxbdr);cursor:pointer;transition:background .08s}
+.tg .px[data-c="0"]{background:var(--c0)}
+.tg .px[data-c="1"]{background:var(--c1)}
+.tg .px[data-c="2"]{background:var(--c2)}
+.tg .px[data-c="3"]{background:var(--c3)}
+.tg .px[data-c="4"]{background:var(--c4)}
+.tile:not(.sel) .tg .px{cursor:default;pointer-events:none}
+.palette{display:flex;gap:5px;align-items:center;justify-content:center;margin-bottom:8px;flex-wrap:wrap}
+.pal-btn{width:28px;height:28px;border-radius:6px;border:2.5px solid transparent;cursor:pointer;transition:transform .1s,border-color .1s;flex-shrink:0}
+.pal-btn.sel-pal{border-color:var(--acc);transform:scale(1.2);box-shadow:0 0 0 2px var(--acc-lt)}
+.pal-btn[data-c="0"]{background:var(--c0);border-color:var(--c0d)}
+.pal-btn[data-c="1"]{background:var(--c1);border-color:var(--c1d)}
+.pal-btn[data-c="2"]{background:var(--c2);border-color:var(--c2d)}
+.pal-btn[data-c="3"]{background:var(--c3);border-color:var(--c3d)}
+.pal-btn[data-c="4"]{background:var(--c4);border-color:var(--c4d)}
+.pal-label{font-size:11px;color:var(--txt2);font-weight:600}
+.panel{background:var(--card);border:2px solid var(--bdr);border-radius:12px;padding:16px}
+.panel-empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--txt2);font-size:13px;min-height:120px;text-align:center;line-height:1.7}
+.pcontent{display:none}
+.panel-calc{text-align:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1.5px solid var(--bdr)}
+.badges{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.badge{display:inline-block;background:var(--acc);color:#fff;font-size:11px;font-weight:700;padding:3px 11px;border-radius:12px}
+.type-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700;background:var(--acc-lt);color:var(--acc)}
+.q-eq{font-size:15px;color:var(--txt);margin:10px 0 4px;min-height:52px;display:flex;align-items:center;justify-content:center}
+.q-eq .katex{font-size:2em}
+.q-eq .katex .mord{color:var(--acc)}
+.q-sub{font-size:12px;color:var(--txt2)}
+.ed-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px}
+.ed-label{font-size:12px;color:var(--txt2);font-weight:700}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:72px;height:72px;border:2.5px solid var(--acc);border-radius:7px;overflow:hidden}
+.mini .mx{border:.5px solid var(--pxbdr);cursor:pointer;transition:background .08s}
+.mini .mx[data-c="0"]{background:var(--c0)}
+.mini .mx[data-c="1"]{background:var(--c1)}
+.mini .mx[data-c="2"]{background:var(--c2)}
+.mini .mx[data-c="3"]{background:var(--c3)}
+.mini .mx[data-c="4"]{background:var(--c4)}
+.leg-t{font-size:10px;font-weight:700;margin-bottom:6px;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em}
+.leg{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:4px}
+.li{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1.5px solid var(--bdr);border-radius:7px;background:var(--bg);cursor:pointer;transition:border-color .15s}
+.li:hover{border-color:var(--acc)}.li.hl{border-color:var(--ok);background:#e1f5ee}
+.lp{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:27px;height:27px;border:1px solid var(--bdr);border-radius:3px;flex-shrink:0;overflow:hidden}
+.lp div[data-c="0"]{background:var(--c0);border:.3px solid var(--c0d)}
+.lp div[data-c="1"]{background:var(--c1)}
+.lp div[data-c="2"]{background:var(--c2)}
+.lp div[data-c="3"]{background:var(--c3)}
+.lp div[data-c="4"]{background:var(--c4)}
+.lf{font-size:14px;font-weight:900;color:var(--acc);font-family:'Nunito',monospace}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{padding:8px 15px;font-size:12px;font-weight:700;border:2px solid var(--bdr);background:var(--card);color:var(--txt);border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-a{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.score{text-align:center;font-size:13px;color:var(--txt2);min-height:18px;padding:4px 0;font-weight:600}
+.score b{color:var(--acc)}
+.corr{display:none;margin-top:10px;text-align:center}
+.corr.show{display:block}
+.corr-g{display:inline-grid;grid-template-columns:repeat(15,min(4.2vw,17px));grid-template-rows:repeat(15,min(4.2vw,17px));gap:0;border:2px solid var(--txt);border-radius:5px;overflow:hidden}
+.corr-g div{border:.2px solid rgba(0,0,0,.06)}
+.corr-g .cc0{background:var(--c0)}.corr-g .cc1{background:var(--c1)}
+.corr-g .cc2{background:var(--c2)}.corr-g .cc3{background:var(--c3)}
+.corr-g .cc4{background:var(--c4)}
+.btn-retour-flottant{position:fixed;top:16px;left:16px;z-index:9999;display:flex;align-items:center;gap:7px;background:var(--card);color:var(--acc);text-decoration:none;font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;padding:8px 16px;border-radius:50px;border:2px solid var(--acc);box-shadow:0 3px 12px rgba(0,0,0,.1);transition:all .25s}
+.btn-retour-flottant:hover{transform:scale(1.05);background:var(--acc);color:#fff}
+@media(max-width:680px){
+  .board{width:min(92vw,380px)}.panel{width:min(92vw,420px)}
+  .leg{grid-template-columns:repeat(auto-fill,minmax(85px,1fr))}
+  .corr-g{grid-template-columns:repeat(15,min(5.2vw,17px));grid-template-rows:repeat(15,min(5.2vw,17px))}
+  .btn-retour-flottant{top:auto;bottom:16px;left:16px;padding:10px 18px;font-size:.9rem}
+}
+</style>
+</head>
+<body>
+<h1>🐱 Pixel Art — Égalités de fractions</h1>
+<p class="sub">Trouve le nombre manquant · identifie la réponse dans le code · colorie la tuile · révèle le chat !</p>
+<div class="main">
+<div class="col-g">
+  <div class="board" id="board"></div>
+  <div class="score" id="score"></div>
+  <div class="actions">
+    <button class="btn" onclick="raz()">Tout effacer</button>
+    <button class="btn btn-a" onclick="check()">Vérifier</button>
+    <button class="btn btn-g" id="bcorr" onclick="corrTog()">Correction</button>
+  </div>
+  <div class="corr" id="corrBox">
+    <div class="corr-g" id="corrG"></div>
+    <p style="font-size:10px;color:var(--txt2);margin-top:5px">🐱 Chat siamois révélé !</p>
+  </div>
+</div>
+<div class="col-p">
+  <div class="panel" id="panel">
+    <div class="panel-empty" id="pempty"><span>← Clique sur une tuile<br>pour voir le calcul</span></div>
+    <div class="pcontent" id="pcontent">
+      <div class="panel-calc">
+        <div class="badges">
+          <div class="badge" id="pbadge">Tuile 1</div>
+          <span class="type-badge">Égalité de fractions</span>
+        </div>
+        <div class="q-eq" id="pexpr"></div>
+        <div class="q-sub">Trouve le nombre manquant et identifie-le dans le code ↓</div>
+      </div>
+      <div class="palette" id="palette"></div>
+      <div class="ed-row">
+        <span class="ed-label">Motif :</span>
+        <div class="mini" id="mini"></div>
+      </div>
+      <div class="leg-t">Code : réponse → motif (clique pour appliquer)</div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+</div>
+</div>
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<script>
+// 0=crème blanc  1=noir  2=brun chocolat  3=crème moyen  4=bleu cyan
+const GRID = [
+  [1,1,0,0,0,0,0,1,1,1,0,0,0,0,0],
+  [2,2,1,1,1,1,1,2,2,1,0,0,0,0,0],
+  [2,2,0,0,0,0,0,2,2,1,0,0,0,0,0],
+  [2,0,2,2,2,2,2,0,2,1,0,0,0,0,0],
+  [0,2,2,2,2,2,2,2,0,1,0,0,0,0,0],
+  [0,2,1,2,2,2,1,2,0,1,1,0,0,0,0],
+  [0,2,4,2,2,2,4,2,0,1,0,0,0,0,0],
+  [0,0,2,2,2,2,2,0,0,1,1,0,0,0,0],
+  [1,0,0,2,2,2,0,0,1,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,1,0,0,0,1,1],
+  [0,0,0,0,0,0,0,0,0,1,0,0,1,2,2],
+  [0,0,0,0,0,0,0,0,0,0,1,0,1,2,2],
+  [2,2,0,0,0,0,0,2,2,0,1,0,1,2,2],
+  [1,2,2,1,0,1,2,2,1,0,1,1,2,2,2],
+  [1,2,2,1,0,1,2,2,1,2,1,2,2,2,1],
+];
+
+const T = Array.from({length:25}, (_,t) => {
+  const r0=(t/5|0)*3, c0=(t%5)*3;
+  return Array.from({length:9}, (_,i) => GRID[r0+(i/3|0)][c0+(i%3)]);
+});
+
+const L = [
+  {label:'2'}, {label:'3'}, {label:'4'}, {label:'5'},
+  {label:'6'}, {label:'7'}, {label:'8'}, {label:'9'},
+  {label:'10'},{label:'12'},{label:'14'},{label:'15'},
+  {label:'16'},{label:'18'},{label:'20'},{label:'21'},
+  {label:'24'},{label:'25'},{label:'28'},
+];
+
+// expr : chaîne KaTeX — le {\color{red}?} est le nombre manquant
+const P = [
+  // T1–T5
+  {answer:'2',  expr:'\\dfrac{4}{6} = \\dfrac{\\color{red}{?}}{3}'},
+  {answer:'3',  expr:'\\dfrac{9}{12} = \\dfrac{\\color{red}{?}}{4}'},
+  {answer:'5',  expr:'\\dfrac{2}{10} = \\dfrac{1}{\\color{red}{?}}'},
+  {answer:'7',  expr:'\\dfrac{\\color{red}{?}}{14} = \\dfrac{1}{2}'},
+  {answer:'6',  expr:'\\dfrac{1}{3} = \\dfrac{2}{\\color{red}{?}}'},
+  // T6–T10
+  {answer:'8',  expr:'\\dfrac{2}{4} = \\dfrac{\\color{red}{?}}{16}'},
+  {answer:'4',  expr:'\\dfrac{6}{8} = \\dfrac{3}{\\color{red}{?}}'},
+  {answer:'9',  expr:'\\dfrac{2}{3} = \\dfrac{6}{\\color{red}{?}}'},
+  {answer:'10', expr:'\\dfrac{3}{5} = \\dfrac{6}{\\color{red}{?}}'},
+  {answer:'6',  expr:'\\dfrac{2}{12} = \\dfrac{1}{\\color{red}{?}}'},
+  // T11–T15
+  {answer:'12', expr:'\\dfrac{3}{4} = \\dfrac{\\color{red}{?}}{16}'},
+  {answer:'4',  expr:'\\dfrac{12}{16} = \\dfrac{3}{\\color{red}{?}}'},
+  {answer:'14', expr:'\\dfrac{2}{7} = \\dfrac{4}{\\color{red}{?}}'},
+  {answer:'15', expr:'\\dfrac{2}{5} = \\dfrac{6}{\\color{red}{?}}'},
+  {answer:'6',  expr:'\\dfrac{3}{18} = \\dfrac{1}{\\color{red}{?}}'},
+  // T16–T20
+  {answer:'6',  expr:'\\dfrac{4}{24} = \\dfrac{1}{\\color{red}{?}}'},
+  {answer:'6',  expr:'\\dfrac{5}{30} = \\dfrac{1}{\\color{red}{?}}'},
+  {answer:'6',  expr:'\\dfrac{2}{3} = \\dfrac{4}{\\color{red}{?}}'},
+  {answer:'16', expr:'\\dfrac{3}{8} = \\dfrac{6}{\\color{red}{?}}'},
+  {answer:'18', expr:'\\dfrac{2}{3} = \\dfrac{12}{\\color{red}{?}}'},
+  // T21–T25
+  {answer:'20', expr:'\\dfrac{3}{4} = \\dfrac{15}{\\color{red}{?}}'},
+  {answer:'21', expr:'\\dfrac{2}{3} = \\dfrac{14}{\\color{red}{?}}'},
+  {answer:'24', expr:'\\dfrac{3}{4} = \\dfrac{18}{\\color{red}{?}}'},
+  {answer:'25', expr:'\\dfrac{3}{5} = \\dfrac{15}{\\color{red}{?}}'},
+  {answer:'28', expr:'\\dfrac{3}{4} = \\dfrac{21}{\\color{red}{?}}'},
+];
+
+const NP = 9;
+let G = Array.from({length:25}, () => Array(NP).fill(0));
+let sel = -1;
+let selColor = 2;
+const PAL_NAMES = ['Crème','Noir','Brun','Beige','Bleu'];
+
+function buildPalette() {
+  const pal = document.getElementById('palette');
+  pal.innerHTML = '<span class="pal-label">Couleur :</span>';
+  [0,1,2,3,4].forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'pal-btn' + (c===selColor?' sel-pal':'');
+    btn.dataset.c = c; btn.title = PAL_NAMES[c];
+    btn.addEventListener('click', () => {
+      selColor = c;
+      document.querySelectorAll('.pal-btn').forEach(b => b.classList.toggle('sel-pal', +b.dataset.c===c));
+    });
+    pal.appendChild(btn);
+  });
+}
+
+function buildBoard() {
+  const b = document.getElementById('board');
+  for (let t = 0; t < 25; t++) {
+    const d = document.createElement('div');
+    d.className = 'tile'; d.id = 't' + t;
+    d.innerHTML = '<span class="tnum">' + (t+1) + '</span>';
+    const g = document.createElement('div'); g.className = 'tg';
+    for (let p = 0; p < NP; p++) {
+      const c = document.createElement('div');
+      c.className = 'px'; c.dataset.c = '0'; c.dataset.t = t; c.dataset.p = p;
+      c.addEventListener('click', onPxClick);
+      g.appendChild(c);
+    }
+    d.appendChild(g);
+    d.addEventListener('click', e => { if (e.target.classList.contains('px')) return; selectTile(t); });
+    b.appendChild(d);
+  }
+}
+
+function onPxClick(e) {
+  const el = e.target, t = +el.dataset.t, p = +el.dataset.p;
+  G[t][p] = selColor; el.dataset.c = selColor; syncMini(t);
+}
+
+function selectTile(t) {
+  sel = t;
+  document.querySelectorAll('.tile').forEach(el => el.classList.remove('sel'));
+  document.getElementById('t' + t).classList.add('sel');
+  document.getElementById('pempty').style.display = 'none';
+  document.getElementById('pcontent').style.display = 'block';
+  document.getElementById('pbadge').textContent = 'Tuile ' + (t+1);
+  katex.render(P[t].expr, document.getElementById('pexpr'), {throwOnError:false, displayMode:true});
+  buildPalette(); buildMini(t); buildLeg(t);
+  if (window.innerWidth <= 680) document.getElementById('panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function buildMini(t) {
+  const mg = document.getElementById('mini'); mg.innerHTML = '';
+  for (let p = 0; p < NP; p++) {
+    const c = document.createElement('div');
+    c.className = 'mx'; c.dataset.c = G[t][p];
+    c.addEventListener('click', () => { G[t][p] = selColor; c.dataset.c = selColor; syncBoard(t); });
+    mg.appendChild(c);
+  }
+}
+function syncBoard(t) {
+  document.querySelectorAll('#t' + t + ' .tg .px').forEach((el, p) => { el.dataset.c = G[t][p]; });
+}
+function syncMini(t) {
+  if (sel !== t) return;
+  document.querySelectorAll('#mini .mx').forEach((el, p) => { el.dataset.c = G[t][p]; });
+}
+
+function buildLeg(t) {
+  const lg = document.getElementById('leg'); lg.innerHTML = '';
+  L.forEach(l => {
+    const refT = P.findIndex(p => p.answer === l.label);
+    const pattern = refT >= 0 ? T[refT] : Array(9).fill(0);
+    const d = document.createElement('div'); d.className = 'li';
+    let ph = '<div class="lp">';
+    pattern.forEach(v => { ph += '<div data-c="' + v + '"></div>'; });
+    ph += '</div>';
+    d.innerHTML = ph + '<span class="lf">' + l.label + '</span>';
+    d.addEventListener('click', () => {
+      if (sel < 0 || P[sel].answer !== l.label) return;
+      G[sel] = [...pattern];
+      syncBoard(sel); buildMini(sel);
+      document.querySelectorAll('.li').forEach(el => el.classList.remove('hl'));
+      d.classList.add('hl');
+    });
+    lg.appendChild(d);
+  });
+}
+
+function buildCorr() {
+  const cg = document.getElementById('corrG');
+  for (let r = 0; r < 15; r++) for (let c = 0; c < 15; c++) {
+    const d = document.createElement('div'); d.className = 'cc' + GRID[r][c]; cg.appendChild(d);
+  }
+}
+
+function check() {
+  let ok = 0;
+  for (let t = 0; t < 25; t++) {
+    const el = document.getElementById('t' + t);
+    el.classList.remove('ok', 'ko');
+    if (T[t].every((v, i) => v === G[t][i])) { el.classList.add('ok'); ok++; }
+    else if (G[t].some(v => v !== 0)) { el.classList.add('ko'); }
+  }
+  const s = document.getElementById('score');
+  if (ok === 25) s.innerHTML = '🎉 <b>Bravo !</b> 25/25 tuiles correctes !';
+  else s.innerHTML = '<b>' + ok + '/25</b> tuiles correctes';
+}
+
+function raz() {
+  G = Array.from({length:25}, () => Array(NP).fill(0));
+  document.querySelectorAll('.tg .px').forEach(el => { el.dataset.c = '0'; });
+  document.querySelectorAll('.tile').forEach(el => el.classList.remove('ok', 'ko', 'sel'));
+  document.getElementById('score').innerHTML = '';
+  document.getElementById('pempty').style.display = 'flex';
+  document.getElementById('pcontent').style.display = 'none';
+  sel = -1;
+}
+
+function corrTog() {
+  const b = document.getElementById('corrBox'), n = document.getElementById('bcorr');
+  if (b.classList.contains('show')) { b.classList.remove('show'); n.textContent = 'Correction'; }
+  else { b.classList.add('show'); n.textContent = 'Masquer'; }
+}
+
+buildBoard(); buildCorr();
+</script>
+</body>
+</html>

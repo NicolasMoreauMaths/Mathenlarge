@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilan – Les nombres décimaux</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#0369a1;--primary-dark:#0c4a6e;--primary-light:#e0f2fe;
+  --orange:#ea580c;--orange-light:#fff7ed;--orange-border:#fed7aa;
+  --green:#15803d;--green-light:#f0fdf4;--green-border:#86efac;
+  --purple:#7c3aed;--purple-light:#faf5ff;--purple-border:#c4b5fd;
+  --red:#be123c;--red-light:#fff1f2;--red-border:#fda4af;
+  --gold:#b45309;--gold-light:#fffbeb;--gold-border:#fcd34d;
+  --success:#059669;
+  --bg-card:#fff;--border:#bae6fd;--text-dark:#0f172a;--text-medium:#475569;
+  --shadow:rgba(3,105,161,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#fef9c3 0%,#e0f2fe 40%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+.container{max-width:1100px;margin:0 auto;}
+
+header{background:linear-gradient(135deg,#0f1b2d,#1e3a5f);color:white;padding:2.8rem 2.5rem 2.2rem;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.18);margin-bottom:1.5rem;position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(26,111,160,.18) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(107,63,160,.12) 0%,transparent 55%);pointer-events:none;}
+header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#3b82f6,#a855f7,#f97316,#22c55e);}
+.bilan-badge{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.5rem;}
+h1{font-family:'Crimson Pro',serif;font-size:clamp(1.6rem,4vw,2.6rem);font-weight:700;color:white;margin-bottom:.4rem;letter-spacing:-.01em;}
+.subtitle{font-size:1rem;opacity:.6;margin-top:.3rem;}
+.header-meta{display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;margin-top:1.1rem;}
+.header-chip{font-size:.78rem;font-weight:600;padding:.22rem .7rem;border-radius:99px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.18);}
+
+/* Checklist de compétences */
+.skills-bar{background:white;border:2px solid var(--gold-border);border-radius:16px;padding:1.4rem 1.8rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+.skills-title{font-family:'Crimson Pro',serif;font-size:1.2rem;font-weight:700;color:var(--gold);margin-bottom:.9rem;}
+.skills-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .8rem;}
+.skill-item{display:flex;align-items:flex-start;gap:.5rem;font-size:.92rem;line-height:1.5;}
+.skill-dot{flex-shrink:0;width:1rem;height:1rem;border-radius:50%;margin-top:.18rem;}
+.sd-blue{background:#3b82f6;}.sd-green{background:#22c55e;}.sd-orange{background:#f97316;}.sd-purple{background:#a855f7;}
+
+.progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+.progress-label{font-size:.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+.progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+.progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--orange));border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.progress-counter{font-size:.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+.progress-dots{display:flex;gap:.4rem;flex-wrap:wrap;}
+.progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all .4s cubic-bezier(.34,1.56,.64,1);}
+.progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+.score-card{background:white;border:2px solid var(--gold-border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+.score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#3b82f6,#a855f7,#f97316,#22c55e);}
+@keyframes popIn{from{opacity:0;transform:scale(.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.score-card.visible{display:block;}
+.score-emoji{font-size:3rem;margin-bottom:.5rem;display:block;}
+.score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:.5rem;}
+.score-stars{font-size:1.8rem;letter-spacing:.2rem;margin:.5rem 0 1rem;}
+.score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+.score-breakdown{display:flex;justify-content:center;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+.score-badge{padding:.4rem 1rem;border-radius:99px;font-size:.85rem;font-weight:700;}
+.score-badge.sb-green{background:#dcfce7;color:#166534;}
+.score-badge.sb-blue{background:var(--primary-light);color:var(--primary-dark);}
+.score-badge.sb-gold{background:var(--gold-light);color:var(--gold);}
+
+.section-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;}
+.section-divider-line{flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent);}
+.section-divider-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+
+/* Carte exercice */
+.exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform .3s,box-shadow .3s,border-color .4s;}
+.exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+.exercise.seen{border-left-color:var(--success);}
+.exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:.75rem;}
+.exercise-title-group{display:flex;flex-direction:column;gap:.25rem;}
+.exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+.exercise-tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.2rem .7rem;border-radius:99px;margin-right:.3rem;}
+.tag-blue{background:var(--primary-light);color:var(--primary);border:1.5px solid var(--border);}
+.tag-orange{background:var(--orange-light);color:var(--orange);border:1.5px solid var(--orange-border);}
+.tag-green{background:var(--green-light);color:var(--green);border:1.5px solid var(--green-border);}
+.tag-purple{background:var(--purple-light);color:var(--purple);border:1.5px solid var(--purple-border);}
+.tag-gold{background:var(--gold-light);color:var(--gold);border:1.5px solid var(--gold-border);}
+
+.btn-group{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.seen-badge{background:var(--success);color:white;font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:99px;opacity:0;transform:scale(.5) translateY(-4px);transition:all .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;flex-shrink:0;}
+.exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+.reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(3,105,161,.3);flex-shrink:0;}
+.reveal-btn:hover{transform:scale(1.05);}
+.reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+
+.hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+.hints-title{font-size:.85rem;font-weight:700;color:var(--purple);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.75rem;}
+.hints-list{display:flex;flex-direction:column;gap:.6rem;}
+.hint-item{display:flex;align-items:flex-start;gap:.6rem;}
+.hint-btn{background:var(--purple-light);color:var(--purple);border:2px solid var(--purple-border);border-radius:10px;padding:.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;flex-shrink:0;max-width:100%;}
+.hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--purple);}
+.hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+.hint-text{background:#faf5ff;border-left:3px solid var(--purple);border-radius:6px;padding:0 .85rem;font-size:.92rem;color:var(--text-dark);max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease,opacity .3s ease;opacity:0;flex:1;min-width:0;}
+.hint-text.revealed{max-height:500px;padding:.5rem .85rem;opacity:1;}
+
+.correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity .35s ease,height .35s cubic-bezier(.4,0,.2,1),margin-top .35s ease;}
+.correction.show{opacity:1;margin-top:1.5rem;}
+.correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+.correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:.85rem;font-weight:700;}
+.correction-content{margin-top:1rem;}
+
+/* Contenu */
+.exercise-content{font-size:1.05rem;line-height:1.9;}
+.q-row{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.75rem;}
+.qnum{display:inline-block;background:var(--primary);color:white;font-size:.8rem;font-weight:700;width:1.5rem;height:1.5rem;border-radius:50%;text-align:center;line-height:1.5rem;flex-shrink:0;margin-top:.22rem;}
+
+/* Bulle de contexte illustrée */
+.story-box{border-radius:14px;padding:1.1rem 1.5rem;margin:.75rem 0 1.1rem;font-size:.97rem;line-height:1.85;position:relative;}
+.story-box.blue{background:#eff6ff;border:2px solid #bae6fd;}
+.story-box.orange{background:var(--orange-light);border:2px solid var(--orange-border);}
+.story-box.green{background:var(--green-light);border:2px solid var(--green-border);}
+.story-box.purple{background:var(--purple-light);border:2px solid var(--purple-border);}
+.story-box.gold{background:var(--gold-light);border:2px solid var(--gold-border);}
+.story-icon{font-size:1.8rem;margin-right:.5rem;vertical-align:middle;}
+
+.rule-box{background:var(--purple-light);border:2px solid var(--purple-border);border-radius:10px;padding:.9rem 1.25rem;margin:.75rem 0;font-size:.95rem;line-height:1.7;}
+.rule-box strong{color:var(--purple);}
+.step-box{background:#f8fbff;border-left:4px solid var(--primary);border-radius:0 8px 8px 0;padding:.7rem 1.1rem;margin:.5rem 0;font-size:.95rem;}
+.step-box.green{border-left-color:var(--green);background:var(--green-light);}
+.step-box.orange{border-left-color:var(--orange);background:var(--orange-light);}
+
+.mini-section{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:700;color:var(--primary);margin:1.1rem 0 .4rem;}
+.mini-section.green{color:var(--green);}
+
+/* Fractions */
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .2em;line-height:1;}
+.frac .fn{border-bottom:2.5px solid currentColor;padding:0 .35em .1em;font-weight:700;}
+.frac .fd{padding:.1em .35em 0;font-weight:700;}
+.frac-lg{font-size:1.25em;}
+
+/* Tableau de numération */
+.num-table{width:100%;border-collapse:collapse;margin:.6rem 0;font-size:.88rem;text-align:center;}
+.num-table th{padding:.4rem .35rem;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border:1px solid #bae6fd;}
+.num-table td{padding:.45rem .35rem;border:1px solid #bae6fd;background:#fff;min-width:32px;}
+.num-table .th-entiere{background:#dbeafe;color:#1e40af;}
+.num-table .th-decimale{background:#dcfce7;color:#166534;}
+.num-table .th-virgule{background:#fef9c3;color:#854d0e;font-size:1.1rem;font-weight:900;}
+.num-table .val-entiere{color:#1e40af;font-weight:700;font-size:1.05rem;}
+.num-table .val-decimale{color:#166534;font-weight:700;font-size:1.05rem;}
+.num-table .val-virgule{background:#fef9c3;font-weight:900;font-size:1.15rem;}
+.num-table .empty-cell{color:#94a3b8;}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;}
+
+.dots{color:var(--text-medium);letter-spacing:.2em;}
+
+footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+
+@media(max-width:900px){body{padding:1.5rem .75rem;}h1{font-size:2rem;}.exercise{padding:1.5rem;}.skills-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){
+  body{padding:1rem .5rem;}h1{font-size:1.4rem;}
+  header{padding:1.8rem 1.2rem 1.5rem;border-radius:14px;}
+  .exercise{padding:1rem .75rem;border-radius:12px;}
+  .exercise-header{flex-direction:column;align-items:flex-start;}
+  .btn-group{width:100%;}
+  .reveal-btn{width:100%;text-align:center;padding:.85rem 1rem;}
+  .correction-box{padding:1.75rem .75rem 1rem;}
+  .hint-item{flex-direction:column;}
+  .hint-btn{white-space:normal;width:100%;}
+  .hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <span class="bilan-badge">Chapitre 5 — 6ème</span>
+  <h1>🏆 Bilan — Les nombres décimaux</h1>
+  <p class="subtitle">Problèmes de synthèse · Toutes les notions du chapitre</p>
+  <div class="header-meta">
+    <span class="header-chip">6ème</span>
+    <span class="header-chip">6 problèmes</span>
+    <span class="header-chip">Feuille bilan</span>
+  </div>
+</header>
+
+<!-- Checklist de compétences -->
+<div class="skills-bar">
+  <div class="skills-title">🎯 Ce que tu dois savoir faire pour ce bilan</div>
+  <div class="skills-grid">
+    <div class="skill-item"><span class="skill-dot sd-blue"></span>Connaître dixième, centième, millième et leurs équivalences</div>
+    <div class="skill-item"><span class="skill-dot sd-blue"></span>Identifier partie entière et partie décimale</div>
+    <div class="skill-item"><span class="skill-dot sd-green"></span>Lire et placer un nombre dans le tableau de numération</div>
+    <div class="skill-item"><span class="skill-dot sd-green"></span>Donner la valeur d'un chiffre selon sa position</div>
+    <div class="skill-item"><span class="skill-dot sd-orange"></span>Passer d'une fraction décimale à l'écriture décimale</div>
+    <div class="skill-item"><span class="skill-dot sd-orange"></span>Décomposer un nombre décimal chiffre par chiffre</div>
+    <div class="skill-item"><span class="skill-dot sd-purple"></span>Repérer et supprimer les zéros inutiles</div>
+    <div class="skill-item"><span class="skill-dot sd-purple"></span>Résoudre un petit problème en utilisant les nombres décimaux</div>
+  </div>
+</div>
+
+<!-- Progression -->
+<div class="progress-wrapper">
+  <span class="progress-label">Corrections vues :</span>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <span class="progress-counter" id="progressCounter">0 / 6</span>
+  <div class="progress-dots" id="progressDots"></div>
+</div>
+
+<!-- Score card -->
+<div class="score-card" id="scoreCard">
+  <span class="score-emoji" id="scoreEmoji">🏆</span>
+  <div class="score-title" id="scoreTitle">Bilan terminé !</div>
+  <div class="score-stars" id="scoreStars">⭐⭐⭐</div>
+  <div class="score-message" id="scoreMessage">Tu as vu toutes les corrections du bilan !</div>
+  <div class="score-breakdown" id="scoreBreakdown"></div>
+</div>
+
+<!-- ===== PARTIE 1 ===== -->
+<div class="section-divider">
+  <div style="font-size:1.3rem;">🔵🟢🟣</div>
+  <div class="section-divider-title">Partie 1 – Maîtriser les notions de base</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- PROBLÈME 1 -->
+<div class="exercise" id="card-ex1">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Problème 1 / 6</h2>
+      <span class="exercise-tag tag-blue">🌡️ La météo</span>
+      <span class="exercise-tag tag-blue">Dixièmes · Centièmes · Fractions</span>
+    </div>
+    <div class="btn-group">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <div class="story-box blue">
+      <span class="story-icon">🌡️</span>
+      Le bulletin météo annonce les températures suivantes pour une semaine de février :
+      <strong>3,4°C · 0,9°C · 12,05°C · 0,07°C · 8,6°C</strong>
+    </div>
+
+    <div class="q-row"><span class="qnum">a</span><span>Écris chacune de ces températures sous forme de <strong>fraction décimale</strong>.<br>
+    3,4 = <span class="dots">. . . .</span> &nbsp; 0,9 = <span class="dots">. . . .</span> &nbsp; 12,05 = <span class="dots">. . . .</span> &nbsp; 0,07 = <span class="dots">. . . .</span> &nbsp; 8,6 = <span class="dots">. . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">b</span><span>Dans <strong>12,05°C</strong>, indique la partie entière et la partie décimale.<br>
+    Partie entière : <span class="dots">. . . . . . . .</span> &nbsp; Partie décimale : <span class="dots">. . . . . . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">c</span><span>La température <strong>0,07°C</strong> est-elle supérieure ou inférieure à <strong>0,1°C</strong> ? Justifie en comparant les fractions décimales.<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h1-1">💡 Comment trouver le dénominateur ?</button>
+          <div class="hint-text" id="h1-1">Compte les chiffres après la virgule : 1 chiffre → dénominateur 10, 2 chiffres → 100. Le numérateur, c'est tous les chiffres sans la virgule.</div>
+        </div>
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h1-2">💡 Pour comparer 0,07 et 0,1, utilise les fractions.</button>
+          <div class="hint-text" id="h1-2">0,07 = <span class="frac"><span class="fn">7</span><span class="fd">100</span></span> et 0,1 = <span class="frac"><span class="fn">1</span><span class="fd">10</span></span> = <span class="frac"><span class="fn">10</span><span class="fd">100</span></span>. Compare maintenant les deux fractions : elles ont le même dénominateur !</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+    <div class="mini-section">Question a)</div>
+    <p>
+      3,4 = <span class="frac frac-lg"><span class="fn">34</span><span class="fd">10</span></span> &nbsp;·&nbsp;
+      0,9 = <span class="frac frac-lg"><span class="fn">9</span><span class="fd">10</span></span> &nbsp;·&nbsp;
+      12,05 = <span class="frac frac-lg"><span class="fn">1205</span><span class="fd">100</span></span> &nbsp;·&nbsp;
+      0,07 = <span class="frac frac-lg"><span class="fn">7</span><span class="fd">100</span></span> &nbsp;·&nbsp;
+      8,6 = <span class="frac frac-lg"><span class="fn">86</span><span class="fd">10</span></span>
+    </p>
+    <div class="mini-section">Question b)</div>
+    <p>12,05 : partie entière = <strong style="color:#1e40af;">12</strong> · partie décimale = <strong style="color:#166534;">0,05</strong></p>
+    <div class="mini-section">Question c)</div>
+    <div class="step-box">0,07 = <span class="frac"><span class="fn">7</span><span class="fd">100</span></span> &nbsp; et &nbsp; 0,1 = <span class="frac"><span class="fn">1</span><span class="fd">10</span></span> = <span class="frac"><span class="fn">10</span><span class="fd">100</span></span></div>
+    <p>Or <span class="frac"><span class="fn">7</span><span class="fd">100</span></span> &lt; <span class="frac"><span class="fn">10</span><span class="fd">100</span></span> donc <strong>0,07°C &lt; 0,1°C</strong> : la température 0,07°C est <strong>inférieure</strong> à 0,1°C.</p>
+    <div class="rule-box">🔑 Pour comparer deux nombres décimaux, on peut les mettre sur le même dénominateur et comparer les numérateurs.</div>
+  </div></div></div>
+</div>
+
+<!-- PROBLÈME 2 -->
+<div class="exercise" id="card-ex2">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Problème 2 / 6</h2>
+      <span class="exercise-tag tag-green">📏 Mesures de longueur</span>
+      <span class="exercise-tag tag-green">Tableau de numération · Valeur d'un chiffre</span>
+    </div>
+    <div class="btn-group">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <div class="story-box green">
+      <span class="story-icon">📏</span>
+      En sciences, Emma mesure trois objets avec une règle graduée en millimètres :<br>
+      une gomme : <strong>35,4 mm</strong> · un crayon : <strong>128,07 mm</strong> · une efface : <strong>6,005 mm</strong>
+    </div>
+
+    <div class="q-row"><span class="qnum">a</span><span>Place les trois mesures dans le tableau de numération.</span></div>
+
+    <div class="table-scroll" style="margin:.6rem 0 1rem;">
+      <table class="num-table">
+        <thead>
+          <tr>
+            <th style="border:none;background:transparent;text-align:left;font-size:.8rem;color:var(--text-medium);padding:.3rem .5rem;"></th>
+            <th colspan="3" class="th-entiere">🔵 Partie entière</th>
+            <th class="th-virgule">,</th>
+            <th colspan="3" class="th-decimale">🟢 Partie décimale</th>
+          </tr>
+          <tr>
+            <th style="border:none;background:transparent;"></th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">Centaines</th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">Dizaines</th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">Unités</th>
+            <th style="background:#fef9c3;border:1px solid #bae6fd;"></th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Dixièmes</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Centièmes</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Millièmes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.4rem .5rem;font-weight:700;font-size:.88rem;">35,4</td>
+            <td style="border:1px solid #bae6fd;min-width:36px;height:38px;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+            <td style="background:#fef9c3;border:1px solid #bae6fd;font-weight:900;font-size:1.1rem;text-align:center;">,</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+          </tr>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.4rem .5rem;font-weight:700;font-size:.88rem;">128,07</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+            <td style="background:#fef9c3;border:1px solid #bae6fd;font-weight:900;font-size:1.1rem;text-align:center;">,</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+          </tr>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.4rem .5rem;font-weight:700;font-size:.88rem;">6,005</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+            <td style="background:#fef9c3;border:1px solid #bae6fd;font-weight:900;font-size:1.1rem;text-align:center;">,</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="q-row"><span class="qnum">b</span><span>Dans <strong>128,07 mm</strong>, quelle est la valeur du chiffre <strong>1</strong> ? Du chiffre <strong>7</strong> ?<br>
+    Chiffre 1 : <span class="dots">. . . . . . . . . . . . . . .</span> &nbsp; Chiffre 7 : <span class="dots">. . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">c</span><span>Dans <strong>6,005 mm</strong>, les deux zéros après la virgule sont-ils utiles ? Pourquoi ?<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h2-1">💡 Pour 128,07, rappelle-toi les positions.</button>
+          <div class="hint-text" id="h2-1">Place 128,07 dans le tableau : 1 centaine, 2 dizaines, 8 unités, 0 dixième, 7 centièmes. La valeur d'un chiffre = chiffre × valeur de sa position.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+    <div class="mini-section">Question a)</div>
+    <div class="table-scroll">
+      <table class="num-table">
+        <thead>
+          <tr>
+            <th style="border:none;background:transparent;"></th>
+            <th colspan="3" class="th-entiere">🔵 Partie entière</th><th class="th-virgule">,</th><th colspan="3" class="th-decimale">🟢 Partie décimale</th>
+          </tr>
+          <tr>
+            <th style="border:none;background:transparent;"></th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">C</th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">D</th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">U</th>
+            <th style="background:#fef9c3;border:1px solid #bae6fd;"></th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Dix.</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Cent.</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Mill.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.3rem .5rem;font-weight:700;font-size:.85rem;">35,4</td>
+            <td class="empty-cell">—</td><td class="val-entiere">3</td><td class="val-entiere">5</td>
+            <td class="val-virgule">,</td>
+            <td class="val-decimale">4</td><td class="empty-cell">—</td><td class="empty-cell">—</td>
+          </tr>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.3rem .5rem;font-weight:700;font-size:.85rem;">128,07</td>
+            <td class="val-entiere">1</td><td class="val-entiere">2</td><td class="val-entiere">8</td>
+            <td class="val-virgule">,</td>
+            <td class="val-decimale" style="color:var(--red) !important;">0</td><td class="val-decimale">7</td><td class="empty-cell">—</td>
+          </tr>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.3rem .5rem;font-weight:700;font-size:.85rem;">6,005</td>
+            <td class="empty-cell">—</td><td class="empty-cell">—</td><td class="val-entiere">6</td>
+            <td class="val-virgule">,</td>
+            <td class="val-decimale" style="color:var(--red) !important;">0</td><td class="val-decimale" style="color:var(--red) !important;">0</td><td class="val-decimale">5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mini-section">Question b)</div>
+    <p>Dans 128,07 : le chiffre <strong>1</strong> est en centaines → valeur = <strong>1 × 100 = 100</strong><br>
+    Le chiffre <strong>7</strong> est en centièmes → valeur = <strong>7 × 0,01 = 0,07</strong></p>
+    <div class="mini-section">Question c)</div>
+    <p>Dans 6,005, les deux zéros après la virgule sont <strong>utiles</strong> : ils maintiennent le 5 en position millièmes. Sans eux, on lirait 6,5 ou 6,05 ≠ 6,005.</p>
+  </div></div></div>
+</div>
+
+<!-- ===== PARTIE 2 ===== -->
+<div class="section-divider">
+  <div style="font-size:1.3rem;">💰🏃</div>
+  <div class="section-divider-title">Partie 2 – Appliquer dans des situations concrètes</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- PROBLÈME 3 -->
+<div class="exercise" id="card-ex3">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Problème 3 / 6</h2>
+      <span class="exercise-tag tag-orange">💰 La caisse du marché</span>
+      <span class="exercise-tag tag-orange">Zéros · Écriture décimale · Décomposition</span>
+    </div>
+    <div class="btn-group">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <div class="story-box orange">
+      <span class="story-icon">🥕</span>
+      Un marchand note les prix de ses légumes sur un tableau. Malheureusement, il a commis plusieurs erreurs d'écriture. Voici les prix tels qu'il les a écrits :<br><br>
+      Carottes : <strong>01,50 €</strong> &nbsp;·&nbsp; Pommes de terre : <strong>2,300 €</strong> &nbsp;·&nbsp; Courgettes : <strong>003,09 €</strong> &nbsp;·&nbsp; Tomates : <strong>4,070 €</strong>
+    </div>
+
+    <div class="q-row"><span class="qnum">a</span><span>Réécris chaque prix en supprimant les zéros inutiles.<br>
+    Carottes : <span class="dots">. . . . .</span> &nbsp; Pommes de terre : <span class="dots">. . . . .</span> &nbsp; Courgettes : <span class="dots">. . . . .</span> &nbsp; Tomates : <span class="dots">. . . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">b</span><span>Le marchand a écrit le prix des haricots verts comme ceci : <strong>05,08 €</strong>.<br>
+    Dans ce nombre, identifie chaque zéro : utile ou inutile ? Justifie.<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">c</span><span>Décompose le prix des courgettes (après correction) chiffre par chiffre.<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h3-1">💡 Quels zéros peut-on supprimer ?</button>
+          <div class="hint-text" id="h3-1">On supprime les zéros en <strong>tête</strong> de la partie entière (ex : 01 → 1) et en <strong>queue</strong> de la partie décimale (ex : 1,50 → 1,5). On ne touche jamais aux zéros situés entre deux chiffres significatifs.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+    <div class="mini-section">Question a)</div>
+    <p>Carottes : <s style="color:var(--green);">0</s>1,5<s style="color:var(--green);">0</s> → <strong>1,5 €</strong><br>
+    Pommes de terre : 2,3<s style="color:var(--green);">00</s> → <strong>2,3 €</strong><br>
+    Courgettes : <s style="color:var(--green);">00</s>3,09 → <strong>3,09 €</strong> (le 0 entre la virgule et le 9 est utile !)<br>
+    Tomates : 4,07<s style="color:var(--green);">0</s> → <strong>4,07 €</strong> (le 0 entre la virgule et 7 est utile !)</p>
+    <div class="mini-section">Question b)</div>
+    <p>Dans <strong>05,08 €</strong> :<br>
+    &nbsp;• Le <strong>0</strong> devant le 5 → <strong style="color:var(--green);">inutile</strong> : 05,08 = 5,08<br>
+    &nbsp;• Le <strong>0</strong> entre la virgule et le 8 → <strong style="color:var(--red);">utile</strong> : sans lui on lirait 5,8 ≠ 5,08</p>
+    <div class="mini-section">Question c)</div>
+    <p>Courgettes = 3,09 € :</p>
+    <div class="step-box">3,09 = (3 × 1) + (0 × 0,1) + (9 × 0,01)</div>
+    <p style="font-size:.9rem;color:var(--text-medium);">On peut aussi écrire simplement : (3 × 1) + (9 × 0,01)</p>
+  </div></div></div>
+</div>
+
+<!-- PROBLÈME 4 -->
+<div class="exercise" id="card-ex4">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Problème 4 / 6</h2>
+      <span class="exercise-tag tag-purple">🏃 Athlétisme</span>
+      <span class="exercise-tag tag-purple">Lire · Comparer · Position</span>
+    </div>
+    <div class="btn-group">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <div class="story-box purple">
+      <span class="story-icon">🏃</span>
+      Lors d'une compétition de course à pied, le chronomètre affiche les temps de quatre élèves en secondes :<br><br>
+      Lucas : <strong>12,304 s</strong> &nbsp;·&nbsp; Inès : <strong>12,034 s</strong> &nbsp;·&nbsp; Tom : <strong>12,340 s</strong> &nbsp;·&nbsp; Léa : <strong>12,043 s</strong>
+    </div>
+
+    <div class="q-row"><span class="qnum">a</span><span>Place les quatre temps dans le tableau de numération.</span></div>
+    <div class="table-scroll" style="margin:.6rem 0 1rem;">
+      <table class="num-table">
+        <thead>
+          <tr>
+            <th style="border:none;background:transparent;font-size:.8rem;color:var(--text-medium);padding:.3rem .4rem;"></th>
+            <th colspan="2" class="th-entiere">Partie entière</th>
+            <th class="th-virgule">,</th>
+            <th colspan="3" class="th-decimale">Partie décimale</th>
+          </tr>
+          <tr>
+            <th style="border:none;background:transparent;"></th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">Dizaines</th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">Unités</th>
+            <th style="background:#fef9c3;border:1px solid #bae6fd;"></th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Dixièmes</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Centièmes</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Millièmes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.35rem .5rem;font-weight:700;font-size:.88rem;">Lucas</td>
+            <td style="border:1px solid #bae6fd;min-width:36px;height:36px;"></td><td style="border:1px solid #bae6fd;"></td>
+            <td style="background:#fef9c3;border:1px solid #bae6fd;font-weight:900;text-align:center;">,</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+          </tr>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.35rem .5rem;font-weight:700;font-size:.88rem;">Inès</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+            <td style="background:#fef9c3;border:1px solid #bae6fd;font-weight:900;text-align:center;">,</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+          </tr>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.35rem .5rem;font-weight:700;font-size:.88rem;">Tom</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+            <td style="background:#fef9c3;border:1px solid #bae6fd;font-weight:900;text-align:center;">,</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+          </tr>
+          <tr>
+            <td style="background:#f8fbff;border:1px solid #bae6fd;padding:.35rem .5rem;font-weight:700;font-size:.88rem;">Léa</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+            <td style="background:#fef9c3;border:1px solid #bae6fd;font-weight:900;text-align:center;">,</td>
+            <td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td><td style="border:1px solid #bae6fd;"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="q-row"><span class="qnum">b</span><span>Dans le temps de Lucas (<strong>12,304 s</strong>), quelle est la valeur du chiffre <strong>3</strong> ? Du chiffre <strong>4</strong> ?<br>
+    Chiffre 3 : <span class="dots">. . . . . . . . . . . .</span> &nbsp; Chiffre 4 : <span class="dots">. . . . . . . . . . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">c</span><span>Lucas et Tom ont tous deux le chiffre 3 et le chiffre 4 dans leur temps, mais pas au même endroit. Explique ce que ça change.<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h4-1">💡 Pour c), compare les tableaux de Lucas et Tom.</button>
+          <div class="hint-text" id="h4-1">Lucas = 12,304 : 3 en dixièmes, 4 en millièmes. Tom = 12,340 : 3 en dixièmes, 4 en centièmes. Le 4 n'est pas à la même position → ce n'est pas la même valeur !</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+    <div class="mini-section">Question a)</div>
+    <div class="table-scroll">
+      <table class="num-table">
+        <thead>
+          <tr>
+            <th style="border:none;background:transparent;"></th>
+            <th colspan="2" class="th-entiere">Partie entière</th><th class="th-virgule">,</th><th colspan="3" class="th-decimale">Partie décimale</th>
+          </tr>
+          <tr>
+            <th style="border:none;background:transparent;"></th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">Diz.</th>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.7rem;">Unit.</th>
+            <th style="background:#fef9c3;border:1px solid #bae6fd;"></th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Dix.</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Cent.</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.7rem;">Mill.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="background:#f8fbff;border:1px solid #bae6fd;padding:.3rem .4rem;font-weight:700;font-size:.85rem;">Lucas 12,304</td><td class="val-entiere">1</td><td class="val-entiere">2</td><td class="val-virgule">,</td><td class="val-decimale">3</td><td class="val-decimale" style="color:var(--red) !important;">0</td><td class="val-decimale">4</td></tr>
+          <tr><td style="background:#f8fbff;border:1px solid #bae6fd;padding:.3rem .4rem;font-weight:700;font-size:.85rem;">Inès 12,034</td><td class="val-entiere">1</td><td class="val-entiere">2</td><td class="val-virgule">,</td><td class="val-decimale" style="color:var(--red) !important;">0</td><td class="val-decimale">3</td><td class="val-decimale">4</td></tr>
+          <tr><td style="background:#f8fbff;border:1px solid #bae6fd;padding:.3rem .4rem;font-weight:700;font-size:.85rem;">Tom 12,340</td><td class="val-entiere">1</td><td class="val-entiere">2</td><td class="val-virgule">,</td><td class="val-decimale">3</td><td class="val-decimale">4</td><td class="val-decimale" style="color:var(--green) !important;">0</td></tr>
+          <tr><td style="background:#f8fbff;border:1px solid #bae6fd;padding:.3rem .4rem;font-weight:700;font-size:.85rem;">Léa 12,043</td><td class="val-entiere">1</td><td class="val-entiere">2</td><td class="val-virgule">,</td><td class="val-decimale" style="color:var(--red) !important;">0</td><td class="val-decimale">4</td><td class="val-decimale">3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.88rem;color:var(--text-medium);">⚠️ Pour Tom : le 0 en millièmes (<span style="color:var(--green);">vert</span>) est inutile. Pour Lucas et Inès/Léa : les 0 (<span style="color:var(--red);">rouge</span>) sont utiles.</p>
+    <div class="mini-section">Question b)</div>
+    <p>Dans 12,304 : chiffre <strong>3</strong> en dixièmes → valeur = <strong>3 × 0,1 = 0,3 s</strong><br>
+    Chiffre <strong>4</strong> en millièmes → valeur = <strong>4 × 0,001 = 0,004 s</strong></p>
+    <div class="mini-section">Question c)</div>
+    <div class="step-box">Lucas = 12,304 : le 4 est en <strong>millièmes</strong> → vaut 0,004 s</div>
+    <div class="step-box orange">Tom = 12,340 : le 4 est en <strong>centièmes</strong> → vaut 0,04 s</div>
+    <p>Le 4 de Tom vaut <strong>10 fois plus</strong> que le 4 de Lucas. Même chiffre, position différente → valeur différente ! Tom est donc plus lent que Lucas de 0,036 s.</p>
+    <div class="rule-box">🔑 La <strong>position</strong> d'un chiffre détermine entièrement sa valeur. Deux nombres peuvent avoir les mêmes chiffres dans un ordre différent et représenter des quantités très différentes.</div>
+  </div></div></div>
+</div>
+
+<!-- ===== PARTIE 3 ===== -->
+<div class="section-divider">
+  <div style="font-size:1.3rem;">🧩⭐</div>
+  <div class="section-divider-title">Partie 3 – Problèmes de synthèse</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- PROBLÈME 5 -->
+<div class="exercise" id="card-ex5">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Problème 5 / 6</h2>
+      <span class="exercise-tag tag-gold">📚 Le bibliothécaire</span>
+      <span class="exercise-tag tag-gold">Toutes les notions</span>
+    </div>
+    <div class="btn-group">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <div class="story-box gold">
+      <span class="story-icon">📚</span>
+      Un bibliothécaire classe des livres selon leur épaisseur en centimètres. Il relève les mesures suivantes :<br><br>
+      Roman policier : <strong>2,4 cm</strong> &nbsp;·&nbsp; Dictionnaire : <strong>08,05 cm</strong> &nbsp;·&nbsp; Bande dessinée : <strong>0,800 cm</strong> &nbsp;·&nbsp; Atlas : <strong>4,007 cm</strong>
+    </div>
+
+    <div class="q-row"><span class="qnum">a</span><span>Deux de ces mesures sont mal écrites (zéros inutiles). Lesquelles ? Réécris-les correctement.<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">b</span><span>Le bibliothécaire affirme : <em>« L'atlas est plus épais que le dictionnaire car 4 &gt; 8 n'est pas vrai, mais 4,007 &gt; 8,05 non plus. »</em> Il est perdu ! Aide-le en comparant correctement les deux épaisseurs et en expliquant ta méthode.<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="q-row"><span class="qnum">c</span><span>L'épaisseur de l'atlas est <strong>4,007 cm</strong>. Décompose ce nombre et donne la valeur de chacun des chiffres 4, 0, 0 et 7.<br>
+    <span class="dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span></div>
+
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h5-1">💡 Pour b), comment comparer deux nombres décimaux ?</button>
+          <div class="hint-text" id="h5-1">On commence par comparer les <strong>parties entières</strong>. Si elles sont différentes, c'est suffisant pour conclure. Inutile d'aller chercher dans les décimales !</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+    <div class="mini-section">Question a)</div>
+    <p>Les mesures mal écrites sont :<br>
+    &nbsp;• Dictionnaire : <s style="color:var(--green);">0</s>8,05 → <strong>8,05 cm</strong> (zéro devant inutile)<br>
+    &nbsp;• Bande dessinée : 0,8<s style="color:var(--green);">00</s> → <strong>0,8 cm</strong> (deux zéros finaux inutiles)<br>
+    Les deux autres sont correctement écrites : 2,4 et 4,007 (les zéros sont utiles).</p>
+    <div class="mini-section">Question b)</div>
+    <div class="step-box">Partie entière de l'atlas = <strong>4</strong> · Partie entière du dictionnaire = <strong>8</strong></div>
+    <p>Or 4 &lt; 8, donc <strong>4,007 &lt; 8,05</strong> : le <strong>dictionnaire est plus épais</strong> que l'atlas.<br>
+    Méthode : on compare d'abord les parties entières. Quand elles sont différentes, la comparaison est terminée — pas besoin de regarder les décimales.</p>
+    <div class="mini-section">Question c)</div>
+    <div class="step-box">4,007 = (4 × 1) + (0 × 0,1) + (0 × 0,01) + (7 × 0,001)</div>
+    <p>Valeurs : chiffre <strong>4</strong> → 4 × 1 = <strong>4</strong> (unités) &nbsp;·&nbsp; 1er <strong>0</strong> → 0 × 0,1 = <strong>0</strong> (dixièmes, utile) &nbsp;·&nbsp; 2e <strong>0</strong> → 0 × 0,01 = <strong>0</strong> (centièmes, utile) &nbsp;·&nbsp; chiffre <strong>7</strong> → 7 × 0,001 = <strong>0,007</strong> (millièmes)</p>
+    <div class="rule-box">🔑 Pour comparer deux nombres décimaux : on compare d'abord les parties entières. Si elles diffèrent, la conclusion est immédiate. Si elles sont égales, on compare les dixièmes, puis les centièmes, puis les millièmes.</div>
+  </div></div></div>
+</div>
+
+<!-- PROBLÈME 6 -->
+<div class="exercise" id="card-ex6">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Problème 6 / 6</h2>
+      <span class="exercise-tag tag-orange">⭐ Problème difficile</span>
+      <span class="exercise-tag tag-purple">🔎 Le nombre mystère</span>
+    </div>
+    <div class="btn-group">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex6">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <div class="story-box purple">
+      <span class="story-icon">🔎</span>
+      Un nombre décimal est décrit par les indices suivants. Trouve-le !
+    </div>
+
+    <div class="q-row"><span class="qnum">1</span><span>Ma partie entière est le double de <strong>4</strong>.</span></div>
+    <div class="q-row"><span class="qnum">2</span><span>Mon chiffre des dixièmes est le chiffre des unités de ma partie entière.</span></div>
+    <div class="q-row"><span class="qnum">3</span><span>Mon chiffre des centièmes vaut <span class="frac"><span class="fn">1</span><span class="fd">100</span></span> de l'unité.</span></div>
+    <div class="q-row"><span class="qnum">4</span><span>J'ai un chiffre aux millièmes. Il est tel que <strong>3 × 0,001 + ce chiffre × 0,001 = 0,007</strong>.</span></div>
+    <div class="q-row"><span class="qnum">5</span><span>Je n'ai pas de chiffre en dizaines.</span></div>
+
+    <p style="margin-top:1rem;">Le nombre mystère est : <span class="dots">. . . . . . . . . . . .</span></p>
+    <p style="margin-top:.5rem;">Vérifie en le plaçant dans le tableau de numération et en l'écrivant sous forme de fraction décimale.</p>
+
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h6-1">💡 Commence par l'indice 1.</button>
+          <div class="hint-text" id="h6-1">Le double de 4, c'est 4 × 2 = <strong>8</strong>. Donc la partie entière est 8. Le chiffre des unités est 8, et il n'y a pas de dizaines (indice 5).</div>
+        </div>
+        <div class="hint-item">
+          <button class="hint-btn" data-hint="h6-2">💡 Pour l'indice 4, résous l'équation.</button>
+          <div class="hint-text" id="h6-2">On calcule d'abord 3 × 0,001 = 0,003. Il faut arriver à 0,007 en tout. Ce qu'il manque : 0,007 − 0,003 = 0,004. Quel chiffre × 0,001 donne 0,004 ? C'est <strong>4</strong> !</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+    <div class="mini-section">Résolution indice par indice</div>
+    <div class="step-box"><strong>Indice 1 :</strong> partie entière = 2 × 4 = <strong>8</strong>. Pas de dizaines (indice 5) → partie entière = 8 (unité seule).</div>
+    <div class="step-box"><strong>Indice 2 :</strong> chiffre des dixièmes = chiffre des unités de la partie entière = <strong>8</strong>.</div>
+    <div class="step-box"><strong>Indice 3 :</strong> chiffre des centièmes vaut 1/100 → c'est le chiffre <strong>1</strong> (car 1 × 0,01 = 0,01).</div>
+    <div class="step-box"><strong>Indice 4 :</strong> On sait que 3 × 0,001 = 0,003. Or on veut arriver à 0,007 en tout.<br>
+    Il manque donc : 0,007 − 0,003 = <strong>0,004</strong>.<br>
+    Ce qui reste doit valoir 0,004, et c'est « ce chiffre × 0,001 ».<br>
+    On cherche quel chiffre × 0,001 = 0,004 → c'est <strong>4</strong> (car 4 × 0,001 = 0,004).</div>
+    <p style="margin-top:.8rem;">Le nombre mystère est : <strong style="font-size:1.3rem;color:var(--primary);">8,814</strong></p>
+
+    <div class="mini-section green">Vérification dans le tableau</div>
+    <div class="table-scroll">
+      <table class="num-table" style="max-width:420px;">
+        <thead>
+          <tr><th colspan="1" class="th-entiere">P. entière</th><th class="th-virgule">,</th><th colspan="3" class="th-decimale">Partie décimale</th></tr>
+          <tr>
+            <th style="background:#eff6ff;color:#1e40af;border:1px solid #bae6fd;font-size:.72rem;">Unités</th>
+            <th style="background:#fef9c3;border:1px solid #bae6fd;"></th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.72rem;">Dixièmes</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.72rem;">Centièmes</th>
+            <th style="background:#f0fdf4;color:#166534;border:1px solid #bae6fd;font-size:.72rem;">Millièmes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="val-entiere">8</td><td class="val-virgule">,</td><td class="val-decimale">8</td><td class="val-decimale">1</td><td class="val-decimale">4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Sous forme de fraction décimale : 8,814 = <span class="frac frac-lg"><span class="fn">8 814</span><span class="fd">1 000</span></span></p>
+    <div class="rule-box">🔑 Ce problème mobilise <strong>toutes les notions du chapitre</strong> : partie entière, valeur d'un chiffre, position, fraction décimale, tableau de numération.</div>
+  </div></div></div>
+</div>
+
+<footer>Chapitre 5 — Les nombres décimaux · Feuille bilan</footer>
+</div>
+
+<script>
+const TOTAL = 6;
+const seenSet = new Set(), openSet = new Set();
+const SCORE_DATA = [
+  {min:6, emoji:'🏆', title:'Bilan maîtrisé !', stars:'⭐⭐⭐', msg:'Bravo ! Tu as vu toutes les corrections. Tu maîtrises tous les nombres décimaux !'},
+  {min:4, emoji:'👏', title:'Très bon bilan !', stars:'⭐⭐', msg:'Continue à revoir les points que tu n\'as pas encore compris.'},
+  {min:1, emoji:'💪', title:'Bon début !',      stars:'⭐',    msg:'Relis bien les corrections et retourne voir les feuilles d\'exercices pour consolider.'}
+];
+const dotsContainer = document.getElementById('progressDots');
+for(let i = 1; i <= TOTAL; i++){
+  const d = document.createElement('span');
+  d.className = 'progress-dot';
+  d.id = `dot-ex${i}`;
+  d.title = `Problème ${i}`;
+  dotsContainer.appendChild(d);
+}
+function updateProgress(){
+  const done = seenSet.size;
+  document.getElementById('progressFill').style.width = `${(done/TOTAL)*100}%`;
+  document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+  if(done === TOTAL) showScoreCard();
+}
+function showScoreCard(){
+  const card = document.getElementById('scoreCard');
+  if(card.classList.contains('visible')) return;
+  const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length-1];
+  document.getElementById('scoreEmoji').textContent = data.emoji;
+  document.getElementById('scoreTitle').textContent = data.title;
+  document.getElementById('scoreStars').textContent = data.stars;
+  document.getElementById('scoreMessage').textContent = data.msg;
+  document.getElementById('scoreBreakdown').innerHTML =
+    `<span class="score-badge sb-green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>`+
+    `<span class="score-badge sb-blue">🔵 Fractions · Tableau</span>`+
+    `<span class="score-badge sb-gold">🏆 Problèmes · Synthèse</span>`;
+  card.classList.add('visible');
+}
+function openCorrection(el){ el.style.height = el.scrollHeight + 'px'; el.classList.add('show'); }
+function closeCorrection(el){ el.style.height = el.scrollHeight + 'px'; requestAnimationFrame(() => { el.style.height = '0px'; el.classList.remove('show'); }); }
+function toggleCorrection(exId){
+  const correction = document.getElementById(exId);
+  const card = correction.closest('.exercise');
+  const btn = card.querySelector('.reveal-btn');
+  const dot = document.getElementById(`dot-${exId}`);
+  const isOpen = openSet.has(exId);
+  if(isOpen){
+    closeCorrection(correction); btn.classList.remove('active');
+    btn.textContent = 'Voir la correction'; openSet.delete(exId);
+  } else {
+    openCorrection(correction); btn.classList.add('active');
+    btn.textContent = 'Masquer la correction'; openSet.add(exId);
+    if(!seenSet.has(exId)){ seenSet.add(exId); dot.classList.add('done'); card.classList.add('seen'); updateProgress(); }
+  }
+}
+document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => {
+  btn.addEventListener('click', () => toggleCorrection(btn.dataset.target));
+});
+document.querySelectorAll('.correction').forEach(el => {
+  el.addEventListener('transitionend', e => { if(e.propertyName === 'height' && el.classList.contains('show')) el.style.height = 'auto'; });
+});
+document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+  btn.addEventListener('click', function(){
+    document.getElementById(this.dataset.hint).classList.add('revealed');
+    this.disabled = true;
+    this.textContent = '✓ ' + this.textContent;
+  });
+});
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s;}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}}
+</style>
+</body>
+</html>
