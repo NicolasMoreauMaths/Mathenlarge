@@ -208,22 +208,33 @@ header .sub { font-size:.7rem; color:var(--muted); font-family:'DM Mono',monospa
   margin-bottom:10px;
 }
 
-/* Level grid */
-.lvl-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.lvl-btn {
-  padding:8px 4px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  background:var(--surface2);
-  color:var(--text);
-  font-family:'DM Mono',monospace;
-  font-size:.7rem;
-  cursor:pointer;
-  text-align:center;
-  transition:all .15s;
+/* Slider niveau */
+.slider-wrap { display:flex; flex-direction:column; gap:8px; }
+.slider-labels { display:flex; justify-content:space-between; align-items:baseline; }
+.slider-labels span:first-child { font-size:.82rem; font-weight:600; color:var(--text); }
+#lvl-elo { font-family:'DM Mono',monospace; font-size:.72rem; color:var(--accent); }
+#lvl-slider {
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:6px;
+  border-radius:3px;
+  background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--pct,0%), var(--border) var(--pct,0%), var(--border) 100%);
+  outline:none; cursor:pointer;
 }
-.lvl-btn:hover { border-color:var(--accent); color:var(--accent); }
-.lvl-btn.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+#lvl-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--accent); border:2px solid #000;
+  box-shadow:0 0 6px rgba(232,200,74,.5);
+  cursor:grab; transition:transform .1s;
+}
+#lvl-slider::-webkit-slider-thumb:active { cursor:grabbing; transform:scale(1.2); }
+#lvl-slider::-moz-range-thumb {
+  width:18px; height:18px; border-radius:50%;
+  background:var(--accent); border:2px solid #000;
+  cursor:grab;
+}
+.slider-ticks { display:flex; justify-content:space-between; padding:0 2px; }
+.slider-ticks span { font-family:'DM Mono',monospace; font-size:.62rem; color:var(--muted); }
 
 /* Color buttons */
 .col-btns { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
@@ -381,11 +392,15 @@ header .sub { font-size:.7rem; color:var(--muted); font-family:'DM Mono',monospa
   <div class="side">
     <div class="card">
       <h3>Niveau</h3>
-      <div class="lvl-grid">
-        <button class="lvl-btn on" data-lvl="0">⭐ Débutant</button>
-        <button class="lvl-btn" data-lvl="3">⭐⭐ Facile</button>
-        <button class="lvl-btn" data-lvl="6">⭐⭐⭐ Moyen</button>
-        <button class="lvl-btn" data-lvl="10">⭐⭐⭐⭐ Fort</button>
+      <div class="slider-wrap">
+        <div class="slider-labels">
+          <span id="lvl-label">Niveau 1 — Débutant</span>
+          <span id="lvl-elo">~400 Élo</span>
+        </div>
+        <input type="range" id="lvl-slider" min="1" max="20" value="1" step="1">
+        <div class="slider-ticks">
+          <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span>
+        </div>
       </div>
     </div>
 
@@ -470,7 +485,7 @@ let castling={wK:true,wQ:true,bK:true,bQ:true};
 let ep=null;
 let history=[];
 let capW=[], capB=[];
-let sfLevel=0, sfBusy=false;
+let sfLevel=1, sfBusy=false;
 let clockW=600, clockB=600, tickId=null;
 
 const file=i=>i%8, rank=i=>Math.floor(i/8);
@@ -632,33 +647,102 @@ function toFEN(){
 // ═══════════════════════════════════════════════════════════════
 //  STOCKFISH
 // ═══════════════════════════════════════════════════════════════
-let sf=null, sfReady=false, sfCB=null;
+let sf=null, sfReady=false, sfCB=null, sfQueue=[];
 
-function initSF(){
-  try{
-    sf=new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');
-    sf.onmessage=e=>{
-      const l=e.data;
-      if(l==='uciok'||l==='readyok'){sfReady=true;document.getElementById('edot').className='dot ready';document.getElementById('elabel').textContent='Stockfish prêt';}
-      if(l&&l.startsWith('bestmove')&&sfCB){const p=l.split(' ');sfCB(p[1]);sfCB=null;}
-    };
-    sf.postMessage('uci');sf.postMessage('isready');
-  }catch(e){sfReady=true;document.getElementById('edot').className='dot ready';document.getElementById('elabel').textContent='Moteur local';}
+// sfLevel est maintenant 1-20 (valeur directe du curseur)
+// Paramètres calculés en continu sur la plage 1-20
+function getLevelParams(lvl){
+  // skill : 0 à 20 linéaire
+  const skill = Math.round((lvl - 1) / 19 * 20);
+  // depth : 1 à 15 progressif (croissance plus forte en haut)
+  const depth = Math.max(1, Math.round(1 + (lvl - 1) / 19 * 14));
+  // randomPct : 70% au niveau 1, 0% à partir du niveau 8
+  const randomPct = lvl <= 8 ? Math.round(70 - (lvl - 1) * 10) : 0;
+  return { skill, depth, randomPct };
 }
 
-function askSF(fen,level,cb){
-  if(!sf||!sfReady){
-    const mvs=allLegal(board,turn,ep,castling);
-    if(!mvs.length){cb(null);return;}
-    const m=mvs[Math.floor(Math.random()*mvs.length)];
-    const f='abcdefgh',r='87654321';
-    setTimeout(()=>cb(f[file(m.from)]+r[rank(m.from)]+f[file(m.to)]+r[rank(m.to)]),400+Math.random()*600);
-    return;
+// Labels et élos estimés par plage
+function getLevelLabel(lvl){
+  if(lvl <= 3)  return { name:'Débutant',    elo:'~400–600 Élo' };
+  if(lvl <= 6)  return { name:'Très facile', elo:'~700–900 Élo' };
+  if(lvl <= 9)  return { name:'Facile',      elo:'~1000–1200 Élo' };
+  if(lvl <= 12) return { name:'Intermédiaire', elo:'~1300–1500 Élo' };
+  if(lvl <= 15) return { name:'Avancé',      elo:'~1600–1800 Élo' };
+  if(lvl <= 18) return { name:'Fort',        elo:'~1900–2100 Élo' };
+  return              { name:'Très fort',    elo:'~2200+ Élo' };
+}
+
+function initSF(){
+  const CDN = 'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js';
+  const blobSrc = `importScripts('${CDN}');`;
+  let blob, url;
+  try {
+    blob = new Blob([blobSrc], {type:'application/javascript'});
+    url  = URL.createObjectURL(blob);
+    sf   = new Worker(url);
+  } catch(e) {
+    fallbackNoSF(); return;
   }
-  sfCB=cb;
-  sf.postMessage('setoption name Skill Level value '+Math.min(20,level*2));
-  sf.postMessage('position fen '+fen);
-  sf.postMessage('go depth '+Math.max(1,Math.min(8,Math.floor(level*.8)+1)));
+
+  // Si le moteur ne répond pas en 5s, basculer en fallback
+  const watchdog = setTimeout(() => { if(!sfReady) fallbackNoSF(); }, 5000);
+
+  sf.onmessage = e => {
+    const l = e.data;
+    if(l === 'uciok' || l === 'readyok'){
+      clearTimeout(watchdog);
+      sfReady = true;
+      document.getElementById('edot').className = 'dot ready';
+      document.getElementById('elabel').textContent = 'Stockfish prêt';
+      sfQueue.forEach(m => sf.postMessage(m));
+      sfQueue = [];
+    }
+    if(l && l.startsWith('bestmove') && sfCB){
+      const mv = l.split(' ')[1];
+      const cb = sfCB; sfCB = null;
+      cb(mv);
+    }
+  };
+  sf.onerror = () => { clearTimeout(watchdog); fallbackNoSF(); };
+
+  sf.postMessage('uci');
+  sf.postMessage('isready');
+}
+
+function sfSend(msg){
+  if(sfReady) sf.postMessage(msg);
+  else sfQueue.push(msg);
+}
+
+function fallbackNoSF(){
+  sfReady = true; sf = null;
+  document.getElementById('edot').className = 'dot ready';
+  document.getElementById('elabel').textContent = 'Mode local (aléatoire)';
+}
+
+function initSFLevel(level){
+  if(!sf) return;
+  const p = getLevelParams(level);
+  sfSend('setoption name Skill Level value ' + p.skill);
+  sfSend('ucinewgame');
+}
+
+function randomMove(cb){
+  const mvs = allLegal(board, turn, ep, castling);
+  if(!mvs.length){ cb(null); return; }
+  const m = mvs[Math.floor(Math.random() * mvs.length)];
+  const f = 'abcdefgh', r = '87654321';
+  setTimeout(() => cb(f[file(m.from)]+r[rank(m.from)]+f[file(m.to)]+r[rank(m.to)]),
+    200 + Math.random()*300);
+}
+
+function askSF(fen, level, cb){
+  const p = getLevelParams(level);
+  if(!sf){ randomMove(cb); return; }
+  if(p.randomPct > 0 && Math.random()*100 < p.randomPct){ randomMove(cb); return; }
+  sfCB = cb;
+  sf.postMessage('position fen ' + fen);
+  sf.postMessage('go depth ' + p.depth);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -771,6 +855,7 @@ function startGame(){
   document.getElementById('btn-undo').disabled=false;
   document.getElementById('btn-resign').disabled=false;
   setThinking(false);
+  initSFLevel(sfLevel);
   if(tickId)clearInterval(tickId);
   tickId=setInterval(()=>{
     if(!gameOn||sfBusy)return;
@@ -971,10 +1056,25 @@ document.getElementById('btn-new').addEventListener('click',startGame);
 document.getElementById('btn-undo').addEventListener('click',undoMove);
 document.getElementById('btn-resign').addEventListener('click',()=>{if(gameOn)endGame(opp(playerColor),'resign');});
 
-document.querySelectorAll('.lvl-btn').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.lvl-btn').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on'); sfLevel=parseInt(b.dataset.lvl);
-}));
+// Slider niveau
+(function(){
+  const slider = document.getElementById('lvl-slider');
+  const label  = document.getElementById('lvl-label');
+  const elo    = document.getElementById('lvl-elo');
+
+  function updateSlider(val){
+    sfLevel = val;
+    const info = getLevelLabel(val);
+    label.textContent = 'Niveau ' + val + ' — ' + info.name;
+    elo.textContent   = info.elo;
+    // Remplissage couleur du track
+    const pct = (val - 1) / 19 * 100;
+    slider.style.setProperty('--pct', pct + '%');
+  }
+
+  slider.addEventListener('input', () => updateSlider(parseInt(slider.value)));
+  updateSlider(1); // init
+})();
 document.querySelectorAll('.col-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.col-btn').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
