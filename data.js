@@ -5,12 +5,12 @@
 // ============================================
 
 window.dataChapitres = {
-        "6eme:Nombres entiers": { lecon: [], exercices: [], exerciseurs: [] },
-        "6eme:Droites, demi-droites et segments": { lecon: [], exercices: [], exerciseurs: [] },
-        "6eme:Fractions partie 1": { lecon: [], exercices: [], exerciseurs: [] },
-        "6eme:Cercle et disque": { lecon: [], exercices: [], exerciseurs: [] },
-        "6eme:Nombres décimaux partie 1": { lecon: [], exercices: [], exerciseurs: [] },
-        "6eme:Opérations sur les nombres décimaux": { lecon: [], exercices: [], exerciseurs: [] },
+        "6eme:Questions flash": { lecon: [], exercices: [], exerciseurs: [] },
+        "6eme:Fraction et partage": { lecon: [{ n: "Activité – Manipuler les fractions avec les réglettes", url: "6eme_ch2_lecon1.html" }, { n: "Chapitre n°1 – Fraction & partage", url: "6eme_ch2_lecon2.html" }], exercices: [{ n: "Exercices – Lire une fraction · Numérateur & Dénominateur", url: "6eme_ch2_exercice1.html" }, { n: "Exercices – Fraction d'une quantité", url: "6eme_ch2_exercice2.html" }], exerciseurs: [{ n: "Fraction & partage — Exerciseur interactif", url: "6eme_ch2_exerciseur1.html" }, { n: "Coloriage Magique — Fraction d'une quantité", url: "6eme_ch2_exerciseur2.html" }] },
+        "6eme:Eléments de géométrie": { lecon: [{ n: "Chapitre n°2 – Éléments de géométrie", url: "6eme_ch3_lecon1.html" }], exercices: [{ n: "Exercices – Vocabulaire & Notations de géométrie", url: "6eme_ch3_exercice1.html" }, { n: "Exercices – Codage, milieu & droites sécantes", url: "6eme_ch3_exercice2.html" }], exerciseurs: [{ n: "Éléments de géométrie — Exerciseur interactif", url: "6eme_ch3_exerciseur1.html" }] },
+        "6eme:Fraction nombre": { lecon: [{ n: "Chapitre n°3 – Fraction nombre", url: "6eme_ch4_lecon1.html" }], exercices: [{ n: "Exercices – Repérage sur une demi-droite graduée", url: "6eme_ch4_exercice1.html" }, { n: "Exercices – Encadrer des fractions", url: "6eme_ch4_exercice2.html" }, { n: "Exercices – Égalité de fractions", url: "6eme_ch4_exercice3.html" }, { n: "Exercices – Bilan · Fraction nombre", url: "6eme_ch4_exercice4.html" }], exerciseurs: [{ n: "Fraction nombre — Exerciseur interactif", url: "6eme_ch4_exerciseur1.html" }, { n: "Pixel Art — Égalités de fractions", url: "6eme_ch4_exerciseur2.html" }] },
+        "6eme:Distance, Cercle et Disque": { lecon: [{ n: "Activité découverte — Cercle et disque", url: "6eme_ch5_lecon1.html" }, { n: "Chapitre n°4 – Distance, cercle et disque", url: "6eme_ch5_lecon2.html" }], exercices: [{ n: "Exercices – Distance, cercle et disque", url: "6eme_ch5_exercice1.html" }], exerciseurs: [] },
+        "6eme:Les nombres décimaux": { lecon: [{ n: "Chapitre n°5 – Les nombres décimaux", url: "6eme_ch6_lecon1.html" }], exercices: [{ n: "Exercices – Dixièmes, centièmes, millièmes", url: "6eme_ch6_exercice1.html" }, { n: "Exercices – Lire et écrire les nombres décimaux", url: "6eme_ch6_exercice2.html" }, { n: "Exercices – Tableau de numération & Zéros", url: "6eme_ch6_exercice3.html" }, { n: "Bilan – Les nombres décimaux", url: "6eme_ch6_exercice4.html" }], exerciseurs: [{ n: "Nombres décimaux — Exerciseur", url: "6eme_ch6_exerciseur1.html" }, { n: "Coloriage Magique — Nombres Décimaux", url: "6eme_ch6_exerciseur2.html" }] },
         "6eme:Droites parallèles et perpendiculaires": { lecon: [], exercices: [], exerciseurs: [] },
         "6eme:Divisibilité": { lecon: [], exercices: [], exerciseurs: [] },
         "6eme:Angles": { lecon: [], exercices: [], exerciseurs: [] },
@@ -18,7 +18,7 @@ window.dataChapitres = {
         "6eme:Symétrie axiale": { lecon: [], exercices: [], exerciseurs: [] },
         "6eme:Division décimale": { lecon: [], exercices: [], exerciseurs: [] },
         "6eme:Triangle": { lecon: [], exercices: [], exerciseurs: [] },
-        "6eme:Fraction partie 2": { lecon: [], exercices: [], exerciseurs: [] },
+        "6eme:Fraction partie 2 (avancé)": { lecon: [], exercices: [], exerciseurs: [] },
         "6eme:Gestion de donnée": { lecon: [], exercices: [], exerciseurs: [] },
         "6eme:Quadrilatère": { lecon: [], exercices: [], exerciseurs: [] },
         "6eme:Proportionnalité": { lecon: [], exercices: [], exerciseurs: [] },
@@ -99,7 +99,7 @@ window.dataChapitres = {
 //   NIVEAUX
 // ============================================
 window.niveaux = {
-        "6eme": { emoji: "🎒", label: "6ème — Entrée au collège", chaps: ["Nombres entiers","Droites, demi-droites et segments","Fractions partie 1","Cercle et disque","Nombres décimaux partie 1","Opérations sur les nombres décimaux","Droites parallèles et perpendiculaires","Divisibilité","Angles","Nombres décimaux partie 2","Symétrie axiale","Division décimale","Triangle","Fraction partie 2","Gestion de donnée","Quadrilatère","Proportionnalité","Périmètres et aires","Autre que les maths"] },
+        "6eme": { emoji: "🎒", label: "6ème — Entrée au collège", chaps: ["Questions flash","Fraction et partage","Eléments de géométrie","Fraction nombre","Distance, Cercle et Disque","Les nombres décimaux","Droites parallèles et perpendiculaires","Divisibilité","Angles","Nombres décimaux partie 2","Symétrie axiale","Division décimale","Triangle","Fraction partie 2 (avancé)","Gestion de donnée","Quadrilatère","Proportionnalité","Périmètres et aires","Autre que les maths"] },
         "5eme": { emoji: "🔍", label: "5ème — On approfondit", chaps: ["Rappels de 6ème","Questions flash","Enchainement d'opérations","Symétrie axiale","Multiples, diviseurs et nombres premiers","Repérage","Symétrie centrale","Périmètres, aires et volumes","Nombres relatifs","Proportionnalité","Calcul littéral","Géométrie d'un triangle","Fractions","Pourcentages, durées et échelles","Conversions","Parallélogramme","Angles","Probabilités","Statistiques","Algorithmique","Autre que les maths"] },
         "4eme": { emoji: "📐", label: "4ème — Les grands théorèmes", chaps: ["Questions flash","Proportionnalité","Théorème de Pythagore","Nombres relatifs","Rappels calcul littéral","Symétrie axiale et centrale","Fractions partie 1","Théorème de Thalès","Statistiques","Calcul littéral nouveautés","Réciproque et contraposée du théorème de Pythagore","Translations","Equations","Réciproque et contraposée du théorème de Thalès","Fractions partie 2","Probabilités","Pourcentages et vitesse","Puissances","Repérage","Conversions","Périmètres, aires et volumes","Algorithmique","Autre que les maths"] },
         "3eme": { emoji: "🎓", label: "3ème — Cap sur le brevet", chaps: ["Questions flash","Puissances","Multiples, diviseurs et nombres premiers","Notion de fonction","Théorème","Calcul littéral","Proportionnalité et pourcentages","Transformations rappels","Fonctions affines et linéaires","Trigonométrie","Equations","Transformations : Rotations et homothétie","Repérage","Conversions","Probabilités","Statistiques","Périmètre, aire, volume et angle","Triangles semblables","Algorithmique","Brevet","Plus loin que la 3ème","Autre que les maths"] }

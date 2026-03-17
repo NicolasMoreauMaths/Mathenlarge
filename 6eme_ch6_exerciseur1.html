@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nombres décimaux — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f4f8;
+  --card:#ffffff;
+  --blue:#2563eb;--blue-l:#3b82f6;--blue-pale:#eff6ff;--blue-mid:#bfdbfe;
+  --purple:#7c3aed;--purple-pale:#f5f3ff;--purple-mid:#ddd6fe;
+  --green:#15803d;--green-pale:#f0fdf4;--green-mid:#bbf7d0;
+  --red:#dc2626;--red-pale:#fef2f2;--red-mid:#fecaca;
+  --orange:#c2410c;--orange-pale:#fff7ed;--orange-mid:#fed7aa;
+  --gold:#b45309;--gold-pale:#fffbeb;--gold-mid:#fde68a;
+  --text:#0f172a;--text-mid:#475569;--text-light:#94a3b8;
+  --border:#e2e8f0;--shadow:0 4px 24px rgba(15,23,42,.08);
+  --radius:16px;--radius-sm:10px;
+}
+body{
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 15% 15%,rgba(37,99,235,.06) 0%,transparent 50%),
+    radial-gradient(circle at 85% 80%,rgba(124,58,237,.06) 0%,transparent 50%);
+  display:flex;justify-content:center;
+  padding:20px 12px 80px;
+  color:var(--text);
+  -webkit-text-size-adjust:100%;
+}
+.app{max-width:860px;width:100%;}
+
+/* ── HEADER ── */
+.app-header{
+  background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#7c3aed 100%);
+  color:#fff;padding:20px 28px;
+  border-radius:20px 20px 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 6px 28px rgba(37,99,235,.35);
+  position:relative;overflow:hidden;
+}
+.app-header::before{content:'';position:absolute;inset:0;opacity:.05;background:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:20px 20px;pointer-events:none;}
+.app-title{font-family:'Playfair Display',serif;font-size:1.35em;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;position:relative;}
+.app-title::before{content:'🔢';font-size:1.15em;font-family:sans-serif;}
+.btn-back{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:8px 18px;border-radius:50px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.35);cursor:pointer;transition:all .2s;position:relative;}
+.btn-back:hover{background:rgba(255,255,255,.28);}
+
+/* ── MAIN ── */
+.main{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 20px 20px;padding:36px 32px;box-shadow:var(--shadow);min-height:65vh;}
+.screen{display:none;animation:fadeUp .3s ease both;}.screen.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+
+/* ── TYPO ── */
+h1{font-family:'Playfair Display',serif;font-size:1.75em;font-weight:800;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sub{text-align:center;font-size:.95em;color:var(--text-mid);margin-bottom:28px;line-height:1.6;}
+.q-text{font-size:1.1em;font-weight:600;line-height:1.65;margin-bottom:1.2rem;text-align:center;color:var(--text);}
+
+/* ── BOUTONS ── */
+.btn{font-family:'DM Sans',sans-serif;padding:13px 30px;border-radius:12px;font-size:.95em;font-weight:700;cursor:pointer;transition:all .2s;border:2.5px solid transparent;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:7px;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-l));color:#fff;box-shadow:0 3px 14px rgba(37,99,235,.3);}
+.btn-primary:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 6px 20px rgba(37,99,235,.35);}
+.btn-success{background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;box-shadow:0 3px 14px rgba(21,128,61,.25);}
+.btn-success:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-2px);}
+.btn-outline{background:transparent;color:var(--text-mid);border:2.5px solid var(--border);}
+.btn-outline:hover{background:var(--bg);border-color:var(--text-light);color:var(--text);}
+.controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+
+/* ── MENU ── */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:20px 0;}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:24px 18px;text-align:center;cursor:pointer;transition:all .25s;min-height:128px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(15,23,42,.04);}
+.mc:hover{border-color:var(--blue);transform:translateY(-5px);box-shadow:0 10px 28px rgba(37,99,235,.15);}
+.mc.mix{border-color:var(--orange-mid);background:var(--orange-pale);}
+.mc.mix:hover{border-color:var(--orange);box-shadow:0 10px 28px rgba(194,65,12,.15);}
+.mc-icon{font-size:2.2em;margin-bottom:10px;line-height:1;}
+.mc-title{font-size:.95em;color:var(--blue);font-weight:700;margin-bottom:5px;line-height:1.3;}
+.mc.mix .mc-title{color:var(--orange);}
+.mc-desc{font-size:.78em;color:var(--text-light);line-height:1.45;}
+.mc-badge{position:absolute;top:10px;right:12px;background:var(--gold-pale);color:var(--gold);font-size:.68em;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--gold-mid);}
+
+/* ── PROGRESS ── */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.ex-badge{background:var(--blue-pale);color:var(--blue);padding:6px 18px;border-radius:20px;font-size:.82em;font-weight:700;border:1.5px solid var(--blue-mid);}
+.ex-score{font-size:.88em;color:var(--text-mid);font-weight:600;}
+.pbar{width:100%;background:var(--border);border-radius:8px;height:7px;overflow:hidden;margin-bottom:24px;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:8px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+
+/* ── FEEDBACK ── */
+.fb{border-radius:12px;padding:15px 20px;font-size:.95em;font-weight:600;line-height:1.55;display:none;margin-top:18px;}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1.5px solid var(--green-mid);}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1.5px solid var(--red-mid);}
+
+/* ── RESULTS ── */
+.rc{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:24px auto 8px;border:7px solid var(--border);}
+.rc.good{border-color:var(--green);}.rc.mid{border-color:var(--orange);}.rc.bad{border-color:var(--red);}
+.rp{font-size:2.4em;font-weight:800;line-height:1;}
+.rm{font-size:1.1em;text-align:center;margin:12px 0;line-height:1.5;font-weight:600;}
+.r-detail{max-width:420px;margin:0 auto 20px;background:var(--bg);border-radius:12px;padding:14px 20px;font-size:.9em;color:var(--text-mid);line-height:1.8;text-align:center;border:1px solid var(--border);}
+
+/* ── FRACTION ── */
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .18em;line-height:1.05;}
+.frac .fn{border-bottom:2.5px solid currentColor;padding:0 .3em .08em;font-weight:700;}
+.frac .fd{padding:.08em .3em 0;font-weight:700;}
+.frac-lg{font-size:1.5em;}
+.frac-xl{font-size:2.4em;margin:.4rem 0;}
+
+/* ── QCM OPTIONS ── */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px;margin:1rem auto 0;}
+.opt{padding:16px 18px;border:2.5px solid var(--border);border-radius:14px;cursor:pointer;font-weight:600;font-size:.95em;transition:all .2s;text-align:center;background:var(--card);line-height:1.4;box-shadow:0 1px 4px rgba(15,23,42,.04);}
+.opt:hover{border-color:var(--blue);background:var(--blue-pale);transform:translateY(-2px);box-shadow:0 4px 12px rgba(37,99,235,.12);}
+.opt.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;pointer-events:none;}
+.opt.bad-flash{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important;animation:shake .4s ease;}
+.opt.dead{pointer-events:none;opacity:.45;}
+.opts.locked .opt{pointer-events:none;}
+
+/* ── INPUT ── */
+.inp{font-family:'DM Sans',sans-serif;font-weight:700;text-align:center;padding:.45rem .35rem;border:2.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);transition:border-color .2s,box-shadow .2s;-moz-appearance:textfield;-webkit-appearance:none;font-size:16px;}
+.inp::-webkit-outer-spin-button,.inp::-webkit-inner-spin-button{-webkit-appearance:none;}
+.inp:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.inp.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;}
+.inp.bad{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important;animation:shake .4s ease;}
+
+/* ── TABLEAU DE NUMÉRATION ── */
+.num-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:1.2rem 0;padding-bottom:4px;}
+.num-tbl{border-collapse:separate;border-spacing:4px;margin:0 auto;min-width:700px;}
+.num-tbl .grp-th{padding:.65rem .6rem;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;text-align:center;border-radius:10px 10px 0 0;}
+.grp-entiere{background:#dbeafe;color:#1e40af;}
+.grp-vir{background:#fef9c3;color:#854d0e;font-size:1rem;font-weight:900;}
+.grp-dec{background:#dcfce7;color:#166534;}
+.num-tbl .col-th{padding:.65rem .55rem;font-size:.82rem;font-weight:700;text-align:center;white-space:nowrap;border-radius:0 0 8px 8px;}
+.col-ent{background:#eff6ff;color:#1d4ed8;}
+.col-vir{background:#fefce8;color:#854d0e;font-weight:900;font-size:1.2rem;}
+.col-dec{background:#f0fdf4;color:#15803d;}
+.num-lbl{padding:.85rem 1.2rem;background:#f8fafc;border:2px solid var(--border);border-radius:12px;font-weight:800;font-size:1.1rem;color:var(--text);white-space:nowrap;text-align:center;min-width:90px;}
+.vir-td{padding:.7rem .6rem;background:#fefce8;border:2px solid #fde68a;border-radius:10px;font-weight:900;font-size:1.4rem;color:#854d0e;text-align:center;min-width:46px;}
+.inp-td-ent{background:#eff6ff;border:2px solid #bfdbfe;border-radius:10px;padding:.5rem .45rem;text-align:center;}
+.inp-td-dec{background:#f0fdf4;border:2px solid #bbf7d0;border-radius:10px;padding:.5rem .45rem;text-align:center;}
+.num-tbl .cell-inp{width:62px;height:58px;font-size:1.25rem;font-weight:800;border:2px solid rgba(0,0,0,.1);border-radius:10px;text-align:center;background:rgba(255,255,255,.9);color:var(--text);transition:border-color .2s,box-shadow .2s;font-family:'DM Sans',sans-serif;display:block;margin:0 auto;-webkit-appearance:none;touch-action:manipulation;}
+.num-tbl .cell-inp::placeholder{color:#cbd5e1;font-weight:600;}
+.num-tbl .cell-inp:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.num-tbl .cell-inp.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;}
+.num-tbl .cell-inp.bad{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important;animation:shake .4s ease;}
+
+/* ── NUM DISPLAY ── */
+.num-display{font-size:2.6rem;font-weight:800;text-align:center;margin:1rem 0;letter-spacing:.08em;}
+
+/* ── SIMP ROW ── */
+.simp-row{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:1.2rem;flex-wrap:wrap;}
+
+/* ── DÉCOMPOSITION ── */
+.dc-box{
+  background:var(--blue-pale);
+  border:2px solid var(--blue-mid);
+  border-radius:16px;
+  padding:1.2rem 1.5rem;
+  margin:1rem auto;
+  max-width:680px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:.3rem;
+  font-size:1.15rem;
+}
+.dc-term{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:#fff;
+  border:1.5px solid var(--blue-mid);
+  border-radius:10px;
+  padding:.45rem .75rem;
+  font-weight:700;
+  color:var(--text);
+  white-space:nowrap;
+}
+.dc-times{color:var(--text-light);font-size:.9em;font-weight:400;margin:0 .1rem;}
+.dc-plus{font-size:1.2rem;font-weight:700;color:var(--purple);padding:0 .2rem;}
+.frac-sm{font-size:.9em;}
+.frac-sm .fn{border-bottom:2px solid currentColor;padding:0 .2em .05em;font-weight:700;}
+.frac-sm .fd{padding:.05em .2em 0;font-weight:700;}
+
+@media(max-width:640px){
+  .main{padding:22px 16px;}
+  h1{font-size:1.4em;}
+  .menu-grid{grid-template-columns:1fr;}
+  .opts{grid-template-columns:1fr;}
+  .app-header{padding:16px 20px;}
+  .app-title{font-size:1.1em;}
+  .num-tbl .cell-inp{width:48px;height:48px;font-size:1rem;}
+  .num-display{font-size:2rem;}
+  .num-tbl{min-width:480px;}
+  .num-tbl .col-th{font-size:.7rem;padding:.5rem .35rem;}
+  .num-tbl .grp-th{font-size:.67rem;padding:.5rem .35rem;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="app-header">
+    <div class="app-title">Nombres décimaux</div>
+    <button class="btn-back" onclick="show('S_menu')">← Menu</button>
+  </div>
+
+  <div class="main">
+
+    <!-- ══ MENU ══ -->
+    <div id="S_menu" class="screen active">
+      <h1>Entraîne-toi !</h1>
+      <p class="sub">Choisis une compétence pour commencer</p>
+      <div class="menu-grid">
+        <div class="mc" onclick="go(1)">
+          <div class="mc-icon">🔡</div>
+          <div class="mc-title">Fractions décimales</div>
+          <div class="mc-desc">Reconnaître une fraction décimale et la lire</div>
+        </div>
+        <div class="mc" onclick="go(2)">
+          <div class="mc-icon">✂️</div>
+          <div class="mc-title">Dixième · Centième · Millième</div>
+          <div class="mc-desc">Associer fraction et écriture décimale</div>
+        </div>
+        <div class="mc" onclick="go(3)">
+          <div class="mc-icon">📊</div>
+          <div class="mc-title">Tableau de numération</div>
+          <div class="mc-desc">Placer les chiffres dans le bon tableau</div>
+        </div>
+        <div class="mc" onclick="go(4)">
+          <div class="mc-icon">🔎</div>
+          <div class="mc-title">Valeur d'un chiffre</div>
+          <div class="mc-desc">Dixièmes ? Centièmes ? Millièmes ?</div>
+        </div>
+        <div class="mc" onclick="go(5)">
+          <div class="mc-icon">0️⃣</div>
+          <div class="mc-title">Zéros utiles / inutiles</div>
+          <div class="mc-desc">Repérer les zéros qui changent la valeur</div>
+        </div>
+        <div class="mc" onclick="go(6)">
+          <div class="mc-icon">🧩</div>
+          <div class="mc-title">Décomposer un nombre</div>
+          <div class="mc-desc">Écrire un nombre comme somme de produits (5×100 + 3×1…)</div>
+        </div>
+        <div class="mc mix" onclick="go(7)">
+          <div class="mc-badge">MIX</div>
+          <div class="mc-icon">🎯</div>
+          <div class="mc-title">Mélange de tout</div>
+          <div class="mc-desc">Questions variées sur toutes les notions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EXERCISE ══ -->
+    <div id="S_ex" class="screen">
+      <div class="ex-top">
+        <div class="ex-badge" id="badge">—</div>
+        <div class="ex-score" id="scLbl">0 / 0</div>
+      </div>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+      <div id="zone"></div>
+      <div class="fb" id="fb"></div>
+      <div class="controls">
+        <button class="btn btn-primary" id="nxt" style="display:none" onclick="nxtQ()">Question suivante →</button>
+      </div>
+    </div>
+
+    <!-- ══ RESULTS ══ -->
+    <div id="S_res" class="screen">
+      <h1>Résultats</h1>
+      <div class="rc" id="rCirc"><div class="rp" id="rPct">0%</div></div>
+      <div class="rm" id="rMsg"></div>
+      <div class="r-detail" id="rDetail"></div>
+      <div class="controls">
+        <button class="btn btn-primary" onclick="go(lv)">🔁 Rejouer</button>
+        <button class="btn btn-outline" onclick="show('S_menu')">← Menu</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const NAMES={
+  1:'Fractions décimales',
+  2:'Dixième / Centième / Millième',
+  3:'Tableau de numération',
+  4:'Valeur d\'un chiffre',
+  5:'Zéros utiles / inutiles',
+  6:'Décomposer un nombre',
+  7:'Mélange'
+};
+let lv=1, qs=[], qi=0, cq=null, sc=0;
+const $=id=>document.getElementById(id);
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+/* ═══════════════════════════════
+   GÉNÉRATEURS
+═══════════════════════════════ */
+
+function genL1(){
+  const fracDec=[
+    {num:3,den:10},{num:7,den:10},{num:31,den:100},{num:9,den:100},
+    {num:253,den:1000},{num:17,den:100},{num:5,den:10},{num:8,den:1000},
+    {num:41,den:100},{num:1,den:10},{num:50,den:100},{num:7,den:1000}
+  ];
+  const fracNon=[
+    {num:3,den:7},{num:2,den:3},{num:5,den:6},{num:4,den:9},
+    {num:7,den:12},{num:11,den:15},{num:2,den:7},{num:5,den:8}
+  ];
+
+  // Lectures avec distracteurs ciblés sur les confusions fréquentes
+  // Pour chaque fraction, on précise les pièges : confondre le rang (dixième/dizaine, centième/centaine…)
+  const readings=[
+    {num:3,  den:10,   text:'trois dixièmes',
+      traps:['trois dizaines','trois centièmes','trois millièmes']},
+    {num:7,  den:10,   text:'sept dixièmes',
+      traps:['sept dizaines','sept centièmes','sept millièmes']},
+    {num:31, den:100,  text:'trente-et-un centièmes',
+      traps:['trente-et-un centaines','trente-et-un dixièmes','trente-et-un millièmes']},
+    {num:9,  den:100,  text:'neuf centièmes',
+      traps:['neuf centaines','neuf dixièmes','neuf millièmes']},
+    {num:5,  den:100,  text:'cinq centièmes',
+      traps:['cinq centaines','cinq dixièmes','cinq millièmes']},
+    {num:253,den:1000, text:'deux cent cinquante-trois millièmes',
+      traps:['deux cent cinquante-trois milliers','deux cent cinquante-trois centièmes','deux cent cinquante-trois dixièmes']},
+    {num:17, den:1000, text:'dix-sept millièmes',
+      traps:['dix-sept milliers','dix-sept centièmes','dix-sept dixièmes']},
+    {num:1,  den:10,   text:'un dixième',
+      traps:['une dizaine','un centième','un millième']},
+    {num:40, den:100,  text:'quarante centièmes',
+      traps:['quarante centaines','quarante dixièmes','quarante millièmes']},
+    {num:7,  den:1000, text:'sept millièmes',
+      traps:['sept milliers','sept centièmes','sept dixièmes']},
+  ];
+
+  const out=[];
+  for(let i=0;i<3;i++){
+    const isYes=Math.random()<.5;
+    const f=isYes?pick(fracDec):pick(fracNon);
+    out.push({type:1,sub:'yn',num:f.num,den:f.den,answer:isYes?'Oui':'Non'});
+  }
+  for(let i=0;i<2;i++){
+    const q=pick(readings);
+    // Utiliser les pièges ciblés plutôt que des options aléatoires
+    const traps=shuffle(q.traps).slice(0,3);
+    out.push({type:1,sub:'rd',num:q.num,den:q.den,answer:q.text,opts:shuffle([q.text,...traps])});
+  }
+  return shuffle(out);
+}
+
+function genL2(){
+  // Pour chaque fraction, on définit des distracteurs pédagogiques :
+  // - décaler d'un rang (×10 ou ÷10) : erreur la plus fréquente
+  // - inverser numérateur/dénominateur
+  // - même numérateur, mauvais dénominateur
+  const pairs=[
+    {num:1, den:10,  dec:'0,1',
+      trapsDec:['0,01','0,001','1'],          trapsF:['10/1','1/100','1/1000']},
+    {num:1, den:100, dec:'0,01',
+      trapsDec:['0,1','0,001','0,010'],        trapsF:['100/1','1/10','1/1000']},
+    {num:1, den:1000,dec:'0,001',
+      trapsDec:['0,01','0,1','0,0010'],        trapsF:['1000/1','1/100','1/10']},
+    {num:3, den:10,  dec:'0,3',
+      trapsDec:['0,03','0,003','3'],            trapsF:['3/100','3/1000','30/10']},
+    {num:7, den:10,  dec:'0,7',
+      trapsDec:['0,07','0,007','7'],            trapsF:['7/100','7/1000','70/10']},
+    {num:5, den:100, dec:'0,05',
+      trapsDec:['0,5','0,005','0,50'],          trapsF:['5/10','5/1000','50/100']},
+    {num:9, den:100, dec:'0,09',
+      trapsDec:['0,9','0,009','0,90'],          trapsF:['9/10','9/1000','90/100']},
+    {num:25,den:100, dec:'0,25',
+      trapsDec:['2,5','0,025','0,250'],         trapsF:['25/10','25/1000','250/100']},
+    {num:4, den:1000,dec:'0,004',
+      trapsDec:['0,04','0,4','0,0040'],         trapsF:['4/100','4/10','40/1000']},
+    {num:15,den:1000,dec:'0,015',
+      trapsDec:['0,15','1,5','0,0150'],         trapsF:['15/100','15/10','150/1000']},
+    {num:3, den:100, dec:'0,03',
+      trapsDec:['0,3','0,003','0,030'],         trapsF:['3/10','3/1000','30/100']},
+    {num:6, den:10,  dec:'0,6',
+      trapsDec:['0,06','0,006','6'],            trapsF:['6/100','6/1000','60/10']},
+    {num:2, den:10,  dec:'0,2',
+      trapsDec:['0,02','0,002','2'],            trapsF:['2/100','2/1000','20/10']},
+    {num:8, den:100, dec:'0,08',
+      trapsDec:['0,8','0,008','0,080'],         trapsF:['8/10','8/1000','80/100']},
+    {num:50,den:100, dec:'0,5',
+      trapsDec:['0,05','5','0,50'],             trapsF:['50/10','50/1000','5/10']},
+  ];
+
+  return shuffle([...pairs]).slice(0,5).map(p=>{
+    const dir=Math.random()<.5?'f2d':'d2f';
+    if(dir==='f2d'){
+      // fraction → décimale : pièges = décalage de rang
+      const traps=shuffle(p.trapsDec).slice(0,3);
+      return {type:2,sub:'f2d',num:p.num,den:p.den,dec:p.dec,
+        answer:p.dec, opts:shuffle([p.dec,...traps])};
+    } else {
+      // décimale → fraction : pièges = même numérateur, mauvais rang
+      const correct=p.num+'/'+p.den;
+      const traps=shuffle(p.trapsF).slice(0,3);
+      return {type:2,sub:'d2f',dec:p.dec,
+        answer:correct, opts:shuffle([correct,...traps])};
+    }
+  });
+}
+
+function genL3(){
+  // Colonnes entières : [Milliers, Centaines, Dizaines, Unités] = indices 0-3
+  // Virgule = indice 4 (fixe)
+  // Colonnes décimales : [Dixièmes, Centièmes, Millièmes] = indices 5-7
+  const numbers=[
+    {val:'72,5',     int:[null,null,7,2],   dec:[5,null,null]},
+    {val:'4,08',     int:[null,null,null,4], dec:[0,8,null]},
+    {val:'130,045',  int:[null,1,3,0],       dec:[0,4,5]},
+    {val:'0,7',      int:[null,null,null,0], dec:[7,null,null]},
+    {val:'25,3',     int:[null,null,2,5],    dec:[3,null,null]},
+    {val:'9,05',     int:[null,null,null,9], dec:[0,5,null]},
+    {val:'3,004',    int:[null,null,null,3], dec:[0,0,4]},
+    {val:'100,1',    int:[null,1,0,0],       dec:[1,null,null]},
+    {val:'0,09',     int:[null,null,null,0], dec:[0,9,null]},
+    {val:'50,07',    int:[null,null,5,0],    dec:[0,7,null]},
+    {val:'12,34',    int:[null,null,1,2],    dec:[3,4,null]},
+    {val:'7,500',    int:[null,null,null,7], dec:[5,0,0]},
+    {val:'7 500,3',  int:[7,5,0,0],          dec:[3,null,null]},
+    {val:'2 048,07', int:[2,0,4,8],          dec:[0,7,null]},
+    {val:'1 000,5',  int:[1,0,0,0],          dec:[5,null,null]},
+    {val:'3 200,04', int:[3,2,0,0],          dec:[0,4,null]},
+  ];
+  return shuffle([...numbers]).slice(0,5).map(n=>({type:3,...n}));
+}
+
+function genL4(){
+  // Pour chaque question, les distracteurs sont les autres chiffres du MÊME nombre
+  // + éventuellement un chiffre adjacent (confusion rang voisin)
+  const pool=[
+    {val:'47,38',  digits:{dizaines:'4',unités:'7',dixièmes:'3',centièmes:'8'},
+      questions:[
+        {pos:'dixièmes',   ans:'3', traps:['8','7','4']},  // centièmes, unités, dizaines du même nombre
+        {pos:'centièmes',  ans:'8', traps:['3','7','4']},
+        {pos:'dizaines',   ans:'4', traps:['7','3','8']},
+      ]},
+    {val:'205,07', digits:{centaines:'2',dizaines:'0',unités:'5',dixièmes:'0',centièmes:'7'},
+      questions:[
+        {pos:'centièmes',  ans:'7', traps:['0','5','2']},
+        {pos:'dixièmes',   ans:'0', traps:['7','5','2']},  // piège : 0 peu intuitif
+        {pos:'centaines',  ans:'2', traps:['5','7','0']},
+      ]},
+    {val:'3,005',  digits:{unités:'3',dixièmes:'0',centièmes:'0',millièmes:'5'},
+      questions:[
+        {pos:'millièmes',  ans:'5', traps:['0','3','1']},
+        {pos:'dixièmes',   ans:'0', traps:['5','3','1']},
+        {pos:'centièmes',  ans:'0', traps:['5','3','1']},
+      ]},
+    {val:'139,6',  digits:{centaines:'1',dizaines:'3',unités:'9',dixièmes:'6'},
+      questions:[
+        {pos:'dixièmes',   ans:'6', traps:['9','3','1']},
+        {pos:'dizaines',   ans:'3', traps:['1','9','6']},
+        {pos:'centaines',  ans:'1', traps:['3','9','6']},
+      ]},
+    {val:'0,048',  digits:{unités:'0',dixièmes:'0',centièmes:'4',millièmes:'8'},
+      questions:[
+        {pos:'centièmes',  ans:'4', traps:['8','0','1']},
+        {pos:'millièmes',  ans:'8', traps:['4','0','1']},
+        {pos:'dixièmes',   ans:'0', traps:['4','8','1']},
+      ]},
+    {val:'75,09',  digits:{dizaines:'7',unités:'5',dixièmes:'0',centièmes:'9'},
+      questions:[
+        {pos:'centièmes',  ans:'9', traps:['0','5','7']},
+        {pos:'dixièmes',   ans:'0', traps:['9','5','7']},
+        {pos:'dizaines',   ans:'7', traps:['5','9','0']},
+      ]},
+    {val:'8,307',  digits:{unités:'8',dixièmes:'3',centièmes:'0',millièmes:'7'},
+      questions:[
+        {pos:'dixièmes',   ans:'3', traps:['0','7','8']},
+        {pos:'centièmes',  ans:'0', traps:['3','7','8']},
+        {pos:'millièmes',  ans:'7', traps:['3','0','8']},
+      ]},
+    {val:'624,5',  digits:{centaines:'6',dizaines:'2',unités:'4',dixièmes:'5'},
+      questions:[
+        {pos:'dixièmes',   ans:'5', traps:['4','2','6']},
+        {pos:'centaines',  ans:'6', traps:['2','4','5']},
+        {pos:'dizaines',   ans:'2', traps:['6','4','5']},
+      ]},
+  ];
+  const out=[];
+  for(const entry of shuffle([...pool])){
+    const q=pick(entry.questions);
+    out.push({type:4,val:entry.val,pos:q.pos,answer:q.ans,opts:shuffle([q.ans,...q.traps])});
+    if(out.length===5)break;
+  }
+  return out;
+}
+
+function genL5(){
+  const simpPool=[
+    {orig:'03,50',  answer:'3,5',  expl:'0 devant et 0 final sont inutiles.'},
+    {orig:'120,0',  answer:'120',  expl:'Le 0 après la virgule est inutile.'},
+    {orig:'007,080',answer:'7,08', expl:'Les 0 devant et le 0 final sont inutiles.'},
+    {orig:'40,300', answer:'40,3', expl:'Les deux 0 finaux sont inutiles.'},
+    {orig:'04,00',  answer:'4',    expl:'Le 0 devant et les 0 après la virgule sont inutiles.'},
+    {orig:'9,070',  answer:'9,07', expl:'Le 0 final est inutile.'},
+    {orig:'010,10', answer:'10,1', expl:'Le 0 devant et le 0 final sont inutiles.'},
+    {orig:'06,500', answer:'6,5',  expl:'Le 0 devant et les deux 0 finaux sont inutiles.'},
+  ];
+  const utilPool=[
+    {number:'3,05',  zero:'le 0 entre la virgule et le 5',   useful:true, expl:'Utile : sans lui 3,05 deviendrait 3,5.'},
+    {number:'3,500', zero:'les 00 à la fin',                 useful:false,expl:'Inutiles : 3,500 = 3,5.'},
+    {number:'040,2', zero:'le 0 devant le 4',                useful:false,expl:'Inutile : 040,2 = 40,2.'},
+    {number:'309,09',zero:'le 0 entre 3 et 9',               useful:true, expl:'Utile : 309 ≠ 39.'},
+    {number:'7,004', zero:'le premier 0 après la virgule',   useful:true, expl:'Utile : 7,04 ≠ 7,004.'},
+    {number:'7,040', zero:'le 0 final',                      useful:false,expl:'Inutile : 7,040 = 7,04.'},
+    {number:'103,4', zero:'le 0 dans 103',                   useful:true, expl:'Utile : 103 ≠ 13.'},
+    {number:'0,70',  zero:'le 0 final',                      useful:false,expl:'Inutile : 0,70 = 0,7.'},
+  ];
+  const out=[];
+  shuffle([...simpPool]).slice(0,3).forEach(p=>{
+    out.push({type:5,sub:'simp',orig:p.orig,answer:p.answer,expl:p.expl});
+  });
+  shuffle([...utilPool]).slice(0,2).forEach(p=>{
+    out.push({type:5,sub:'util',number:p.number,zero:p.zero,
+      answer:p.useful?'utile':'inutile',expl:p.expl});
+  });
+  return shuffle(out);
+}
+
+/* ─────────────────────────────────────────
+   NIVEAU 6 — Décomposer un nombre décimal
+──────────────────────────────────────── */
+function genL6(){
+  const pool=[
+    {val:'502,4',   decomp:[{c:5,m:'100'},{c:2,m:'1'},{c:4,m:'1/10'}],
+      // Pièges : même chiffres mais mauvais rangs, ou nombre reconstitué avec un rang décalé
+      trapsA:['502,04','52,4','5 024']},
+    {val:'73,05',   decomp:[{c:7,m:'10'},{c:3,m:'1'},{c:5,m:'1/100'}],
+      trapsA:['73,5','7,305','730,5']},
+    {val:'8,307',   decomp:[{c:8,m:'1'},{c:3,m:'1/10'},{c:7,m:'1/1 000'}],
+      trapsA:['8,37','83,07','8,370']},
+    {val:'245,6',   decomp:[{c:2,m:'100'},{c:4,m:'10'},{c:5,m:'1'},{c:6,m:'1/10'}],
+      trapsA:['245,06','24,56','2 456']},
+    {val:'1 004,09',decomp:[{c:1,m:'1 000'},{c:4,m:'1'},{c:9,m:'1/100'}],
+      trapsA:['1 004,9','104,09','10 040,9']},
+    {val:'60,07',   decomp:[{c:6,m:'10'},{c:7,m:'1/100'}],
+      trapsA:['60,7','6,007','607']},
+    {val:'120,05',  decomp:[{c:1,m:'100'},{c:2,m:'10'},{c:5,m:'1/100'}],
+      trapsA:['120,5','12,05','1 205']},
+    {val:'3,041',   decomp:[{c:3,m:'1'},{c:4,m:'1/100'},{c:1,m:'1/1 000'}],
+      trapsA:['3,41','30,41','3,401']},
+    {val:'700,3',   decomp:[{c:7,m:'100'},{c:3,m:'1/10'}],
+      trapsA:['70,3','700,03','7 003']},
+    {val:'53,08',   decomp:[{c:5,m:'10'},{c:3,m:'1'},{c:8,m:'1/100'}],
+      trapsA:['53,8','5,308','530,8']},
+    {val:'400,07',  decomp:[{c:4,m:'100'},{c:7,m:'1/100'}],
+      trapsA:['400,7','40,07','4 007']},
+    {val:'9,300',   decomp:[{c:9,m:'1'},{c:3,m:'1/10'}],
+      trapsA:['9,03','0,93','93']},
+  ];
+
+  const out=[];
+  const picked=shuffle([...pool]).slice(0,5);
+
+  picked.forEach(function(entry,idx){
+    const sub=idx%2===0?'A':'B';
+    if(sub==='A'){
+      // Pièges ciblés : chiffres identiques mais rangs décalés
+      const traps=shuffle(entry.trapsA).slice(0,3);
+      out.push({type:6,sub:'A',decomp:entry.decomp,answer:entry.val,opts:shuffle([entry.val,...traps])});
+    } else {
+      const termIdx=Math.floor(Math.random()*entry.decomp.length);
+      const hidden=entry.decomp[termIdx];
+      out.push({type:6,sub:'B',val:entry.val,decomp:entry.decomp,hiddenIdx:termIdx,
+        answer:String(hidden.c), mult:hidden.m});
+    }
+  });
+  return out;
+}
+
+function genL7(){
+  return shuffle([genL1()[0],genL2()[0],genL3()[0],genL4()[0],genL5()[0],genL6()[0]]);
+}
+
+/* ═══════════════════════════════
+   RENDERERS
+═══════════════════════════════ */
+function renderQ(){
+  cq=qs[qi];
+  cq._done=false;
+  cq._tries=0;
+  $('scLbl').textContent=sc+' / '+qi;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';
+  $('nxt').style.display='none';
+  $('zone').innerHTML='';
+  const t=cq.type;
+  if(t===1)renderL1(cq);
+  else if(t===2)renderL2(cq);
+  else if(t===3)renderNumTable(cq);
+  else if(t===4)renderValeur(cq);
+  else if(t===5)renderL5(cq);
+  else if(t===6)renderDecomp(cq);
+}
+
+/* ─ L1 ─ */
+function renderL1(q){
+  if(q.sub==='yn'){
+    $('zone').innerHTML=
+      '<p class="q-text">Cette fraction est-elle une <strong>fraction décimale</strong> ?</p>'+
+      '<div style="text-align:center;margin:1.4rem 0;">'+
+        '<span class="frac frac-xl"><span class="fn">'+q.num+'</span><span class="fd">'+q.den+'</span></span>'+
+      '</div>'+
+      '<div class="opts" id="opts">'+
+        '<div class="opt" data-val="Oui" onclick="pickOpt(this)">✅ Oui</div>'+
+        '<div class="opt" data-val="Non" onclick="pickOpt(this)">❌ Non</div>'+
+      '</div>';
+  } else {
+    const optHtml=q.opts.map(o=>'<div class="opt" data-val="'+escAttr(o)+'" onclick="pickOpt(this)">'+o+'</div>').join('');
+    $('zone').innerHTML=
+      '<p class="q-text">Comment lit-on cette fraction décimale ?</p>'+
+      '<div style="text-align:center;margin:1.4rem 0;">'+
+        '<span class="frac frac-xl"><span class="fn">'+q.num+'</span><span class="fd">'+q.den+'</span></span>'+
+      '</div>'+
+      '<div class="opts" id="opts">'+optHtml+'</div>';
+  }
+}
+
+/* ─ L2 ─ */
+function renderL2(q){
+  if(q.sub==='f2d'){
+    const optHtml=q.opts.map(o=>
+      '<div class="opt" data-val="'+escAttr(o)+'" onclick="pickOpt(this)" style="font-size:1.4em;font-weight:800;letter-spacing:.04em;">'+o+'</div>'
+    ).join('');
+    $('zone').innerHTML=
+      '<p class="q-text">Quelle est l\'écriture décimale de cette fraction ?</p>'+
+      '<div style="text-align:center;margin:1.4rem 0;">'+
+        '<span class="frac frac-xl"><span class="fn">'+q.num+'</span><span class="fd">'+q.den+'</span></span>'+
+      '</div>'+
+      '<div class="opts" id="opts">'+optHtml+'</div>';
+  } else {
+    const optHtml=q.opts.map(o=>{
+      const p=o.split('/');
+      const html=p.length===2
+        ?'<span class="frac frac-lg"><span class="fn">'+p[0]+'</span><span class="fd">'+p[1]+'</span></span>'
+        :o;
+      return '<div class="opt" data-val="'+escAttr(o)+'" onclick="pickOpt(this)">'+html+'</div>';
+    }).join('');
+    $('zone').innerHTML=
+      '<p class="q-text">À quelle fraction correspond '+
+        '<strong style="font-size:1.4em;color:var(--blue);letter-spacing:.06em;">'+q.dec+'</strong> ?</p>'+
+      '<div class="opts" id="opts">'+optHtml+'</div>';
+  }
+}
+
+/* ─ L3 : Tableau de numération ─ */
+// Indices : 0=Milliers 1=Centaines 2=Dizaines 3=Unités | 4=virgule | 5=Dixièmes 6=Centièmes 7=Millièmes
+function renderNumTable(q){
+  const grpRow=
+    '<tr>'+
+      '<td style="border:0;background:transparent;padding:.3rem;"></td>'+
+      '<th colspan="4" class="grp-th grp-entiere">🔵 Partie entière</th>'+
+      '<th class="grp-th grp-vir" style="width:48px;">,</th>'+
+      '<th colspan="3" class="grp-th grp-dec">🟢 Partie décimale</th>'+
+    '</tr>';
+
+  const colNames=['Milliers','Centaines','Dizaines','Unités',',','Dixièmes','Centièmes','Millièmes'];
+  let colRow='<tr><td style="border:0;background:transparent;padding:.3rem;"></td>';
+  [0,1,2,3,4,5,6,7].forEach(ci=>{
+    if(ci===4){
+      colRow+='<th class="col-th col-vir">,</th>';
+    } else {
+      const cls=ci<4?'col-ent':'col-dec';
+      colRow+='<th class="col-th '+cls+'">'+colNames[ci]+'</th>';
+    }
+  });
+  colRow+='</tr>';
+
+  let dataRow='<tr><td class="num-lbl">'+q.val+'</td>';
+  [0,1,2,3,4,5,6,7].forEach(ci=>{
+    if(ci===4){
+      dataRow+='<td class="vir-td">,</td>';
+    } else {
+      const cls=ci<4?'inp-td-ent':'inp-td-dec';
+      dataRow+=
+        '<td class="'+cls+'">'+
+          '<input class="cell-inp" id="nc'+ci+'" type="text" inputmode="numeric"'+
+          ' maxlength="1" placeholder="?"'+
+          ' oninput="ntAdv('+ci+')" onkeydown="ntKey(event,'+ci+')">'+
+        '</td>';
+    }
+  });
+  dataRow+='</tr>';
+
+  $('zone').innerHTML=
+    '<p class="q-text">Place le nombre <strong style="color:var(--blue);font-size:1.15em;">'+q.val+'</strong> dans le tableau.</p>'+
+    '<div class="num-wrap">'+
+      '<table class="num-tbl">'+
+        '<thead>'+grpRow+colRow+'</thead>'+
+        '<tbody>'+dataRow+'</tbody>'+
+      '</table>'+
+    '</div>'+
+    '<div class="controls" style="margin-top:.8rem;">'+
+      '<button class="btn btn-success" onclick="checkNumTable()">✓ Valider</button>'+
+    '</div>';
+
+  setTimeout(function(){var f=$('nc0');if(f)f.focus();},120);
+}
+
+function ntAdv(ci){
+  // sauter la virgule (ci=4)
+  const next=ci===3?5:ci+1;
+  if(next<=7){const el=$('nc'+next);if(el)el.focus();}
+}
+function ntKey(e,ci){
+  if(e.key==='Backspace'&&!e.target.value){
+    e.preventDefault();
+    const prev=ci===5?3:ci-1;
+    if(prev>=0){const el=$('nc'+prev);if(el)el.focus();}
+  }
+  if(e.key==='Enter')checkNumTable();
+}
+function checkNumTable(){
+  if(cq._done)return;
+  const q=cq;
+  // int[0..3] → ci 0..3 ; dec[0..2] → ci 5..7
+  const exp={
+    0:q.int[0],1:q.int[1],2:q.int[2],3:q.int[3],
+    5:q.dec[0],6:q.dec[1],7:q.dec[2]
+  };
+  let allOk=true;
+  [0,1,2,3,5,6,7].forEach(function(ci){
+    const inp=$('nc'+ci);if(!inp)return;
+    const v=inp.value.trim();
+    const e=exp[ci];
+    const ok=e===null?(v===''||v==='-'):v===String(e);
+    inp.classList.remove('ok','bad');
+    inp.classList.add(ok?'ok':'bad');
+    if(!ok)allOk=false;
+  });
+  if(allOk){
+    finish(true,'Parfait ! <strong>'+q.val+'</strong> est bien placé dans le tableau ✓');
+  } else {
+    cq._tries++;
+    if(cq._tries<2){
+      $('fb').className='fb bad';
+      $('fb').innerHTML='❌ Certaines cases sont incorrectes. Essaie encore !';
+      setTimeout(function(){
+        [0,1,2,3,5,6,7].forEach(function(ci){
+          var inp=$('nc'+ci);if(inp)inp.classList.remove('bad');
+        });
+      },900);
+    } else {
+      [0,1,2,3,5,6,7].forEach(function(ci){
+        const inp=$('nc'+ci);if(!inp)return;
+        const e=exp[ci];
+        inp.value=e===null?'—':String(e);
+        inp.classList.remove('bad');inp.classList.add('ok');
+      });
+      finish(false,'Regarde la correction dans le tableau ci-dessus.');
+    }
+  }
+}
+
+/* ─ L4 : Valeur d'un chiffre ─ */
+function renderValeur(q){
+  const optHtml=q.opts.map(o=>
+    '<div class="opt" data-val="'+o+'" onclick="pickOpt(this)" style="font-size:1.7em;font-weight:800;letter-spacing:.04em;">'+o+'</div>'
+  ).join('');
+  $('zone').innerHTML=
+    '<p class="q-text">Dans le nombre <strong style="font-size:1.35em;color:var(--blue);">'+q.val+'</strong>,<br>'+
+    'quel est le chiffre des <strong style="color:var(--purple);">'+q.pos+'</strong> ?</p>'+
+    '<div class="opts" id="opts">'+optHtml+'</div>';
+}
+
+/* ─ L5 ─ */
+function renderL5(q){
+  if(q.sub==='simp'){
+    $('zone').innerHTML=
+      '<p class="q-text">Réécris ce nombre en supprimant les <strong>zéros inutiles</strong> :</p>'+
+      '<div class="num-display" style="color:var(--blue);">'+q.orig+'</div>'+
+      '<div class="simp-row">'+
+        '<span style="font-weight:700;font-size:1.05em;">Réponse :</span>'+
+        '<input class="inp" id="i_s" type="text" inputmode="decimal" placeholder="?"'+
+        ' style="width:130px;font-size:1.2rem;"'+
+        ' onkeydown="if(event.key===\'Enter\')checkSimp()">'+
+        '<button class="btn btn-success" onclick="checkSimp()">Valider</button>'+
+      '</div>';
+    setTimeout(function(){var f=$('i_s');if(f)f.focus();},100);
+  } else {
+    $('zone').innerHTML=
+      '<p class="q-text">Dans le nombre <strong style="font-size:1.25em;color:var(--blue);">'+q.number+'</strong>,<br>'+
+      '<strong>'+q.zero+'</strong> est-il <strong>utile</strong> ou <strong>inutile</strong> ?</p>'+
+      '<div class="opts" id="opts">'+
+        '<div class="opt" data-val="utile" onclick="pickOpt(this)">'+
+          '🔴 <strong>Utile</strong><br>'+
+          '<span style="font-size:.8em;font-weight:400;color:var(--text-light);">change la valeur du nombre</span>'+
+        '</div>'+
+        '<div class="opt" data-val="inutile" onclick="pickOpt(this)">'+
+          '✅ <strong>Inutile</strong><br>'+
+          '<span style="font-size:.8em;font-weight:400;color:var(--text-light);">ne change pas la valeur</span>'+
+        '</div>'+
+      '</div>';
+  }
+}
+
+/* ─ L6 : Décomposition ─ */
+function decompToHTML(decomp, hiddenIdx){
+  // Rend la décomposition sous forme visuelle : 5×100 + 3×1 + 4×(1/10)
+  return decomp.map(function(term, i){
+    const isHidden=(hiddenIdx!==undefined && i===hiddenIdx);
+    const multHtml=term.m.includes('/')?
+      '<span class="frac frac-sm"><span class="fn">'+term.m.split('/')[0]+'</span><span class="fd">'+term.m.split('/')[1]+'</span></span>':
+      '<span>'+term.m+'</span>';
+    const coefHtml=isHidden?
+      '<input class="inp" id="i_dc" type="text" inputmode="numeric" maxlength="4"'+
+      ' placeholder="?" style="width:64px;font-size:1.15rem;" onkeydown="if(event.key===\'Enter\')checkDecomp()">':
+      '<strong>'+term.c+'</strong>';
+    return '<span class="dc-term">'+coefHtml+'<span class="dc-times">×</span>'+multHtml+'</span>';
+  }).join('<span class="dc-plus"> + </span>');
+}
+
+function renderDecomp(q){
+  if(q.sub==='A'){
+    // Décomposition complète → quel est le nombre ?
+    const decompHtml=decompToHTML(q.decomp);
+    const optHtml=q.opts.map(function(o){
+      return '<div class="opt" data-val="'+escAttr(o)+'" onclick="pickOpt(this)">'+
+        '<span style="font-size:1.3em;font-weight:800;letter-spacing:.04em;">'+o+'</span>'+
+      '</div>';
+    }).join('');
+    $('zone').innerHTML=
+      '<p class="q-text">Quel nombre correspond à cette décomposition ?</p>'+
+      '<div class="dc-box">'+decompHtml+'</div>'+
+      '<div class="opts" id="opts">'+optHtml+'</div>';
+  } else {
+    // Nombre complet → un coefficient est masqué
+    const decompHtml=decompToHTML(q.decomp, q.hiddenIdx);
+    $('zone').innerHTML=
+      '<p class="q-text">Complète la décomposition du nombre '+
+        '<strong style="color:var(--blue);font-size:1.2em;">'+q.val+'</strong> :'+
+      '</p>'+
+      '<div class="dc-box">'+
+        '<span style="font-size:1.15em;font-weight:800;color:var(--blue);">'+q.val+'</span>'+
+        '<span class="dc-plus"> = </span>'+
+        decompHtml+
+      '</div>'+
+      '<div style="text-align:center;margin-top:1rem;font-size:.88em;color:var(--text-light);">'+
+        'Le coefficient manquant est celui de <strong>× '+q.mult+'</strong>'+
+      '</div>'+
+      '<div class="controls" style="margin-top:1rem;">'+
+        '<button class="btn btn-success" onclick="checkDecomp()">✓ Valider</button>'+
+      '</div>';
+    setTimeout(function(){var f=$('i_dc');if(f)f.focus();},100);
+  }
+}
+
+function checkDecomp(){
+  if(cq._done)return;
+  const inp=$('i_dc');
+  if(!inp)return;
+  const v=inp.value.trim();
+  const ok=v===cq.answer;
+  inp.classList.remove('ok','bad');
+  if(ok){
+    inp.classList.add('ok');
+    finish(true,'✓ Bonne réponse ! Le coefficient est bien <strong>'+cq.answer+'</strong>.');
+  } else {
+    inp.classList.add('bad');
+    setTimeout(function(){inp.classList.remove('bad');},700);
+    finish(false,'Le coefficient manquant était <strong>'+cq.answer+'</strong> ('+cq.answer+' × '+cq.mult+').');
+  }
+}
+
+function checkSimp(){
+  if(cq._done)return;
+  const inp=$('i_s');
+  const v=inp.value.trim().replace('.',',');
+  const ok=v===cq.answer;
+  inp.classList.remove('ok','bad');
+  if(ok){
+    inp.classList.add('ok');
+    finish(true,'✓ Bonne réponse : <strong>'+cq.answer+'</strong>');
+  } else {
+    inp.classList.add('bad');
+    setTimeout(function(){inp.classList.remove('bad');},700);
+    finish(false,'La réponse était <strong>'+cq.answer+'</strong>. <span style="font-weight:400;font-size:.9em;">'+cq.expl+'</span>');
+  }
+}
+
+/* ═══════════════════════════════
+   QCM GÉNÉRIQUE — pickOpt
+   Lit cq.answer pour comparer
+═══════════════════════════════ */
+function pickOpt(el){
+  if(cq._done)return;
+  const val=el.dataset.val;
+  const correct=String(cq.answer);
+  const ok=(val===correct);
+
+  if(ok){
+    el.classList.add('ok');
+    document.getElementById('opts').classList.add('locked');
+    const hint=cq.expl?' <span style="font-weight:400;font-size:.9em;">'+cq.expl+'</span>':'';
+    finish(true,'Bonne réponse !'+hint);
+  } else {
+    cq._tries++;
+    el.classList.add('bad-flash','dead');
+    setTimeout(function(){el.classList.remove('bad-flash');},600);
+    if(cq._tries<2){
+      $('fb').className='fb bad';
+      $('fb').innerHTML='❌ Ce n\'est pas ça… Essaie encore !';
+    } else {
+      // Reveal correct option
+      document.querySelectorAll('#opts .opt').forEach(function(o){
+        if(o.dataset.val===correct) o.classList.add('ok');
+        else o.classList.add('dead');
+      });
+      document.getElementById('opts').classList.add('locked');
+      const hint=cq.expl?' <span style="font-weight:400;font-size:.9em;">'+cq.expl+'</span>':'';
+      finish(false,'La bonne réponse était : <strong>'+cq.answer+'</strong>.'+hint);
+    }
+  }
+}
+
+/* ═══════════════════════════════
+   ENGINE
+═══════════════════════════════ */
+function escAttr(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
+
+function go(l){
+  lv=l; sc=0; qi=0;
+  qs=l===1?genL1():l===2?genL2():l===3?genL3():l===4?genL4():l===5?genL5():l===6?genL6():genL7();
+  $('badge').textContent=NAMES[l];
+  show('S_ex');
+  renderQ();
+}
+
+function finish(ok,msg){
+  if(cq._done)return;
+  cq._done=true;
+  if(ok)sc++;
+  $('scLbl').textContent=sc+' / '+(qi+1);
+  $('fb').className=ok?'fb ok':'fb bad';
+  $('fb').innerHTML=(ok?'✅ ':'❌ ')+msg;
+  $('nxt').style.display='';
+  setTimeout(function(){$('nxt').focus();},200);
+}
+
+function nxtQ(){
+  qi++;
+  if(qi>=qs.length)showRes();
+  else renderQ();
+}
+
+function showRes(){
+  const tot=qs.length, pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className='rc '+tier;
+  $('rPct').textContent=pct+'%';
+  $('rPct').style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+  $('rMsg').textContent=
+    pct===100?'🎉 Parfait ! Tu maîtrises les nombres décimaux !':
+    pct>=80?'👏 Très bien ! Continue comme ça !':
+    pct>=60?'👍 Bon travail, tu progresses !':'💪 Entraîne-toi encore un peu !';
+  $('rDetail').innerHTML='<strong>'+sc+'</strong> bonne'+(sc>1?'s':'')+' réponse'+(sc>1?'s':'')+' sur <strong>'+tot+'</strong> &nbsp;—&nbsp; '+NAMES[lv];
+  show('S_res');
+}
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s;}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}}
+</style>
+</body>
+</html>

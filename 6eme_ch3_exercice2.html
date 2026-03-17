@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercices – Codage, milieu & droites sécantes</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#0369a1;--primary-dark:#0c4a6e;--primary-light:#e0f2fe;
+  --orange:#ea580c;--orange-light:#fff7ed;--orange-border:#fed7aa;
+  --green:#15803d;--green-light:#f0fdf4;--green-border:#86efac;
+  --purple:#7c3aed;--purple-light:#faf5ff;--purple-border:#c4b5fd;
+  --red:#be123c;--red-light:#fff1f2;--red-border:#fda4af;
+  --success:#059669;
+  --bg-card:#fff;--border:#bae6fd;--text-dark:#0f172a;--text-medium:#475569;
+  --shadow:rgba(3,105,161,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#fef3c7 50%,#fce7f3 100%);background-attachment:fixed;color:var(--text-dark);line-height:1.6;padding:2rem 1rem;min-height:100vh;}
+.container{max-width:1100px;margin:0 auto;}
+
+header{background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px var(--shadow);margin-bottom:1.5rem;border:2px solid var(--border);position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--primary),var(--orange),var(--purple));}
+.header-meta{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin-top:1rem;}
+.header-chip{font-size:.8rem;font-weight:600;padding:.25rem .75rem;border-radius:99px;background:var(--primary-light);color:var(--primary);}
+h1{font-family:'Crimson Pro',serif;font-size:2.4rem;font-weight:700;color:var(--primary);margin-bottom:.4rem;letter-spacing:-.5px;}
+.subtitle{font-size:1.05rem;color:var(--text-medium);}
+
+.recap{background:white;border:2px solid var(--border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);}
+.recap-title{font-family:'Crimson Pro',serif;font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
+.recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.recap-card{border-radius:10px;padding:.9rem 1.1rem;font-size:.93rem;line-height:1.8;}
+.rc-blue{background:var(--primary-light);border:2px solid #7dd3fc;}
+.rc-orange{background:var(--orange-light);border:2px solid var(--orange-border);}
+.rc-blue strong{color:var(--primary-dark);}.rc-orange strong{color:var(--orange);}
+
+.progress-wrapper{background:white;border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.75rem;margin-bottom:2rem;box-shadow:0 4px 15px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+.progress-label{font-size:.95rem;font-weight:600;color:var(--text-medium);white-space:nowrap;}
+.progress-bar-track{flex:1;min-width:120px;height:12px;background:var(--primary-light);border-radius:99px;overflow:hidden;}
+.progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--orange));border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.progress-counter{font-size:.95rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+.progress-dots{display:flex;gap:.4rem;flex-wrap:wrap;}
+.progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;transition:all .4s cubic-bezier(.34,1.56,.64,1);}
+.progress-dot.done{background:var(--success);border-color:var(--success);transform:scale(1.2);}
+
+.score-card{background:white;border:2px solid var(--border);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 8px 30px var(--shadow);text-align:center;display:none;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+.score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),#10b981,var(--orange));}
+@keyframes popIn{from{opacity:0;transform:scale(.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.score-card.visible{display:block;}
+.score-emoji{font-size:3rem;margin-bottom:.5rem;display:block;}
+.score-title{font-family:'Crimson Pro',serif;font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:.5rem;}
+.score-stars{font-size:1.8rem;letter-spacing:.2rem;margin:.5rem 0 1rem;}
+.score-message{font-size:1.05rem;color:var(--text-medium);max-width:500px;margin:0 auto;}
+.score-breakdown{display:flex;justify-content:center;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap;}
+.score-badge{padding:.4rem 1rem;border-radius:99px;font-size:.85rem;font-weight:700;}
+.sb-green{background:#dcfce7;color:#166534;}.sb-blue{background:var(--primary-light);color:var(--primary-dark);}.sb-orange{background:var(--orange-light);color:var(--orange);}
+
+.section-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;}
+.section-divider-line{flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent);}
+.section-divider-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+
+.exercise{background:var(--bg-card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform .3s,box-shadow .3s,border-color .4s;}
+.exercise:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow);}
+.exercise.seen{border-left-color:var(--success);}
+.exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:.75rem;}
+.exercise-title-group{display:flex;flex-direction:column;gap:.25rem;}
+.exercise-title{font-family:'Crimson Pro',serif;font-size:1.75rem;font-weight:700;color:var(--primary-dark);}
+.exercise-tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.2rem .7rem;border-radius:99px;}
+.tag-blue{background:var(--primary-light);color:var(--primary);border:1.5px solid var(--border);}
+.tag-orange{background:var(--orange-light);color:var(--orange);border:1.5px solid var(--orange-border);}
+.tag-green{background:var(--green-light);color:var(--green);border:1.5px solid var(--green-border);}
+.tag-purple{background:var(--purple-light);color:var(--purple);border:1.5px solid var(--purple-border);}
+
+.btn-group{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.seen-badge{background:var(--success);color:white;font-size:.72rem;font-weight:700;letter-spacing:.05em;padding:.2rem .65rem;border-radius:99px;opacity:0;transform:scale(.5) translateY(-4px);transition:all .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;flex-shrink:0;}
+.exercise.seen .seen-badge{opacity:1;transform:scale(1) translateY(0);}
+.reveal-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;border:none;padding:.7rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(3,105,161,.3);flex-shrink:0;}
+.reveal-btn:hover{transform:scale(1.05);}.reveal-btn:active{transform:scale(.97);}
+.reveal-btn.active{background:linear-gradient(135deg,var(--success),#047857);}
+
+.hints-section{margin-top:1.25rem;border-top:2px dashed #c4b5fd;padding-top:1.25rem;}
+.hints-title{font-size:.85rem;font-weight:700;color:var(--purple);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.75rem;}
+.hints-list{display:flex;flex-direction:column;gap:.6rem;}
+.hint-item{display:flex;align-items:flex-start;gap:.6rem;}
+.hint-btn{background:var(--purple-light);color:var(--purple);border:2px solid var(--purple-border);border-radius:10px;padding:.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;flex-shrink:0;max-width:100%;}
+.hint-btn:hover:not(:disabled){background:#ddd6fe;border-color:var(--purple);}
+.hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+.hint-text{background:#faf5ff;border-left:3px solid var(--purple);border-radius:6px;padding:0 .85rem;font-size:.92rem;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease,opacity .3s ease;opacity:0;flex:1;min-width:0;}
+.hint-text.revealed{max-height:400px;padding:.5rem .85rem;opacity:1;}
+
+.correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity .35s ease,height .35s cubic-bezier(.4,0,.2,1),margin-top .35s ease;}
+.correction.show{opacity:1;margin-top:1.5rem;}
+.correction-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;margin-top:1rem;}
+.correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--success);color:white;padding:.45rem 1.25rem;border-radius:12px 0 12px 0;font-size:.85rem;font-weight:700;}
+.correction-content{margin-top:1rem;}
+
+.exercise-content{font-size:1.05rem;line-height:1.9;}
+.q-row{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.7rem;}
+.qnum{display:inline-block;background:var(--primary);color:white;font-size:.8rem;font-weight:700;width:1.5rem;height:1.5rem;border-radius:50%;text-align:center;line-height:1.5rem;flex-shrink:0;margin-top:.2rem;}
+.context-box{background:#eff6ff;border:2px solid var(--border);border-radius:10px;padding:1rem 1.5rem;margin:.75rem 0 1rem;font-size:.97rem;line-height:1.8;}
+.context-box strong{color:var(--primary-dark);}
+.rule-box{background:var(--purple-light);border:2px solid var(--purple-border);border-radius:10px;padding:.9rem 1.25rem;margin:.75rem 0;font-size:.95rem;line-height:1.7;}
+.rule-box strong{color:var(--purple);}
+.calcul-step{background:white;padding:1.25rem 1.5rem;border-radius:10px;margin:.75rem 0;border-left:4px solid var(--primary);font-size:1rem;line-height:2;}
+.calcul-step.green-step{border-left-color:var(--green);}
+.calcul-step.orange-step{border-left-color:var(--orange);}
+.solution-text{background:var(--primary-light);border:2px solid var(--primary);padding:.8rem 1.5rem;border-radius:10px;text-align:center;font-size:1.05rem;font-weight:600;color:var(--primary-dark);margin:.75rem 0;}
+.solution-text.green{background:var(--green-light);border-color:var(--green);color:var(--green);}
+.solution-text.orange{background:var(--orange-light);border-color:var(--orange);color:var(--orange);}
+
+.nota{font-family:'DM Sans',monospace;font-weight:700;font-size:1.05em;color:var(--primary-dark);background:var(--primary-light);padding:2px 8px;border-radius:5px;display:inline-block;}
+.fig-center{display:flex;justify-content:center;margin:1rem 0;overflow-x:auto;padding:.5rem 0;}
+.fig-center svg{display:block;max-width:100%;}
+.dots{color:var(--text-medium);letter-spacing:.2em;}
+footer{text-align:center;margin-top:3rem;padding:2rem;color:var(--text-medium);font-style:italic;}
+@media(max-width:900px){body{padding:1.5rem .75rem;}h1{font-size:2rem;}.exercise{padding:1.5rem;}.exercise-title{font-size:1.45rem;}.recap-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){body{padding:1rem .5rem;}h1{font-size:1.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem .75rem;border-radius:12px;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.2rem;}.btn-group{width:100%;}.reveal-btn{width:100%;text-align:center;padding:.85rem 1rem;}.correction-box{padding:1.75rem .75rem 1rem;}.hint-item{flex-direction:column;}.hint-btn{width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>🔣 Codage, milieu & droites sécantes</h1>
+  <p class="subtitle">Lire un codage · Calculer avec le milieu · Identifier des droites sécantes</p>
+  <div class="header-meta">
+    <span class="header-chip">6ème</span>
+    <span class="header-chip">6 exercices</span>
+    <span class="header-chip">Chapitre 2 · Éléments de géométrie</span>
+  </div>
+</header>
+
+<div class="recap">
+  <div class="recap-title">📖 Rappels</div>
+  <div class="recap-grid">
+    <div class="recap-card rc-blue">
+      <strong>🔣 Le codage</strong><br>
+      Des <strong>petits traits</strong> sur les côtés d'une figure indiquent des <strong>longueurs égales</strong>.<br>
+      Un <strong>petit carré</strong> dans un angle indique un <strong>angle droit</strong>.
+    </div>
+    <div class="recap-card rc-orange">
+      <strong>⊕ Milieu & sécantes</strong><br>
+      Le <strong>milieu</strong> d'un segment le partage en <strong>2 parts de même longueur</strong>.<br>
+      Deux droites <strong>sécantes</strong> se coupent en un unique <strong>point d'intersection</strong>.
+    </div>
+  </div>
+</div>
+
+<div class="progress-wrapper">
+  <span class="progress-label">Corrections vues :</span>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <span class="progress-counter" id="progressCounter">0 / 6</span>
+  <div class="progress-dots" id="progressDots"></div>
+</div>
+
+<div class="score-card" id="scoreCard">
+  <span class="score-emoji" id="scoreEmoji">🎉</span>
+  <div class="score-title" id="scoreTitle">Bravo !</div>
+  <div class="score-stars" id="scoreStars">⭐⭐⭐</div>
+  <div class="score-message" id="scoreMessage"></div>
+  <div class="score-breakdown" id="scoreBreakdown"></div>
+</div>
+
+<!-- ===== PARTIE 1 : CODAGE & MILIEU ===== -->
+<div class="section-divider">
+  <div style="font-size:1.3rem;">🔣</div>
+  <div class="section-divider-title">Partie 1 – Codage & milieu</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- EX 1 -->
+<div class="exercise" id="card-ex1">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 1 / 6</h2>
+      <span class="exercise-tag tag-blue">Lire un codage</span>
+    </div>
+    <div class="btn-group"><span class="seen-badge">✓ Vu</span><button class="reveal-btn" data-target="ex1">Voir la correction</button></div>
+  </div>
+  <div class="exercise-content">
+    <div class="context-box">Observe la figure codée ci-dessous et réponds aux questions.</div>
+    <div class="fig-center">
+      <svg viewBox="0 0 340 240" xmlns="http://www.w3.org/2000/svg" style="width:340px;height:240px;">
+        <!-- Triangle isocèle rectangle en R : R bas-gauche, S en haut à gauche, T bas-droite -->
+        <!-- R=(50,200), S=(50,40), T=(210,200) — angle droit en R avec RS vertical et RT horizontal -->
+        <line x1="50" y1="200" x2="210" y2="200" stroke="#475569" stroke-width="2"/>
+        <line x1="50" y1="200" x2="50" y2="40" stroke="#475569" stroke-width="2"/>
+        <line x1="50" y1="40" x2="210" y2="200" stroke="#475569" stroke-width="2"/>
+        <text x="34" y="214" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">R</text>
+        <text x="34" y="34" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">S</text>
+        <text x="220" y="214" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">T</text>
+        <!-- Codage : RS = RT (un trait sur chaque) -->
+        <!-- Trait sur [RS] (vertical, à mi-hauteur) -->
+        <line x1="44" y1="118" x2="56" y2="122" stroke="#15803d" stroke-width="2.5"/>
+        <!-- Trait sur [RT] (horizontal, à mi-longueur) -->
+        <line x1="128" y1="194" x2="132" y2="206" stroke="#15803d" stroke-width="2.5"/>
+        <!-- Angle droit en R (coin entre vertical et horizontal) -->
+        <rect x="50" y="186" width="14" height="14" fill="none" stroke="#be123c" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <div class="q-row"><span class="qnum">a</span><span>Quels segments ont la même longueur ? <span class="dots">. . . . . . . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">b</span><span>Où se situe l'angle droit ? <span class="dots">. . . . . . . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">c</span><span>Comment appelle-t-on ce type de triangle ? <span class="dots">. . . . . . . . . . . . . .</span></span></div>
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item"><button class="hint-btn" data-hint="h1-1">💡 Que signifient les petits traits verts ?</button><div class="hint-text" id="h1-1">Les petits traits qu'on voit sur certains côtés sont un <strong>codage</strong>. Quand deux côtés ont le <strong>même nombre de traits</strong>, cela donne une information sur ces côtés.</div></div>
+        <div class="hint-item"><button class="hint-btn" data-hint="h1-2">💡 Pour la question c)</button><div class="hint-text" id="h1-2">Un triangle avec un angle droit a un nom particulier. Et un triangle avec deux côtés égaux aussi. Que se passe-t-il quand il a <strong>les deux propriétés</strong> ?</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+    <p><strong>a)</strong> Les segments <strong>[RS]</strong> et <strong>[RT]</strong> ont la même longueur (même codage : un trait vert).</p>
+    <p><strong>b)</strong> L'angle droit est en <strong>R</strong> (petit carré rouge).</p>
+    <p><strong>c)</strong> Ce triangle a un <strong>angle droit</strong> (rectangle) et <strong>deux côtés égaux</strong> (isocèle). C'est un <strong>triangle isocèle rectangle</strong>.</p>
+    <div class="rule-box">🔑 Le codage permet de lire les propriétés d'une figure <strong>sans mesurer</strong>. Même nombre de traits = même longueur. Petit carré = angle droit.</div>
+  </div></div></div>
+</div>
+
+<!-- EX 2 -->
+<div class="exercise" id="card-ex2">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 2 / 6</h2>
+      <span class="exercise-tag tag-green">Milieu d'un segment</span>
+    </div>
+    <div class="btn-group"><span class="seen-badge">✓ Vu</span><button class="reveal-btn" data-target="ex2">Voir la correction</button></div>
+  </div>
+  <div class="exercise-content">
+    <div class="context-box">Le point <strong>I</strong> est le milieu du segment [AB].<br>On sait que <strong>AB = 14 cm</strong>.</div>
+    <div class="fig-center">
+      <svg viewBox="0 0 400 70" xmlns="http://www.w3.org/2000/svg" style="width:400px;height:70px;">
+        <line x1="50" y1="35" x2="350" y2="35" stroke="#475569" stroke-width="2"/>
+        <line x1="50" y1="23" x2="50" y2="47" stroke="#0369a1" stroke-width="2.5"/><text x="50" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#0369a1" font-weight="700">A</text>
+        <line x1="200" y1="23" x2="200" y2="47" stroke="#be123c" stroke-width="2.5"/><text x="200" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#be123c" font-weight="700">I</text>
+        <line x1="350" y1="23" x2="350" y2="47" stroke="#0369a1" stroke-width="2.5"/><text x="350" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#0369a1" font-weight="700">B</text>
+        <!-- Codage -->
+        <line x1="120" y1="30" x2="128" y2="40" stroke="#15803d" stroke-width="2"/><line x1="125" y1="30" x2="133" y2="40" stroke="#15803d" stroke-width="2"/>
+        <line x1="270" y1="30" x2="278" y2="40" stroke="#15803d" stroke-width="2"/><line x1="275" y1="30" x2="283" y2="40" stroke="#15803d" stroke-width="2"/>
+        <text x="200" y="62" text-anchor="middle" font-family="DM Sans" font-size="12" fill="#475569">14 cm</text>
+      </svg>
+    </div>
+    <div class="q-row"><span class="qnum">a</span><span>Combien mesure AI ? <span class="dots">. . . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">b</span><span>Combien mesure IB ? <span class="dots">. . . . . . . . . .</span></span></div>
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item"><button class="hint-btn" data-hint="h2-1">💡 Que fait le milieu ?</button><div class="hint-text" id="h2-1">Le milieu coupe le segment en deux morceaux. Que peux-tu dire de ces deux morceaux ?</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+    <p>I est le milieu de [AB], donc <strong>AI = IB</strong>.</p>
+    <div class="calcul-step green-step">AI = AB ÷ 2 = 14 ÷ 2 = <strong>7 cm</strong></div>
+    <div class="solution-text green"><strong>a)</strong> AI = 7 cm &nbsp;&nbsp;&nbsp; <strong>b)</strong> IB = 7 cm</div>
+    <div class="rule-box">🔑 Le milieu partage un segment en <strong>deux parts de même longueur</strong>. Donc chaque moitié mesure la longueur totale <strong>divisée par 2</strong>.</div>
+  </div></div></div>
+</div>
+
+<!-- EX 3 -->
+<div class="exercise" id="card-ex3">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 3 / 6</h2>
+      <span class="exercise-tag tag-orange">Milieu · Calcul inverse</span>
+    </div>
+    <div class="btn-group"><span class="seen-badge">✓ Vu</span><button class="reveal-btn" data-target="ex3">Voir la correction</button></div>
+  </div>
+  <div class="exercise-content">
+    <div class="context-box">Le point <strong>M</strong> est le milieu du segment [EF].<br>On sait que <strong>EM = 5,5 cm</strong>.</div>
+    <div class="fig-center">
+      <svg viewBox="0 0 400 70" xmlns="http://www.w3.org/2000/svg" style="width:400px;height:70px;">
+        <line x1="50" y1="35" x2="350" y2="35" stroke="#475569" stroke-width="2"/>
+        <line x1="50" y1="23" x2="50" y2="47" stroke="#0369a1" stroke-width="2.5"/><text x="50" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#0369a1" font-weight="700">E</text>
+        <line x1="200" y1="23" x2="200" y2="47" stroke="#be123c" stroke-width="2.5"/><text x="200" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#be123c" font-weight="700">M</text>
+        <line x1="350" y1="23" x2="350" y2="47" stroke="#0369a1" stroke-width="2.5"/><text x="350" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#0369a1" font-weight="700">F</text>
+        <line x1="120" y1="30" x2="128" y2="40" stroke="#15803d" stroke-width="2"/><line x1="125" y1="30" x2="133" y2="40" stroke="#15803d" stroke-width="2"/>
+        <line x1="270" y1="30" x2="278" y2="40" stroke="#15803d" stroke-width="2"/><line x1="275" y1="30" x2="283" y2="40" stroke="#15803d" stroke-width="2"/>
+        <text x="125" y="62" text-anchor="middle" font-family="DM Sans" font-size="12" fill="#475569">5,5 cm</text>
+        <text x="275" y="62" text-anchor="middle" font-family="DM Sans" font-size="12" fill="#475569">?</text>
+      </svg>
+    </div>
+    <div class="q-row"><span class="qnum">a</span><span>Combien mesure MF ? <span class="dots">. . . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">b</span><span>Combien mesure EF ? <span class="dots">. . . . . . . . . .</span></span></div>
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item"><button class="hint-btn" data-hint="h3-1">💡 Comment trouver MF ?</button><div class="hint-text" id="h3-1">Regarde le codage sur la figure. Que t'indiquent les petits traits verts sur les propriétés de EM et MF ?</div></div>
+        <div class="hint-item"><button class="hint-btn" data-hint="h3-2">💡 Comment trouver EF ?</button><div class="hint-text" id="h3-2">Le segment [EF] est composé de deux morceaux bout à bout. Quelle opération permet de retrouver la longueur totale ?</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+    <p><strong>a)</strong> M est le milieu de [EF], donc <strong>EM = MF</strong>.</p>
+    <div class="calcul-step">MF = EM = <strong>5,5 cm</strong></div>
+    <p><strong>b)</strong> EF = EM + MF :</p>
+    <div class="calcul-step green-step">EF = 5,5 + 5,5 = <strong>11 cm</strong></div>
+    <div class="solution-text green"><strong>a)</strong> MF = 5,5 cm &nbsp;&nbsp;&nbsp; <strong>b)</strong> EF = 11 cm</div>
+    <div class="rule-box">🔑 Si tu connais la <strong>moitié</strong>, tu retrouves le total en <strong>multipliant par 2</strong> (ou en additionnant les deux moitiés).</div>
+  </div></div></div>
+</div>
+
+<!-- ===== PARTIE 2 : FIGURES COMPLÈTES ===== -->
+<div class="section-divider">
+  <div style="font-size:1.3rem;">📐</div>
+  <div class="section-divider-title">Partie 2 – Figures complètes</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- EX 4 -->
+<div class="exercise" id="card-ex4">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 4 / 6</h2>
+      <span class="exercise-tag tag-purple">Lire une figure codée</span>
+    </div>
+    <div class="btn-group"><span class="seen-badge">✓ Vu</span><button class="reveal-btn" data-target="ex4">Voir la correction</button></div>
+  </div>
+  <div class="exercise-content">
+    <div class="context-box">Observe la figure codée ci-dessous et réponds aux questions.</div>
+    <div class="fig-center">
+      <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" style="width:320px;height:220px;">
+        <!-- Rectangle ABCD -->
+        <line x1="40" y1="30" x2="280" y2="30" stroke="#475569" stroke-width="2"/>
+        <line x1="280" y1="30" x2="280" y2="190" stroke="#475569" stroke-width="2"/>
+        <line x1="280" y1="190" x2="40" y2="190" stroke="#475569" stroke-width="2"/>
+        <line x1="40" y1="190" x2="40" y2="30" stroke="#475569" stroke-width="2"/>
+        <text x="26" y="24" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">A</text>
+        <text x="288" y="24" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">B</text>
+        <text x="288" y="206" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">C</text>
+        <text x="26" y="206" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">D</text>
+        <!-- Angles droits -->
+        <rect x="40" y="30" width="14" height="14" fill="none" stroke="#be123c" stroke-width="1.5"/>
+        <rect x="266" y="30" width="14" height="14" fill="none" stroke="#be123c" stroke-width="1.5"/>
+        <rect x="266" y="176" width="14" height="14" fill="none" stroke="#be123c" stroke-width="1.5"/>
+        <rect x="40" y="176" width="14" height="14" fill="none" stroke="#be123c" stroke-width="1.5"/>
+        <!-- Codage : AB = DC (un trait) -->
+        <line x1="157" y1="24" x2="163" y2="36" stroke="#15803d" stroke-width="2"/>
+        <line x1="157" y1="184" x2="163" y2="196" stroke="#15803d" stroke-width="2"/>
+        <!-- Codage : BC = AD (deux traits) -->
+        <line x1="274" y1="105" x2="286" y2="110" stroke="#7c3aed" stroke-width="2"/>
+        <line x1="274" y1="110" x2="286" y2="115" stroke="#7c3aed" stroke-width="2"/>
+        <line x1="34" y1="105" x2="46" y2="110" stroke="#7c3aed" stroke-width="2"/>
+        <line x1="34" y1="110" x2="46" y2="115" stroke="#7c3aed" stroke-width="2"/>
+        <!-- Diagonale [AC] -->
+        <line x1="40" y1="30" x2="280" y2="190" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6,4"/>
+        <!-- Milieu O de [AC] -->
+        <circle cx="160" cy="110" r="4" fill="#be123c"/>
+        <text x="172" y="106" font-family="DM Sans" font-size="14" fill="#be123c" font-weight="700">O</text>
+      </svg>
+    </div>
+    <div class="q-row"><span class="qnum">a</span><span>Cite deux paires de segments de même longueur. <span class="dots">. . . . . . . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">b</span><span>Combien y a-t-il d'angles droits ? Où sont-ils ? <span class="dots">. . . . . . . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">c</span><span>Le point O est le milieu de la diagonale [AC]. Si AC = 18 cm, combien mesure AO ? <span class="dots">. . . . . .</span></span></div>
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item"><button class="hint-btn" data-hint="h4-1">💡 Comment repérer les segments égaux ?</button><div class="hint-text" id="h4-1">Cherche les côtés qui portent le <strong>même type de codage</strong> (même nombre de traits, même couleur).</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+    <p><strong>a)</strong> D'après le codage :</p>
+    <div class="calcul-step">
+      — <strong>[AB]</strong> et <strong>[DC]</strong> ont la même longueur (un trait vert).<br>
+      — <strong>[BC]</strong> et <strong>[AD]</strong> ont la même longueur (deux traits violets).
+    </div>
+    <p><strong>b)</strong> Il y a <strong>4 angles droits</strong>, en A, B, C et D (petits carrés rouges à chaque coin).</p>
+    <p><strong>c)</strong> O est le milieu de [AC], donc AO = AC ÷ 2 :</p>
+    <div class="calcul-step green-step">AO = 18 ÷ 2 = <strong>9 cm</strong></div>
+    <div class="solution-text green">AO = <strong>9 cm</strong></div>
+  </div></div></div>
+</div>
+
+<!-- EX 5 -->
+<div class="exercise" id="card-ex5">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 5 / 6</h2>
+      <span class="exercise-tag tag-orange">Droites sécantes</span>
+    </div>
+    <div class="btn-group"><span class="seen-badge">✓ Vu</span><button class="reveal-btn" data-target="ex5">Voir la correction</button></div>
+  </div>
+  <div class="exercise-content">
+    <div class="context-box">Observe la figure ci-dessous.</div>
+    <div class="fig-center">
+      <svg viewBox="0 0 500 240" xmlns="http://www.w3.org/2000/svg" style="width:500px;height:240px;">
+        <!-- Droite (d1) horizontale à y=120 -->
+        <line x1="10" y1="120" x2="490" y2="120" stroke="#0369a1" stroke-width="1.8"/>
+        <text x="468" y="110" font-family="DM Sans" font-size="15" fill="#0369a1" font-style="italic" font-weight="700">(d₁)</text>
+        <!-- Droite (d2) oblique passant par K à (210,120) : de (70,220) à (370,10) -->
+        <!-- Pente : (10-220)/(370-70) = -210/300 = -0.7. y(210)=220+(210-70)*(-0.7)=220-98=122 ≈ 120 ✓ -->
+        <line x1="70" y1="220" x2="370" y2="10" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="355" y="28" font-family="DM Sans" font-size="15" fill="#7c3aed" font-style="italic" font-weight="700">(d₂)</text>
+        <!-- Droite (d3) oblique passant par L à (350,120) : de (240,220) à (440,40) -->
+        <!-- Pente : (40-220)/(440-240) = -180/200 = -0.9. y(350)=220+(350-240)*(-0.9)=220-99=121 ≈ 120 ✓ -->
+        <line x1="240" y1="220" x2="440" y2="40" stroke="#15803d" stroke-width="1.8"/>
+        <text x="428" y="55" font-family="DM Sans" font-size="15" fill="#15803d" font-style="italic" font-weight="700">(d₃)</text>
+        <!-- Point A sur d1 -->
+        <line x1="100" y1="110" x2="100" y2="130" stroke="#0369a1" stroke-width="2.5"/><text x="100" y="102" text-anchor="middle" font-family="DM Sans" font-size="15" fill="#0369a1" font-weight="700">A</text>
+        <!-- Intersection K (d1 ∩ d2) à (210,120) -->
+        <circle cx="210" cy="120" r="5" fill="#be123c"/>
+        <text x="210" y="148" text-anchor="middle" font-family="DM Sans" font-size="15" fill="#be123c" font-weight="700">K</text>
+        <!-- Intersection L (d1 ∩ d3) à (350,120) -->
+        <circle cx="350" cy="120" r="5" fill="#be123c"/>
+        <text x="350" y="148" text-anchor="middle" font-family="DM Sans" font-size="15" fill="#be123c" font-weight="700">L</text>
+      </svg>
+    </div>
+    <div class="q-row"><span class="qnum">a</span><span>Les droites (d₁) et (d₂) sont-elles sécantes ? Si oui, quel est leur point d'intersection ? <span class="dots">. . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">b</span><span>Les droites (d₁) et (d₃) sont-elles sécantes ? Si oui, quel est leur point d'intersection ? <span class="dots">. . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">c</span><span>Cite trois points alignés sur cette figure. <span class="dots">. . . . . . . . .</span></span></div>
+    <div class="q-row"><span class="qnum">d</span><span>Le point A appartient-il à la droite (d₂) ? <span class="dots">. . . . . . . . .</span></span></div>
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item"><button class="hint-btn" data-hint="h5-1">💡 Comment savoir si deux droites sont sécantes ?</button><div class="hint-text" id="h5-1">Regarde si les deux droites <strong>se croisent</strong> quelque part sur la figure. Si oui, le point de croisement est marqué.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+    <div class="calcul-step">
+      <strong>a)</strong> Oui, (d₁) et (d₂) sont <strong>sécantes</strong>. Leur point d'intersection est <strong>K</strong>.<br><br>
+      <strong>b)</strong> Oui, (d₁) et (d₃) sont <strong>sécantes</strong>. Leur point d'intersection est <strong>L</strong>.<br><br>
+      <strong>c)</strong> Les points <strong>A, K et L</strong> sont alignés (ils appartiennent tous à la droite (d₁)).<br><br>
+      <strong>d)</strong> Non, A <strong>n'appartient pas</strong> à la droite (d₂). Il est uniquement sur (d₁).
+    </div>
+    <div class="rule-box">🔑 Deux droites sécantes se coupent en <strong>un seul point</strong>. Sur une figure avec plusieurs droites, un même point peut être l'intersection de <strong>deux droites différentes</strong>.</div>
+  </div></div></div>
+</div>
+
+<!-- EX 6 -->
+<div class="exercise" id="card-ex6">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 6 / 6</h2>
+      <span class="exercise-tag tag-purple">Problème · Figure complète</span>
+    </div>
+    <div class="btn-group"><span class="seen-badge">✓ Vu</span><button class="reveal-btn" data-target="ex6">Voir la correction</button></div>
+  </div>
+  <div class="exercise-content">
+    <div class="context-box">
+      On considère un segment [PQ] de longueur <strong>20 cm</strong>.<br>
+      Le point <strong>M</strong> est le milieu de [PQ].<br>
+      Le point <strong>N</strong> est le milieu de [MQ].<br><br>
+      <strong>a)</strong> Fais un dessin à main levée de cette situation.<br>
+      <strong>b)</strong> Calcule la longueur PM.<br>
+      <strong>c)</strong> Calcule la longueur MN.<br>
+      <strong>d)</strong> Calcule la longueur PN.
+    </div>
+    <div class="hints-section">
+      <div class="hints-title">💡 Indices</div>
+      <div class="hints-list">
+        <div class="hint-item"><button class="hint-btn" data-hint="h6-1">💡 Par quoi commencer ?</button><div class="hint-text" id="h6-1">Commence par placer les points dans l'ordre sur ton dessin. Quel point est entre P et Q ? Et ensuite, quel point est entre M et Q ?</div></div>
+        <div class="hint-item"><button class="hint-btn" data-hint="h6-2">💡 Pour la question d)</button><div class="hint-text" id="h6-2">PN n'est pas un segment dont tu connais directement le milieu. Mais P, M et N sont sur le même segment. Peux-tu additionner deux longueurs que tu connais déjà ?</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex6"><div class="correction-box"><div class="correction-content">
+    <p><strong>a)</strong> Dessin à main levée :</p>
+    <div class="fig-center">
+      <svg viewBox="0 0 420 70" xmlns="http://www.w3.org/2000/svg" style="width:420px;height:70px;">
+        <line x1="40" y1="35" x2="380" y2="35" stroke="#475569" stroke-width="2"/>
+        <line x1="40" y1="23" x2="40" y2="47" stroke="#0369a1" stroke-width="2.5"/><text x="40" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#0369a1" font-weight="700">P</text>
+        <line x1="210" y1="23" x2="210" y2="47" stroke="#be123c" stroke-width="2.5"/><text x="210" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#be123c" font-weight="700">M</text>
+        <line x1="295" y1="23" x2="295" y2="47" stroke="#ea580c" stroke-width="2.5"/><text x="295" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#ea580c" font-weight="700">N</text>
+        <line x1="380" y1="23" x2="380" y2="47" stroke="#0369a1" stroke-width="2.5"/><text x="380" y="17" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#0369a1" font-weight="700">Q</text>
+        <!-- Codage PM = MQ -->
+        <line x1="120" y1="30" x2="128" y2="40" stroke="#15803d" stroke-width="2"/><line x1="125" y1="30" x2="133" y2="40" stroke="#15803d" stroke-width="2"/>
+        <!-- Codage MN = NQ -->
+        <line x1="248" y1="30" x2="254" y2="40" stroke="#7c3aed" stroke-width="2"/>
+        <line x1="334" y1="30" x2="340" y2="40" stroke="#7c3aed" stroke-width="2"/>
+      </svg>
+    </div>
+    <p><strong>b)</strong> M est le milieu de [PQ] :</p>
+    <div class="calcul-step">PM = PQ ÷ 2 = 20 ÷ 2 = <strong>10 cm</strong></div>
+
+    <p><strong>c)</strong> N est le milieu de [MQ], et MQ = PM = 10 cm :</p>
+    <div class="calcul-step orange-step">MN = MQ ÷ 2 = 10 ÷ 2 = <strong>5 cm</strong></div>
+
+    <p><strong>d)</strong> PN = PM + MN :</p>
+    <div class="calcul-step green-step">PN = 10 + 5 = <strong>15 cm</strong></div>
+
+    <div class="solution-text green"><strong>b)</strong> PM = 10 cm &nbsp;&nbsp;&nbsp; <strong>c)</strong> MN = 5 cm &nbsp;&nbsp;&nbsp; <strong>d)</strong> PN = 15 cm</div>
+    <div class="rule-box">🔑 On peut enchaîner les milieux : d'abord trouver le milieu du grand segment, puis le milieu d'une moitié. Il faut bien <strong>repérer à quel segment</strong> chaque milieu se rapporte.</div>
+  </div></div></div>
+</div>
+
+<footer>Chapitre 2 — Éléments de géométrie · mathenlarge.fr</footer>
+</div>
+
+<script>
+const TOTAL=6;
+const seenSet=new Set(),openSet=new Set();
+const SCORE_DATA=[
+  {min:6,emoji:'🎉',title:'Parfait !',stars:'⭐⭐⭐',msg:'Tu maîtrises le codage, le milieu et les droites sécantes !'},
+  {min:4,emoji:'👏',title:'Très bien !',stars:'⭐⭐',msg:'Continue comme ça, tu es sur la bonne voie !'},
+  {min:1,emoji:'💪',title:'Bon début !',stars:'⭐',msg:'Continue à regarder les corrections pour progresser.'}
+];
+const dotsContainer=document.getElementById('progressDots');
+for(let i=1;i<=TOTAL;i++){const d=document.createElement('span');d.className='progress-dot';d.id=`dot-ex${i}`;d.title=`Exercice ${i}`;dotsContainer.appendChild(d);}
+function updateProgress(){const done=seenSet.size;document.getElementById('progressFill').style.width=`${(done/TOTAL)*100}%`;document.getElementById('progressCounter').textContent=`${done} / ${TOTAL}`;if(done===TOTAL)showScoreCard();}
+function showScoreCard(){const card=document.getElementById('scoreCard');if(card.classList.contains('visible'))return;const data=SCORE_DATA.find(d=>seenSet.size>=d.min)||SCORE_DATA[SCORE_DATA.length-1];document.getElementById('scoreEmoji').textContent=data.emoji;document.getElementById('scoreTitle').textContent=data.title;document.getElementById('scoreStars').textContent=data.stars;document.getElementById('scoreMessage').textContent=data.msg;document.getElementById('scoreBreakdown').innerHTML=`<span class="score-badge sb-green">✓ ${seenSet.size} / ${TOTAL} corrections vues</span><span class="score-badge sb-blue">🔣 Codage & Milieu</span><span class="score-badge sb-orange">📐 Droites sécantes</span>`;card.classList.add('visible');}
+function openCorrection(el){el.style.height=el.scrollHeight+'px';el.classList.add('show');}
+function closeCorrection(el){el.style.height=el.scrollHeight+'px';requestAnimationFrame(()=>{el.style.height='0px';el.classList.remove('show');});}
+function toggleCorrection(exId){const correction=document.getElementById(exId);const card=correction.closest('.exercise');const btn=card.querySelector('.reveal-btn');const dot=document.getElementById(`dot-${exId}`);const isOpen=openSet.has(exId);if(isOpen){closeCorrection(correction);btn.classList.remove('active');btn.textContent='Voir la correction';openSet.delete(exId);}else{openCorrection(correction);btn.classList.add('active');btn.textContent='Masquer la correction';openSet.add(exId);if(!seenSet.has(exId)){seenSet.add(exId);dot.classList.add('done');card.classList.add('seen');updateProgress();}}}
+document.querySelectorAll('.reveal-btn[data-target]').forEach(btn=>{btn.addEventListener('click',()=>toggleCorrection(btn.dataset.target));});
+document.querySelectorAll('.correction').forEach(el=>{el.addEventListener('transitionend',e=>{if(e.propertyName==='height'&&el.classList.contains('show'))el.style.height='auto';});});
+document.querySelectorAll('.hint-btn[data-hint]').forEach(btn=>{btn.addEventListener('click',function(){document.getElementById(this.dataset.hint).classList.add('revealed');this.disabled=true;this.textContent='✓ '+this.textContent;});});
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s;}.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}}</style>
+</body>
+</html>

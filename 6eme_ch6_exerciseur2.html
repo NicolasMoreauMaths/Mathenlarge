@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coloriage Magique — Nombres Décimaux</title>
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+
+<!-- Polices -->
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ══════════════════════════════════════
+   VARIABLES & RESET
+══════════════════════════════════════ */
+:root {
+  --bg:      #f7f6f1;
+  --card:    #ffffff;
+  --txt:     #2a2a2a;
+  --txt2:    #888;
+  --bdr:     #dddad2;
+  --acc:     #1a6b9a;
+  --acc-lt:  #e8f4fc;
+  --radius:  12px;
+  --shadow:  0 2px 10px rgba(0,0,0,.07);
+  --svg-w:   380px;   /* largeur cible du dessin */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════
+   STRUCTURE PRINCIPALE
+══════════════════════════════════════ */
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px 14px 80px;
+}
+
+/* Titre */
+.page-title {
+  font-size: clamp(16px, 4vw, 22px);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.page-sub {
+  text-align: center;
+  font-size: clamp(11px, 2.5vw, 13px);
+  color: var(--txt2);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* Layout côte-à-côte ← → colonne sur petit écran */
+.layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.col-draw {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.col-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ══════════════════════════════════════
+   DESSIN SVG
+══════════════════════════════════════ */
+.svg-wrap {
+  background: var(--card);
+  border: 1.5px solid var(--bdr);
+  border-radius: var(--radius);
+  padding: 10px;
+  width: clamp(240px, 42vw, var(--svg-w));
+  box-shadow: var(--shadow);
+}
+.svg-wrap svg { width: 100%; height: auto; display: block; }
+
+.zone {
+  fill: #eceae4;
+  stroke: #444;
+  stroke-width: 1.6;
+  cursor: pointer;
+  transition: fill .18s, filter .1s;
+}
+.zone:hover { filter: brightness(.88); }
+
+.zone-num {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  fill: #555;
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* ══════════════════════════════════════
+   PANNEAU DROIT
+══════════════════════════════════════ */
+.panel {
+  background: var(--card);
+  border: 1.5px solid var(--bdr);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+/* Message d'invite */
+.panel-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt2);
+  font-size: 13px;
+  min-height: 80px;
+  text-align: center;
+  line-height: 1.7;
+}
+.panel-content { display: none; }
+
+/* Badge zone + étiquette notion */
+.badge-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 6px; }
+.zone-badge {
+  display: inline-block;
+  background: var(--acc); color: #fff;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 11px; border-radius: 20px;
+}
+.notion-tag {
+  display: inline-block;
+  background: var(--acc-lt); color: var(--acc);
+  font-size: 10px; font-weight: 700;
+  padding: 2px 9px; border-radius: 20px;
+  border: 1px solid #a8d5f0;
+}
+
+/* Question (KaTeX) */
+.eq-box {
+  background: #f3f2ed;
+  border: 1px solid var(--bdr);
+  border-radius: 9px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  text-align: center;
+  font-size: clamp(12px, 2.5vw, 14px);
+  font-weight: 600;
+  line-height: 2;
+}
+.eq-box .katex { font-size: 1.15em; }
+.eq-box .katex-display { margin: .25em 0; }
+
+/* Choix couleur */
+.pal-label {
+  font-size: 11px;
+  color: var(--txt2);
+  text-align: center;
+  margin-bottom: 10px;
+}
+.palette {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+  padding-bottom: 4px;  /* espace pour le numéro sous les boutons */
+}
+.pal-btn {
+  width: 34px; height: 34px;
+  border-radius: 7px;
+  border: 2.5px solid transparent;
+  cursor: pointer;
+  transition: transform .12s, border-color .12s, box-shadow .12s;
+  position: relative;
+  flex-shrink: 0;
+}
+.pal-btn:hover { transform: scale(1.1); }
+.pal-btn.pick {
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 2.5px rgba(0,0,0,.13);
+  transform: scale(1.13);
+}
+.pal-num {
+  position: absolute;
+  bottom: -14px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px; font-weight: 700;
+  color: var(--txt2); white-space: nowrap;
+}
+
+/* Coup de pouce */
+.hint-box {
+  display: none;
+  font-size: 11.5px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  line-height: 1.6;
+  color: #444;
+  background: #f3f2ed;
+  border: 1px solid var(--bdr);
+}
+.hint-box.show   { display: block; }
+.hint-box.ok  { color: #1a7a4a; background: #e9faf1; border-color: #a6dfbf; }
+
+/* ══════════════════════════════════════
+   LÉGENDE
+══════════════════════════════════════ */
+.section-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--txt2); margin-bottom: 5px;
+}
+.leg-rule { font-size: 11px; color: var(--txt2); margin-bottom: 7px; line-height: 1.5; }
+.leg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+.leg-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 7px;
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  background: var(--bg);
+  font-size: 11px;
+}
+.leg-swatch {
+  width: 17px; height: 17px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,.1);
+  flex-shrink: 0;
+}
+.leg-text { font-weight: 700; }
+
+/* ══════════════════════════════════════
+   LISTE DES ZONES
+══════════════════════════════════════ */
+.eq-list {
+  display: flex; flex-direction: column; gap: 3px;
+  max-height: 280px; overflow-y: auto;
+}
+.eq-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.eq-item:hover { background: var(--acc-lt); }
+.eq-item.done  { background: #eaf8f0; border-color: #1a9b6c; }
+.eq-item.sel   { outline: 2px solid var(--acc); }
+.eq-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px;
+  background: var(--acc); color: #fff;
+  font-weight: 700; font-size: 10px;
+  border-radius: 5px; flex-shrink: 0;
+}
+.eq-swatch {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,.12);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   BOUTONS D'ACTION
+══════════════════════════════════════ */
+.actions {
+  display: flex; gap: 8px;
+  justify-content: center; flex-wrap: wrap;
+}
+.btn {
+  padding: 9px 17px;
+  font-size: 12px; font-weight: 700;
+  font-family: 'Quicksand', sans-serif;
+  border: 1.5px solid var(--bdr);
+  background: var(--card); color: var(--txt);
+  border-radius: 8px; cursor: pointer;
+  transition: background .14s, transform .1s;
+}
+.btn:hover  { background: var(--bg); }
+.btn:active { transform: scale(.96); }
+.btn-check  { background: var(--acc); color: #fff; border-color: var(--acc); }
+.btn-check:hover { filter: brightness(1.08); }
+
+.score {
+  text-align: center;
+  font-size: clamp(11px, 2.5vw, 13px);
+  color: var(--txt2);
+  min-height: 22px;
+  padding: 3px 0;
+}
+.score b { color: var(--acc); }
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+   — tablette portrait  ≤ 760px : layout column
+   — mobile             ≤ 480px : ajustements fins
+══════════════════════════════════════ */
+@media (max-width: 760px) {
+  .layout { flex-direction: column; align-items: center; }
+  .col-draw, .col-panel { width: 100%; max-width: 480px; }
+  .svg-wrap { width: 100%; max-width: 480px; }
+}
+
+@media (max-width: 480px) {
+  .page { padding: 10px 10px 70px; }
+  .panel { padding: 12px 10px; }
+  .eq-box { padding: 10px 8px; font-size: 12px; }
+  .pal-btn { width: 30px; height: 30px; }
+  .leg-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ══════════════════════════════════════
+   BOUTON RETOUR FLOTTANT
+══════════════════════════════════════ */
+.btn-home {
+  position: fixed; top: 14px; left: 14px; z-index: 9999;
+  display: flex; align-items: center; gap: 6px;
+  background: white; color: #5c67f2; text-decoration: none;
+  font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: .82rem;
+  padding: 7px 14px; border-radius: 50px;
+  border: 2px solid #5c67f2;
+  box-shadow: 0 3px 10px rgba(0,0,0,.1);
+  transition: background .2s, color .2s;
+}
+.btn-home:hover { background: #5c67f2; color: white; }
+@media (max-width: 600px) {
+  .btn-home { top: auto; bottom: 14px; left: 14px; font-size: .9rem; padding: 9px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1 class="page-title">🎨 Coloriage Magique — Nombres Décimaux</h1>
+  <p class="page-sub">
+    Clique sur une zone, réponds à la question.<br>
+    Ta réponse est un entier de <strong>1 à 8</strong> : utilise le code couleur pour colorier.
+  </p>
+
+  <div class="layout">
+
+    <!-- ══════════ DESSIN ══════════ -->
+    <div class="col-draw">
+      <div class="svg-wrap">
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- Zone 1 : Ciel -->
+          <rect class="zone" id="z1" x="0" y="0" width="400" height="305"/>
+          <text class="zone-num" x="22" y="18">1</text>
+
+          <!-- Zone 2 : Soleil -->
+          <circle class="zone" id="z2" cx="350" cy="60" r="42"/>
+          <text class="zone-num" x="350" y="60">2</text>
+
+          <!-- Zone 3 : Nuage -->
+          <path class="zone" id="z3"
+            d="M70,95 C70,83 78,74 88,75 C88,63 98,56 112,58
+               C116,48 130,48 134,58 C144,54 155,63 153,75
+               C163,76 170,84 168,95 Z"/>
+          <text class="zone-num" x="119" y="74">3</text>
+
+          <!-- Zone 5 : Cheminée (avant le toit) -->
+          <rect class="zone" id="z5" x="100" y="88" width="28" height="127"/>
+          <text class="zone-num" x="114" y="120">5</text>
+
+          <!-- Zone 12 : Feuillage -->
+          <circle class="zone" id="z12" cx="346" cy="258" r="46"/>
+          <text class="zone-num" x="346" y="258">12</text>
+
+          <!-- Zone 6 : Murs -->
+          <rect class="zone" id="z6" x="75" y="213" width="220" height="92"/>
+          <text class="zone-num" x="256" y="278">6</text>
+
+          <!-- Zone 4 : Toit -->
+          <polygon class="zone" id="z4" points="44,215 320,215 185,118"/>
+          <text class="zone-num" x="185" y="176">4</text>
+
+          <!-- Zone 8 : Fenêtre gauche -->
+          <rect class="zone" id="z8" x="83" y="222" width="48" height="34"/>
+          <text class="zone-num" x="107" y="239">8</text>
+
+          <!-- Zone 9 : Fenêtre droite -->
+          <rect class="zone" id="z9" x="244" y="222" width="48" height="34"/>
+          <text class="zone-num" x="268" y="239">9</text>
+
+          <!-- Zone 7 : Porte -->
+          <rect class="zone" id="z7" x="160" y="256" width="66" height="49"/>
+          <text class="zone-num" x="193" y="279">7</text>
+
+          <!-- Détails décoratifs (non cliquables) -->
+          <line x1="107" y1="222" x2="107" y2="256" stroke="#ccc" stroke-width="1" pointer-events="none"/>
+          <line x1="83"  y1="239" x2="131" y2="239" stroke="#ccc" stroke-width="1" pointer-events="none"/>
+          <line x1="268" y1="222" x2="268" y2="256" stroke="#ccc" stroke-width="1" pointer-events="none"/>
+          <line x1="244" y1="239" x2="292" y2="239" stroke="#ccc" stroke-width="1" pointer-events="none"/>
+          <circle cx="218" cy="280" r="3" fill="#ccc" pointer-events="none"/>
+
+          <!-- Zone 10 : Herbe -->
+          <rect class="zone" id="z10" x="0" y="305" width="400" height="175"/>
+          <text class="zone-num" x="24" y="468">10</text>
+
+          <!-- Zone 11 : Tronc -->
+          <rect class="zone" id="z11" x="333" y="293" width="26" height="17"/>
+          <text class="zone-num" x="346" y="301">11</text>
+
+          <!-- Zone 15 : Chemin -->
+          <polygon class="zone" id="z15" points="172,305 212,305 258,480 126,480"/>
+          <text class="zone-num" x="192" y="400">15</text>
+
+          <!-- Zone 13 : Fleurs gauches -->
+          <ellipse class="zone" id="z13" cx="52" cy="310" rx="35" ry="14"/>
+          <text class="zone-num" x="52" y="310">13</text>
+
+          <!-- Zone 14 : Fleurs droites -->
+          <ellipse class="zone" id="z14" cx="132" cy="310" rx="35" ry="14"/>
+          <text class="zone-num" x="132" y="310">14</text>
+
+        </svg>
+      </div>
+
+      <div class="score" id="score"></div>
+
+      <div class="actions">
+        <button class="btn"       onclick="razAll()">🗑 Tout effacer</button>
+        <button class="btn btn-check" onclick="checkAll()">✓ Vérifier</button>
+      </div>
+    </div><!-- /col-draw -->
+
+    <!-- ══════════ PANNEAU ══════════ -->
+    <div class="col-panel">
+      <div class="panel">
+
+        <div class="panel-empty" id="pempty">
+          ← Clique sur une zone numérotée<br>pour voir sa question
+        </div>
+
+        <div class="panel-content" id="pcontent">
+          <div class="badge-row">
+            <span class="zone-badge"  id="zbadge"></span>
+            <span class="notion-tag"  id="notionTag"></span>
+          </div>
+          <div class="eq-box" id="peq"></div>
+          <div class="pal-label">Choisis la couleur qui correspond à ta réponse :</div>
+          <div class="palette"  id="palette"></div>
+          <div class="hint-box" id="hintBox"></div>
+        </div>
+
+        <!-- Légende -->
+        <p class="section-title" style="margin-top:4px">Code couleur</p>
+        <p class="leg-rule">Ton résultat (entre 1 et 8) indique la couleur à utiliser.</p>
+        <div class="leg-grid" id="legGrid"></div>
+
+        <!-- Liste zones -->
+        <p class="section-title">Liste des zones</p>
+        <div class="eq-list" id="eqList"></div>
+
+      </div>
+    </div><!-- /col-panel -->
+
+  </div><!-- /layout -->
+</div><!-- /page -->
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+/* ── Attend KaTeX avant de lancer l'appli ── */
+function waitKatex(cb) {
+  if (window.katex) { cb(); return; }
+  document.addEventListener('DOMContentLoaded', function retry() {
+    if (window.katex) cb();
+    else setTimeout(() => waitKatex(cb), 50);
+  });
+}
+
+/* ════════════════════════════
+   COULEURS
+════════════════════════════ */
+const COLORS = {
+  1: { name: 'Jaune',     css: '#f1c40f' },
+  2: { name: 'Bleu ciel', css: '#5dade2' },
+  3: { name: 'Vert',      css: '#27ae60' },
+  4: { name: 'Rouge',     css: '#e74c3c' },
+  5: { name: 'Orange',    css: '#e67e22' },
+  6: { name: 'Rose',      css: '#e84393' },
+  7: { name: 'Marron',    css: '#8b5e3c' },
+  8: { name: 'Gris',      css: '#95a5a6' },
+};
+
+/* ════════════════════════════
+   ZONES
+   ─────────────────────────────────────────────────────
+   Notions couvertes (programme 6e, chapitre Nombres décimaux) :
+   • Fractions décimales ↔ écriture décimale   (zones  1, 7, 12)
+   • Valeur d'un chiffre — partie entière       (zones  2, 8, 10)
+   • Valeur d'un chiffre — partie décimale      (zones  3, 14, 15)
+   • Zéros utiles / inutiles                   (zones  5, 9)
+   • Décomposition d'un décimal                (zones  4, 6, 11, 13)
+   ─────────────────────────────────────────────────────
+   q   : question en texte brut (fragment HTML + balises §…§ pour LaTeX inline
+         et §§…§§ pour LaTeX display)
+   ans : couleur correcte (entier 1–8)
+   hint: explication affichée après réponse
+════════════════════════════ */
+const ZONES = [
+
+  /* ── Fractions décimales ── */
+  {
+    id: 1, name: 'Ciel', notion: 'Fraction décimale',
+    q: `Quel est le numérateur de cette fraction décimale ?
+§§0{,}2 = \\dfrac{?}{10}§§`,
+    ans: 2,
+    hint: `§0{,}2 = \\dfrac{2}{10}§ &nbsp;→&nbsp; numérateur = <strong>2</strong><br>
+           Le chiffre des dixièmes devient le numérateur, le dénominateur est 10.`
+  },
+  {
+    id: 7, name: 'Porte', notion: 'Fraction décimale',
+    q: `Quel est le numérateur de cette fraction décimale ?
+§§0{,}007 = \\dfrac{?}{1\\,000}§§
+<small style="color:#888">(attention : §0{,}07 = \\dfrac{7}{100}§ ≠ §0{,}007§)</small>`,
+    ans: 7,
+    hint: `§0{,}007 = \\dfrac{7}{1\\,000}§ &nbsp;→&nbsp; numérateur = <strong>7</strong><br>
+           Trois chiffres après la virgule → dénominateur 1 000.`
+  },
+  {
+    id: 12, name: 'Feuillage', notion: 'Fraction décimale',
+    q: `Quel est le numérateur de cette fraction décimale ?
+§§\\dfrac{?}{100} = 0{,}03§§
+<small style="color:#888">(attention : §\\dfrac{3}{10} = 0{,}3§ ≠ §0{,}03§)</small>`,
+    ans: 3,
+    hint: `§\\dfrac{3}{100} = 0{,}03§ &nbsp;→&nbsp; numérateur = <strong>3</strong><br>
+           Deux chiffres après la virgule → dénominateur 100.`
+  },
+
+  /* ── Valeur d'un chiffre — partie ENTIÈRE ── */
+  {
+    id: 2, name: 'Soleil', notion: "Valeur d'un chiffre",
+    q: `Quel est le chiffre des <strong>dizaines</strong> de §213{,}7§ ?`,
+    ans: 1,
+    hint: `§213{,}7§ &nbsp;→&nbsp; centaines : <strong>2</strong> | dizaines : <strong>1</strong> | unités : 3 | dixièmes : 7`
+  },
+  {
+    id: 8, name: 'Fen. gauche', notion: "Valeur d'un chiffre",
+    q: `Quel est le chiffre des <strong>milliers</strong> de §2\\,046{,}3§ ?`,
+    ans: 2,
+    hint: `§2\\,046{,}3§ &nbsp;→&nbsp; milliers : <strong>2</strong> | centaines : 0 | dizaines : 4 | unités : 6 | dixièmes : 3`
+  },
+  {
+    id: 10, name: 'Herbe', notion: "Valeur d'un chiffre",
+    q: `Quel est le chiffre des <strong>dizaines</strong> de §437{,}5§ ?`,
+    ans: 3,
+    hint: `§437{,}5§ &nbsp;→&nbsp; centaines : 4 | dizaines : <strong>3</strong> | unités : 7 | dixièmes : 5`
+  },
+
+  /* ── Valeur d'un chiffre — partie DÉCIMALE ── */
+  {
+    id: 3, name: 'Nuage', notion: "Valeur d'un chiffre",
+    q: `Quel est le chiffre des <strong>centièmes</strong> de §30{,}083§ ?
+<small style="color:#888">(le chiffre des dixièmes est 0 — ne pas confondre !)</small>`,
+    ans: 8,
+    hint: `§30{,}083§ &nbsp;→&nbsp; dixièmes : 0 | centièmes : <strong>8</strong> | millièmes : 3<br>
+           Le 0 des dixièmes est un zéro utile !`
+  },
+  {
+    id: 14, name: 'Fleurs droite', notion: "Valeur d'un chiffre",
+    q: `Quel est le chiffre des <strong>dixièmes</strong> de §39{,}62§ ?`,
+    ans: 6,
+    hint: `§39{,}62§ &nbsp;→&nbsp; dizaines : 3 | unités : 9 | dixièmes : <strong>6</strong> | centièmes : 2`
+  },
+  {
+    id: 15, name: 'Chemin', notion: "Valeur d'un chiffre",
+    q: `Quel est le chiffre des <strong>centièmes</strong> de §0{,}452§ ?`,
+    ans: 5,
+    hint: `§0{,}452§ &nbsp;→&nbsp; dixièmes : 4 | centièmes : <strong>5</strong> | millièmes : 2`
+  },
+
+  /* ── Zéros utiles / inutiles ── */
+  {
+    id: 5, name: 'Cheminée', notion: 'Zéros utiles/inutiles',
+    q: `On supprime les zéros inutiles de §04{,}700§.
+On obtient §4{,}7§.
+Quel est le chiffre des <strong>unités</strong> du résultat ?`,
+    ans: 4,
+    hint: `§04{,}700§ : le 0 initial et les deux 0 finaux sont <em>inutiles</em>.<br>
+           §04{,}700 = 4{,}7§ &nbsp;→&nbsp; unités = <strong>4</strong>`
+  },
+  {
+    id: 9, name: 'Fen. droite', notion: 'Zéros utiles/inutiles',
+    q: `Combien y a-t-il de zéros <strong>inutiles</strong> dans §3{,}200§ ?`,
+    ans: 2,
+    hint: `§3{,}200§ : les deux 0 finaux (après le 2) sont inutiles.<br>
+           §3{,}200 = 3{,}2§ &nbsp;→&nbsp; <strong>2</strong> zéros inutiles`
+  },
+
+  /* ── Décomposition ── */
+  {
+    id: 4, name: 'Toit', notion: 'Décomposition',
+    q: `Quel est le coefficient manquant ?
+§§243{,}4 = 2{\\times}100 + 4{\\times}10 + 3{\\times}1 + \\boldsymbol{?}{\\times}\\dfrac{1}{10}§§`,
+    ans: 4,
+    hint: `§243{,}4§ : le chiffre des dixièmes est <strong>4</strong>.<br>
+           §243{,}4 = 2{\\times}100 + 4{\\times}10 + 3{\\times}1 + \\mathbf{4}{\\times}\\dfrac{1}{10}§`
+  },
+  {
+    id: 6, name: 'Murs', notion: 'Décomposition',
+    q: `Quel est le coefficient manquant ?
+§§73{,}05 = 7{\\times}10 + 3{\\times}1 + 0{\\times}\\dfrac{1}{10} + \\boldsymbol{?}{\\times}\\dfrac{1}{100}§§
+<small style="color:#888">(le 0 des dixièmes est un zéro utile : §73{,}05 \\neq 73{,}5§)</small>`,
+    ans: 5,
+    hint: `§73{,}05§ : le chiffre des centièmes est <strong>5</strong>.<br>
+           §73{,}05 = 7{\\times}10 + 3{\\times}1 + 0{\\times}\\dfrac{1}{10} + \\mathbf{5}{\\times}\\dfrac{1}{100}§`
+  },
+  {
+    id: 11, name: 'Tronc', notion: 'Décomposition',
+    q: `Quel est le coefficient manquant ?
+§§1\\,070{,}4 = 1{\\times}1\\,000 + 0{\\times}100 + \\boldsymbol{?}{\\times}10 + 0{\\times}1 + 4{\\times}\\dfrac{1}{10}§§
+<small style="color:#888">(les deux 0 sont des zéros utiles !)</small>`,
+    ans: 7,
+    hint: `§1\\,070{,}4§ : le chiffre des dizaines est <strong>7</strong>.<br>
+           §1\\,070{,}4 = 1{\\times}1\\,000 + 0{\\times}100 + \\mathbf{7}{\\times}10 + 0{\\times}1 + 4{\\times}\\dfrac{1}{10}§`
+  },
+  {
+    id: 13, name: 'Fleurs gauche', notion: 'Décomposition',
+    q: `Quel est le coefficient manquant ?
+§§645{,}2 = \\boldsymbol{?}{\\times}100 + 4{\\times}10 + 5{\\times}1 + 2{\\times}\\dfrac{1}{10}§§`,
+    ans: 6,
+    hint: `§645{,}2§ : le chiffre des centaines est <strong>6</strong>.<br>
+           §645{,}2 = \\mathbf{6}{\\times}100 + 4{\\times}10 + 5{\\times}1 + 2{\\times}\\dfrac{1}{10}§`
+  },
+
+];
+
+/* ════════════════════════════
+   ÉTAT
+════════════════════════════ */
+let chosen = {};
+let sel    = -1;
+
+/* ════════════════════════════
+   RENDU KATEX
+   Syntaxe dans les strings :
+   §...§     → inline
+   §§...§§   → display
+════════════════════════════ */
+function renderMath(html) {
+  // display §§...§§
+  html = html.replace(/§§([\s\S]*?)§§/g, (_, tex) => {
+    try { return katex.renderToString(tex, { displayMode: true, throwOnError: false }); }
+    catch(e) { return tex; }
+  });
+  // inline §...§
+  html = html.replace(/§([\s\S]*?)§/g, (_, tex) => {
+    try { return katex.renderToString(tex, { displayMode: false, throwOnError: false }); }
+    catch(e) { return tex; }
+  });
+  return html;
+}
+
+/* ════════════════════════════
+   INIT
+════════════════════════════ */
+function init() {
+  buildLegend();
+  refreshEqList();
+  ZONES.forEach(z => {
+    const el = document.getElementById('z' + z.id);
+    if (el) el.addEventListener('click', () => openZone(z.id));
+  });
+}
+
+/* ════════════════════════════
+   OUVRIR UNE ZONE
+════════════════════════════ */
+function openZone(id) {
+  sel = id;
+  const z = ZONES.find(z => z.id === id);
+
+  document.getElementById('pempty').style.display        = 'none';
+  document.getElementById('pcontent').style.display      = 'block';
+  document.getElementById('zbadge').textContent          = 'Zone ' + id + ' — ' + z.name;
+  document.getElementById('notionTag').textContent       = z.notion;
+  document.getElementById('peq').innerHTML               = renderMath(z.q.replace(/\n/g, '<br>'));
+
+  const hb = document.getElementById('hintBox');
+  if (chosen[id] !== undefined) renderHint(hb, z, chosen[id]);
+  else { hb.className = 'hint-box'; hb.innerHTML = ''; }
+
+  refreshPalette();
+  refreshEqList();
+
+  if (window.innerWidth <= 760)
+    document.querySelector('.col-panel')
+            .scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ════════════════════════════
+   PALETTE
+════════════════════════════ */
+function refreshPalette() {
+  const pal = document.getElementById('palette');
+  pal.innerHTML = '';
+  Object.entries(COLORS).forEach(([num, col]) => {
+    const btn = document.createElement('div');
+    btn.className = 'pal-btn' + (chosen[sel] == num ? ' pick' : '');
+    btn.style.background = col.css;
+    btn.title = num + ' → ' + col.name;
+    btn.innerHTML = '<span class="pal-num">' + num + '</span>';
+    btn.addEventListener('click', () => applyColor(+num));
+    pal.appendChild(btn);
+  });
+}
+
+/* ════════════════════════════
+   APPLIQUER UNE COULEUR
+════════════════════════════ */
+function applyColor(n) {
+  if (sel < 0) return;
+  chosen[sel] = n;
+  const el = document.getElementById('z' + sel);
+  if (el) el.style.fill = COLORS[n].css;
+  refreshPalette();
+  refreshEqList();
+  renderHint(document.getElementById('hintBox'), ZONES.find(z => z.id === sel), n);
+}
+
+function renderHint(hb, z, c) {
+  const ok     = c === z.ans;
+  const prefix = ok ? '✅ ' : '💡 ';
+  hb.innerHTML = prefix + renderMath(z.hint);
+  hb.className = 'hint-box show' + (ok ? ' ok' : '');
+}
+
+/* ════════════════════════════
+   LÉGENDE
+════════════════════════════ */
+function buildLegend() {
+  const grid = document.getElementById('legGrid');
+  Object.entries(COLORS).forEach(([num, col]) => {
+    const item = document.createElement('div');
+    item.className = 'leg-item';
+    item.innerHTML =
+      '<div class="leg-swatch" style="background:' + col.css + '"></div>' +
+      '<span class="leg-text">' + num + ' → ' + col.name + '</span>';
+    grid.appendChild(item);
+  });
+}
+
+/* ════════════════════════════
+   LISTE DES ZONES
+════════════════════════════ */
+function refreshEqList() {
+  const list = document.getElementById('eqList');
+  list.innerHTML = '';
+  [...ZONES].sort((a, b) => a.id - b.id).forEach(z => {
+    const done  = chosen[z.id] !== undefined;
+    const isSel = z.id === sel;
+    const item  = document.createElement('div');
+    item.className = 'eq-item' + (done ? ' done' : '') + (isSel ? ' sel' : '');
+    const sw = done
+      ? '<span class="eq-swatch" style="background:' + COLORS[chosen[z.id]].css + '"></span>'
+      : '';
+    item.innerHTML =
+      '<span class="eq-num">' + z.id + '</span>' +
+      '<span style="flex:1">' + z.name + '</span>' +
+      '<span style="font-size:10px;color:var(--txt2);text-align:right;flex-shrink:0">'
+        + z.notion + '</span>' + sw;
+    item.addEventListener('click', () => openZone(z.id));
+    list.appendChild(item);
+  });
+}
+
+/* ════════════════════════════
+   VÉRIFIER
+════════════════════════════ */
+function checkAll() {
+  let ok = 0, done = 0;
+  ZONES.forEach(z => {
+    const el = document.getElementById('z' + z.id);
+    if (!el) return;
+    if (chosen[z.id] !== undefined) {
+      done++;
+      const correct = chosen[z.id] === z.ans;
+      if (correct) { ok++; el.style.stroke = '#1a9b6c'; }
+      else           el.style.stroke = '#e74c3c';
+      el.style.strokeWidth = '3.5';
+    } else {
+      el.style.stroke      = '#444';
+      el.style.strokeWidth = '1.6';
+    }
+  });
+  const total = ZONES.length;
+  const s     = document.getElementById('score');
+  if (done === 0) {
+    s.innerHTML = 'Colorie au moins une zone pour vérifier.';
+  } else if (ok === total) {
+    s.innerHTML = '🎉 <b>Parfait !</b> Les ' + total + ' zones sont toutes correctes !';
+  } else {
+    const restant = total - done;
+    s.innerHTML = '<b>' + ok + ' / ' + done + '</b> zones correctes'
+      + (restant > 0 ? ' &nbsp;·&nbsp; <b>' + restant + '</b> zone'
+         + (restant > 1 ? 's' : '') + ' non colorée' + (restant > 1 ? 's' : '') : '');
+  }
+}
+
+/* ════════════════════════════
+   TOUT EFFACER
+════════════════════════════ */
+function razAll() {
+  chosen = {};
+  ZONES.forEach(z => {
+    const el = document.getElementById('z' + z.id);
+    if (el) { el.style.fill = '#eceae4'; el.style.stroke = '#444'; el.style.strokeWidth = '1.6'; }
+  });
+  document.getElementById('score').innerHTML           = '';
+  document.getElementById('pempty').style.display      = 'flex';
+  document.getElementById('pcontent').style.display    = 'none';
+  document.getElementById('hintBox').className         = 'hint-box';
+  sel = -1;
+  refreshEqList();
+}
+
+/* ─── Démarrage ─── */
+waitKatex(init);
+</script>
+
+<a href="index.html" class="btn-home">🏠 Menu</a>
+</body>
+</html>

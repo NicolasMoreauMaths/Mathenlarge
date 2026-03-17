@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éléments de géométrie — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+  --blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.2);
+  --purple:#7c3aed;--purple-pale:rgba(124,58,237,.1);
+  --orange:#ea580c;--orange-pale:rgba(234,88,12,.1);--orange-border:rgba(234,88,12,.25);
+  --green:#16a34a;--green-pale:rgba(22,163,74,.1);
+  --red:#dc2626;--red-pale:rgba(220,38,38,.08);
+  --text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.08);
+}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);-webkit-text-size-adjust:100%;}
+.app{max-width:900px;width:100%;}
+.app-header{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;padding:18px 24px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(29,78,216,.3);position:relative;overflow:hidden;}
+.app-header::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 50%);pointer-events:none;}
+.app-title{font-size:1.3em;font-weight:700;position:relative;display:flex;align-items:center;gap:10px;}
+.app-title::before{content:'📐';font-size:1.2em;}
+.menu-btn-header{color:white;border-color:rgba(255,255,255,.3);background:none;font-family:'DM Sans',sans-serif;padding:8px 18px;border-radius:12px;font-size:.85em;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid rgba(255,255,255,.3);display:inline-flex;align-items:center;gap:6px;position:relative;}
+.menu-btn-header:hover{background:rgba(255,255,255,.15);}
+.main{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;padding:32px 28px;box-shadow:0 8px 28px var(--shadow);min-height:60vh;}
+.screen{display:none;animation:fadeIn .3s ease;}.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
+h1{font-size:1.6em;font-weight:700;text-align:center;margin-bottom:8px;color:var(--blue);}
+.sub{text-align:center;font-size:.95em;color:var(--text-light);margin-bottom:24px;line-height:1.6;}
+.btn{font-family:'DM Sans',sans-serif;padding:12px 28px;border-radius:12px;font-size:.95em;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:none;}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 12px rgba(29,78,216,.2);}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-2px);box-shadow:0 4px 16px rgba(29,78,216,.3);}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-green:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px);}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border);}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light);}
+.controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:20px 0;}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:22px 16px;text-align:center;cursor:pointer;transition:all .25s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+.mc:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 8px 24px var(--shadow);}
+.mc-icon{font-size:2em;margin-bottom:8px;}
+.mc-t{font-size:.95em;color:var(--blue);font-weight:700;margin-bottom:4px;}
+.mc-d{font-size:.8em;color:var(--text-light);line-height:1.4;}
+.mc-badge{position:absolute;top:10px;right:10px;background:var(--orange-pale);color:var(--orange);font-size:.7em;font-weight:700;padding:3px 10px;border-radius:12px;}
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.ex-badge{background:var(--blue-pale);color:var(--blue);padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:700;}
+.ex-score{font-size:.9em;color:var(--text-light);font-weight:600;}
+.pbar{width:100%;background:var(--border);border-radius:6px;height:6px;overflow:hidden;margin-bottom:20px;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:6px;transition:width .4s;}
+.fb{border-radius:12px;padding:14px 20px;font-size:.95em;font-weight:600;line-height:1.5;display:none;margin-top:16px;}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,.2);}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,.15);}
+.rc{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:20px auto;border:6px solid var(--border);}
+.rc.good{border-color:var(--green);}.rc.mid{border-color:var(--orange);}.rc.bad{border-color:var(--red);}
+.rp{font-size:2.2em;font-weight:700;line-height:1;}
+.rm{font-size:1.1em;text-align:center;margin:16px 0;line-height:1.5;}
+.inp{font-family:'DM Sans',sans-serif;font-size:1.15rem;font-weight:700;width:70px;text-align:center;padding:.45rem .3rem;border:2.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);transition:border-color .2s,box-shadow .2s;-moz-appearance:textfield;}
+.inp::-webkit-outer-spin-button,.inp::-webkit-inner-spin-button{-webkit-appearance:none;}
+.inp:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.inp.ok{border-color:var(--green);background:var(--green-pale);color:var(--green);}
+.inp.err{border-color:var(--red);background:var(--red-pale);color:var(--red);animation:shake .4s ease;}
+.inp-text{font-family:'DM Sans',sans-serif;font-size:1.05rem;font-weight:600;width:180px;text-align:center;padding:.5rem .6rem;border:2.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);transition:border-color .2s,box-shadow .2s;}
+.inp-text:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.inp-text.ok{border-color:var(--green);background:var(--green-pale);color:var(--green);}
+.inp-text.err{border-color:var(--red);background:var(--red-pale);color:var(--red);animation:shake .4s ease;}
+.q-text{font-size:1.1em;font-weight:600;line-height:1.6;margin-bottom:1rem;text-align:center;}
+.fig-wrap{display:flex;justify-content:center;margin:1rem 0;overflow-x:auto;padding:.5rem 0;}
+.fig-wrap svg{display:block;max-width:100%;}
+.choices{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:1rem 0;}
+.choice-btn{font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;padding:12px 24px;border:2.5px solid var(--border);border-radius:12px;background:#fff;cursor:pointer;transition:all .2s;min-width:100px;text-align:center;color:var(--text);}
+.choice-btn:hover:not(.locked){border-color:var(--blue);background:var(--blue-pale);transform:translateY(-2px);}
+.choice-btn.selected{border-color:var(--blue);background:var(--blue-pale);color:var(--blue);}
+.choice-btn.correct{border-color:var(--green);background:var(--green-pale);color:var(--green);}
+.choice-btn.wrong{border-color:var(--red);background:var(--red-pale);color:var(--red);}
+.choice-btn.locked{cursor:default;}
+.choice-btn.locked:not(.correct):not(.wrong){opacity:.5;}
+@media(max-width:640px){
+  .app-header{padding:14px 18px;}.app-title{font-size:1.05em;}
+  .main{padding:24px 16px;}h1{font-size:1.3em;}.menu-grid{grid-template-columns:1fr;}
+  .choice-btn{min-width:80px;padding:10px 16px;font-size:.9rem;}
+  .inp-text{width:140px;font-size:.95rem;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="app-title">Éléments de géométrie</div>
+    <button class="menu-btn-header" onclick="show('S_menu')">← Menu</button>
+  </div>
+  <div class="main">
+    <div id="S_menu" class="screen active">
+      <h1>Entraîne-toi sur la géométrie</h1>
+      <p class="sub">Choisis une compétence pour commencer</p>
+      <div class="menu-grid">
+        <div class="mc" onclick="go(1)"><div class="mc-icon">📏</div><div class="mc-t">Reconnaître une figure</div><div class="mc-d">Droite, demi-droite ou segment ?</div></div>
+        <div class="mc" onclick="go(2)"><div class="mc-icon">✏️</div><div class="mc-t">Écrire la notation</div><div class="mc-d">Écris la bonne notation pour chaque figure</div></div>
+        <div class="mc" onclick="go(3)"><div class="mc-icon">🔣</div><div class="mc-t">Lire un codage</div><div class="mc-d">Que nous dit le codage sur cette figure ?</div></div>
+        <div class="mc" onclick="go(4)"><div class="mc-icon">⊕</div><div class="mc-t">Milieu d'un segment</div><div class="mc-d">Calcule des longueurs à partir du milieu</div></div>
+        <div class="mc" onclick="go(5)"><div class="mc-icon">🔀</div><div class="mc-t">Points alignés & sécantes</div><div class="mc-d">Identifie les points alignés et les droites sécantes</div></div>
+        <div class="mc" onclick="go(6)" style="border-color:var(--orange);background:var(--orange-pale);"><div class="mc-badge">MIX</div><div class="mc-icon">🎯</div><div class="mc-t" style="color:var(--orange);">Mélange de tout</div><div class="mc-d">Questions variées sur toutes les compétences</div></div>
+      </div>
+    </div>
+    <div id="S_ex" class="screen">
+      <div class="ex-top"><div class="ex-badge" id="badge">—</div><div class="ex-score" id="scLbl">0 / 0</div></div>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+      <div id="zone"></div>
+      <div class="fb" id="fb"></div>
+      <div class="controls"><button class="btn btn-blue" id="nxt" style="display:none" onclick="nxtQ()">Question suivante →</button></div>
+    </div>
+    <div id="S_res" class="screen">
+      <h1>Résultats</h1>
+      <div class="rc" id="rCirc"><div class="rp" id="rPct">0%</div></div>
+      <div class="rm" id="rMsg"></div>
+      <div class="controls"><button class="btn btn-blue" onclick="show('S_menu')">← Retour au menu</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NAMES={1:'Reconnaître une figure',2:'Écrire la notation',3:'Lire un codage',4:'Milieu d\'un segment',5:'Alignés & sécantes',6:'Mélange'};
+let lv=1,qs=[],qi=0,cq=null,sc=0;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ═══════════ SVG HELPERS ═══════════ */
+function svgLine(x1,y1,x2,y2,col='#64748b',w=2){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}"/>`;}
+function svgTick(x,y,col='#1d4ed8'){return `<line x1="${x}" y1="${y-10}" x2="${x}" y2="${y+10}" stroke="${col}" stroke-width="2.5"/>`;}
+function svgLabel(x,y,txt,col='#1d4ed8'){return `<text x="${x}" y="${y}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="15" fill="${col}" font-weight="700">${txt}</text>`;}
+function svgCross(cx,cy,col='#dc2626'){
+  return `<line x1="${cx-7}" y1="${cy-7}" x2="${cx+7}" y2="${cy+7}" stroke="${col}" stroke-width="2.5"/>
+          <line x1="${cx+7}" y1="${cy-7}" x2="${cx-7}" y2="${cy+7}" stroke="${col}" stroke-width="2.5"/>`;
+}
+
+function makeDroiteSVG(p1,p2){
+  return `<svg viewBox="0 0 340 60" xmlns="http://www.w3.org/2000/svg" style="width:340px;height:60px;">
+    ${svgLine(10,35,330,35)}${svgTick(100,35)}${svgLabel(100,18,p1)}${svgTick(240,35)}${svgLabel(240,18,p2)}
+  </svg>`;
+}
+function makeSegmentSVG(p1,p2){
+  return `<svg viewBox="0 0 340 60" xmlns="http://www.w3.org/2000/svg" style="width:340px;height:60px;">
+    ${svgLine(70,35,270,35,'#1d4ed8',2.5)}${svgTick(70,35)}${svgLabel(70,18,p1)}${svgTick(270,35)}${svgLabel(270,18,p2)}
+  </svg>`;
+}
+function makeDemiDroiteSVG(origin,other){
+  return `<svg viewBox="0 0 340 60" xmlns="http://www.w3.org/2000/svg" style="width:340px;height:60px;">
+    ${svgLine(50,35,330,35)}${svgTick(50,35,'#dc2626')}${svgLabel(50,18,origin,'#dc2626')}${svgTick(190,35)}${svgLabel(190,18,other)}
+  </svg>`;
+}
+
+/* ═══════════ GENERATORS ═══════════ */
+const LETTERS='ABCDEFGHJKLNPQRSTUVWXYZ'; // removed I,M,O to avoid confusion
+function twoDiffLetters(){const s=shuffle([...LETTERS]);return[s[0],s[1]];}
+function threeLetters(){return shuffle([...LETTERS]).slice(0,3);}
+
+// Milieu: ensure M name is different from endpoints
+function milieuLetters(){
+  const endpoints=twoDiffLetters();
+  const middles=['I','M','O','K','J'];
+  const m=pick(middles.filter(c=>c!==endpoints[0]&&c!==endpoints[1]));
+  return{p1:endpoints[0],p2:endpoints[1],m};
+}
+
+function genL1(){
+  const out=[];const types=['droite','segment','demi-droite'];
+  types.forEach(t=>{const[p1,p2]=twoDiffLetters();out.push({type:1,fig:t,p1,p2});});
+  for(let i=0;i<2;i++){const t=pick(types);const[p1,p2]=twoDiffLetters();out.push({type:1,fig:t,p1,p2});}
+  return shuffle(out);
+}
+
+function genL2(){
+  const out=[];const types=['droite','segment','demi-droite'];
+  types.forEach(t=>{const[p1,p2]=twoDiffLetters();out.push({type:2,fig:t,p1,p2});});
+  for(let i=0;i<2;i++){const t=pick(types);const[p1,p2]=twoDiffLetters();out.push({type:2,fig:t,p1,p2});}
+  return shuffle(out);
+}
+
+function genL3(){
+  const out=[];
+  for(let i=0;i<3;i++){
+    const letters=threeLetters();const coded=rnd(0,2); // 3 possibilités maintenant
+    out.push({type:3,subtype:'equal',letters,coded});
+  }
+  for(let i=0;i<2;i++){
+    const letters=threeLetters();const rightAt=rnd(0,2);
+    out.push({type:3,subtype:'right',letters,rightAt});
+  }
+  return shuffle(out);
+}
+
+function genL4(){
+  const out=[];
+  const values=[2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10,11,12,14,15];
+  const asks=['half','total','mirror'];
+  const usedVals=[];
+  for(let i=0;i<5;i++){
+    let half;
+    do{half=pick(values);}while(usedVals.includes(half)&&usedVals.length<values.length);
+    usedVals.push(half);
+    const{p1,p2,m}=milieuLetters();
+    const askWhat=asks[i%3];
+    out.push({type:4,p1,p2,m,half,askWhat});
+  }
+  return shuffle(out);
+}
+
+function genL5(){
+  const out=[];
+  for(let i=0;i<3;i++){
+    const allPts=shuffle([...LETTERS]).slice(0,4);
+    // allPts[0..2] = aligned, allPts[3] = alien
+    const aligned=allPts.slice(0,3);
+    const alien=allPts[3];
+    // Insert alien at a random position for the button display order
+    const alienPos=rnd(0,3);
+    const display=[];
+    let ai=0;
+    for(let j=0;j<4;j++){
+      if(j===alienPos) display.push(alien);
+      else{display.push(aligned[ai]);ai++;}
+    }
+    out.push({type:5,subtype:'aligned',aligned,alien,display,alienPos});
+  }
+  for(let i=0;i<2;i++){
+    const inter=pick(['O','I','P','K','S','T','R']);
+    out.push({type:5,subtype:'secant',inter});
+  }
+  return shuffle(out);
+}
+
+function genL6(){
+  return shuffle([genL1()[0],genL2()[0],genL3()[0],genL4()[0],genL5()[0]]);
+}
+
+/* ═══════════ RENDERERS ═══════════ */
+function renderQ(){
+  cq=qs[qi];cq._done=false;cq._tries=0;
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';$('nxt').style.display='none';
+  $('zone').innerHTML='';
+  if(cq.type===1) renderRecognize(cq);
+  else if(cq.type===2) renderNotation(cq);
+  else if(cq.type===3) renderCodage(cq);
+  else if(cq.type===4) renderMilieu(cq);
+  else if(cq.type===5) renderAligned(cq);
+}
+
+/* ── TYPE 1: Reconnaître ── */
+function renderRecognize(q){
+  let svg='';
+  if(q.fig==='droite') svg=makeDroiteSVG(q.p1,q.p2);
+  else if(q.fig==='segment') svg=makeSegmentSVG(q.p1,q.p2);
+  else svg=makeDemiDroiteSVG(q.p1,q.p2);
+  $('zone').innerHTML=`
+    <p class="q-text">Quelle est cette figure ?</p>
+    <div class="fig-wrap">${svg}</div>
+    <div class="choices" id="choices">
+      <button class="choice-btn" data-v="droite" onclick="pickChoice(this)">Une droite</button>
+      <button class="choice-btn" data-v="demi-droite" onclick="pickChoice(this)">Une demi-droite</button>
+      <button class="choice-btn" data-v="segment" onclick="pickChoice(this)">Un segment</button>
+    </div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green" onclick="validateChoiceQ()">Valider</button></div>`;
+}
+
+function pickChoice(el){
+  if(cq._done)return;
+  document.querySelectorAll('#choices .choice-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function validateChoiceQ(){
+  if(cq._done)return;
+  const sel=document.querySelector('#choices .choice-btn.selected');
+  if(!sel){$('fb').className='fb bad';$('fb').innerHTML='❌ Choisis une réponse !';return;}
+  const v=sel.dataset.v;
+  if(v===cq.fig){
+    // Correct
+    document.querySelectorAll('#choices .choice-btn').forEach(b=>b.classList.add('locked'));
+    sel.classList.add('correct');
+    finish(true,`C'est bien une <strong>${cq.fig}</strong> ✓`);
+  } else {
+    // Wrong — DON'T reveal answer on first try
+    sel.classList.add('wrong');
+    setTimeout(()=>{sel.classList.remove('wrong','selected');},600);
+    finish(false,`C'est une <strong>${cq.fig}</strong>, pas une ${v}.`);
+  }
+}
+
+/* ── TYPE 2: Écrire la notation ── */
+function renderNotation(q){
+  let svg='',hint='';
+  if(q.fig==='droite'){svg=makeDroiteSVG(q.p1,q.p2);hint='Rappel : la ligne continue des deux côtés.';}
+  else if(q.fig==='segment'){svg=makeSegmentSVG(q.p1,q.p2);hint='Rappel : la ligne s\'arrête aux deux points.';}
+  else{svg=makeDemiDroiteSVG(q.p1,q.p2);hint=`Rappel : la ligne part de ${q.p1} et continue d'un seul côté.`;}
+  $('zone').innerHTML=`
+    <p class="q-text">Écris la notation correcte pour cette figure.</p>
+    <div class="fig-wrap">${svg}</div>
+    <p style="text-align:center;font-size:.85em;color:var(--text-light);margin-bottom:1rem;">${hint}</p>
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;">
+      <input class="inp-text" id="i_nota" type="text" placeholder="Ex : (AB), [AB], [AB)" autocomplete="off" spellcheck="false">
+      <button class="btn btn-green" onclick="checkNotation()">Valider</button>
+    </div>`;
+  bindEnter(checkNotation);
+  setTimeout(()=>$('i_nota').focus(),100);
+}
+function checkNotation(){
+  if(cq._done)return;
+  const raw=$('i_nota').value.trim().replace(/\s+/g,'');
+  if(!raw){$('fb').className='fb bad';$('fb').innerHTML='❌ Écris une notation !';return;}
+  const q=cq;
+  let correct=[];
+  if(q.fig==='droite') correct=[`(${q.p1}${q.p2})`,`(${q.p2}${q.p1})`];
+  else if(q.fig==='segment') correct=[`[${q.p1}${q.p2}]`,`[${q.p2}${q.p1}]`];
+  else correct=[`[${q.p1}${q.p2})`];
+  const norm=s=>s.replace(/\s/g,'').toUpperCase();
+  const answer=norm(raw);
+  const isCorrect=correct.some(c=>norm(c)===answer);
+  if(isCorrect){
+    $('i_nota').classList.add('ok');
+    finish(true,`<strong>${correct[0]}</strong> ✓`);
+  } else {
+    $('i_nota').classList.add('err');
+    let extra='';
+    if(q.fig==='demi-droite'&&norm(raw)===norm(`[${q.p2}${q.p1})`)){
+      extra=` Attention, l'origine <strong>${q.p1}</strong> doit être en premier !`;
+    }
+    finish(false,`La bonne notation est <strong>${correct[0]}</strong>.${extra}`);
+  }
+}
+
+/* ── TYPE 3: Lire un codage ── */
+function renderCodage(q){
+  if(q.subtype==='equal') renderCodageEqual(q);
+  else renderCodageRight(q);
+}
+function renderCodageEqual(q){
+  const[A,B,C]=q.letters;
+  let side1,side2;
+  if(q.coded===0){side1=`${A}${B}`;side2=`${A}${C}`;}
+  else if(q.coded===1){side1=`${A}${B}`;side2=`${B}${C}`;}
+  else{side1=`${A}${C}`;side2=`${B}${C}`;}
+  let codeSvg;
+  if(q.coded===0){
+    // AB=AC → traits on left side and right side
+    codeSvg=`<line x1="88" y1="96" x2="100" y2="104" stroke="#16a34a" stroke-width="2.5"/>
+       <line x1="208" y1="104" x2="196" y2="96" stroke="#16a34a" stroke-width="2.5"/>`;
+  } else if(q.coded===1){
+    // AB=BC → traits on left side and bottom
+    codeSvg=`<line x1="88" y1="96" x2="100" y2="104" stroke="#16a34a" stroke-width="2.5"/>
+       <line x1="146" y1="164" x2="154" y2="176" stroke="#16a34a" stroke-width="2.5"/>`;
+  } else {
+    // AC=BC → traits on right side and bottom
+    codeSvg=`<line x1="208" y1="104" x2="196" y2="96" stroke="#16a34a" stroke-width="2.5"/>
+       <line x1="146" y1="164" x2="154" y2="176" stroke="#16a34a" stroke-width="2.5"/>`;
+  }
+  const svg=`<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" style="width:300px;height:200px;">
+    ${svgLine(40,170,260,170)}${svgLine(40,170,150,30)}${svgLine(150,30,260,170)}
+    ${svgLabel(24,185,B)}${svgLabel(276,185,C)}${svgLabel(150,22,A)}
+    ${codeSvg}</svg>`;
+  $('zone').innerHTML=`
+    <p class="q-text">D'après le codage, quels segments ont la <strong>même longueur</strong> ?</p>
+    <div class="fig-wrap">${svg}</div>
+    <div class="choices" id="choices">
+      <button class="choice-btn" data-v="0" onclick="pickChoice(this)">[${A}${B}] et [${A}${C}]</button>
+      <button class="choice-btn" data-v="1" onclick="pickChoice(this)">[${A}${B}] et [${B}${C}]</button>
+      <button class="choice-btn" data-v="2" onclick="pickChoice(this)">[${A}${C}] et [${B}${C}]</button>
+    </div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green" onclick="validateGenericChoice()">Valider</button></div>`;
+  cq._correctVal=String(q.coded);
+  cq._correctText=`[${side1}] et [${side2}]`;
+}
+function renderCodageRight(q){
+  const[A,B,C]=q.letters;const ri=q.rightAt;
+  let pts,sqr,labels;
+  if(ri===0){
+    pts=`${svgLine(40,170,40,30)}${svgLine(40,170,280,170)}${svgLine(40,30,280,170)}`;
+    sqr=`<rect x="40" y="156" width="14" height="14" fill="none" stroke="#dc2626" stroke-width="1.8"/>`;
+    labels=`${svgLabel(28,185,A)}${svgLabel(28,24,B)}${svgLabel(292,185,C)}`;
+  } else if(ri===1){
+    pts=`${svgLine(40,170,170,30)}${svgLine(170,30,300,170)}${svgLine(40,170,300,170)}`;
+    sqr=`<rect x="170" y="30" width="13" height="13" fill="none" stroke="#dc2626" stroke-width="1.8" transform="rotate(33 170 30)"/>`;
+    labels=`${svgLabel(24,185,A)}${svgLabel(170,22,B)}${svgLabel(316,185,C)}`;
+  } else {
+    pts=`${svgLine(40,170,280,170)}${svgLine(280,170,280,30)}${svgLine(280,30,40,170)}`;
+    sqr=`<rect x="266" y="156" width="14" height="14" fill="none" stroke="#dc2626" stroke-width="1.8"/>`;
+    labels=`${svgLabel(24,185,A)}${svgLabel(292,24,B)}${svgLabel(292,185,C)}`;
+  }
+  const svg=`<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" style="width:320px;height:200px;">${pts}${sqr}${labels}</svg>`;
+  $('zone').innerHTML=`
+    <p class="q-text">D'après le codage, où se situe <strong>l'angle droit</strong> ?</p>
+    <div class="fig-wrap">${svg}</div>
+    <div class="choices" id="choices">
+      <button class="choice-btn" data-v="0" onclick="pickChoice(this)">En ${A}</button>
+      <button class="choice-btn" data-v="1" onclick="pickChoice(this)">En ${B}</button>
+      <button class="choice-btn" data-v="2" onclick="pickChoice(this)">En ${C}</button>
+    </div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green" onclick="validateGenericChoice()">Valider</button></div>`;
+  cq._correctVal=String(ri);
+  cq._correctText=`L'angle droit est en <strong>${q.letters[ri]}</strong>`;
+}
+
+function validateGenericChoice(){
+  if(cq._done)return;
+  const sel=document.querySelector('#choices .choice-btn.selected');
+  if(!sel){$('fb').className='fb bad';$('fb').innerHTML='❌ Choisis une réponse !';return;}
+  const v=sel.dataset.v;
+  if(v===cq._correctVal){
+    document.querySelectorAll('#choices .choice-btn').forEach(b=>b.classList.add('locked'));
+    sel.classList.add('correct');
+    finish(true,`${cq._correctText} ✓`);
+  } else {
+    // Don't reveal correct answer on first try
+    sel.classList.add('wrong');
+    setTimeout(()=>{sel.classList.remove('wrong','selected');},600);
+    finish(false,cq._correctText);
+  }
+}
+
+/* ── TYPE 4: Milieu ── */
+function renderMilieu(q){
+  const total=q.half*2;
+  let question,answer;
+  if(q.askWhat==='half'){
+    question=`Le point <strong>${q.m}</strong> est le milieu du segment [${q.p1}${q.p2}]. On sait que ${q.p1}${q.p2} = <strong>${total} cm</strong>.<br>Combien mesure ${q.p1}${q.m} ?`;
+    answer=q.half;
+  } else if(q.askWhat==='total'){
+    question=`Le point <strong>${q.m}</strong> est le milieu du segment [${q.p1}${q.p2}]. On sait que ${q.p1}${q.m} = <strong>${q.half} cm</strong>.<br>Combien mesure ${q.p1}${q.p2} ?`;
+    answer=total;
+  } else {
+    question=`Le point <strong>${q.m}</strong> est le milieu du segment [${q.p1}${q.p2}]. On sait que ${q.p1}${q.m} = <strong>${q.half} cm</strong>.<br>Combien mesure ${q.m}${q.p2} ?`;
+    answer=q.half;
+  }
+  cq._answer=answer;
+  const svg=`<svg viewBox="0 0 380 70" xmlns="http://www.w3.org/2000/svg" style="width:380px;height:70px;">
+    ${svgLine(50,35,330,35)}
+    ${svgTick(50,35)}${svgLabel(50,18,q.p1)}
+    ${svgTick(190,35,'#dc2626')}${svgLabel(190,18,q.m,'#dc2626')}
+    ${svgTick(330,35)}${svgLabel(330,18,q.p2)}
+    <line x1="114" y1="30" x2="122" y2="40" stroke="#16a34a" stroke-width="2"/>
+    <line x1="118" y1="30" x2="126" y2="40" stroke="#16a34a" stroke-width="2"/>
+    <line x1="254" y1="30" x2="262" y2="40" stroke="#16a34a" stroke-width="2"/>
+    <line x1="258" y1="30" x2="266" y2="40" stroke="#16a34a" stroke-width="2"/>
+  </svg>`;
+  $('zone').innerHTML=`
+    <p class="q-text">${question}</p>
+    <div class="fig-wrap">${svg}</div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:1rem;">
+      <input class="inp" id="i_mil" type="number" min="0" step="any" placeholder="?" autocomplete="off">
+      <span style="font-weight:600;">cm</span>
+      <button class="btn btn-green" onclick="checkMilieu()">Valider</button>
+    </div>`;
+  bindEnter(checkMilieu);
+  setTimeout(()=>$('i_mil').focus(),100);
+}
+function checkMilieu(){
+  if(cq._done)return;
+  const v=parseFloat($('i_mil').value);
+  if(isNaN(v)){$('fb').className='fb bad';$('fb').innerHTML='❌ Entre un nombre !';return;}
+  if(Math.abs(v-cq._answer)<0.01){
+    $('i_mil').classList.add('ok');
+    finish(true,`<strong>${cq._answer} cm</strong> ✓`);
+  } else {
+    $('i_mil').classList.add('err');
+    finish(false,`La réponse est <strong>${cq._answer} cm</strong>. Le milieu partage le segment en deux parts égales.`);
+  }
+}
+
+/* ── TYPE 5: Alignés & Sécantes ── */
+function renderAligned(q){
+  if(q.subtype==='aligned') renderAlignedPts(q);
+  else renderSecant(q);
+}
+function renderAlignedPts(q){
+  const[A,B,C]=q.aligned; // 3 aligned points
+  const D=q.alien; // the alien point
+  const svg=`<svg viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg" style="width:400px;height:130px;">
+    ${svgLine(20,85,380,85)}
+    ${svgTick(70,85)}${svgLabel(70,70,A)}
+    ${svgTick(190,85)}${svgLabel(190,70,B)}
+    ${svgTick(320,85)}${svgLabel(320,70,C)}
+    ${svgCross(260,40,'#dc2626')}
+    ${svgLabel(260,25,D,'#dc2626')}
+  </svg>`;
+  $('zone').innerHTML=`
+    <p class="q-text">Quel point n'est <strong>pas aligné</strong> avec les autres ?</p>
+    <div class="fig-wrap">${svg}</div>
+    <div class="choices" id="choices">
+      ${q.display.map((p,i)=>`<button class="choice-btn" data-v="${i}" onclick="pickChoice(this)">${p}</button>`).join('')}
+    </div>
+    <div class="controls" style="margin-top:8px;"><button class="btn btn-green" onclick="validateGenericChoice()">Valider</button></div>`;
+  cq._correctVal=String(q.alienPos);
+  cq._correctText=`Le point <strong>${D}</strong> n'est pas aligné avec ${A}, ${B} et ${C}`;
+}
+function renderSecant(q){
+  const inter=q.inter;
+  const svg=`<svg viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg" style="width:340px;height:160px;">
+    ${svgLine(20,130,320,30,'#3b82f6',1.8)}
+    ${svgLine(20,30,320,130,'#7c3aed',1.8)}
+    <circle cx="170" cy="80" r="5" fill="#dc2626"/>
+    ${svgLabel(184,72,inter,'#dc2626')}
+    ${svgLabel(325,24,'(d₁)','#3b82f6')}
+    ${svgLabel(325,140,'(d₂)','#7c3aed')}
+  </svg>`;
+  $('zone').innerHTML=`
+    <p class="q-text">Les droites (d₁) et (d₂) sont sécantes.<br>Quel est le <strong>point d'intersection</strong> ?</p>
+    <div class="fig-wrap">${svg}</div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:1rem;">
+      <input class="inp-text" id="i_sec" type="text" placeholder="Nom du point" autocomplete="off" style="width:120px;">
+      <button class="btn btn-green" onclick="checkSecant()">Valider</button>
+    </div>`;
+  bindEnter(checkSecant);
+  setTimeout(()=>$('i_sec').focus(),100);
+}
+function checkSecant(){
+  if(cq._done)return;
+  const v=$('i_sec').value.trim().toUpperCase();
+  if(!v){$('fb').className='fb bad';$('fb').innerHTML='❌ Écris le nom du point !';return;}
+  if(v===cq.inter.toUpperCase()){
+    $('i_sec').classList.add('ok');
+    finish(true,`Le point d'intersection est <strong>${cq.inter}</strong> ✓`);
+  } else {
+    $('i_sec').classList.add('err');
+    finish(false,`Le point d'intersection est <strong>${cq.inter}</strong>.`);
+  }
+}
+
+/* ═══════════ ENGINE ═══════════ */
+function bindEnter(fn){
+  document.querySelectorAll('#zone .inp, #zone .inp-text').forEach(inp=>{
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fn();}});
+  });
+}
+
+// Enter key for choice-based questions
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!cq||cq._done)return;
+  const choices=document.querySelector('#choices');
+  if(!choices)return;
+  const sel=document.querySelector('#choices .choice-btn.selected');
+  if(!sel)return;
+  e.preventDefault();
+  if(cq.type===1) validateChoiceQ();
+  else validateGenericChoice();
+});
+
+function go(l){
+  lv=l;sc=0;qi=0;
+  if(l===1)qs=genL1();else if(l===2)qs=genL2();else if(l===3)qs=genL3();else if(l===4)qs=genL4();else if(l===5)qs=genL5();else qs=genL6();
+  $('badge').textContent=NAMES[l];
+  show('S_ex');renderQ();
+}
+
+function finish(ok,msg){
+  const fb=$('fb');
+  if(ok){
+    cq._done=true;sc++;
+    $('scLbl').textContent=`${sc} / ${qi+1}`;
+    fb.className='fb ok';fb.innerHTML='✅ '+msg;
+    $('nxt').style.display='';
+    setTimeout(()=>$('nxt').focus(),200);
+  } else {
+    cq._tries++;
+    if(cq._tries<2){
+      // First miss: just say try again, DON'T reveal the answer
+      fb.className='fb bad';fb.innerHTML='❌ Ce n\'est pas ça… Essaie encore !';
+      document.querySelectorAll('#zone .inp.err, #zone .inp-text.err').forEach(i=>{setTimeout(()=>i.classList.remove('err'),600);});
+    } else {
+      // Second miss: reveal correction, lock everything, move on
+      cq._done=true;
+      $('scLbl').textContent=`${sc} / ${qi+1}`;
+      fb.className='fb bad';fb.innerHTML='❌ '+msg;
+      // Lock all choice buttons and show correct one
+      document.querySelectorAll('#choices .choice-btn').forEach(b=>b.classList.add('locked'));
+      if(cq._correctVal!==undefined){
+        const correct=document.querySelector(`#choices .choice-btn[data-v="${cq._correctVal}"]`);
+        if(correct) correct.classList.add('correct');
+      } else if(cq.fig){
+        const correct=document.querySelector(`#choices .choice-btn[data-v="${cq.fig}"]`);
+        if(correct) correct.classList.add('correct');
+      }
+      $('nxt').style.display='';
+      setTimeout(()=>$('nxt').focus(),200);
+    }
+  }
+}
+
+function nxtQ(){qi++;if(qi>=qs.length)showRes();else renderQ();}
+
+function showRes(){
+  const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className=`rc ${tier}`;
+  const rp=$('rPct');rp.textContent=`${pct}%`;
+  rp.style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+  $('rMsg').textContent=pct===100?'🎉 Parfait ! Tu maîtrises la géométrie !':pct>=80?'👏 Très bien ! Continue comme ça !':pct>=60?'👍 Bon travail, tu progresses !':'💪 Continue à t\'entraîner !';
+  show('S_res');
+}
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s;}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}}
+</style>
+</body>
+</html>
