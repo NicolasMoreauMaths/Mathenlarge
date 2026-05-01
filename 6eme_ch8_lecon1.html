@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Activité – Découvrir la division euclidienne</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1eb;--card:#fff;--text:#2b2724;--text-mid:#5c5652;--text-light:#8a8380;
+  --blue:#1a6fa0;--blue-light:#e8f2fa;--green:#1b7a40;--green-light:#e6f5ec;
+  --purple:#6b3fa0;--purple-light:#f1ecf8;--orange-c:#b85c0b;--orange-light:#fef2e8;
+  --red:#c0392b;--red-light:#fceae8;--gold:#b8860b;--gold-light:#fef8e8;
+  --border:#e0dbd4;--shadow:0 3px 16px rgba(0,0,0,.06);--radius:12px;--radius-sm:8px;
+  --seg-size:36px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:16px;overflow-x:hidden;}
+
+.header{background:linear-gradient(160deg,#0f1b2d,#1a2940 40%,#1e3a5f);color:#fff;padding:2.5rem 1.5rem 2rem;text-align:center;position:relative;overflow:hidden;}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--green),var(--purple),var(--orange-c));}
+.header .badge{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.5;display:block;margin-bottom:.5rem;}
+.header h1{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,3.8vw,2.2rem);font-weight:800;line-height:1.25;}
+.header .sub{font-size:.88rem;opacity:.5;margin-top:.4rem;}
+
+.phase-nav{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.6rem 1rem;display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;position:sticky;top:0;z-index:200;}
+.phase-btn{font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:600;padding:.4rem .9rem;border:2px solid var(--border);border-radius:50px;background:transparent;color:var(--text-light);cursor:pointer;transition:all .25s;}
+.phase-btn:hover{border-color:var(--blue);color:var(--blue);}
+.phase-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.phase-btn.done{background:var(--green-light);border-color:var(--green);color:var(--green);}
+
+.container{max-width:880px;margin:0 auto;padding:1.5rem 1rem 5rem;}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin:1rem 0 .5rem;overflow:hidden;}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:2px;transition:width .5s;}
+.phase{display:none;animation:fadeIn .4s ease;}.phase.visible{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.phase-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--blue);margin-bottom:1rem;display:flex;align-items:center;gap:.6rem;}
+.phase-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--blue),transparent);}
+.card{background:var(--card);border-radius:var(--radius);padding:1.2rem 1.4rem;margin:.8rem 0;box-shadow:var(--shadow);border:1px solid var(--border);}
+.card-tag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;display:inline-flex;align-items:center;gap:.3rem;padding:.12rem .5rem;border-radius:4px;}
+.tag-manip{color:var(--purple);background:var(--purple-light);}
+.tag-q{color:var(--blue);background:var(--blue-light);}
+.tag-prob{color:var(--orange-c);background:var(--orange-light);}
+.tag-vocab{color:var(--green);background:var(--green-light);}
+.tag-bonus{color:var(--gold);background:var(--gold-light);}
+.consigne{font-size:.95rem;line-height:1.7;margin-bottom:.6rem;}
+.consigne strong{color:var(--blue);}
+
+/* ═══ BARRE SEGMENTÉE ═══ */
+.bar-wrapper{margin:.8rem 0;overflow-x:auto;padding-bottom:.5rem;}
+.bar-label{font-size:.75rem;font-weight:600;color:var(--text-light);margin-bottom:.3rem;}
+.bar{display:inline-flex;border-radius:6px;overflow:hidden;border:2px solid var(--border);background:#fff;position:relative;}
+.bar .seg{width:var(--seg-size);height:var(--seg-size);border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:var(--text-light);cursor:pointer;transition:all .15s;user-select:none;-webkit-user-select:none;position:relative;}
+.bar .seg:last-child{border-right:none;}
+.bar .seg:hover:not(.colored){background:rgba(26,111,160,.1);}
+.bar .seg.colored{cursor:default;}
+
+/* Couleurs de groupes (10 couleurs) */
+.bar .seg.g0{background:#5ba3d9;color:#fff;}
+.bar .seg.g1{background:#e8864a;color:#fff;}
+.bar .seg.g2{background:#6cc070;color:#fff;}
+.bar .seg.g3{background:#c06cc0;color:#fff;}
+.bar .seg.g4{background:#d4c84a;color:#333;}
+.bar .seg.g5{background:#e05a6a;color:#fff;}
+.bar .seg.g6{background:#4ac0b0;color:#fff;}
+.bar .seg.g7{background:#a08050;color:#fff;}
+.bar .seg.g8{background:#7080d0;color:#fff;}
+.bar .seg.g9{background:#d09070;color:#fff;}
+.bar .seg.rest{background:repeating-linear-gradient(45deg,#e8e4df,#e8e4df 3px,#ddd8d2 3px,#ddd8d2 6px);color:var(--text-mid);cursor:default;}
+
+/* Annotations sous la barre (accolades de groupes) */
+.bar-annotations{position:relative;min-height:32px;display:block;}
+.bar-annot{display:flex;flex-direction:column;align-items:center;position:absolute;top:0;}
+.bar-annot-bracket{border-left:2px solid;border-right:2px solid;border-bottom:2px solid;border-radius:0 0 5px 5px;height:10px;}
+.bar-annot-label{font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:3px;margin-top:2px;white-space:nowrap;}
+.bar-annot.group .bar-annot-bracket{border-color:var(--blue);}
+.bar-annot.group .bar-annot-label{color:var(--blue);background:var(--blue-light);}
+.bar-annot.rest-annot .bar-annot-bracket{border-color:var(--orange-c);}
+.bar-annot.rest-annot .bar-annot-label{color:var(--orange-c);background:var(--orange-light);}
+.bar-count{font-size:.8rem;font-weight:600;color:var(--text-mid);margin-top:.3rem;}
+
+/* ═══ RÉPONSES ═══ */
+.answer-zone{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.5rem 0;}
+.answer-input{font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;width:52px;text-align:center;padding:.35rem .3rem;border:2px solid var(--border);border-radius:6px;background:#fff;transition:border-color .2s;}
+.answer-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,111,160,.12);}
+.answer-input.correct{border-color:var(--green);background:var(--green-light);color:var(--green);}
+.answer-input.wrong{border-color:var(--red);background:var(--red-light);}
+.answer-select{font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;padding:.35rem .6rem;border:2px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;}
+.answer-select:focus{outline:none;border-color:var(--blue);}
+.check-btn{font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem 1rem;border:none;border-radius:50px;background:var(--blue);color:#fff;cursor:pointer;transition:all .2s;}
+.check-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,111,160,.25);}
+.check-btn:disabled{opacity:.35;cursor:default;}
+.reset-bar-btn{font-family:'DM Sans',sans-serif;font-size:.65rem;font-weight:600;padding:.2rem .55rem;border:1.5px solid var(--red-light);border-radius:50px;background:var(--red-light);color:var(--red);cursor:pointer;display:inline-flex;align-items:center;gap:3px;margin:.2rem 0;}
+.reset-bar-btn:hover{background:var(--red);color:#fff;}
+.next-btn{font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;padding:.5rem 1.3rem;border:none;border-radius:50px;background:var(--green);color:#fff;cursor:pointer;transition:all .2s;margin-top:1rem;}
+.next-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(27,122,64,.25);}
+.fb{font-size:.86rem;padding:.45rem .75rem;border-radius:var(--radius-sm);margin-top:.4rem;display:none;line-height:1.5;}
+.fb.show{display:block;animation:fadeIn .25s ease;}
+.fb.ok{background:var(--green-light);color:var(--green);border-left:4px solid var(--green);}
+.fb.ko{background:var(--red-light);color:var(--red);border-left:4px solid var(--red);}
+.fb.info{background:var(--blue-light);color:var(--blue);border-left:4px solid var(--blue);}
+
+/* ═══ ENCADRÉ VOCABULAIRE ═══ */
+.vocab-box{background:linear-gradient(135deg,#f8f6f2,#fff);border:2px solid var(--green);border-radius:var(--radius);padding:1rem 1.2rem;margin:.8rem 0;position:relative;}
+.vocab-box::before{content:'📘';position:absolute;top:-.6rem;left:1rem;font-size:1.2rem;background:var(--bg);padding:0 .3rem;}
+.vocab-box h3{font-family:'Playfair Display',serif;font-size:1rem;color:var(--green);margin-bottom:.5rem;}
+.vocab-grid{display:grid;grid-template-columns:auto 1fr;gap:.2rem .8rem;font-size:.9rem;align-items:baseline;}
+.vocab-term{font-weight:700;color:var(--blue);}
+.vocab-def{color:var(--text-mid);}
+.equation-box{background:var(--blue-light);border:2px solid var(--blue);border-radius:var(--radius-sm);padding:.8rem 1rem;text-align:center;font-size:1.15rem;font-weight:700;color:var(--blue);margin:.6rem 0;letter-spacing:.02em;}
+.equation-box .eq-small{font-size:.78rem;font-weight:600;color:var(--text-mid);display:block;margin-top:.3rem;}
+
+.bravo-card{text-align:center;background:var(--green-light);border:2px solid var(--green);border-radius:var(--radius);padding:1.5rem;margin-top:1rem;}
+
+.hint-toggle{font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;color:var(--purple);background:var(--purple-light);border:1.5px solid var(--purple);border-radius:50px;padding:.2rem .7rem;cursor:pointer;margin:.3rem 0;display:inline-flex;align-items:center;gap:4px;}
+.hint-toggle:hover{background:var(--purple);color:#fff;}
+.hint-content{display:none;font-size:.84rem;color:var(--purple);background:var(--purple-light);border-radius:var(--radius-sm);padding:.5rem .7rem;margin:.3rem 0;border-left:3px solid var(--purple);line-height:1.6;}
+.hint-content.show{display:block;animation:fadeIn .25s ease;}
+
+@media(max-width:700px){:root{--seg-size:28px;}body{font-size:15px;}.container{padding:1rem .7rem 4rem;}}
+@media(max-width:420px){:root{--seg-size:22px;}.bar .seg{font-size:.6rem;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="badge">Activité d'introduction — 6ème</span>
+  <h1>Découvrir la division euclidienne</h1>
+  <div class="sub">Partager, grouper, comprendre le reste</div>
+</div>
+<div class="phase-nav">
+  <button class="phase-btn active" onclick="goPhase(0)">① Partager</button>
+  <button class="phase-btn" onclick="goPhase(1)">② Écrire</button>
+  <button class="phase-btn" onclick="goPhase(2)">③ Vocabulaire</button>
+  <button class="phase-btn" onclick="goPhase(3)">④ Problèmes</button>
+</div>
+<div class="container">
+<div class="progress-bar"><div class="fill" id="progressFill" style="width:5%"></div></div>
+
+<!-- ═══════════════════════════════════════════
+     PHASE 0 — PARTAGER, C'EST FAIRE DES GROUPES
+     ═══════════════════════════════════════════ -->
+<div class="phase visible" id="phase0"><div class="phase-title">Phase 1 — Partager, c'est faire des groupes</div>
+
+<div class="card">
+<div class="card-tag tag-manip">🧩 Situation de départ</div>
+<p class="consigne">Léa a <strong>13 bonbons</strong>. Elle veut les ranger dans des sachets de <strong>4 bonbons</strong>.<br>
+Chaque bonbon est représenté par une case. <strong>Clique sur les cases</strong> une par une pour former des groupes de 4. Chaque groupe complet prend une couleur !</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar0a"></div>
+  <div class="bar-annotations" id="annot_bar0a"></div>
+  <div class="bar-count" id="count_bar0a"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar0a')">🗑 Recommencer</button>
+<div style="margin-top:.8rem;">
+<p class="consigne">Combien de sachets <strong>complets</strong> Léa peut-elle remplir ?</p>
+<div class="answer-zone"><input class="answer-input" id="a0_q" type="number" min="0" max="20" placeholder="?"><span>sachets</span><button class="check-btn" onclick="checkNum('a0_q',3)">Vérifier</button></div><div class="fb" id="fb_a0_q"></div>
+</div>
+<div style="margin-top:.5rem;">
+<p class="consigne">Combien de bonbons <strong>restent</strong> sans sachet ?</p>
+<div class="answer-zone"><input class="answer-input" id="a0_r" type="number" min="0" max="20" placeholder="?"><span>bonbon(s)</span><button class="check-btn" onclick="checkNum('a0_r',1)">Vérifier</button></div><div class="fb" id="fb_a0_r"></div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Deuxième partage</div>
+<p class="consigne">Tom a <strong>19 billes</strong> et veut les mettre dans des boîtes de <strong>5</strong>.<br>Forme les groupes de 5 en cliquant sur les cases.</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar0b"></div>
+  <div class="bar-annotations" id="annot_bar0b"></div>
+  <div class="bar-count" id="count_bar0b"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar0b')">🗑 Recommencer</button>
+<div style="margin-top:.5rem;">
+<p class="consigne">Combien de boîtes complètes ?</p>
+<div class="answer-zone"><input class="answer-input" id="a0b_q" type="number" min="0" max="20" placeholder="?"><span>boîtes</span><button class="check-btn" onclick="checkNum('a0b_q',3)">Vérifier</button></div><div class="fb" id="fb_a0b_q"></div>
+</div>
+<div style="margin-top:.5rem;">
+<p class="consigne">Combien de billes restantes ?</p>
+<div class="answer-zone"><input class="answer-input" id="a0b_r" type="number" min="0" max="20" placeholder="?"><span>bille(s)</span><button class="check-btn" onclick="checkNum('a0b_r',4)">Vérifier</button></div><div class="fb" id="fb_a0b_r"></div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Partage exact</div>
+<p class="consigne">Cette fois, <strong>20 gâteaux</strong> dans des assiettes de <strong>4</strong>.<br>Forme les groupes. Que remarques-tu ?</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar0c"></div>
+  <div class="bar-annotations" id="annot_bar0c"></div>
+  <div class="bar-count" id="count_bar0c"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar0c')">🗑 Recommencer</button>
+<div style="margin-top:.5rem;">
+<p class="consigne">Combien d'assiettes complètes ?</p>
+<div class="answer-zone"><input class="answer-input" id="a0c_q" type="number" min="0" max="20" placeholder="?"><span>assiettes</span><button class="check-btn" onclick="checkNum('a0c_q',5)">Vérifier</button></div><div class="fb" id="fb_a0c_q"></div>
+</div>
+<div style="margin-top:.5rem;">
+<p class="consigne">Combien de gâteaux restants ?</p>
+<div class="answer-zone"><input class="answer-input" id="a0c_r" type="number" min="0" max="20" placeholder="?"><span>gâteau(x)</span><button class="check-btn" onclick="checkNum('a0c_r',0)">Vérifier</button></div><div class="fb" id="fb_a0c_r"></div>
+</div>
+<button class="hint-toggle" onclick="toggleHint('hint0c')">💡 Observation</button>
+<div class="hint-content" id="hint0c">Quand il ne reste rien, on dit que le partage est <strong>exact</strong> : le reste vaut <strong>0</strong>.</div>
+</div>
+
+<button class="next-btn" onclick="goPhase(1)">Phase suivante →</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PHASE 1 — ÉCRIRE LE RÉSULTAT D'UN PARTAGE
+     ═══════════════════════════════════════════ -->
+<div class="phase" id="phase1"><div class="phase-title">Phase 2 — Écrire le résultat d'un partage</div>
+
+<div class="card">
+<div class="card-tag tag-manip">🧩 Observation</div>
+<p class="consigne">Reprenons le premier exemple : <strong>13 bonbons</strong>, des sachets de <strong>4</strong>.<br>On a trouvé <strong>3 sachets complets</strong> et il <strong>reste 1 bonbon</strong>. On peut l'écrire avec une égalité :</p>
+<div class="equation-box">13 = 4 × 3 + 1<span class="eq-small">nombre total = taille d'un groupe × nombre de groupes + reste</span></div>
+<p class="consigne">Vérifions : 4 × 3 = 12, et 12 + 1 = 13 ✓</p>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Question A</div>
+<p class="consigne"><strong>22 crayons</strong> dans des pots de <strong>6</strong>. Forme les groupes :</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar1a"></div>
+  <div class="bar-annotations" id="annot_bar1a"></div>
+  <div class="bar-count" id="count_bar1a"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar1a')">🗑 Recommencer</button>
+<p class="consigne" style="margin-top:.6rem;">Complète l'égalité : <strong>22 = 6 ×</strong> <input class="answer-input" id="a1a_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a1a_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a1a_q',3,'a1a_r',4,'fb_a1a')">Vérifier</button></div><div class="fb" id="fb_a1a"></div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Question B</div>
+<p class="consigne"><strong>27 images</strong> dans des pochettes de <strong>8</strong>. Forme les groupes :</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar1b"></div>
+  <div class="bar-annotations" id="annot_bar1b"></div>
+  <div class="bar-count" id="count_bar1b"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar1b')">🗑 Recommencer</button>
+<p class="consigne" style="margin-top:.6rem;">Complète : <strong>27 = 8 ×</strong> <input class="answer-input" id="a1b_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a1b_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a1b_q',3,'a1b_r',3,'fb_a1b')">Vérifier</button></div><div class="fb" id="fb_a1b"></div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Question C</div>
+<p class="consigne"><strong>30 élèves</strong> forment des équipes de <strong>7</strong>. Forme les groupes :</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar1c"></div>
+  <div class="bar-annotations" id="annot_bar1c"></div>
+  <div class="bar-count" id="count_bar1c"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar1c')">🗑 Recommencer</button>
+<p class="consigne" style="margin-top:.6rem;">Complète : <strong>30 = 7 ×</strong> <input class="answer-input" id="a1c_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a1c_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a1c_q',4,'a1c_r',2,'fb_a1c')">Vérifier</button></div><div class="fb" id="fb_a1c"></div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Question D — Sans la barre !</div>
+<p class="consigne">Cette fois, <strong>pas de barre</strong>. Essaie de compléter de tête :</p>
+<p class="consigne"><strong>25 = 3 ×</strong> <input class="answer-input" id="a1d_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a1d_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a1d_q',8,'a1d_r',1,'fb_a1d')">Vérifier</button></div><div class="fb" id="fb_a1d"></div>
+<button class="hint-toggle" onclick="toggleHint('hint1d')">💡 Indice</button>
+<div class="hint-content" id="hint1d">Cherche le plus grand multiple de 3 qui ne dépasse pas 25.<br>Essaie : 3 × 7 = 21, 3 × 8 = 24, 3 × 9 = 27… Lequel convient ?</div>
+</div>
+
+<button class="next-btn" onclick="goPhase(2)">Phase suivante →</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PHASE 2 — VOCABULAIRE
+     ═══════════════════════════════════════════ -->
+<div class="phase" id="phase2"><div class="phase-title">Phase 3 — Le vocabulaire de la division</div>
+
+<div class="card">
+<div class="card-tag tag-vocab">📘 À retenir</div>
+<div class="vocab-box">
+<h3>La division euclidienne</h3>
+<p style="font-size:.9rem;color:var(--text-mid);margin-bottom:.6rem;">Quand on partage un nombre entier en groupes égaux, on effectue une <strong>division euclidienne</strong>.</p>
+<div class="equation-box" style="font-size:1.2rem;">dividende = diviseur × quotient + reste<span class="eq-small">avec : reste &lt; diviseur (le reste est toujours <strong>strictement plus petit</strong> que le diviseur)</span></div>
+<div class="vocab-grid" style="margin-top:.6rem;">
+<span class="vocab-term">Dividende</span><span class="vocab-def">le nombre qu'on partage (le total de départ)</span>
+<span class="vocab-term">Diviseur</span><span class="vocab-def">la taille de chaque groupe (on divise par ce nombre)</span>
+<span class="vocab-term">Quotient</span><span class="vocab-def">le nombre de groupes complets obtenus</span>
+<span class="vocab-term">Reste</span><span class="vocab-def">ce qui reste quand on ne peut plus faire de groupe complet</span>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Question E — Associer les mots</div>
+<p class="consigne">Dans la division <strong>29 = 6 × 4 + 5</strong>, retrouve chaque terme :</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar2a"></div>
+  <div class="bar-annotations" id="annot_bar2a"></div>
+  <div class="bar-count" id="count_bar2a"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar2a')">🗑 Recommencer</button>
+<div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.6rem;">
+<div class="answer-zone"><span style="min-width:100px;font-weight:600;">Dividende =</span><select class="answer-select" id="a2a_div"><option value="">?</option><option value="29">29</option><option value="6">6</option><option value="4">4</option><option value="5">5</option></select><button class="check-btn" onclick="checkSel('a2a_div','29')">✓</button><span class="fb" id="fb_a2a_div" style="display:inline;margin:0;padding:.1rem .4rem;font-size:.76rem;"></span></div>
+<div class="answer-zone"><span style="min-width:100px;font-weight:600;">Diviseur =</span><select class="answer-select" id="a2a_dvs"><option value="">?</option><option value="29">29</option><option value="6">6</option><option value="4">4</option><option value="5">5</option></select><button class="check-btn" onclick="checkSel('a2a_dvs','6')">✓</button><span class="fb" id="fb_a2a_dvs" style="display:inline;margin:0;padding:.1rem .4rem;font-size:.76rem;"></span></div>
+<div class="answer-zone"><span style="min-width:100px;font-weight:600;">Quotient =</span><select class="answer-select" id="a2a_quo"><option value="">?</option><option value="29">29</option><option value="6">6</option><option value="4">4</option><option value="5">5</option></select><button class="check-btn" onclick="checkSel('a2a_quo','4')">✓</button><span class="fb" id="fb_a2a_quo" style="display:inline;margin:0;padding:.1rem .4rem;font-size:.76rem;"></span></div>
+<div class="answer-zone"><span style="min-width:100px;font-weight:600;">Reste =</span><select class="answer-select" id="a2a_res"><option value="">?</option><option value="29">29</option><option value="6">6</option><option value="4">4</option><option value="5">5</option></select><button class="check-btn" onclick="checkSel('a2a_res','5')">✓</button><span class="fb" id="fb_a2a_res" style="display:inline;margin:0;padding:.1rem .4rem;font-size:.76rem;"></span></div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Question F — Le reste est-il correct ?</div>
+<p class="consigne">Hugo écrit : <strong>23 = 5 × 3 + 8</strong>. A-t-il raison ?</p>
+<div class="answer-zone"><select class="answer-select" id="a2b"><option value="">Choisis…</option><option value="oui">Oui, c'est correct</option><option value="non">Non, c'est faux</option></select><button class="check-btn" onclick="checkSel('a2b','non')">Vérifier</button></div><div class="fb" id="fb_a2b"></div>
+<p class="consigne" style="margin-top:.4rem;">Pourquoi est-ce faux ?</p>
+<div class="answer-zone"><select class="answer-select" id="a2b2"><option value="">Choisis la raison…</option><option value="calcul">Parce que 5 × 3 + 8 ne fait pas 23</option><option value="reste">Parce que le reste (8) est plus grand que le diviseur (5)</option><option value="les2">Pour les deux raisons à la fois</option></select><button class="check-btn" onclick="checkSel('a2b2','les2')">Vérifier</button></div><div class="fb" id="fb_a2b2"></div>
+<button class="hint-toggle" onclick="toggleHint('hint2b')">💡 Indice</button>
+<div class="hint-content" id="hint2b">Vérifie deux choses : <br>1) Est-ce que 5 × 3 + 8 = 23 ? (calcule !) <br>2) Est-ce que le reste (8) est bien <strong>plus petit</strong> que le diviseur (5) ?</div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-q">🔍 Question G — Corrige Hugo !</div>
+<p class="consigne">Écris la <strong>bonne</strong> division euclidienne de 23 par 5 :</p>
+<p class="consigne"><strong>23 = 5 ×</strong> <input class="answer-input" id="a2c_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a2c_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a2c_q',4,'a2c_r',3,'fb_a2c')">Vérifier</button></div><div class="fb" id="fb_a2c"></div>
+</div>
+
+<button class="next-btn" onclick="goPhase(3)">Phase suivante →</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PHASE 3 — PROBLÈMES
+     ═══════════════════════════════════════════ -->
+<div class="phase" id="phase3"><div class="phase-title">Phase 4 — Résoudre des problèmes</div>
+
+<div class="card">
+<div class="card-tag tag-prob">📝 Problème 1</div>
+<p class="consigne">Un fleuriste a <strong>34 roses</strong>. Il compose des bouquets de <strong>6 roses</strong>.</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar3a"></div>
+  <div class="bar-annotations" id="annot_bar3a"></div>
+  <div class="bar-count" id="count_bar3a"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar3a')">🗑 Recommencer</button>
+<p class="consigne" style="margin-top:.5rem;">Complète : <strong>34 = 6 ×</strong> <input class="answer-input" id="a3a_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a3a_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a3a_q',5,'a3a_r',4,'fb_a3a')">Vérifier</button></div><div class="fb" id="fb_a3a"></div>
+<p class="consigne" style="margin-top:.5rem;">Combien de bouquets complets le fleuriste peut-il faire ?</p>
+<div class="answer-zone"><input class="answer-input" id="a3a_nb" type="number" min="0" max="20" placeholder="?"><span>bouquets</span><button class="check-btn" onclick="checkNum('a3a_nb',5)">Vérifier</button></div><div class="fb" id="fb_a3a_nb"></div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-prob">📝 Problème 2</div>
+<p class="consigne"><strong>47 élèves</strong> partent en sortie. Chaque minibus contient <strong>9 places</strong>.</p>
+<div class="bar-wrapper">
+  <div class="bar" id="bar3b"></div>
+  <div class="bar-annotations" id="annot_bar3b"></div>
+  <div class="bar-count" id="count_bar3b"></div>
+</div>
+<button class="reset-bar-btn" onclick="resetBar('bar3b')">🗑 Recommencer</button>
+<p class="consigne" style="margin-top:.5rem;">Complète : <strong>47 = 9 ×</strong> <input class="answer-input" id="a3b_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a3b_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a3b_q',5,'a3b_r',2,'fb_a3b')">Vérifier</button></div><div class="fb" id="fb_a3b"></div>
+<p class="consigne" style="margin-top:.5rem;">Combien de minibus faut-il <strong>au minimum</strong> pour emmener tout le monde ?</p>
+<div class="answer-zone"><input class="answer-input" id="a3b_nb" type="number" min="0" max="20" placeholder="?"><span>minibus</span><button class="check-btn" onclick="checkNum('a3b_nb',6)">Vérifier</button></div><div class="fb" id="fb_a3b_nb"></div>
+<button class="hint-toggle" onclick="toggleHint('hint3b')">💡 Indice</button>
+<div class="hint-content" id="hint3b">Tu as trouvé le nombre de minibus complets et le nombre d'élèves restants grâce à la division.<br>Mais attention : peut-on laisser ces élèves restants sur le trottoir ? Que faut-il prévoir ?</div>
+</div>
+
+<div class="card">
+<div class="card-tag tag-prob">📝 Problème 3 — Sans barre !</div>
+<p class="consigne">Nora a <strong>40 perles</strong> pour fabriquer des colliers de <strong>8 perles</strong>.</p>
+<p class="consigne">Complète : <strong>40 = 8 ×</strong> <input class="answer-input" id="a3c_q" type="number" min="0" max="20" placeholder="?" style="width:44px;"> <strong>+</strong> <input class="answer-input" id="a3c_r" type="number" min="0" max="20" placeholder="?" style="width:44px;"></p>
+<div class="answer-zone"><button class="check-btn" onclick="checkPair('a3c_q',5,'a3c_r',0,'fb_a3c')">Vérifier</button></div><div class="fb" id="fb_a3c"></div>
+<p class="consigne" style="margin-top:.5rem;">Combien de colliers complets ?</p>
+<div class="answer-zone"><input class="answer-input" id="a3c_nb" type="number" min="0" max="20" placeholder="?"><span>colliers</span><button class="check-btn" onclick="checkNum('a3c_nb',5)">Vérifier</button></div><div class="fb" id="fb_a3c_nb"></div>
+<p class="consigne" style="margin-top:.3rem;">Reste-t-il des perles ?</p>
+<div class="answer-zone"><select class="answer-select" id="a3c_reste"><option value="">Choisis…</option><option value="oui">Oui</option><option value="non">Non, le partage est exact</option></select><button class="check-btn" onclick="checkSel('a3c_reste','non')">Vérifier</button></div><div class="fb" id="fb_a3c_reste"></div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--gold);">
+<div class="card-tag tag-bonus">⭐ DÉFI BONUS</div>
+<p class="consigne">Kylian dit : « Quand je divise un nombre par 7, je peux trouver un reste de 9. »<br>Est-ce possible ?</p>
+<div class="answer-zone"><select class="answer-select" id="a3_bonus"><option value="">Choisis…</option><option value="oui">Oui, c'est possible</option><option value="non">Non, c'est impossible</option></select><button class="check-btn" onclick="checkSel('a3_bonus','non')">Vérifier</button></div><div class="fb" id="fb_a3_bonus"></div>
+<p class="consigne" style="margin-top:.4rem;">Pourquoi ?</p>
+<div class="answer-zone"><select class="answer-select" id="a3_bonus2"><option value="">Choisis…</option><option value="a">Parce que 9 n'est pas un multiple de 7</option><option value="b">Parce que le reste doit être plus petit que le diviseur</option><option value="c">Parce que 7 × 9 est trop grand</option></select><button class="check-btn" onclick="checkSel('a3_bonus2','b')">Vérifier</button></div><div class="fb" id="fb_a3_bonus2"></div>
+</div>
+
+<div class="bravo-card" id="bravo" hidden>
+<p style="font-size:1.4rem;font-weight:800;color:var(--green);">🎉 Bravo !</p>
+<p style="color:var(--green);margin-top:.3rem;">Tu as terminé l'activité d'introduction !<br>Tu sais maintenant effectuer une <strong>division euclidienne</strong> !</p>
+</div>
+</div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIGURATION DES BARRES
+   ═══════════════════════════════════════════ */
+const BAR_CFG = {
+  bar0a: { total: 13, gs: 4 },
+  bar0b: { total: 19, gs: 5 },
+  bar0c: { total: 20, gs: 4 },
+  bar1a: { total: 22, gs: 6 },
+  bar1b: { total: 27, gs: 8 },
+  bar1c: { total: 30, gs: 7 },
+  bar2a: { total: 29, gs: 6 },
+  bar3a: { total: 34, gs: 6 },
+  bar3b: { total: 47, gs: 9 },
+};
+
+const barState = {}; // barId -> { colored, groups }
+
+/* ── Initialiser une barre ── */
+function initBar(id) {
+  const c = BAR_CFG[id]; if (!c) return;
+  const bar = document.getElementById(id); if (!bar) return;
+  bar.innerHTML = '';
+  barState[id] = { colored: 0, groups: 0, done: false };
+  for (let i = 0; i < c.total; i++) {
+    const s = document.createElement('div');
+    s.className = 'seg';
+    s.textContent = i + 1;
+    s.addEventListener('click', () => clickSeg(id));
+    bar.appendChild(s);
+  }
+  updateAnnotations(id);
+}
+
+/* ── Clic sur une case ── */
+function clickSeg(id) {
+  const c = BAR_CFG[id], st = barState[id];
+  if (!st || st.done) return;
+  if (st.colored >= c.total) return;
+
+  const bar = document.getElementById(id);
+  const segs = bar.querySelectorAll('.seg');
+  const seg = segs[st.colored];
+  if (!seg) return;
+
+  // Couleur du groupe courant
+  const gIdx = st.groups;
+  seg.classList.add('colored', 'g' + (gIdx % 10));
+  st.colored++;
+
+  // Groupe complet ?
+  if (st.colored % c.gs === 0) {
+    st.groups++;
+  }
+
+  // Tout colorié ?
+  if (st.colored >= c.total) {
+    st.done = true;
+    const remainder = c.total % c.gs;
+    if (remainder > 0) {
+      // Marquer le reste (les dernières cases du groupe incomplet)
+      const restStart = st.groups * c.gs;
+      for (let i = restStart; i < c.total; i++) {
+        const rs = segs[i];
+        for (let g = 0; g < 10; g++) rs.classList.remove('g' + g);
+        rs.classList.add('rest');
+      }
+    }
+  }
+
+  updateAnnotations(id);
+}
+
+/* ── Annotations sous la barre (accolades) ── */
+function updateAnnotations(id) {
+  const c = BAR_CFG[id], st = barState[id];
+  const annot = document.getElementById('annot_' + id);
+  const countEl = document.getElementById('count_' + id);
+  const bar = document.getElementById(id);
+  if (!annot || !bar) return;
+  annot.innerHTML = '';
+
+  const segs = bar.querySelectorAll('.seg');
+  if (segs.length === 0) return;
+
+  // We measure positions relative to the bar's left edge using offsetLeft of each seg
+  // The bar has border:2px and the segs are its children, so offsetLeft is relative to bar's padding box.
+  // The annotations container sits below the bar within the same bar-wrapper.
+  // We need to offset by the bar's border-left (2px) so annotations align with the visual bar.
+  const barBorderLeft = parseFloat(getComputedStyle(bar).borderLeftWidth) || 0;
+
+  // Full groups
+  for (let g = 0; g < st.groups; g++) {
+    const firstIdx = g * c.gs;
+    const lastIdx = (g + 1) * c.gs - 1;
+    const firstSeg = segs[firstIdx];
+    const lastSeg = segs[lastIdx];
+
+    const left = barBorderLeft + firstSeg.offsetLeft;
+    const width = (lastSeg.offsetLeft + lastSeg.offsetWidth) - firstSeg.offsetLeft;
+
+    const div = document.createElement('div');
+    div.className = 'bar-annot group';
+    div.style.left = left + 'px';
+    div.style.width = width + 'px';
+    const bracket = document.createElement('div');
+    bracket.className = 'bar-annot-bracket';
+    bracket.style.width = '100%';
+    const label = document.createElement('div');
+    label.className = 'bar-annot-label';
+    label.textContent = 'groupe ' + (g + 1);
+    div.appendChild(bracket);
+    div.appendChild(label);
+    annot.appendChild(div);
+  }
+
+  // Remainder (only when done)
+  if (st.done && c.total % c.gs > 0) {
+    const rem = c.total % c.gs;
+    const restStart = st.groups * c.gs;
+    const firstSeg = segs[restStart];
+    const lastSeg = segs[c.total - 1];
+
+    const left = barBorderLeft + firstSeg.offsetLeft;
+    const width = (lastSeg.offsetLeft + lastSeg.offsetWidth) - firstSeg.offsetLeft;
+
+    const div = document.createElement('div');
+    div.className = 'bar-annot rest-annot';
+    div.style.left = left + 'px';
+    div.style.width = width + 'px';
+    const bracket = document.createElement('div');
+    bracket.className = 'bar-annot-bracket';
+    bracket.style.width = '100%';
+    const label = document.createElement('div');
+    label.className = 'bar-annot-label';
+    label.textContent = 'reste : ' + rem;
+    div.appendChild(bracket);
+    div.appendChild(label);
+    annot.appendChild(div);
+  }
+
+  // Counter
+  if (countEl) {
+    if (st.colored > 0) {
+      countEl.textContent = st.groups + ' groupe' + (st.groups > 1 ? 's' : '') + ' complet' + (st.groups > 1 ? 's' : '') + (st.done ? (c.total % c.gs > 0 ? ' — reste : ' + (c.total % c.gs) : ' — reste : 0 (partage exact !)') : ' pour l\'instant…');
+    } else {
+      countEl.textContent = '';
+    }
+  }
+}
+
+function resetBar(id) { initBar(id); }
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════ */
+let currentPhase = 0;
+const navBtns = document.querySelectorAll('.phase-btn');
+function goPhase(n) {
+  currentPhase = n;
+  document.querySelectorAll('.phase').forEach((p, i) => p.classList.toggle('visible', i === n));
+  navBtns.forEach((b, i) => { b.classList.remove('active'); if (i === n) b.classList.add('active'); if (i < n) b.classList.add('done'); });
+  document.getElementById('progressFill').style.width = Math.min(100, 5 + (n / 4) * 95) + '%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════
+   VÉRIFICATION
+   ═══════════════════════════════════════════ */
+function showFB(id, ok, msg) {
+  const f = document.getElementById(id); if (!f) return;
+  f.className = 'fb show ' + (ok ? 'ok' : 'ko');
+  f.innerHTML = msg;
+}
+
+function checkNum(id, exp) {
+  const inp = document.getElementById(id), v = parseInt(inp.value);
+  if (isNaN(v)) { showFB('fb_' + id, false, 'Entre un nombre !'); return; }
+  if (v === exp) {
+    inp.classList.add('correct'); inp.classList.remove('wrong');
+    showFB('fb_' + id, true, 'Bravo ! <strong>' + exp + '</strong> ✓');
+    const btn = inp.closest('.answer-zone').querySelector('.check-btn');
+    if (btn) btn.disabled = true;
+    checkEnd();
+  } else {
+    inp.classList.add('wrong'); inp.classList.remove('correct');
+    showFB('fb_' + id, false, 'Pas tout à fait… Réessaie !');
+  }
+}
+
+function checkSel(id, exp) {
+  const s = document.getElementById(id);
+  if (!s.value) { showFB('fb_' + id, false, 'Choisis une réponse !'); return; }
+  if (s.value === exp) {
+    s.style.borderColor = 'var(--green)'; s.style.background = 'var(--green-light)';
+    showFB('fb_' + id, true, '✓ Correct !');
+    const b = s.closest('.answer-zone').querySelector('.check-btn');
+    if (b) b.disabled = true;
+    checkEnd();
+  } else {
+    s.style.borderColor = 'var(--red)'; s.style.background = 'var(--red-light)';
+    showFB('fb_' + id, false, 'Pas tout à fait… Réessaie !');
+    setTimeout(() => { s.style.borderColor = ''; s.style.background = ''; }, 1200);
+  }
+}
+
+function checkPair(qId, qExp, rId, rExp, fbId) {
+  const qI = document.getElementById(qId), rI = document.getElementById(rId);
+  const qv = parseInt(qI.value), rv = parseInt(rI.value);
+  if (isNaN(qv) || isNaN(rv)) { showFB(fbId, false, 'Complète les deux cases !'); return; }
+  if (qv === qExp && rv === rExp) {
+    qI.classList.add('correct'); qI.classList.remove('wrong');
+    rI.classList.add('correct'); rI.classList.remove('wrong');
+    showFB(fbId, true, 'Bravo ! L\'égalité est correcte ✓');
+    // disable
+    const zone = document.getElementById(fbId).previousElementSibling;
+    if (zone) { const btn = zone.querySelector('.check-btn'); if (btn) btn.disabled = true; }
+    checkEnd();
+  } else {
+    if (qv !== qExp) { qI.classList.add('wrong'); qI.classList.remove('correct'); }
+    else { qI.classList.add('correct'); qI.classList.remove('wrong'); }
+    if (rv !== rExp) { rI.classList.add('wrong'); rI.classList.remove('correct'); }
+    else { rI.classList.add('correct'); rI.classList.remove('wrong'); }
+    showFB(fbId, false, 'Pas tout à fait… Vérifie le nombre de groupes et le reste.');
+  }
+}
+
+function toggleHint(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('show');
+}
+
+function checkEnd() {
+  // Vérifie si tous les problèmes de la phase 4 sont complétés
+  const endIds = ['a3a_q', 'a3a_r', 'a3a_nb', 'a3b_q', 'a3b_r', 'a3b_nb', 'a3c_q', 'a3c_r', 'a3c_nb'];
+  const allDone = endIds.every(id => {
+    const el = document.getElementById(id);
+    return el && el.classList.contains('correct');
+  });
+  if (allDone) {
+    const b = document.getElementById('bravo');
+    if (b) {
+      b.hidden = false;
+      document.getElementById('progressFill').style.width = '100%';
+      setTimeout(() => b.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════ */
+Object.keys(BAR_CFG).forEach(id => initBar(id));
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.85rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s;}.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:10px 16px;font-size:.8rem;}}</style>
+</body>
+</html>

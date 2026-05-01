@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Séquence 8 – Gestion de données</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f4f1eb;--card-bg:#ffffff;--text:#2b2724;--text-mid:#5c5652;--text-light:#8a8380;
+    --accent:#1a6fa0;--blue:#1a6fa0;--blue-light:#e8f2fa;
+    --green:#1b7a40;--green-light:#e6f5ec;
+    --purple:#6b3fa0;--purple-light:#f1ecf8;
+    --orange:#b85c0b;--orange-light:#fef2e8;
+    --red:#c0392b;--red-light:#fceae8;
+    --gold:#b8860b;--gold-light:#fef8e8;--border:#e0dbd4;
+    --correction-bg:linear-gradient(135deg,#fffef5 0%,#fefbee 100%);--correction-border:#e8c84a;
+    --shadow-sm:0 1px 4px rgba(0,0,0,0.04);--shadow:0 3px 16px rgba(0,0,0,0.06);
+    --radius:12px;--radius-sm:8px;
+    --pink:#d63384;--pink-light:#fce4f0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16.5px;}
+  .header{background:linear-gradient(160deg,#0f1b2d 0%,#1a2940 40%,#1e3a5f 100%);color:#fff;padding:3rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+  .header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(26,111,160,.15) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(27,122,64,.12) 0%,transparent 55%);pointer-events:none;}
+  .header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--green),var(--purple),var(--orange));}
+  .header .chapter-badge{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.6rem;}
+  .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.55rem,4.2vw,2.5rem);font-weight:800;letter-spacing:-.01em;line-height:1.25;}
+  .header .subtitle{font-size:.93rem;opacity:.55;margin-top:.5rem;}
+  .header .line{width:50px;height:2px;background:rgba(255,255,255,.25);margin:.8rem auto 0;border-radius:2px;}
+  .controls-bar{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  .btn-ctrl{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.45rem 1.1rem;border:2px solid var(--blue);border-radius:50px;background:transparent;color:var(--blue);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;}
+  .btn-ctrl:hover{background:var(--blue);color:#fff;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,111,160,.22);}
+  .btn-ctrl.sec{border-color:var(--text-light);color:var(--text-mid);}
+  .btn-ctrl.sec:hover{background:var(--text-mid);color:#fff;}
+  .container{max-width:820px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+  .section{margin-bottom:2.8rem;animation:fadeUp .55s ease both;}
+  .section:nth-child(2){animation-delay:.08s;}.section:nth-child(3){animation-delay:.16s;}.section:nth-child(4){animation-delay:.24s;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+  .section-title{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--blue);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;}
+  .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--blue),transparent);border-radius:2px;}
+  .sub-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--green);margin:1.8rem 0 .8rem;}
+  .block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border-left:5px solid;}
+  .block.def{border-left-color:var(--blue);}.block.prop{border-left-color:var(--green);}.block.rule{border-left-color:var(--purple);}.block.conv{border-left-color:var(--orange);}.block.warn{border-left-color:var(--red);}
+  .block-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;}
+  .block.def .block-tag{color:var(--blue);background:var(--blue-light);}
+  .block.prop .block-tag{color:var(--green);background:var(--green-light);}
+  .block.rule .block-tag{color:var(--purple);background:var(--purple-light);}
+  .block.conv .block-tag{color:var(--orange);background:var(--orange-light);}
+  .block.warn .block-tag{color:var(--red);background:var(--red-light);}
+  .formula-box{text-align:center;font-size:1.05rem;padding:.85rem 1rem;margin:.7rem 0 .3rem;background:#faf8f5;border-radius:var(--radius-sm);border:1px solid var(--border);}
+  .ex-block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .ex-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.45rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--blue);background:var(--blue-light);}
+  .exo-block{background:linear-gradient(135deg,#f0f7ff,#e8f2fa);border:1.5px solid #b8d9f0;border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;}
+  .exo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.45rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--blue);background:rgba(26,111,160,.1);}
+  .corr-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem .95rem;border:1.5px solid var(--correction-border);border-radius:50px;background:var(--gold-light);color:var(--gold);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;margin-top:.2rem;}
+  .corr-btn:hover{background:#fdf2c5;transform:translateY(-1px);}
+  .corr-btn .chev{display:inline-block;font-size:.6rem;transition:transform .3s ease;}
+  .corr-btn.open .chev{transform:rotate(90deg);}
+  .corr-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),opacity .35s ease,padding .35s ease;opacity:0;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:0 1.1rem;}
+  .corr-body.show{max-height:6000px;opacity:1;padding:1.1rem;}
+  .calc-steps{font-size:1rem;line-height:1.9;}
+  .calc-steps .step{display:flex;align-items:flex-start;gap:.5rem;margin:.25rem 0;}
+  .calc-steps .step-label{font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;opacity:.45;white-space:nowrap;padding-top:.28rem;min-width:110px;}
+  .calc-steps .eq{flex:1;}
+  .hl-blue{color:var(--blue);font-weight:700;}
+  .hl-green{color:var(--green);font-weight:700;}
+  .hl-red{color:var(--red);font-weight:700;}
+  .hl-orange{color:var(--orange);font-weight:700;}
+  .hl-purple{color:var(--purple);font-weight:700;}
+  .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .15em;line-height:1.1;}
+  .frac .fn{border-bottom:2px solid currentColor;padding:0 .25em .05em;font-size:.9em;}
+  .frac .fd{padding:.05em .25em 0;font-size:.9em;}
+  .frac-big{font-size:1.3em;}
+  .conclusion{margin-top:.8rem;padding:.7rem 1rem;background:var(--green-light);border-radius:var(--radius-sm);border-left:4px solid var(--green);}
+  .conclusion .donc-label{font-family:'DM Sans',sans-serif;font-weight:700;color:var(--green);font-size:.88rem;display:block;margin-bottom:.15rem;}
+  .simp-table{width:100%;border-collapse:collapse;margin:.8rem 0;}
+  .simp-table td,.simp-table th{padding:.55rem .8rem;border:1px solid var(--border);vertical-align:middle;background:#fff;}
+  .simp-table tr:nth-child(even) td{background:#fafaf8;}
+  .simp-table .num-cell{color:var(--text-light);font-size:.85rem;font-weight:600;width:36px;text-align:center;}
+  .simp-table .q-cell{width:55%;}
+  .simp-table .a-cell{font-weight:700;}
+  .dots-filler{color:var(--text-light);letter-spacing:.25em;font-size:.9rem;}
+  .revealed-ans{display:none;color:var(--blue);font-weight:700;}
+  .show-answers .dots-filler{display:none;}
+  .show-answers .revealed-ans{display:inline;}
+  .criteres{background:linear-gradient(135deg,#f1ecf8,#ece6f5);border:1.5px solid #d4c8e8;border-radius:var(--radius);padding:1rem 1.3rem;margin:1.2rem 0;}
+  .criteres-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--purple);background:var(--purple-light);}
+  .criteres ul{margin:.4rem 0 0 1.2rem;line-height:2;}
+  .recap-table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.93rem;}
+  .recap-table td{padding:.55rem .9rem;border:1px solid var(--border);vertical-align:middle;background:#fff;}
+  .recap-table tr:nth-child(even) td{background:#fafaf8;}
+  .intro-block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border:1px solid var(--border);font-size:.95rem;color:var(--text-mid);}
+  .objectifs{background:linear-gradient(135deg,#fef2e8,#fef8e8);border:1.5px solid #e8c084;border-radius:var(--radius);padding:1rem 1.3rem;margin:0 0 1.5rem;}
+  .objectifs-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--orange);background:var(--orange-light);}
+  .objectifs ul{margin:.4rem 0 0 1.2rem;line-height:2;}
+  .data-table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.9rem;}
+  .data-table th,.data-table td{padding:.5rem .6rem;border:1px solid var(--border);text-align:center;vertical-align:middle;}
+  .data-table th{background:var(--blue-light);color:var(--blue);font-weight:700;font-size:.82rem;}
+  .data-table td{background:#fff;}
+  .data-table .row-header{background:#faf8f5;font-weight:600;text-align:left;color:var(--text);}
+  .data-table .total-cell{background:var(--gold-light);font-weight:700;color:var(--gold);}
+  .chart-container{overflow-x:auto;margin:1rem 0;padding:.5rem 0 1.2rem;display:flex;justify-content:center;}
+  .chart-container svg{display:block;overflow:visible;}
+  .avantage{margin-top:.8rem;padding:.7rem 1rem;background:var(--green-light);border-radius:var(--radius-sm);border-left:4px solid var(--green);font-size:.93rem;}
+  .avantage strong{color:var(--green);}
+  .fil-rouge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--orange);background:var(--orange-light);padding:.2rem .6rem;border-radius:4px;margin-bottom:.4rem;}
+  @media(max-width:768px){body{font-size:16px;}.container{padding:1.5rem 1rem 4rem;}.header{padding:2.2rem 1.2rem 1.8rem;}.controls-bar{padding:.6rem 1rem;gap:.5rem;}}
+  @media(max-width:600px){.container{padding:1.2rem .8rem 4rem;}body{font-size:15px;}.header{padding:2rem 1rem 1.5rem;}.controls-bar{padding:.55rem .7rem;gap:.4rem;}.btn-ctrl{font-size:.75rem;padding:.38rem .8rem;}table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}}
+  @media(max-width:380px){body{font-size:14px;}.container{padding:1rem .6rem 2.5rem;}.header{padding:1.5rem .8rem 1.2rem;}.btn-ctrl{font-size:.7rem;padding:.32rem .65rem;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="chapter-badge">Séquence 8 — 6ème</span>
+  <h1>Gestion de données</h1>
+  <p class="subtitle">Vocabulaire · Tableaux · Diagrammes · Graphiques</p>
+  <div class="line"></div>
+</div>
+
+<div class="controls-bar">
+  <button class="btn-ctrl" onclick="showAll()">▶ Tout afficher</button>
+  <button class="btn-ctrl sec" onclick="hideAll()">✕ Tout masquer</button>
+</div>
+
+<div class="container">
+
+  <div class="intro-block">
+    <strong>Introduction :</strong> Lorsque l'on effectue des enquêtes statistiques, les résultats ne sont pas toujours simples à interpréter sous leur forme « brute ». C'est pour cela que l'on utilise différentes représentations, par exemple sous forme de <strong>tableau</strong> ou de <strong>graphique</strong>. Cela permet de synthétiser les données et de mettre en avant diverses informations.
+  </div>
+
+  <div class="objectifs">
+    <div class="objectifs-tag">🎯 Objectifs du chapitre</div>
+    <ul>
+      <li>Connaître le vocabulaire concernant les statistiques</li>
+      <li>Exploiter et construire un tableau représentant des données</li>
+      <li>Exploiter et construire des diagrammes (circulaires, en bâtons) ou des graphiques représentant des données</li>
+    </ul>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       PARTIE I — VOCABULAIRE & TABLEAUX
+  ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">I — Vocabulaire & Tableaux</div>
+
+    <div class="sub-title">1. Situation</div>
+
+    <div class="ex-block">
+      <div class="fil-rouge">🔁 Exemple fil rouge</div>
+      <div class="ex-tag">🔍 Situation de départ</div>
+      <p>Dans une classe de 6<sup>ème</sup> de <strong>24 élèves</strong>, la professeure a demandé à chacun son <strong>sport préféré</strong>. Voici les résultats :</p>
+      <p style="margin-top:.6rem;font-size:.9rem;color:var(--text-mid);line-height:1.9;">
+        football — basket — natation — football — danse — tennis — football — basket — football — natation — danse — football — basket — tennis — football — natation — danse — basket — football — tennis — natation — danse — football — basket
+      </p>
+      <p style="margin-top:.8rem;font-size:.88rem;color:var(--text-mid);">💡 On va utiliser ces mêmes données tout au long du chapitre pour découvrir les différentes représentations.</p>
+    </div>
+
+    <div class="sub-title">2. Vocabulaire</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition — Vocabulaire statistique</div>
+      <ul style="margin:.4rem 0 0 1.2rem;line-height:2.2;">
+        <li><span class="hl-blue">Population</span> : c'est l'ensemble des individus concernés par l'étude.<br><em>→ Ici : les 24 élèves de la classe.</em></li>
+        <li><span class="hl-green">Caractère étudié</span> : c'est ce que l'on cherche à connaître.<br><em>→ Ici : le sport préféré.</em></li>
+        <li><span class="hl-purple">Données possibles</span> : ce sont toutes les réponses que l'on peut obtenir.<br><em>→ Ici : football, basket, natation, tennis, danse.</em></li>
+        <li><span class="hl-orange">Série statistique</span> : c'est l'ensemble de toutes les réponses recueillies.</li>
+      </ul>
+    </div>
+
+    <div class="sub-title">3. Effectif et tableau</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition — Effectif</div>
+      <p>L'<strong>effectif</strong> d'une donnée au sein d'une série statistique correspond au <strong>nombre de fois</strong> qu'elle y apparaît.</p>
+      <p style="margin-top:.5rem;">Le nombre total d'individus est appelé <strong>effectif total</strong> de la série.</p>
+    </div>
+
+    <div class="ex-block">
+      <div class="fil-rouge">🔁 Exemple fil rouge</div>
+      <div class="ex-tag">🔍 Tableau des effectifs</div>
+      <p style="margin-bottom:.5rem;">On range les sports dans un tableau et on compte les réponses :</p>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <tr><th>Sport</th><th>Football</th><th>Basket</th><th>Natation</th><th>Tennis</th><th>Danse</th><th style="background:var(--gold-light);color:var(--gold);">Total</th></tr>
+          <tr><td class="row-header">Effectif</td><td><strong>8</strong></td><td><strong>5</strong></td><td><strong>4</strong></td><td><strong>3</strong></td><td><strong>4</strong></td><td class="total-cell">24</td></tr>
+        </table>
+      </div>
+      <p style="margin-top:.6rem;font-size:.88rem;color:var(--text-mid);">💡 L'effectif du football est <strong>8</strong> : il y a 8 élèves qui ont choisi ce sport. L'effectif total est <strong>24</strong>.</p>
+    </div>
+
+    <div class="sub-title">4. Tableau à double entrée</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition — Tableau à double entrée</div>
+      <p>Un <strong>tableau à double entrée</strong> permet de croiser deux informations différentes (par exemple le sport préféré <em>et</em> le sexe de l'élève).</p>
+    </div>
+
+    <div class="ex-block">
+      <div class="fil-rouge">🔁 Exemple fil rouge</div>
+      <div class="ex-tag">🔍 Tableau à double entrée</div>
+      <p style="margin-bottom:.5rem;">Si on différencie les filles et les garçons :</p>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <tr><th>Sport</th><th>Football</th><th>Basket</th><th>Natation</th><th>Tennis</th><th>Danse</th><th style="background:var(--gold-light);color:var(--gold);">Total</th></tr>
+          <tr><td class="row-header">Nb filles</td><td>2</td><td>2</td><td>3</td><td>1</td><td>3</td><td class="total-cell">11</td></tr>
+          <tr><td class="row-header">Nb garçons</td><td>6</td><td>3</td><td>1</td><td>2</td><td>1</td><td class="total-cell">13</td></tr>
+          <tr><td class="row-header" style="font-weight:700;">TOTAL</td><td><strong>8</strong></td><td><strong>5</strong></td><td><strong>4</strong></td><td><strong>3</strong></td><td><strong>4</strong></td><td class="total-cell">24</td></tr>
+        </table>
+      </div>
+      <p style="margin-top:.6rem;font-size:.88rem;color:var(--text-mid);">Combien de garçons ont choisi le basket ? → <strong>3</strong>. Combien d'élèves préfèrent la natation ? → <strong>4</strong>.</p>
+    </div>
+
+    <div class="criteres">
+      <div class="criteres-tag">🔋 Critères de réussite</div>
+      <ul>
+        <li>Je connais le vocabulaire : <em>population</em>, <em>caractère</em>, <em>données</em>, <em>effectif</em>.</li>
+        <li>Je sais lire un tableau simple et un tableau à double entrée.</li>
+        <li>Je sais construire un tableau à partir de données brutes.</li>
+      </ul>
+    </div>
+
+    <div class="sub-title">5. Exercice — Je m'entraîne</div>
+
+    <div class="exo-block">
+      <div class="exo-tag">✏️ Exercice 1 — Vocabulaire</div>
+      <p style="margin-bottom:.7rem;">On a demandé aux 30 élèves d'une autre classe leur <strong>fruit préféré</strong> :</p>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <tr><th>Fruit</th><th>Pomme</th><th>Banane</th><th>Fraise</th><th>Orange</th><th>Raisin</th><th style="background:var(--gold-light);color:var(--gold);">Total</th></tr>
+          <tr><td class="row-header">Effectif</td><td>9</td><td>7</td><td>6</td><td>5</td><td>3</td><td class="total-cell">30</td></tr>
+        </table>
+      </div>
+      <div id="exo1" style="margin-top:.6rem;">
+        <table class="simp-table">
+          <tr><td class="num-cell">a</td><td class="q-cell">Quelle est la population étudiée ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">Les 30 élèves de la classe</span></td></tr>
+          <tr><td class="num-cell">b</td><td class="q-cell">Quel est le caractère étudié ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">Le fruit préféré</span></td></tr>
+          <tr><td class="num-cell">c</td><td class="q-cell">Quelles sont les données possibles ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">Pomme, banane, fraise, orange, raisin</span></td></tr>
+          <tr><td class="num-cell">d</td><td class="q-cell">Quel est l'effectif total ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">30</span></td></tr>
+          <tr><td class="num-cell">e</td><td class="q-cell">Quel est le fruit le plus populaire ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">La pomme (effectif 9)</span></td></tr>
+        </table>
+      </div>
+      <button class="corr-btn inline-btn" data-target="exo1"><span class="chev">▶</span> Voir la correction</button>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       PARTIE II — DIAGRAMME EN BÂTONS
+  ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">II — Diagramme en bâtons</div>
+
+    <div class="sub-title">1. Définition</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition — Diagramme en bâtons</div>
+      <p>Dans un <strong>diagramme en bâtons</strong>, la hauteur de chaque bâton sur l'axe vertical donne la valeur attendue.</p>
+      <p style="margin-top:.4rem;">La <strong>hauteur des bâtons</strong> est proportionnelle à la quantité représentée.</p>
+    </div>
+
+    <div class="avantage"><strong>Avantage :</strong> on visualise et on <strong>compare</strong> facilement les données.</div>
+
+    <div class="sub-title">2. Exemple</div>
+
+    <div class="ex-block">
+      <div class="fil-rouge">🔁 Exemple fil rouge</div>
+      <div class="ex-tag">🔍 Diagramme en bâtons — Sport préféré</div>
+      <p style="margin-bottom:.5rem;">On représente les mêmes données sous forme de diagramme en bâtons :</p>
+      <div class="chart-container">
+        <svg viewBox="0 0 440 260" xmlns="http://www.w3.org/2000/svg" style="width:440px;height:260px;">
+          <text x="230" y="18" text-anchor="middle" font-family="Playfair Display,serif" font-size="12" font-weight="700" fill="#2b2724">Sport préféré des élèves</text>
+          <line x1="70" y1="30" x2="70" y2="220" stroke="#8a8380" stroke-width="1.5"/>
+          <text x="22" y="130" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380" transform="rotate(-90,22,130)">Nombre d'élèves</text>
+          <!-- Y: 0→8, 1 élève = 23.75px -->
+          <line x1="65" y1="220" x2="420" y2="220" stroke="#e0dbd4" stroke-width="1"/>
+          <text x="60" y="224" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">0</text>
+          <line x1="65" y1="196.25" x2="420" y2="196.25" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="200" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">1</text>
+          <line x1="65" y1="172.5" x2="420" y2="172.5" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="176" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">2</text>
+          <line x1="65" y1="148.75" x2="420" y2="148.75" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="153" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">3</text>
+          <line x1="65" y1="125" x2="420" y2="125" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="129" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">4</text>
+          <line x1="65" y1="101.25" x2="420" y2="101.25" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="105" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">5</text>
+          <line x1="65" y1="77.5" x2="420" y2="77.5" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="81" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">6</text>
+          <line x1="65" y1="53.75" x2="420" y2="53.75" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="58" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">7</text>
+          <line x1="65" y1="30" x2="420" y2="30" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="60" y="34" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">8</text>
+          <line x1="70" y1="220" x2="420" y2="220" stroke="#8a8380" stroke-width="1.5"/>
+          <!-- Bâtons -->
+          <rect x="95" y="30" width="45" height="190" rx="3" fill="#1a6fa0" fill-opacity=".75" stroke="#1a6fa0" stroke-width="1.5"/>
+          <text x="117.5" y="25" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#1a6fa0" font-weight="700">8</text>
+          <rect x="165" y="101.25" width="45" height="118.75" rx="3" fill="#1b7a40" fill-opacity=".75" stroke="#1b7a40" stroke-width="1.5"/>
+          <text x="187.5" y="96" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#1b7a40" font-weight="700">5</text>
+          <rect x="235" y="125" width="45" height="95" rx="3" fill="#6b3fa0" fill-opacity=".75" stroke="#6b3fa0" stroke-width="1.5"/>
+          <text x="257.5" y="120" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#6b3fa0" font-weight="700">4</text>
+          <rect x="305" y="148.75" width="45" height="71.25" rx="3" fill="#b85c0b" fill-opacity=".75" stroke="#b85c0b" stroke-width="1.5"/>
+          <text x="327.5" y="144" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#b85c0b" font-weight="700">3</text>
+          <rect x="375" y="125" width="45" height="95" rx="3" fill="#d63384" fill-opacity=".75" stroke="#d63384" stroke-width="1.5"/>
+          <text x="397.5" y="120" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#d63384" font-weight="700">4</text>
+          <!-- Labels -->
+          <text x="117.5" y="237" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">Football</text>
+          <text x="187.5" y="237" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">Basket</text>
+          <text x="257.5" y="237" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">Natation</text>
+          <text x="327.5" y="237" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">Tennis</text>
+          <text x="397.5" y="237" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">Danse</text>
+        </svg>
+      </div>
+      <p style="font-size:.88rem;color:var(--text-mid);">💡 On voit immédiatement que le football est le sport le plus populaire et que le tennis est le moins choisi.</p>
+    </div>
+
+    <div class="sub-title">3. Exercice — Je m'entraîne</div>
+
+    <div class="exo-block">
+      <div class="exo-tag">✏️ Exercice 2 — Construire un diagramme en bâtons</div>
+      <p style="margin-bottom:.7rem;">Voici les dépenses moyennes sur internet en 2018 pour six pays européens :</p>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <tr><th>Pays</th><th>Royaume-Uni</th><th>Allemagne</th><th>France</th><th>Italie</th><th>Espagne</th><th>Finlande</th></tr>
+          <tr><td class="row-header">Dépense</td><td>110 €</td><td>50 €</td><td>80 €</td><td>20 €</td><td>10 €</td><td>200 €</td></tr>
+        </table>
+      </div>
+      <p style="margin-top:.6rem;">Représente cette situation par un diagramme en bâtons <strong>(attention aux unités)</strong>.</p>
+      <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+      <div class="corr-body">
+        <div class="chart-container">
+          <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" style="width:480px;height:260px;">
+            <line x1="55" y1="20" x2="55" y2="210" stroke="#8a8380" stroke-width="1.5"/>
+            <line x1="50" y1="210" x2="460" y2="210" stroke="#e0dbd4" stroke-width="1"/>
+            <text x="46" y="214" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">0</text>
+            <line x1="50" y1="191" x2="460" y2="191" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="195" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">20</text>
+            <line x1="50" y1="172" x2="460" y2="172" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="176" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">40</text>
+            <line x1="50" y1="153" x2="460" y2="153" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="157" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">60</text>
+            <line x1="50" y1="134" x2="460" y2="134" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="138" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">80</text>
+            <line x1="50" y1="115" x2="460" y2="115" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="119" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">100</text>
+            <line x1="50" y1="96" x2="460" y2="96" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="100" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">120</text>
+            <line x1="50" y1="77" x2="460" y2="77" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="81" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">140</text>
+            <line x1="50" y1="58" x2="460" y2="58" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="62" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">160</text>
+            <line x1="50" y1="39" x2="460" y2="39" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="43" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">180</text>
+            <line x1="50" y1="20" x2="460" y2="20" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="24" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">200</text>
+            <line x1="55" y1="210" x2="460" y2="210" stroke="#8a8380" stroke-width="1.5"/>
+            <rect x="75" y="105.5" width="40" height="104.5" rx="3" fill="#1a6fa0" fill-opacity=".7" stroke="#1a6fa0" stroke-width="1.5"/><text x="95" y="100" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#1a6fa0" font-weight="700">110 €</text>
+            <rect x="140" y="162.5" width="40" height="47.5" rx="3" fill="#1b7a40" fill-opacity=".7" stroke="#1b7a40" stroke-width="1.5"/><text x="160" y="157" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#1b7a40" font-weight="700">50 €</text>
+            <rect x="205" y="134" width="40" height="76" rx="3" fill="#6b3fa0" fill-opacity=".7" stroke="#6b3fa0" stroke-width="1.5"/><text x="225" y="129" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#6b3fa0" font-weight="700">80 €</text>
+            <rect x="270" y="191" width="40" height="19" rx="3" fill="#b85c0b" fill-opacity=".7" stroke="#b85c0b" stroke-width="1.5"/><text x="290" y="186" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#b85c0b" font-weight="700">20 €</text>
+            <rect x="335" y="200.5" width="40" height="9.5" rx="3" fill="#c0392b" fill-opacity=".7" stroke="#c0392b" stroke-width="1.5"/><text x="355" y="196" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#c0392b" font-weight="700">10 €</text>
+            <rect x="400" y="20" width="40" height="190" rx="3" fill="#d63384" fill-opacity=".7" stroke="#d63384" stroke-width="1.5"/><text x="420" y="15" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#d63384" font-weight="700">200 €</text>
+            <text x="95" y="228" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Royaume-</text><text x="95" y="238" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Uni</text>
+            <text x="160" y="228" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Allemagne</text>
+            <text x="225" y="228" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">France</text>
+            <text x="290" y="228" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Italie</text>
+            <text x="355" y="228" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Espagne</text>
+            <text x="420" y="228" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Finlande</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       PARTIE III — DIAGRAMME CIRCULAIRE
+  ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">III — Diagramme circulaire</div>
+
+    <div class="sub-title">1. Définition</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition — Diagramme circulaire</div>
+      <p>Dans un <strong>diagramme circulaire</strong>, chaque section (chaque angle) est <strong>proportionnelle</strong> à la valeur représentée.</p>
+    </div>
+
+    <div class="avantage"><strong>Avantage :</strong> on visualise facilement la <strong>répartition</strong> des données.</div>
+
+    <div class="sub-title">2. Exemple</div>
+
+    <div class="ex-block">
+      <div class="fil-rouge">🔁 Exemple fil rouge</div>
+      <div class="ex-tag">🔍 Diagramme circulaire — Sport préféré</div>
+      <p style="margin-bottom:.5rem;">On reprend les mêmes données et on calcule les angles grâce à la proportionnalité :</p>
+
+      <div class="formula-box">
+        Angle = <span class="frac"><span class="fn">effectif</span><span class="fd">effectif total</span></span> × 360°
+      </div>
+
+      <div style="overflow-x:auto;margin-top:.8rem;">
+        <table class="data-table">
+          <tr><th>Sport</th><th>Football</th><th>Basket</th><th>Natation</th><th>Tennis</th><th>Danse</th><th style="background:var(--gold-light);color:var(--gold);">Total</th></tr>
+          <tr><td class="row-header">Effectif</td><td>8</td><td>5</td><td>4</td><td>3</td><td>4</td><td class="total-cell">24</td></tr>
+          <tr><td class="row-header">Angle</td><td>120°</td><td>75°</td><td>60°</td><td>45°</td><td>60°</td><td class="total-cell">360°</td></tr>
+        </table>
+      </div>
+
+      <div class="calc-steps" style="margin-top:.6rem;font-size:.93rem;">
+        <div class="step"><span class="step-label">Football</span><span class="eq"><span class="frac"><span class="fn">8</span><span class="fd">24</span></span> × 360° = <span class="frac"><span class="fn">1</span><span class="fd">3</span></span> × 360° = <strong>120°</strong></span></div>
+        <div class="step"><span class="step-label">Basket</span><span class="eq"><span class="frac"><span class="fn">5</span><span class="fd">24</span></span> × 360° = <strong>75°</strong></span></div>
+        <div class="step"><span class="step-label">Natation</span><span class="eq"><span class="frac"><span class="fn">4</span><span class="fd">24</span></span> × 360° = <span class="frac"><span class="fn">1</span><span class="fd">6</span></span> × 360° = <strong>60°</strong></span></div>
+        <div class="step"><span class="step-label">Tennis</span><span class="eq"><span class="frac"><span class="fn">3</span><span class="fd">24</span></span> × 360° = <span class="frac"><span class="fn">1</span><span class="fd">8</span></span> × 360° = <strong>45°</strong></span></div>
+        <div class="step"><span class="step-label">Danse</span><span class="eq"><span class="frac"><span class="fn">4</span><span class="fd">24</span></span> × 360° = <strong>60°</strong></span></div>
+        <div class="step"><span class="step-label">Vérification</span><span class="eq">120° + 75° + 60° + 45° + 60° = <strong>360°</strong> ✓</span></div>
+      </div>
+
+      <div class="chart-container">
+        <svg viewBox="0 0 320 290" xmlns="http://www.w3.org/2000/svg" style="width:320px;height:290px;">
+          <!-- Centre (140,140), rayon 110 -->
+          <!-- Football: 0°→120° | Basket: 120°→195° | Natation: 195°→255° | Tennis: 255°→300° | Danse: 300°→360° -->
+          <path d="M140,140 L250,140 A110,110 0 0,1 85,235.3 Z" fill="#1a6fa0" fill-opacity=".75" stroke="#fff" stroke-width="2"/>
+          <path d="M140,140 L85,235.3 A110,110 0 0,1 33.7,111.5 Z" fill="#1b7a40" fill-opacity=".75" stroke="#fff" stroke-width="2"/>
+          <path d="M140,140 L33.7,111.5 A110,110 0 0,1 111.5,33.7 Z" fill="#6b3fa0" fill-opacity=".75" stroke="#fff" stroke-width="2"/>
+          <path d="M140,140 L111.5,33.7 A110,110 0 0,1 195,44.7 Z" fill="#b85c0b" fill-opacity=".75" stroke="#fff" stroke-width="2"/>
+          <path d="M140,140 L195,44.7 A110,110 0 0,1 250,140 Z" fill="#d63384" fill-opacity=".75" stroke="#fff" stroke-width="2"/>
+          <text x="190" y="185" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#fff" font-weight="700">Football</text>
+          <text x="190" y="198" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#fff">120°</text>
+          <text x="55" y="178" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#fff" font-weight="700">Basket</text>
+          <text x="55" y="190" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#fff">75°</text>
+          <text x="68" y="82" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#fff" font-weight="700">Natation</text>
+          <text x="68" y="94" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#fff">60°</text>
+          <text x="155" y="55" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#fff" font-weight="700">Tennis</text>
+          <text x="155" y="67" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#fff">45°</text>
+          <text x="218" y="82" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#fff" font-weight="700">Danse</text>
+          <text x="218" y="94" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#fff">60°</text>
+          <!-- Légende -->
+          <rect x="10" y="268" width="10" height="10" rx="2" fill="#1a6fa0" fill-opacity=".75"/><text x="24" y="277" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Football</text>
+          <rect x="75" y="268" width="10" height="10" rx="2" fill="#1b7a40" fill-opacity=".75"/><text x="89" y="277" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Basket</text>
+          <rect x="130" y="268" width="10" height="10" rx="2" fill="#6b3fa0" fill-opacity=".75"/><text x="144" y="277" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Natation</text>
+          <rect x="195" y="268" width="10" height="10" rx="2" fill="#b85c0b" fill-opacity=".75"/><text x="209" y="277" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Tennis</text>
+          <rect x="252" y="268" width="10" height="10" rx="2" fill="#d63384" fill-opacity=".75"/><text x="266" y="277" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652">Danse</text>
+        </svg>
+      </div>
+      <p style="font-size:.88rem;color:var(--text-mid);">💡 Le football représente un tiers du cercle (120° = <span class="frac"><span class="fn">1</span><span class="fd">3</span></span> de 360°).</p>
+    </div>
+
+    <div class="sub-title">3. Exercice — Je m'entraîne</div>
+
+    <div class="exo-block">
+      <div class="exo-tag">✏️ Exercice 3 — Construire un diagramme circulaire</div>
+      <p style="margin-bottom:.7rem;">Yannick a <strong>45 albums</strong> de bandes dessinées : 15 Tintin, 6 Boule et Bill, 10 Lucky Luke et 14 Astérix.</p>
+      <p style="margin-bottom:.5rem;">Complète le tableau de proportionnalité puis trace le diagramme circulaire :</p>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="exo3-table">
+          <tr><th></th><th>Tintin</th><th>Boule et Bill</th><th>Lucky Luke</th><th>Astérix</th><th style="background:var(--gold-light);color:var(--gold);">Total</th></tr>
+          <tr><td class="row-header">Effectif</td><td>15</td><td><span class="dots-filler">. . .</span><span class="revealed-ans">6</span></td><td><span class="dots-filler">. . .</span><span class="revealed-ans">10</span></td><td><span class="dots-filler">. . .</span><span class="revealed-ans">14</span></td><td class="total-cell"><span class="dots-filler">. .</span><span class="revealed-ans">45</span></td></tr>
+          <tr><td class="row-header">Angle</td><td><span class="dots-filler">. . .</span><span class="revealed-ans">120°</span></td><td><span class="dots-filler">. . .</span><span class="revealed-ans">48°</span></td><td><span class="dots-filler">. . .</span><span class="revealed-ans">80°</span></td><td><span class="dots-filler">. . .</span><span class="revealed-ans">112°</span></td><td class="total-cell">360°</td></tr>
+        </table>
+      </div>
+      <button class="corr-btn inline-btn" data-target="exo3-table"><span class="chev">▶</span> Voir la correction</button>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       PARTIE IV — GRAPHIQUE CARTÉSIEN
+  ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">IV — Graphique cartésien</div>
+
+    <div class="sub-title">1. Définition</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition — Graphique cartésien</div>
+      <p>Dans un <strong>graphique cartésien</strong>, chaque donnée permet de placer un nouveau point. Les points sont ensuite <strong>reliés les uns à la suite des autres</strong>.</p>
+    </div>
+
+    <div class="avantage"><strong>Avantage :</strong> on visualise l'<strong>évolution</strong> des données au cours du temps.</div>
+
+    <div class="block prop">
+      <div class="block-tag">📗 Remarque</div>
+      <p>Le graphique cartésien est particulièrement adapté lorsque les données <strong>évoluent dans le temps</strong> (température, poids, population…). C'est différent du diagramme en bâtons ou circulaire qui représentent une répartition.</p>
+    </div>
+
+    <div class="sub-title">2. Exemple</div>
+
+    <div class="ex-block">
+      <div class="ex-tag">🔍 Exemple — Températures à Nanterre</div>
+      <p style="margin-bottom:.5rem;">Température moyenne à Nanterre pour chaque mois :</p>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="exo-temp">
+          <tr><th>Mois</th><th>Jan.</th><th>Fév.</th><th>Mars</th><th>Avr.</th><th>Mai</th><th>Juin</th><th>Juil.</th><th>Août</th><th>Sep.</th><th>Oct.</th><th>Nov.</th><th>Déc.</th></tr>
+          <tr><td class="row-header">Temp. (°C)</td>
+            <td><span class="dots-filler">..</span><span class="revealed-ans">3,8</span></td><td>4,3</td><td>6,9</td><td>10,4</td><td>14,1</td><td>17,3</td>
+            <td><span class="dots-filler">..</span><span class="revealed-ans">18,9</span></td><td>18,9</td><td>15,8</td><td>12,3</td>
+            <td><span class="dots-filler">..</span><span class="revealed-ans">7,4</span></td><td>4,3</td>
+          </tr>
+        </table>
+      </div>
+      <p style="margin-top:.5rem;font-size:.88rem;color:var(--text-mid);">Utilise le graphique pour compléter les cases manquantes.</p>
+
+      <div class="chart-container">
+        <svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg" style="width:560px;height:320px;">
+          <text x="300" y="18" text-anchor="middle" font-family="Playfair Display,serif" font-size="12" font-weight="700" fill="#2b2724">Température moyenne à Nanterre</text>
+          <line x1="55" y1="30" x2="55" y2="270" stroke="#8a8380" stroke-width="1.5"/>
+          <text x="18" y="155" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380" transform="rotate(-90,18,155)">Température (en °C)</text>
+          <!-- Y: 0→20, 1°C=12px, y=270 pour 0 -->
+          <line x1="50" y1="270" x2="530" y2="270" stroke="#e0dbd4" stroke-width="1"/><text x="46" y="274" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">0</text>
+          <line x1="50" y1="246" x2="530" y2="246" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="250" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">2</text>
+          <line x1="50" y1="222" x2="530" y2="222" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="226" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">4</text>
+          <line x1="50" y1="198" x2="530" y2="198" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="202" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">6</text>
+          <line x1="50" y1="174" x2="530" y2="174" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="178" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">8</text>
+          <line x1="50" y1="150" x2="530" y2="150" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="154" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">10</text>
+          <line x1="50" y1="126" x2="530" y2="126" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="130" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">12</text>
+          <line x1="50" y1="102" x2="530" y2="102" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="106" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">14</text>
+          <line x1="50" y1="78" x2="530" y2="78" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="82" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">16</text>
+          <line x1="50" y1="54" x2="530" y2="54" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="58" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">18</text>
+          <line x1="50" y1="30" x2="530" y2="30" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="34" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">20</text>
+          <line x1="55" y1="270" x2="530" y2="270" stroke="#8a8380" stroke-width="1.5"/>
+          <text x="80" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,80,288)">Janvier</text>
+          <text x="120" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,120,288)">Février</text>
+          <text x="160" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,160,288)">Mars</text>
+          <text x="200" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,200,288)">Avril</text>
+          <text x="240" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,240,288)">Mai</text>
+          <text x="280" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,280,288)">Juin</text>
+          <text x="320" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,320,288)">Juillet</text>
+          <text x="360" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,360,288)">Août</text>
+          <text x="400" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,400,288)">Septembre</text>
+          <text x="440" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,440,288)">Octobre</text>
+          <text x="480" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,480,288)">Novembre</text>
+          <text x="520" y="288" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#5c5652" transform="rotate(-35,520,288)">Décembre</text>
+          <polyline points="80,224.4 120,218.4 160,187.2 200,145.2 240,100.8 280,62.4 320,43.2 360,43.2 400,80.4 440,122.4 480,181.2 520,218.4" fill="none" stroke="#1a6fa0" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <g fill="#1a6fa0">
+            <circle cx="80" cy="224.4" r="4"/><circle cx="120" cy="218.4" r="4"/><circle cx="160" cy="187.2" r="4"/><circle cx="200" cy="145.2" r="4"/>
+            <circle cx="240" cy="100.8" r="4"/><circle cx="280" cy="62.4" r="4"/><circle cx="320" cy="43.2" r="4"/><circle cx="360" cy="43.2" r="4"/>
+            <circle cx="400" cy="80.4" r="4"/><circle cx="440" cy="122.4" r="4"/><circle cx="480" cy="181.2" r="4"/><circle cx="520" cy="218.4" r="4"/>
+          </g>
+        </svg>
+      </div>
+      <button class="corr-btn inline-btn" data-target="exo-temp"><span class="chev">▶</span> Voir la correction</button>
+    </div>
+
+    <div class="sub-title">3. Exercices — Je m'entraîne</div>
+
+    <div class="exo-block">
+      <div class="exo-tag">✏️ Exercice 4 — Lire un graphique</div>
+      <p style="margin-bottom:.7rem;">À partir du graphique des températures, réponds :</p>
+      <div id="exo4">
+        <table class="simp-table">
+          <tr><td class="num-cell">a</td><td class="q-cell">Quel est le mois avec la plus haute température moyenne ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">Juillet (et Août) : 18,9 °C</span></td></tr>
+          <tr><td class="num-cell">b</td><td class="q-cell">Quel est le mois avec la plus basse température moyenne ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">Janvier : 3,8 °C</span></td></tr>
+          <tr><td class="num-cell">c</td><td class="q-cell">Quels mois ont une température comprise entre 12 °C et 18 °C ?</td><td class="a-cell"><span class="dots-filler">. . . . .</span><span class="revealed-ans">Mai, Juin, Septembre, Octobre</span></td></tr>
+        </table>
+      </div>
+      <button class="corr-btn inline-btn" data-target="exo4"><span class="chev">▶</span> Voir la correction</button>
+    </div>
+
+    <div class="exo-block">
+      <div class="exo-tag">✏️ Exercice 5 — Construire un graphique</div>
+      <p style="margin-bottom:.7rem;">Construire le graphique du poids de Sébastien en fonction de son âge :</p>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <tr><th>Âges</th><th>0</th><th>1</th><th>2</th><th>4</th><th>5</th><th>6</th><th>8</th><th>10</th><th>12</th><th>15</th></tr>
+          <tr><td class="row-header">Poids (kg)</td><td>3,5</td><td>7,5</td><td>10</td><td>15</td><td>19</td><td>22</td><td>29</td><td>32</td><td>35</td><td>45</td></tr>
+        </table>
+      </div>
+      <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+      <div class="corr-body">
+        <div class="chart-container">
+          <svg viewBox="0 0 500 320" xmlns="http://www.w3.org/2000/svg" style="width:500px;height:320px;">
+            <text x="280" y="18" text-anchor="middle" font-family="Playfair Display,serif" font-size="11" font-weight="700" fill="#2b2724">Poids de Sébastien en fonction de son âge</text>
+            <line x1="55" y1="28" x2="55" y2="275" stroke="#8a8380" stroke-width="1.5"/>
+            <text x="18" y="155" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380" transform="rotate(-90,18,155)">Poids (en kg)</text>
+            <!-- 1kg ≈ 5.49px. y = 275 - poids*5.49 -->
+            <line x1="50" y1="275" x2="470" y2="275" stroke="#e0dbd4" stroke-width="1"/><text x="46" y="279" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">0</text>
+            <line x1="50" y1="247.5" x2="470" y2="247.5" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="251" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">5</text>
+            <line x1="50" y1="220.1" x2="470" y2="220.1" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="224" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">10</text>
+            <line x1="50" y1="192.6" x2="470" y2="192.6" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="196" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">15</text>
+            <line x1="50" y1="165.2" x2="470" y2="165.2" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="169" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">20</text>
+            <line x1="50" y1="137.8" x2="470" y2="137.8" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="141" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">25</text>
+            <line x1="50" y1="110.3" x2="470" y2="110.3" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="114" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">30</text>
+            <line x1="50" y1="82.9" x2="470" y2="82.9" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="86" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">35</text>
+            <line x1="50" y1="55.4" x2="470" y2="55.4" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="59" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">40</text>
+            <line x1="50" y1="28" x2="470" y2="28" stroke="#e0dbd4" stroke-width="1" stroke-dasharray="3,3"/><text x="46" y="32" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">45</text>
+            <line x1="55" y1="275" x2="470" y2="275" stroke="#8a8380" stroke-width="1.5"/>
+            <text x="265" y="308" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8a8380">Âge (en années)</text>
+            <!-- 1 an = 27.67px. x = 55 + age*27.67 -->
+            <text x="55" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">0</text>
+            <text x="82.7" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">1</text>
+            <text x="110.3" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">2</text>
+            <text x="165.7" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">4</text>
+            <text x="193.3" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">5</text>
+            <text x="221" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">6</text>
+            <text x="276.3" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">8</text>
+            <text x="331.7" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">10</text>
+            <text x="387" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">12</text>
+            <text x="470" y="290" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#5c5652">15</text>
+            <polyline points="55,255.8 82.7,233.8 110.3,220.1 165.7,192.7 193.3,170.7 221,154.2 276.3,115.8 331.7,99.3 387,82.9 470,28" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <g fill="#c0392b">
+              <circle cx="55" cy="255.8" r="4"/><circle cx="82.7" cy="233.8" r="4"/><circle cx="110.3" cy="220.1" r="4"/><circle cx="165.7" cy="192.7" r="4"/>
+              <circle cx="193.3" cy="170.7" r="4"/><circle cx="221" cy="154.2" r="4"/><circle cx="276.3" cy="115.8" r="4"/><circle cx="331.7" cy="99.3" r="4"/>
+              <circle cx="387" cy="82.9" r="4"/><circle cx="470" cy="28" r="4"/>
+            </g>
+            <text x="70" y="265" font-family="DM Sans,sans-serif" font-size="8" fill="#c0392b" font-weight="600">3,5 kg à 0 an</text>
+            <text x="96" y="228" font-family="DM Sans,sans-serif" font-size="8" fill="#c0392b" font-weight="600">7,5 kg à 1 an</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       RECAP
+  ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">Récapitulatif</div>
+
+    <div class="block conv">
+      <div class="block-tag">📋 Ce qu'il faut retenir</div>
+      <table class="recap-table">
+        <tr><td style="text-align:center;color:var(--text-light);font-weight:700;">📘</td><td style="font-weight:600;color:var(--blue);">Population</td><td>L'ensemble des individus concernés par l'étude.</td></tr>
+        <tr><td style="text-align:center;color:var(--text-light);font-weight:700;">📘</td><td style="font-weight:600;color:var(--blue);">Caractère</td><td>Ce que l'on étudie (le sport préféré, le mois de naissance…).</td></tr>
+        <tr><td style="text-align:center;color:var(--text-light);font-weight:700;">🔢</td><td style="font-weight:600;color:var(--blue);">Effectif</td><td>Le nombre de fois qu'une donnée apparaît dans la série.</td></tr>
+        <tr><td style="text-align:center;color:var(--text-light);font-weight:700;">📊</td><td style="font-weight:600;color:var(--blue);">Diagramme en bâtons</td><td>La hauteur de chaque bâton est proportionnelle à la valeur. Permet de <strong>comparer</strong>.</td></tr>
+        <tr><td style="text-align:center;color:var(--text-light);font-weight:700;">🥧</td><td style="font-weight:600;color:var(--blue);">Diagramme circulaire</td><td>Chaque angle est proportionnel à la valeur. Permet de voir la <strong>répartition</strong>.</td></tr>
+        <tr><td style="text-align:center;color:var(--text-light);font-weight:700;">📈</td><td style="font-weight:600;color:var(--blue);">Graphique cartésien</td><td>Des points reliés entre eux. Permet de voir l'<strong>évolution</strong>.</td></tr>
+      </table>
+    </div>
+
+    <div class="block warn">
+      <div class="block-tag">⚠️ Erreurs fréquentes</div>
+      <ul style="margin:.4rem 0 0 1.2rem;line-height:2.1;">
+        <li><strong>Oublier le titre et les légendes</strong> : tout graphique ou diagramme doit avoir un titre, des axes nommés et/ou une légende.</li>
+        <li><strong>Confondre effectif et données</strong> : l'effectif est un nombre (combien de fois), la donnée est la valeur (quel sport, quel mois…).</li>
+        <li><strong>Ne pas respecter l'échelle</strong> : dans un diagramme en bâtons ou un graphique, les graduations doivent être régulières.</li>
+        <li><strong>Oublier de vérifier la somme des angles</strong> : dans un diagramme circulaire, la somme des angles doit toujours faire <strong>360°</strong>.</li>
+      </ul>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function toggle(btn){
+  const body=btn.nextElementSibling;
+  const open=body.classList.contains('show');
+  body.classList.toggle('show');
+  btn.classList.toggle('open',!open);
+  btn.innerHTML='<span class="chev">▶</span> '+(open?'Voir la correction':'Masquer la correction');
+}
+document.querySelectorAll('.inline-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const id=this.dataset.target;
+    const block=document.getElementById(id);
+    const open=block.classList.contains('show-answers');
+    block.classList.toggle('show-answers');
+    this.classList.toggle('open',!open);
+    this.innerHTML='<span class="chev">▶</span> '+(open?'Voir la correction':'Masquer la correction');
+  });
+});
+function showAll(){
+  document.querySelectorAll('.corr-body').forEach(b=>b.classList.add('show'));
+  document.querySelectorAll('.corr-btn:not(.inline-btn)').forEach(b=>{b.classList.add('open');b.innerHTML='<span class="chev">▶</span> Masquer la correction';});
+  document.querySelectorAll('.inline-btn').forEach(b=>{
+    const id=b.dataset.target;const block=document.getElementById(id);
+    if(block)block.classList.add('show-answers');
+    b.classList.add('open');b.innerHTML='<span class="chev">▶</span> Masquer la correction';
+  });
+}
+function hideAll(){
+  document.querySelectorAll('.corr-body').forEach(b=>b.classList.remove('show'));
+  document.querySelectorAll('.corr-btn:not(.inline-btn)').forEach(b=>{b.classList.remove('open');b.innerHTML='<span class="chev">▶</span> Voir la correction';});
+  document.querySelectorAll('.inline-btn').forEach(b=>{
+    const id=b.dataset.target;const block=document.getElementById(id);
+    if(block)block.classList.remove('show-answers');
+    b.classList.remove('open');b.innerHTML='<span class="chev">▶</span> Voir la correction';
+  });
+}
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+  .btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all 0.3s ease;}
+  .btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}
+  @media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}}
+</style>
+</body>
+</html>
