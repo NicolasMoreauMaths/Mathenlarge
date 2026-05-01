@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion de données — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+  --blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.2);
+  --purple:#7c3aed;--purple-pale:rgba(124,58,237,.1);
+  --orange:#ea580c;--orange-pale:rgba(234,88,12,.1);--orange-border:rgba(234,88,12,.25);
+  --green:#16a34a;--green-pale:rgba(22,163,74,.1);
+  --red:#dc2626;--red-pale:rgba(220,38,38,.08);
+  --text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.08);
+}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);-webkit-text-size-adjust:100%;}
+.app{max-width:900px;width:100%;}
+.app-header{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;padding:18px 24px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(29,78,216,.3);position:relative;overflow:hidden;}
+.app-header::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 50%);pointer-events:none;}
+.app-title{font-size:1.3em;font-weight:700;position:relative;display:flex;align-items:center;gap:10px;}
+.app-title::before{content:'📊';font-size:1.2em;}
+.main{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;padding:32px 28px;box-shadow:0 8px 28px var(--shadow);min-height:60vh;}
+.screen{display:none;animation:fadeIn .3s ease;}.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
+h1{font-size:1.6em;font-weight:700;text-align:center;margin-bottom:8px;color:var(--blue);}
+.sub{text-align:center;font-size:.95em;color:var(--text-light);margin-bottom:24px;line-height:1.6;}
+.btn{font-family:'DM Sans',sans-serif;padding:12px 28px;border-radius:12px;font-size:.95em;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:none;}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 12px rgba(29,78,216,.2);}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-2px);box-shadow:0 4px 16px rgba(29,78,216,.3);}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-green:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px);}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border);}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light);}
+.controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:20px 0;}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:22px 16px;text-align:center;cursor:pointer;transition:all .25s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+.mc:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 8px 24px var(--shadow);}
+.mc-icon{font-size:2em;margin-bottom:8px;}.mc-t{font-size:.95em;color:var(--blue);font-weight:700;margin-bottom:4px;}.mc-d{font-size:.8em;color:var(--text-light);line-height:1.4;}
+.mc-badge{position:absolute;top:10px;right:10px;background:var(--orange-pale);color:var(--orange);font-size:.7em;font-weight:700;padding:3px 10px;border-radius:12px;}
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.ex-badge{background:var(--blue-pale);color:var(--blue);padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:700;}
+.ex-score{font-size:.9em;color:var(--text-light);font-weight:600;}
+.pbar{width:100%;background:var(--border);border-radius:6px;height:6px;overflow:hidden;margin-bottom:20px;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:6px;transition:width .4s;}
+.fb{border-radius:12px;padding:14px 20px;font-size:.95em;font-weight:600;line-height:1.5;display:none;margin-top:16px;}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,.2);}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,.15);}
+.rc{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:20px auto;border:6px solid var(--border);}
+.rc.good{border-color:var(--green);}.rc.mid{border-color:var(--orange);}.rc.bad{border-color:var(--red);}
+.rp{font-size:2.2em;font-weight:700;line-height:1;}
+.rm{font-size:1.1em;text-align:center;margin:16px 0;line-height:1.5;}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .2em;line-height:1;}
+.frac .fn{border-bottom:2.5px solid currentColor;padding:0 .3em .1em;font-weight:700;}
+.frac .fd{padding:.1em .3em 0;font-weight:700;}
+.frac-lg{font-size:1.3em;}
+.inp{font-family:'DM Sans',sans-serif;font-size:1.15rem;font-weight:700;width:80px;text-align:center;padding:.45rem .3rem;border:2.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);transition:border-color .2s,box-shadow .2s;-moz-appearance:textfield;}
+.inp::-webkit-outer-spin-button,.inp::-webkit-inner-spin-button{-webkit-appearance:none;}
+.inp:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-pale);}
+.inp.ok{border-color:var(--green);background:var(--green-pale);color:var(--green);}
+.inp.err{border-color:var(--red);background:var(--red-pale);color:var(--red);animation:shake .4s ease;}
+.q-text{font-size:1.1em;font-weight:600;line-height:1.6;margin-bottom:1rem;text-align:center;}
+.opt-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:1rem 0;}
+.opt-btn{font-family:'DM Sans',sans-serif;padding:10px 20px;border-radius:12px;font-size:.95em;font-weight:600;cursor:pointer;border:2.5px solid var(--border);background:#fff;color:var(--text);transition:all .2s;min-width:120px;text-align:center;}
+.opt-btn:hover:not(:disabled){border-color:var(--blue);background:var(--blue-pale);transform:translateY(-2px);}
+.opt-btn.chosen{border-color:var(--blue);background:var(--blue-pale);color:var(--blue);}
+.opt-btn.correct{border-color:var(--green);background:var(--green-pale);color:var(--green);}
+.opt-btn.wrong{border-color:var(--red);background:var(--red-pale);color:var(--red);}
+.opt-btn:disabled{cursor:default;opacity:.7;}
+.q-table{border-collapse:collapse;margin:.8rem auto;font-size:.9rem;}
+.q-table th,.q-table td{padding:.45rem .65rem;border:1.5px solid var(--border);text-align:center;}
+.q-table th{background:var(--blue-pale);color:var(--blue);font-weight:700;font-size:.82rem;}
+.q-table td{background:#fff;}.q-table .rh{background:#f8fafc;font-weight:600;text-align:left;}.q-table .total{background:#fef9c3;font-weight:700;color:var(--orange);}
+.svg-wrap{overflow-x:auto;display:flex;justify-content:center;margin:.8rem 0;}.svg-wrap svg{display:block;overflow:visible;}
+/* CALCULATOR */
+.calc-widget{background:#f8fafc;border:2px solid var(--border);border-radius:14px;padding:12px;max-width:260px;margin:.8rem auto;}
+.calc-display{font-family:'DM Sans',sans-serif;font-size:1.2rem;font-weight:700;text-align:right;padding:.5rem .7rem;background:#fff;border:2px solid var(--border);border-radius:8px;margin-bottom:8px;min-height:2.2rem;word-break:break-all;color:var(--text);}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.calc-btn{font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;padding:10px 0;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--text);cursor:pointer;transition:all .15s;text-align:center;}
+.calc-btn:hover{background:var(--blue-pale);border-color:var(--blue);}
+.calc-btn:active{transform:scale(.95);}
+.calc-btn.op{background:var(--blue-pale);color:var(--blue);font-weight:700;}
+.calc-btn.eq{background:var(--blue);color:#fff;border-color:var(--blue);}
+.calc-btn.clear{background:var(--red-pale);color:var(--red);border-color:rgba(220,38,38,.2);}
+
+@media(max-width:640px){
+  .app-header{padding:14px 18px;}.app-title{font-size:1.1em;}
+  .main{padding:24px 18px;}h1{font-size:1.3em;}.menu-grid{grid-template-columns:1fr;}
+  .calc-widget{max-width:220px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="app-title">Gestion de données</div>
+    <button class="btn btn-ghost" onclick="show('S_menu')" style="color:white;border-color:rgba(255,255,255,.3);">← Menu</button>
+  </div>
+  <div class="main">
+    <div id="S_menu" class="screen active">
+      <h1>Entraîne-toi sur les statistiques</h1>
+      <p class="sub">Choisis une compétence pour commencer</p>
+      <div class="menu-grid">
+        <div class="mc" onclick="go(1)"><div class="mc-icon">📋</div><div class="mc-t">Vocabulaire</div><div class="mc-d">Population, caractère, effectif, données</div></div>
+        <div class="mc" onclick="go(2)"><div class="mc-icon">🔢</div><div class="mc-t">Lire un tableau</div><div class="mc-d">Trouve les effectifs et l'effectif total</div></div>
+        <div class="mc" onclick="go(3)"><div class="mc-icon">📊</div><div class="mc-t">Diagramme en bâtons</div><div class="mc-d">Lis la hauteur des bâtons</div></div>
+        <div class="mc" onclick="go(4)"><div class="mc-icon">🥧</div><div class="mc-t">Calculer un angle</div><div class="mc-d">Calcule l'angle pour un diagramme circulaire</div></div>
+        <div class="mc" onclick="go(5)"><div class="mc-icon">📈</div><div class="mc-t">Lire un graphique</div><div class="mc-d">Lis les coordonnées d'un point</div></div>
+        <div class="mc" onclick="go(6)" style="border-color:var(--orange);background:var(--orange-pale);"><div class="mc-badge">MIX</div><div class="mc-icon">🎯</div><div class="mc-t" style="color:var(--orange);">Mélange de tout</div><div class="mc-d">Questions variées sur toutes les compétences</div></div>
+      </div>
+    </div>
+    <div id="S_ex" class="screen">
+      <div class="ex-top"><div class="ex-badge" id="badge">—</div><div class="ex-score" id="scLbl">0 / 0</div></div>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+      <div id="zone"></div>
+      <div class="fb" id="fb"></div>
+      <div class="controls"><button class="btn btn-blue" id="nxt" style="display:none" onclick="nxtQ()">Question suivante →</button></div>
+    </div>
+    <div id="S_res" class="screen">
+      <h1>Résultats</h1>
+      <div class="rc" id="rCirc"><div class="rp" id="rPct">0%</div></div>
+      <div class="rm" id="rMsg"></div>
+      <div class="controls"><button class="btn btn-blue" onclick="show('S_menu')">← Retour au menu</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NAMES={1:'Vocabulaire',2:'Lire un tableau',3:'Diagramme en bâtons',4:'Calculer un angle',5:'Lire un graphique',6:'Mélange'};
+let lv=1,qs=[],qi=0,cq=null,sc=0;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+const SURVEYS=[
+  {theme:'couleur préférée',pop:'les 28 élèves de la classe',items:['bleu','rouge','vert','jaune','violet'],effs:[9,7,5,4,3]},
+  {theme:'sport préféré',pop:'les 30 élèves de la classe',items:['football','basket','natation','tennis','danse'],effs:[10,6,5,4,5]},
+  {theme:'fruit préféré',pop:'les 25 élèves de la classe',items:['pomme','banane','fraise','orange','raisin'],effs:[8,6,5,4,2]},
+  {theme:'moyen de transport',pop:'les 24 élèves de la classe',items:['bus','marche','vélo','voiture'],effs:[9,7,5,3]},
+  {theme:'animal préféré',pop:'les 32 élèves de la classe',items:['chat','chien','hamster','poisson','oiseau'],effs:[10,9,6,4,3]},
+  {theme:'matière préférée',pop:'les 36 élèves de la classe',items:['maths','français','histoire','sport','arts','SVT'],effs:[10,6,4,8,5,3]},
+  {theme:'dessert préféré',pop:'les 20 élèves de la classe',items:['glace','crêpe','gâteau','fruit'],effs:[7,5,5,3]},
+  {theme:'instrument préféré',pop:'les 30 élèves de la classe',items:['piano','guitare','batterie','violon','flûte'],effs:[8,9,5,4,4]},
+  {theme:'jeu vidéo préféré',pop:'les 40 élèves de 6ème',items:['Minecraft','Fortnite','Mario','Zelda','FIFA','Roblox'],effs:[12,8,6,5,5,4]},
+  {theme:'boisson préférée',pop:'les 24 élèves de la classe',items:['eau','jus d\'orange','limonade','lait','sirop'],effs:[8,6,4,3,3]},
+  {theme:'saison préférée',pop:'les 30 personnes interrogées',items:['printemps','été','automne','hiver'],effs:[6,12,4,8]},
+  {theme:'genre de film préféré',pop:'les 35 élèves du club cinéma',items:['comédie','action','animation','horreur','science-fiction'],effs:[10,8,9,3,5]},
+  {theme:'pays à visiter',pop:'les 27 élèves de la classe',items:['Japon','États-Unis','Espagne','Italie','Australie'],effs:[8,6,5,5,3]},
+  {theme:'activité du week-end',pop:'les 22 élèves de la classe',items:['sport','jeux vidéo','lecture','sortie','repos'],effs:[6,5,4,4,3]},
+];
+
+const BAR_COLORS=['#3b82f6','#22c55e','#f97316','#a855f7','#ec4899','#14b8a6','#eab308','#ef4444'];
+
+/* ═══════════════════════════════
+   GENERATORS
+═══════════════════════════════ */
+
+function genL1(){
+  const out=[];const pool=shuffle([...SURVEYS]);
+  const types=['population','caractère','effectif_total','données'];
+  for(let i=0;i<10;i++){
+    out.push({type:1,survey:pool[i%pool.length],askType:types[i%types.length]});
+  }
+  return shuffle(out);
+}
+
+function genL2(){
+  const out=[];const pool=shuffle([...SURVEYS]);
+  const types=['effectif','max','min','total','missing','sum_two'];
+  for(let i=0;i<10;i++){
+    const s=pool[i%pool.length];
+    const total=s.effs.reduce((a,b)=>a+b,0);
+    const askType=types[i%types.length];
+    if(askType==='effectif'){
+      const idx=rnd(0,s.items.length-1);
+      out.push({type:2,survey:s,total,askType,targetIdx:idx,answer:s.effs[idx]});
+    } else if(askType==='max'){
+      const maxVal=Math.max(...s.effs);
+      out.push({type:2,survey:s,total,askType,answer:s.items[s.effs.indexOf(maxVal)]});
+    } else if(askType==='min'){
+      const minVal=Math.min(...s.effs);
+      out.push({type:2,survey:s,total,askType,answer:s.items[s.effs.indexOf(minVal)]});
+    } else if(askType==='total'){
+      out.push({type:2,survey:s,total,askType,answer:total});
+    } else if(askType==='missing'){
+      const idx=rnd(0,s.items.length-1);
+      out.push({type:2,survey:s,total,askType,hideIdx:idx,answer:s.effs[idx]});
+    } else { // sum_two
+      const i1=rnd(0,s.items.length-2),i2=i1+1;
+      out.push({type:2,survey:s,total,askType,idx1:i1,idx2:i2,answer:s.effs[i1]+s.effs[i2]});
+    }
+  }
+  return shuffle(out);
+}
+
+function genL3(){
+  const out=[];const pool=shuffle([...SURVEYS]);
+  for(let i=0;i<10;i++){
+    const s=pool[i%pool.length];
+    const askType=pick(['read','compare','total','diff']);
+    if(askType==='read'){
+      const idx=rnd(0,s.items.length-1);
+      out.push({type:3,survey:s,askType,targetIdx:idx,answer:s.effs[idx]});
+    } else if(askType==='compare'){
+      out.push({type:3,survey:s,askType,answer:s.items[s.effs.indexOf(Math.max(...s.effs))]});
+    } else if(askType==='total'){
+      out.push({type:3,survey:s,askType,answer:s.effs.reduce((a,b)=>a+b,0)});
+    } else {
+      const sorted=[...s.effs].sort((a,b)=>b-a);
+      out.push({type:3,survey:s,askType,answer:sorted[0]-sorted[sorted.length-1]});
+    }
+  }
+  return shuffle(out);
+}
+
+function genL4(){
+  const out=[];const pool=shuffle([...SURVEYS]);
+  for(let i=0;i<10;i++){
+    const s=pool[i%pool.length];
+    const total=s.effs.reduce((a,b)=>a+b,0);
+    const idx=rnd(0,s.items.length-1);
+    const angle=Math.round(s.effs[idx]/total*360);
+    out.push({type:4,survey:s,total,targetIdx:idx,answer:angle});
+  }
+  return shuffle(out);
+}
+
+function genL5(){
+  const out=[];
+  const MONTHS=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const GRAPH_SETS=[
+    {title:'Température moyenne',unit:'°C',base:[4,5,8,12,16,20,23,22,18,13,8,5]},
+    {title:'Précipitations',unit:'mm',base:[80,65,55,50,60,45,35,40,55,70,85,90]},
+    {title:'Heures d\'ensoleillement',unit:'h',base:[3,4,5,7,8,10,11,10,8,6,4,3]},
+  ];
+  for(let i=0;i<10;i++){
+    const gs=pick(GRAPH_SETS);
+    const offset=rnd(-2,2);
+    const vals=gs.base.map(t=>t+offset+rnd(-1,1));
+    const askType=pick(['read','max','min','diff']);
+    if(askType==='read'){
+      const m=rnd(0,11);
+      out.push({type:5,months:MONTHS,vals,title:gs.title,unit:gs.unit,askType,askMonth:m,answer:vals[m]});
+    } else if(askType==='max'){
+      const maxV=Math.max(...vals);
+      out.push({type:5,months:MONTHS,vals,title:gs.title,unit:gs.unit,askType,answer:MONTHS[vals.indexOf(maxV)]});
+    } else if(askType==='min'){
+      const minV=Math.min(...vals);
+      out.push({type:5,months:MONTHS,vals,title:gs.title,unit:gs.unit,askType,answer:MONTHS[vals.indexOf(minV)]});
+    } else {
+      const maxV=Math.max(...vals),minV=Math.min(...vals);
+      out.push({type:5,months:MONTHS,vals,title:gs.title,unit:gs.unit,askType,answer:maxV-minV});
+    }
+  }
+  return shuffle(out);
+}
+
+function genL6(){
+  const mix=[];
+  mix.push(...genL1().slice(0,2),...genL2().slice(0,2),...genL3().slice(0,2),...genL4().slice(0,2),...genL5().slice(0,2));
+  return shuffle(mix);
+}
+
+/* ═══════════════════════════════
+   RENDERERS
+═══════════════════════════════ */
+
+function renderQ(){
+  cq=qs[qi];cq._done=false;cq._tries=0;
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';$('nxt').style.display='none';$('zone').innerHTML='';
+  if(cq.type===1) renderVocab(cq);
+  else if(cq.type===2) renderTable(cq);
+  else if(cq.type===3) renderBar(cq);
+  else if(cq.type===4) renderAngle(cq);
+  else renderGraph(cq);
+}
+
+/* TYPE 1 : Vocabulaire QCM */
+function renderVocab(q){
+  const s=q.survey;const total=s.effs.reduce((a,b)=>a+b,0);
+  let question='',options=[],correctIdx=0;
+  if(q.askType==='population'){
+    question=`On a demandé à ${s.pop} leur <strong>${s.theme}</strong>.<br>Quelle est la <strong>population</strong> étudiée ?`;
+    options=[s.pop,`Le ${s.theme}`,s.items.join(', ')];correctIdx=0;
+  } else if(q.askType==='caractère'){
+    question=`On a demandé à ${s.pop} leur <strong>${s.theme}</strong>.<br>Quel est le <strong>caractère étudié</strong> ?`;
+    options=[`Le ${s.theme}`,s.pop,`${total} réponses`];correctIdx=0;
+  } else if(q.askType==='effectif_total'){
+    question=`On a interrogé ${s.pop} sur leur <strong>${s.theme}</strong>.<br>Quel est l'<strong>effectif total</strong> ?`;
+    const w1=total+rnd(2,5),w2=s.items.length;
+    options=[`${total}`,`${w1}`,`${w2}`];correctIdx=0;
+  } else {
+    question=`On a interrogé ${s.pop} sur leur <strong>${s.theme}</strong>.<br>Quelles sont les <strong>données possibles</strong> ?`;
+    options=[s.items.join(', '),s.pop,`${total}`];correctIdx=0;
+  }
+  const indexed=options.map((o,i)=>({text:o,isCorrect:i===correctIdx}));shuffle(indexed);
+  const correctText=indexed.find(o=>o.isCorrect).text;
+  $('zone').innerHTML=`<p class="q-text">${question}</p>
+    <div class="opt-grid" id="optGrid">${indexed.map(o=>`<button class="opt-btn" data-val="${o.text}" onclick="checkOpt(this,'${encodeURIComponent(correctText)}')">${o.text}</button>`).join('')}</div>`;
+}
+function checkOpt(btn,enc){
+  if(cq._done)return;const correct=decodeURIComponent(enc);
+  document.querySelectorAll('#optGrid .opt-btn').forEach(b=>b.disabled=true);
+  if(btn.dataset.val===correct){btn.classList.add('correct');finish(true,`Bonne réponse ✓`);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#optGrid .opt-btn').forEach(b=>{if(b.dataset.val===correct)b.classList.add('correct');});finish(false,`La bonne réponse était <strong>${correct}</strong>.`);}
+}
+
+/* TYPE 2 : Lire un tableau */
+function renderTable(q){
+  const s=q.survey;
+  let thRow=s.items.map(it=>`<th>${it}</th>`).join('');
+  let tdRow=q.askType==='missing'?s.effs.map((e,i)=>i===q.hideIdx?`<td><strong>?</strong></td>`:`<td>${e}</td>`).join(''):s.effs.map(e=>`<td>${e}</td>`).join('');
+  let question='',useQCM=false;
+  if(q.askType==='effectif') question=`Quel est l'<strong>effectif</strong> de « <strong>${s.items[q.targetIdx]}</strong> » ?`;
+  else if(q.askType==='max'){question=`Quelle donnée a l'<strong>effectif le plus grand</strong> ?`;useQCM=true;}
+  else if(q.askType==='min'){question=`Quelle donnée a l'<strong>effectif le plus petit</strong> ?`;useQCM=true;}
+  else if(q.askType==='total') question=`Quel est l'<strong>effectif total</strong> ?`;
+  else if(q.askType==='missing') question=`La case <strong>?</strong> a été effacée. L'effectif total est <strong>${q.total}</strong>. Retrouve l'effectif manquant.`;
+  else question=`Combien d'élèves ont choisi « <strong>${s.items[q.idx1]}</strong> » ou « <strong>${s.items[q.idx2]}</strong> » ?`;
+  const showTotal=q.askType!=='total';
+  $('zone').innerHTML=`<p class="q-text">Enquête : <strong>${s.theme}</strong> auprès de ${s.pop}.</p>
+    <table class="q-table"><tr><th>Donnée</th>${thRow}${showTotal?`<th class="total">Total</th>`:''}</tr>
+    <tr><td class="rh">Effectif</td>${tdRow}${showTotal?`<td class="total">${q.total}</td>`:''}</tr></table>
+    <p class="q-text" style="margin-top:1rem;">${question}</p>
+    ${useQCM?`<div class="opt-grid" id="optGrid">${s.items.map(it=>`<button class="opt-btn" data-val="${it}" onclick="checkTableMax(this)">${it}</button>`).join('')}</div>`:`
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:.8rem;">
+      <input class="inp" id="i_t" type="number" min="0" placeholder="?" autocomplete="off">
+      <button class="btn btn-green" onclick="checkTable()">Valider</button>
+    </div>`}`;
+  if(!useQCM){bindEnter(checkTable);setTimeout(()=>$('i_t').focus(),100);}
+}
+function checkTable(){
+  if(cq._done)return;const v=parseFloat($('i_t').value);
+  if(isNaN(v)){$('fb').className='fb bad';$('fb').innerHTML='❌ Entre un nombre !';return;}
+  if(v===cq.answer){$('i_t').classList.add('ok');finish(true,`<strong>${cq.answer}</strong> ✓`);}
+  else{$('i_t').classList.add('err');setTimeout(()=>$('i_t').classList.remove('err'),600);finish(false,`La bonne réponse était <strong>${cq.answer}</strong>.`);}
+}
+function checkTableMax(btn){
+  if(cq._done)return;document.querySelectorAll('#optGrid .opt-btn').forEach(b=>b.disabled=true);
+  if(btn.dataset.val===cq.answer){btn.classList.add('correct');finish(true,`<strong>${cq.answer}</strong> ✓`);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#optGrid .opt-btn').forEach(b=>{if(b.dataset.val===cq.answer)b.classList.add('correct');});finish(false,`La bonne réponse était <strong>${cq.answer}</strong>.`);}
+}
+
+/* TYPE 3 : Diagramme en bâtons — NO GUIDANCE */
+function renderBar(q){
+  const s=q.survey;const maxVal=Math.max(...s.effs);
+  const yMax=Math.ceil(maxVal/2)*2+2;
+  const W=Math.min(500,55*s.items.length+80),H=230;
+  const left=50,bottom=H-35,top=30,right=W-15;
+  const barW=Math.min(38,(right-left)/s.items.length*.65);
+  const gap=(right-left)/s.items.length;
+  const scale=(bottom-top)/yMax;
+  let grid='',bars='',labels='';
+  for(let v=0;v<=yMax;v+=2){
+    const y=bottom-v*scale;
+    grid+=`<line x1="${left-5}" y1="${y}" x2="${right}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3"/>`;
+    grid+=`<text x="${left-8}" y="${y+4}" text-anchor="end" font-family="DM Sans,sans-serif" font-size="9" fill="#94a3b8">${v}</text>`;
+  }
+  for(let v=1;v<=yMax;v+=2){
+    const y=bottom-v*scale;
+    grid+=`<line x1="${left-3}" y1="${y}" x2="${left+3}" y2="${y}" stroke="#cbd5e1" stroke-width="1"/>`;
+  }
+  s.items.forEach((it,i)=>{
+    const x=left+gap*i+gap/2;const h=s.effs[i]*scale;const color=BAR_COLORS[i%BAR_COLORS.length];
+    bars+=`<rect x="${x-barW/2}" y="${bottom-h}" width="${barW}" height="${h}" rx="3" fill="${color}" fill-opacity=".75" stroke="${color}" stroke-width="1.5"/>`;
+    labels+=`<text x="${x}" y="${H-12}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#475569">${it}</text>`;
+  });
+  let question='',useQCM=false;
+  if(q.askType==='read') question=`Quel est l'effectif de « <strong>${s.items[q.targetIdx]}</strong> » ?`;
+  else if(q.askType==='compare'){question=`Quel bâton est le <strong>plus haut</strong> ?`;useQCM=true;}
+  else if(q.askType==='total') question=`Quel est l'<strong>effectif total</strong> (somme de tous les bâtons) ?`;
+  else question=`Quelle est la <strong>différence</strong> entre le bâton le plus haut et le plus bas ?`;
+
+  $('zone').innerHTML=`<p class="q-text">${question}</p>
+    <div class="svg-wrap"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:${W}px;height:${H}px;">
+      <text x="${W/2}" y="18" text-anchor="middle" font-family="Crimson Pro,serif" font-size="11" font-weight="700" fill="#1e293b">${s.theme.charAt(0).toUpperCase()+s.theme.slice(1)}</text>
+      <line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" stroke="#94a3b8" stroke-width="1.5"/>
+      <line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" stroke="#94a3b8" stroke-width="1.5"/>
+      ${grid}${bars}${labels}
+    </svg></div>
+    ${useQCM?`<div class="opt-grid" id="optGrid">${s.items.map(it=>`<button class="opt-btn" data-val="${it}" onclick="checkBarQCM(this)">${it}</button>`).join('')}</div>`:`
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:.8rem;">
+      <input class="inp" id="i_b" type="number" min="0" placeholder="?" autocomplete="off" style="width:70px;">
+      <button class="btn btn-green" onclick="checkBar()">Valider</button>
+    </div>`}`;
+  if(!useQCM){bindEnter(checkBar);setTimeout(()=>$('i_b').focus(),100);}
+}
+function checkBar(){
+  if(cq._done)return;const v=parseInt($('i_b').value);
+  if(isNaN(v)){$('fb').className='fb bad';$('fb').innerHTML='❌ Entre un nombre !';return;}
+  if(v===cq.answer){$('i_b').classList.add('ok');finish(true,`<strong>${cq.answer}</strong> ✓`);}
+  else{$('i_b').classList.add('err');setTimeout(()=>$('i_b').classList.remove('err'),600);finish(false,`La bonne réponse était <strong>${cq.answer}</strong>.`);}
+}
+function checkBarQCM(btn){
+  if(cq._done)return;document.querySelectorAll('#optGrid .opt-btn').forEach(b=>b.disabled=true);
+  if(btn.dataset.val===cq.answer){btn.classList.add('correct');finish(true,`<strong>${cq.answer}</strong> ✓`);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#optGrid .opt-btn').forEach(b=>{if(b.dataset.val===cq.answer)b.classList.add('correct');});finish(false,`La bonne réponse était <strong>${cq.answer}</strong>.`);}
+}
+
+/* TYPE 4 : Calculer un angle — WITH CALCULATOR */
+function renderAngle(q){
+  const s=q.survey;
+  $('zone').innerHTML=`
+    <p class="q-text">Calcule l'<strong>angle</strong> de « <strong>${s.items[q.targetIdx]}</strong> » pour un diagramme circulaire.</p>
+    <table class="q-table">
+      <tr><th>Donnée</th>${s.items.map(it=>`<th>${it}</th>`).join('')}<th class="total">Total</th></tr>
+      <tr><td class="rh">Effectif</td>${s.effs.map(e=>`<td>${e}</td>`).join('')}<td class="total">${q.total}</td></tr>
+    </table>
+    <div style="display:flex;flex-wrap:wrap;gap:20px;justify-content:center;align-items:flex-start;margin-top:1rem;">
+      <div>
+        <div style="background:var(--blue-pale);border:1.5px solid var(--blue-border);border-radius:10px;padding:.6rem 1rem;text-align:center;font-size:.88em;margin-bottom:.8rem;">
+          Angle = <span class="frac"><span class="fn">effectif</span><span class="fd">effectif total</span></span> × 360°
+        </div>
+        <div style="display:flex;justify-content:center;align-items:center;gap:12px;">
+          <input class="inp" id="i_a" type="number" min="0" placeholder="?" autocomplete="off" style="width:80px;">
+          <span style="font-weight:600;">°</span>
+          <button class="btn btn-green" onclick="checkAngle()">Valider</button>
+        </div>
+      </div>
+      <div class="calc-widget" id="calcWidget">
+        <div class="calc-display" id="calcDisp">0</div>
+        <div class="calc-grid">
+          <button class="calc-btn clear" onclick="calcPress('C')">C</button>
+          <button class="calc-btn op" onclick="calcPress('(')">(</button>
+          <button class="calc-btn op" onclick="calcPress(')')">)</button>
+          <button class="calc-btn op" onclick="calcPress('÷')">÷</button>
+          <button class="calc-btn" onclick="calcPress('7')">7</button>
+          <button class="calc-btn" onclick="calcPress('8')">8</button>
+          <button class="calc-btn" onclick="calcPress('9')">9</button>
+          <button class="calc-btn op" onclick="calcPress('×')">×</button>
+          <button class="calc-btn" onclick="calcPress('4')">4</button>
+          <button class="calc-btn" onclick="calcPress('5')">5</button>
+          <button class="calc-btn" onclick="calcPress('6')">6</button>
+          <button class="calc-btn op" onclick="calcPress('-')">−</button>
+          <button class="calc-btn" onclick="calcPress('1')">1</button>
+          <button class="calc-btn" onclick="calcPress('2')">2</button>
+          <button class="calc-btn" onclick="calcPress('3')">3</button>
+          <button class="calc-btn op" onclick="calcPress('+')">+</button>
+          <button class="calc-btn" onclick="calcPress('0')" style="grid-column:span 2;">0</button>
+          <button class="calc-btn" onclick="calcPress('.')">.</button>
+          <button class="calc-btn eq" onclick="calcPress('=')">=</button>
+        </div>
+      </div>
+    </div>`;
+  bindEnter(checkAngle);setTimeout(()=>$('i_a').focus(),100);
+}
+
+let calcExpr='';
+function calcPress(k){
+  const d=$('calcDisp');
+  if(k==='C'){calcExpr='';d.textContent='0';return;}
+  if(k==='='){
+    try{
+      const expr=calcExpr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+      const result=Function('"use strict";return('+expr+')')();
+      d.textContent=Math.round(result*1000)/1000;
+      calcExpr=String(Math.round(result*1000)/1000);
+    }catch(e){d.textContent='Erreur';}
+    return;
+  }
+  if(calcExpr==='0'&&!'(+−×÷.'.includes(k))calcExpr='';
+  calcExpr+=k;
+  d.textContent=calcExpr;
+}
+
+function checkAngle(){
+  if(cq._done)return;const v=parseFloat($('i_a').value);
+  if(isNaN(v)){$('fb').className='fb bad';$('fb').innerHTML='❌ Entre un nombre !';return;}
+  if(Math.abs(v-cq.answer)<1){$('i_a').classList.add('ok');finish(true,`L'angle est <strong>${cq.answer}°</strong> ✓`);}
+  else{$('i_a').classList.add('err');setTimeout(()=>$('i_a').classList.remove('err'),600);
+    const s=cq.survey;finish(false,`<span class="frac"><span class="fn">${s.effs[cq.targetIdx]}</span><span class="fd">${cq.total}</span></span> × 360° = <strong>${cq.answer}°</strong>`);}
+}
+
+/* TYPE 5 : Lire un graphique — NO GUIDANCE */
+function renderGraph(q){
+  const W=500,H=270;const left=55,bottom=H-45,top=25,right=W-15;
+  const vals=q.vals;const months=q.months;
+  const allMin=Math.min(...vals),allMax=Math.max(...vals);
+  const yMin=Math.floor((allMin-2)/2)*2,yMax=Math.ceil((allMax+2)/2)*2;
+  const scale=(bottom-top)/(yMax-yMin);const xStep=(right-left)/11;
+  let grid='',pts='',polyPts='',labels='';
+  for(let v=yMin;v<=yMax;v+=2){
+    const y=bottom-(v-yMin)*scale;
+    grid+=`<line x1="${left-5}" y1="${y}" x2="${right}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3"/>`;
+    grid+=`<text x="${left-8}" y="${y+4}" text-anchor="end" font-family="DM Sans,sans-serif" font-size="8" fill="#94a3b8">${v}</text>`;
+  }
+  for(let v=yMin+1;v<yMax;v+=2){
+    const y=bottom-(v-yMin)*scale;
+    grid+=`<line x1="${left-3}" y1="${y}" x2="${left+3}" y2="${y}" stroke="#cbd5e1" stroke-width="1"/>`;
+  }
+  vals.forEach((t,i)=>{
+    const x=left+xStep*i;const y=bottom-(t-yMin)*scale;
+    polyPts+=`${x},${y} `;pts+=`<circle cx="${x}" cy="${y}" r="4" fill="#0369a1"/>`;
+    labels+=`<text x="${x}" y="${bottom+22}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="7" fill="#475569" transform="rotate(-30,${x},${bottom+22})">${months[i]}</text>`;
+  });
+
+  let question='',useQCM=false;
+  if(q.askType==='read') question=`Quelle est la valeur au mois de <strong>${months[q.askMonth]}</strong> ?`;
+  else if(q.askType==='max'){question=`Quel mois a la valeur <strong>la plus élevée</strong> ?`;useQCM=true;}
+  else if(q.askType==='min'){question=`Quel mois a la valeur <strong>la plus basse</strong> ?`;useQCM=true;}
+  else question=`Quelle est la <strong>différence</strong> entre la valeur la plus haute et la plus basse ?`;
+
+  $('zone').innerHTML=`<p class="q-text">${q.title} — ${question}</p>
+    <div class="svg-wrap"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:${W}px;height:${H}px;">
+      <text x="${W/2}" y="16" text-anchor="middle" font-family="Crimson Pro,serif" font-size="11" font-weight="700" fill="#1e293b">${q.title}</text>
+      <line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" stroke="#94a3b8" stroke-width="1.5"/>
+      <line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="18" y="${(top+bottom)/2}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8" fill="#94a3b8" transform="rotate(-90,18,${(top+bottom)/2})">${q.unit}</text>
+      ${grid}<polyline points="${polyPts.trim()}" fill="none" stroke="#0369a1" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${pts}${labels}
+    </svg></div>
+    ${useQCM?`<div class="opt-grid" id="optGrid">${months.map(m=>`<button class="opt-btn" style="min-width:60px;padding:8px 12px;" data-val="${m}" onclick="checkGraphQCM(this)">${m}</button>`).join('')}</div>`:`
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:.8rem;">
+      <input class="inp" id="i_g" type="number" placeholder="?" autocomplete="off" style="width:80px;">
+      <span style="font-weight:600;">${q.unit}</span>
+      <button class="btn btn-green" onclick="checkGraph()">Valider</button>
+    </div>`}`;
+  if(!useQCM){bindEnter(checkGraph);setTimeout(()=>$('i_g').focus(),100);}
+}
+function checkGraph(){
+  if(cq._done)return;const v=parseFloat($('i_g').value);
+  if(isNaN(v)){$('fb').className='fb bad';$('fb').innerHTML='❌ Entre un nombre !';return;}
+  if(Math.abs(v-cq.answer)<=1){$('i_g').classList.add('ok');finish(true,`<strong>${cq.answer} ${cq.unit}</strong> ✓`);}
+  else{$('i_g').classList.add('err');setTimeout(()=>$('i_g').classList.remove('err'),600);finish(false,`La bonne réponse était <strong>${cq.answer} ${cq.unit}</strong>.`);}
+}
+function checkGraphQCM(btn){
+  if(cq._done)return;document.querySelectorAll('#optGrid .opt-btn').forEach(b=>b.disabled=true);
+  if(btn.dataset.val===cq.answer){btn.classList.add('correct');finish(true,`<strong>${cq.answer}</strong> ✓`);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#optGrid .opt-btn').forEach(b=>{if(b.dataset.val===cq.answer)b.classList.add('correct');});finish(false,`La bonne réponse était <strong>${cq.answer}</strong>.`);}
+}
+
+/* ═══════════════════════════════
+   ENGINE
+═══════════════════════════════ */
+function bindEnter(fn){document.querySelectorAll('#zone .inp').forEach(inp=>{inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fn();}});});}
+
+function go(l){
+  lv=l;sc=0;qi=0;calcExpr='';
+  if(l===1)qs=genL1();else if(l===2)qs=genL2();else if(l===3)qs=genL3();else if(l===4)qs=genL4();else if(l===5)qs=genL5();else qs=genL6();
+  $('badge').textContent=NAMES[l];show('S_ex');renderQ();
+}
+
+function finish(ok,msg){
+  const fb=$('fb');
+  if(ok){cq._done=true;sc++;$('scLbl').textContent=`${sc} / ${qi+1}`;fb.className='fb ok';fb.innerHTML='✅ '+msg;$('nxt').style.display='';setTimeout(()=>$('nxt').focus(),200);}
+  else{cq._tries++;
+    if(cq._tries<2){fb.className='fb bad';fb.innerHTML='❌ Ce n\'est pas ça… Essaie encore !';document.querySelectorAll('#zone .inp.err').forEach(i=>{setTimeout(()=>i.classList.remove('err'),600);});document.querySelectorAll('#optGrid .opt-btn').forEach(b=>{b.disabled=false;b.classList.remove('wrong','correct');});}
+    else{cq._done=true;$('scLbl').textContent=`${sc} / ${qi+1}`;fb.className='fb bad';fb.innerHTML='❌ '+msg;$('nxt').style.display='';setTimeout(()=>$('nxt').focus(),200);}
+  }
+}
+
+function nxtQ(){qi++;if(qi>=qs.length)showRes();else renderQ();}
+
+function showRes(){
+  const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className=`rc ${tier}`;
+  const rp=$('rPct');rp.textContent=`${pct}%`;
+  rp.style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+  $('rMsg').textContent=pct===100?'🎉 Parfait ! Tu maîtrises la gestion de données !':pct>=80?'👏 Très bien ! Continue comme ça !':pct>=60?'👍 Bon travail, tu progresses !':'💪 Continue à t\'entraîner !';
+  show('S_res');
+}
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s;}.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}}</style>
+</body>
+</html>
