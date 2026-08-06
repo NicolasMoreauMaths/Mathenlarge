@@ -1,7 +1,9 @@
-const CACHE_NAME = 'mathenlarge-v85';
+const CACHE_NAME = 'mathenlarge-v91';
 const URLS_TO_CACHE = [
   "./",
   "./index.html",
+  "dm3-eleve.html",
+  "dm3-prof.html",
   "3eme_ch10_exercice1.html",
   "3eme_ch10_exercice2.html",
   "3eme_ch10_exercice3.html",
