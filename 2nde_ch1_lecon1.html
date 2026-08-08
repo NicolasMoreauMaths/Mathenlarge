@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapitre 1 – Calcul numérique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root {
+    --bg:#f4f1eb;--card-bg:#ffffff;--text:#2b2724;--text-mid:#5c5652;--text-light:#8a8380;
+    --accent:#2563eb;--blue:#1a6fa0;--blue-light:#e8f2fa;--green:#1b7a40;--green-light:#e6f5ec;
+    --purple:#6b3fa0;--purple-light:#f1ecf8;--orange:#b85c0b;--orange-light:#fef2e8;
+    --gold:#b8860b;--gold-light:#fef8e8;--border:#e0dbd4;--red:#c0392b;--red-light:#fdecea;
+    --correction-bg:linear-gradient(135deg,#fffef5 0%,#fefbee 100%);--correction-border:#e8c84a;
+    --shadow-sm:0 1px 4px rgba(0,0,0,0.04);--shadow:0 3px 16px rgba(0,0,0,0.06);
+    --radius:12px;--radius-sm:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16.5px;}
+
+  .header{background:linear-gradient(160deg,#0f1b2d 0%,#1a2940 40%,#1e3a5f 100%);color:#fff;padding:3rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+  .header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(37,99,235,.15) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(107,63,160,.12) 0%,transparent 55%);pointer-events:none;}
+  .header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#2563eb,#6b3fa0,#1b7a40,#b85c0b);}
+  .header .chapter-badge{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.6rem;}
+  .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.55rem,4.2vw,2.5rem);font-weight:800;letter-spacing:-.01em;line-height:1.25;}
+  .header .subtitle{font-size:.95rem;opacity:.6;margin-top:.5rem;}
+  .header .line{width:50px;height:2px;background:rgba(255,255,255,.25);margin:.8rem auto 0;border-radius:2px;}
+
+  .controls-bar{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  .btn-ctrl{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.45rem 1.1rem;border:2px solid var(--accent);border-radius:50px;background:transparent;color:var(--accent);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;}
+  .btn-ctrl:hover{background:var(--accent);color:#fff;transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.22);}
+  .btn-ctrl.sec{border-color:var(--text-light);color:var(--text-mid);}
+  .btn-ctrl.sec:hover{background:var(--text-mid);color:#fff;}
+
+  .container{max-width:820px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+  .section{margin-bottom:2.8rem;animation:fadeUp .55s ease both;}
+  .section:nth-child(2){animation-delay:.08s;}.section:nth-child(3){animation-delay:.16s;}.section:nth-child(4){animation-delay:.24s;}.section:nth-child(5){animation-delay:.32s;}.section:nth-child(6){animation-delay:.40s;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+  .section-title{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--accent);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;}
+  .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:2px;}
+  .sub-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--blue);margin:1.8rem 0 .8rem;}
+
+  .block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border-left:5px solid;}
+  .block.def{border-left-color:var(--blue);}.block.prop{border-left-color:var(--green);}.block.rule{border-left-color:var(--purple);}.block.rem{border-left-color:#94a3b8;background:#f8fafc;}
+  .block-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;}
+  .block.def .block-tag{color:var(--blue);background:var(--blue-light);}
+  .block.prop .block-tag{color:var(--green);background:var(--green-light);}
+  .block.rule .block-tag{color:var(--purple);background:var(--purple-light);}
+  .block.rem .block-tag{color:#64748b;background:#f1f5f9;}
+  .formula-box{text-align:center;font-size:1.05rem;padding:.85rem 1rem;margin:.7rem 0 .3rem;background:#faf8f5;border-radius:var(--radius-sm);border:1px solid var(--border);}
+
+  .ex-block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .ex-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.45rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--accent);background:#eff6ff;}
+  .ex-prompt{margin-bottom:.7rem;}
+  .exo-block{background:linear-gradient(135deg,#f8f3ff,#f3eeff);border:1.5px solid #d5c4e8;border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;}
+  .exo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.45rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--purple);background:rgba(107,63,160,.1);}
+
+  /* mini exo "trouver le nombre manquant" */
+  .mini-exo{background:#f0f4ff;border:1.5px solid #b3c4f0;border-radius:var(--radius-sm);padding:1rem 1.2rem;margin:.8rem 0;}
+  .mini-exo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--accent);background:#dce7ff;}
+  .blank-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .15rem;font-size:1.05rem;}
+  .blank-frac .num{border-bottom:2px solid var(--text);padding:0 .5rem;min-width:2rem;text-align:center;}
+  .blank-frac .den{padding:0 .5rem;min-width:2rem;text-align:center;}
+  .blank{display:inline-block;border-bottom:2px solid var(--accent);min-width:2.5rem;text-align:center;color:var(--accent);font-weight:700;}
+
+  .corr-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem .95rem;border:1.5px solid var(--correction-border);border-radius:50px;background:var(--gold-light);color:var(--gold);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;}
+  .corr-btn:hover{background:#fdf2c5;transform:translateY(-1px);}
+  .corr-btn .chev{display:inline-block;font-size:.6rem;transition:transform .3s ease;}
+  .corr-btn.open .chev{transform:rotate(90deg);}
+  .corr-body{display:none;opacity:0;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:1.1rem;transition:opacity .35s ease;}
+  .corr-body.show{display:block;opacity:1;}
+
+  .method-box{background:#f0f9ff;padding:1.3rem;border-radius:10px;margin:1rem 0;border-left:4px solid var(--blue);}
+  .method-step{margin:.7rem 0;font-size:1rem;}
+  .tip-box{background:#fef3c7;padding:1rem;border-radius:8px;margin:1rem 0;border:2px solid #f59e0b;font-size:.92rem;}
+  .solution-box{background:var(--blue-light);border:2.5px solid var(--accent);border-radius:var(--radius-sm);text-align:center;padding:.7rem 1.2rem;font-size:1.1rem;font-weight:700;color:var(--accent);margin-top:.8rem;}
+  .conclusion{margin-top:.8rem;padding:.7rem 1rem;background:var(--green-light);border-radius:var(--radius-sm);border-left:4px solid var(--green);}
+  .conclusion .donc-label{font-family:'DM Sans',sans-serif;font-weight:700;color:var(--green);font-size:.88rem;display:block;margin-bottom:.15rem;}
+  .conclusion-false{background:var(--red-light);border-left-color:var(--red);}
+  .conclusion-false .donc-label{color:var(--red);}
+
+  .steps-list{list-style:none;padding:0;margin:.6rem 0;}
+  .steps-list li{display:flex;align-items:flex-start;gap:.75rem;padding:.5rem .3rem;border-bottom:1px solid var(--border);}
+  .steps-list li:last-child{border-bottom:none;}
+  .step-num{min-width:28px;height:28px;background:var(--purple);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;margin-top:.1rem;}
+  .calc-line{background:#f0f9ff;padding:.55rem 1rem;border-radius:8px;border-left:4px solid var(--blue);font-size:1.05rem;margin:.4rem 0;}
+
+  .danger-pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.8rem 0;}
+  .danger-wrong{background:var(--red-light);border:2px solid var(--red);border-radius:var(--radius-sm);padding:.9rem 1.1rem;}
+  .danger-right{background:var(--green-light);border:2px solid var(--green);border-radius:var(--radius-sm);padding:.9rem 1.1rem;}
+  .danger-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;display:block;}
+  .danger-wrong .danger-label{color:var(--red);}
+  .danger-right .danger-label{color:var(--green);}
+
+  /* Tableau de décomposition style barre verticale */
+  .decomp-table{display:inline-flex;gap:0;margin:.6rem 0;}
+  .decomp-col-left{display:flex;flex-direction:column;align-items:flex-end;border-right:2.5px solid var(--text);padding-right:.6rem;font-family:'JetBrains Mono',monospace;font-size:.98rem;line-height:2.1;}
+  .decomp-col-right{display:flex;flex-direction:column;align-items:flex-start;padding-left:.6rem;font-family:'JetBrains Mono',monospace;font-size:.98rem;line-height:2.1;color:var(--blue);font-weight:600;}
+
+  @media(max-width:768px){body{font-size:16px;}.container{padding:1.5rem 1rem 3rem;}.header{padding:2.2rem 1.2rem 1.8rem;}.controls-bar{padding:.6rem 1rem;gap:.5rem;}}
+  @media(max-width:600px){body{font-size:15px;}.container{padding:1.2rem .8rem 3rem;}.header{padding:2rem 1rem 1.5rem;}.block,.ex-block,.exo-block{padding:1rem 1.1rem;}.danger-pair{grid-template-columns:1fr;}.controls-bar{padding:.55rem .7rem;gap:.4rem;}.btn-ctrl{font-size:.75rem;padding:.38rem .8rem;}}
+  @media(max-width:380px){body{font-size:14px;}.container{padding:1rem .6rem 2.5rem;}.header{padding:1.5rem .8rem 1.2rem;}.btn-ctrl{font-size:.7rem;padding:.32rem .65rem;}}
+  @media print{.controls-bar{display:none;}.corr-body{display:block!important;opacity:1!important;padding:1rem!important;}.corr-btn{display:none;}}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--accent),var(--accent));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(37,99,235,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(37,99,235,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── SVG responsive ── */
+svg[viewBox] { max-width:100%; height:auto; }
+
+/* ── Table overflow ── */
+.tbl, table, .data-table, .corr-table, .ecart-table,
+.decomp-table, .cm-table, .axes-table { 
+  display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; 
+}
+
+/* ── KaTeX / MathJax overflow ── */
+.katex-display, .MathJax_Display, .katex { 
+  overflow-x:auto; overflow-y:hidden; max-width:100%; 
+}
+
+/* ── Word break ── */
+.block, .section, .def, .conclusion, .ex-block, .exo-block,
+.recap, .note, .concl, .analogy, .card, .vocab-card {
+  overflow-wrap:break-word; word-break:break-word;
+}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="chapter-badge">Chapitre 1 — Seconde GT</span>
+  <h1>Calcul numérique</h1>
+  <div class="subtitle">Fractions · Puissances · Priorités opératoires · Racines carrées · Décomposition en facteurs premiers</div>
+  <div class="line"></div>
+</div>
+
+<div class="controls-bar">
+  <button class="btn-ctrl" onclick="showAll()">📖 Afficher toutes les corrections</button>
+  <button class="btn-ctrl sec" onclick="hideAll()">🔒 Tout masquer</button>
+</div>
+
+<div class="container">
+
+<!-- ==================== I. FRACTIONS ==================== -->
+<div class="section">
+  <div class="section-title">I. Opérations sur les fractions</div>
+
+  <div class="sub-title">1) Définition et propriété fondamentale</div>
+
+  <div class="block def">
+    <div class="block-tag">📘 Définition</div>
+    <p>\(a\) et \(b\) désignent deux nombres (\(b \neq 0\)). La fraction \(\dfrac{a}{b}\) est le résultat de la division de \(a\) par \(b\).</p>
+    <p style="margin-top:.6rem;">\(a\) s'appelle le <strong>numérateur</strong> et \(b\) s'appelle le <strong>dénominateur</strong>.</p>
+  </div>
+
+  <div class="block prop">
+    <div class="block-tag">📗 Propriété fondamentale</div>
+    <p>Un quotient <strong>ne change pas</strong> si on multiplie ou divise le numérateur <strong>et</strong> le dénominateur par un même nombre non nul \(k\).</p>
+    <div class="formula-box">\(\dfrac{a}{b} = \dfrac{a \times k}{b \times k} = \dfrac{a \div k}{b \div k}\)</div>
+    <p style="margin-top:.5rem;font-size:.9rem;color:var(--text-mid);">On utilise cette propriété pour <strong>simplifier</strong> ou pour <strong>mettre au même dénominateur</strong>.</p>
+  </div>
+
+  <div class="mini-exo">
+    <div class="mini-exo-tag">🔍 Exercice rapide — Trouver le nombre manquant</div>
+    <p style="margin-bottom:.8rem;">Complète les égalités suivantes en trouvant le nombre manquant noté <span style="color:var(--accent);font-weight:700;">…</span></p>
+    <p style="line-height:3.2;">
+      (a) &nbsp; \(\dfrac{5}{12} = \dfrac{\ldots}{36}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (b) &nbsp; \(\dfrac{3}{7} = \dfrac{15}{\ldots}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (c) &nbsp; \(\dfrac{4}{9} = \dfrac{\ldots}{27}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (d) &nbsp; \(\dfrac{8}{6} = \dfrac{4}{\ldots}\)
+    </p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>(a)</strong> \(\dfrac{5}{12} = \dfrac{?}{36}\) — Le dénominateur est multiplié par \(3\) (car \(12 \times 3 = 36\)). On fait de même au numérateur :</div>
+        <div class="calc-line">\(\dfrac{5}{12} = \dfrac{5 \times 3}{12 \times 3} = \dfrac{\mathbf{15}}{36}\)</div>
+        <div class="method-step" style="margin-top:.9rem;"><strong>(b)</strong> \(\dfrac{3}{7} = \dfrac{15}{?}\) — Le numérateur est multiplié par \(5\) (car \(3 \times 5 = 15\)). On fait de même au dénominateur :</div>
+        <div class="calc-line">\(\dfrac{3}{7} = \dfrac{3 \times 5}{7 \times 5} = \dfrac{15}{\mathbf{35}}\)</div>
+        <div class="method-step" style="margin-top:.9rem;"><strong>(c)</strong> \(\dfrac{4}{9} = \dfrac{?}{27}\) — Le dénominateur est multiplié par \(3\) (car \(9 \times 3 = 27\)). On fait de même au numérateur :</div>
+        <div class="calc-line">\(\dfrac{4}{9} = \dfrac{4 \times 3}{9 \times 3} = \dfrac{\mathbf{12}}{27}\)</div>
+        <div class="method-step" style="margin-top:.9rem;"><strong>(d)</strong> \(\dfrac{8}{6} = \dfrac{4}{?}\) — Le numérateur est divisé par \(2\) (car \(8 \div 2 = 4\)). On fait de même au dénominateur :</div>
+        <div class="calc-line">\(\dfrac{8}{6} = \dfrac{8 \div 2}{6 \div 2} = \dfrac{4}{\mathbf{3}}\)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-title">2) Addition et soustraction de fractions</div>
+
+  <div class="block rule">
+    <div class="block-tag">📋 Méthode</div>
+    <p>Pour additionner (ou soustraire) deux fractions :</p>
+    <ul class="steps-list" style="margin-top:.8rem;">
+      <li><span class="step-num">1</span><span>Trouver un <strong>dénominateur commun</strong> (le plus petit multiple commun des deux dénominateurs)</span></li>
+      <li><span class="step-num">2</span><span>Convertir chaque fraction au dénominateur commun en multipliant numérateur ET dénominateur par le même nombre</span></li>
+      <li><span class="step-num">3</span><span><strong>Additionner ou soustraire uniquement les numérateurs</strong> — le dénominateur reste inchangé</span></li>
+      <li><span class="step-num">4</span><span><strong>Simplifier</strong> la fraction obtenue si possible</span></li>
+    </ul>
+    <div class="formula-box">\(\dfrac{a}{c} + \dfrac{b}{c} = \dfrac{a+b}{c} \qquad \text{et} \qquad \dfrac{a}{c} - \dfrac{b}{c} = \dfrac{a-b}{c}\)</div>
+  </div>
+
+  <div class="block rem">
+    <div class="block-tag">⚠️ Erreur classique</div>
+    <p>On n'additionne <strong>jamais</strong> les dénominateurs entre eux. &nbsp;
+    <span style="color:var(--red);font-weight:700;">✗</span>&nbsp; \(\dfrac{1}{3} + \dfrac{1}{4} \neq \dfrac{2}{7}\)</p>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemples — Addition et soustraction</div>
+    <div class="ex-prompt">Calculer les expressions suivantes et simplifier le résultat :</div>
+
+    <p style="font-weight:600;margin:.8rem 0 .3rem;">(A) &nbsp; \(A = \dfrac{3}{5} + \dfrac{1}{5}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">Les deux fractions ont <strong>déjà le même dénominateur</strong> (\(5\)) : on additionne directement les numérateurs.</div>
+        <div class="calc-line">\(A = \dfrac{3}{5} + \dfrac{1}{5} = \dfrac{3+1}{5} = \dfrac{4}{5}\)</div>
+        <div class="method-step">\(4\) et \(5\) n'ont pas de diviseur commun autre que \(1\) : la fraction est <strong>simplifiée au maximum</strong>.</div>
+      </div>
+      <div class="solution-box">\(A = \dfrac{4}{5}\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(B) &nbsp; \(B = \dfrac{3}{4} - \dfrac{1}{3}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">Les dénominateurs sont \(4\) et \(3\). Le plus petit multiple commun est \(12\).</div>
+        <div class="calc-line">\(\dfrac{3}{4} = \dfrac{3 \times 3}{4 \times 3} = \dfrac{9}{12} \qquad \text{et} \qquad \dfrac{1}{3} = \dfrac{1 \times 4}{3 \times 4} = \dfrac{4}{12}\)</div>
+        <div class="calc-line">\(B = \dfrac{9}{12} - \dfrac{4}{12} = \dfrac{9-4}{12} = \dfrac{5}{12}\)</div>
+        <div class="method-step">\(5\) et \(12\) n'ont pas de diviseur commun autre que \(1\) : <strong>simplifiée au maximum</strong>.</div>
+      </div>
+      <div class="solution-box">\(B = \dfrac{5}{12}\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(C) &nbsp; \(C = \dfrac{1}{4} + \dfrac{1}{3} + \dfrac{1}{6}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">Le plus petit multiple commun de \(4\), \(3\) et \(6\) est \(12\).</div>
+        <div class="calc-line">\(\dfrac{1}{4} = \dfrac{3}{12} \qquad \dfrac{1}{3} = \dfrac{4}{12} \qquad \dfrac{1}{6} = \dfrac{2}{12}\)</div>
+        <div class="calc-line">\(C = \dfrac{3}{12} + \dfrac{4}{12} + \dfrac{2}{12} = \dfrac{9}{12}\)</div>
+        <div class="method-step">On simplifie : \(9\) et \(12\) sont tous les deux divisibles par \(3\) :</div>
+        <div class="calc-line">\(C = \dfrac{9 \div 3}{12 \div 3} = \dfrac{3}{4}\)</div>
+      </div>
+      <div class="solution-box">\(C = \dfrac{3}{4}\)</div>
+    </div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🧩 Exercice 1</div>
+    <div class="ex-prompt">Calculer les expressions suivantes. Donner le résultat sous forme de fraction simplifiée au maximum.</div>
+    <p style="line-height:3;">
+      (a) &nbsp; \(\dfrac{5}{6} + \dfrac{1}{4}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (b) &nbsp; \(\dfrac{7}{9} - \dfrac{1}{3}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (c) &nbsp; \(1 - \dfrac{5}{8}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (d) &nbsp; \(\dfrac{1}{2} + \dfrac{1}{3} - \dfrac{1}{4}\)
+    </p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>(a)</strong> Dénominateur commun de \(6\) et \(4\) : c'est \(12\).</div>
+        <div class="calc-line">\(\dfrac{5}{6} = \dfrac{10}{12} \qquad \dfrac{1}{4} = \dfrac{3}{12} \qquad \Rightarrow \quad \dfrac{10}{12} + \dfrac{3}{12} = \dfrac{13}{12}\)</div>
+        <div class="method-step">\(13\) est un nombre premier : la fraction est déjà simplifiée au maximum.</div>
+        <div class="method-step" style="margin-top:.9rem;"><strong>(b)</strong> \(9\) est multiple de \(3\), donc le dénominateur commun est \(9\).</div>
+        <div class="calc-line">\(\dfrac{7}{9} - \dfrac{1}{3} = \dfrac{7}{9} - \dfrac{3}{9} = \dfrac{4}{9}\)</div>
+        <div class="method-step" style="margin-top:.9rem;"><strong>(c)</strong> On écrit \(1 = \dfrac{8}{8}\) :</div>
+        <div class="calc-line">\(1 - \dfrac{5}{8} = \dfrac{8}{8} - \dfrac{5}{8} = \dfrac{3}{8}\)</div>
+        <div class="method-step" style="margin-top:.9rem;"><strong>(d)</strong> Dénominateur commun de \(2\), \(3\), \(4\) : c'est \(12\).</div>
+        <div class="calc-line">\(\dfrac{6}{12} + \dfrac{4}{12} - \dfrac{3}{12} = \dfrac{7}{12}\)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-title">3) Multiplication et division de fractions</div>
+
+  <div class="block prop">
+    <div class="block-tag">📗 Propriété — Multiplication</div>
+    <p>Pour multiplier deux fractions, on multiplie les numérateurs entre eux et les dénominateurs entre eux.</p>
+    <div class="formula-box">\(\dfrac{a}{b} \times \dfrac{c}{d} = \dfrac{a \times c}{b \times d}\)</div>
+  </div>
+
+  <div class="block prop">
+    <div class="block-tag">📗 Propriété — Division</div>
+    <p>Diviser par \(\dfrac{c}{d}\), c'est multiplier par l'<strong>inverse</strong> \(\dfrac{d}{c}\).</p>
+    <div class="formula-box">\(\dfrac{a}{b} \div \dfrac{c}{d} = \dfrac{a}{b} \times \dfrac{d}{c} = \dfrac{a \times d}{b \times c}\)</div>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemples — Multiplication et division</div>
+
+    <p style="font-weight:600;margin:.8rem 0 .3rem;">(A) &nbsp; \(A = \dfrac{2}{3} \times \dfrac{9}{4}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">On multiplie les numérateurs et les dénominateurs :</div>
+        <div class="calc-line">\(A = \dfrac{2 \times 9}{3 \times 4} = \dfrac{18}{12}\)</div>
+        <div class="method-step">On simplifie : \(18\) et \(12\) sont tous deux divisibles par \(6\).</div>
+        <div class="calc-line">\(A = \dfrac{18 \div 6}{12 \div 6} = \dfrac{3}{2}\)</div>
+        <div class="tip-box">💡 On peut aussi simplifier <em>avant</em> de multiplier en repérant les facteurs communs : \(\dfrac{2}{3} \times \dfrac{9}{4} = \dfrac{\cancel{2}^{\,1}}{\cancel{3}^{\,1}} \times \dfrac{\cancel{9}^{\,3}}{\cancel{4}^{\,2}} = \dfrac{3}{2}\). C'est plus rapide !</div>
+      </div>
+      <div class="solution-box">\(A = \dfrac{3}{2}\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(B) &nbsp; \(B = \dfrac{5}{6} \div \dfrac{10}{3}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">On transforme la division en multiplication par l'inverse :</div>
+        <div class="calc-line">\(B = \dfrac{5}{6} \div \dfrac{10}{3} = \dfrac{5}{6} \times \dfrac{3}{10} = \dfrac{5 \times 3}{6 \times 10} = \dfrac{15}{60}\)</div>
+        <div class="method-step">On simplifie : \(15\) et \(60\) sont tous deux divisibles par \(15\).</div>
+        <div class="calc-line">\(B = \dfrac{15 \div 15}{60 \div 15} = \dfrac{1}{4}\)</div>
+      </div>
+      <div class="solution-box">\(B = \dfrac{1}{4}\)</div>
+    </div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🧩 Exercice 2</div>
+    <div class="ex-prompt">Calculer. Donner le résultat sous forme de fraction simplifiée au maximum.</div>
+    <p style="line-height:3;">
+      (a) &nbsp; \(\dfrac{4}{5} \times \dfrac{15}{8}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (b) &nbsp; \(\dfrac{7}{3} \times \dfrac{9}{14}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (c) &nbsp; \(\dfrac{3}{4} \div \dfrac{9}{8}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (d) &nbsp; \(\dfrac{5}{6} \div \dfrac{5}{3}\)
+    </p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>(a)</strong> \(\dfrac{4}{5} \times \dfrac{15}{8} = \dfrac{4 \times 15}{5 \times 8} = \dfrac{60}{40}\). Divisible par \(20\) :</div>
+        <div class="calc-line">\(\dfrac{60}{40} = \dfrac{60 \div 20}{40 \div 20} = \dfrac{3}{2}\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(b)</strong> \(\dfrac{7}{3} \times \dfrac{9}{14} = \dfrac{7 \times 9}{3 \times 14} = \dfrac{63}{42}\). Divisible par \(21\) :</div>
+        <div class="calc-line">\(\dfrac{63}{42} = \dfrac{63 \div 21}{42 \div 21} = \dfrac{3}{2}\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(c)</strong> \(\dfrac{3}{4} \div \dfrac{9}{8} = \dfrac{3}{4} \times \dfrac{8}{9} = \dfrac{3 \times 8}{4 \times 9} = \dfrac{24}{36}\). Divisible par \(12\) :</div>
+        <div class="calc-line">\(\dfrac{24}{36} = \dfrac{24 \div 12}{36 \div 12} = \dfrac{2}{3}\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(d)</strong> \(\dfrac{5}{6} \div \dfrac{5}{3} = \dfrac{5}{6} \times \dfrac{3}{5} = \dfrac{5 \times 3}{6 \times 5} = \dfrac{15}{30}\). Divisible par \(15\) :</div>
+        <div class="calc-line">\(\dfrac{15}{30} = \dfrac{15 \div 15}{30 \div 15} = \dfrac{1}{2}\)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== II. PUISSANCES ==================== -->
+<div class="section">
+  <div class="section-title">II. Puissances entières</div>
+
+  <div class="sub-title">1) Définition</div>
+
+  <div class="block def">
+    <div class="block-tag">📘 Définition</div>
+    <p>Soit \(a\) un nombre réel et \(n\) un entier positif. La <strong>puissance \(n\)-ième</strong> de \(a\) est le produit de \(n\) facteurs égaux à \(a\) :</p>
+    <div class="formula-box">\(a^n = \underbrace{a \times a \times \cdots \times a}_{n \text{ fois}}\)</div>
+    <p style="margin-top:.6rem;font-size:.93rem;color:var(--text-mid);">Par convention : \(a^1 = a\) et \(a^0 = 1\) (pour \(a \neq 0\)).</p>
+    <p style="margin-top:.4rem;font-size:.93rem;">Pour un exposant <strong>négatif</strong> (\(a \neq 0\)) : &nbsp; \(a^{-n} = \dfrac{1}{a^n}\)</p>
+  </div>
+
+  <div class="block rem">
+    <div class="block-tag">⚠️ Piège — Signe et parenthèses</div>
+    <p>Attention à la différence entre \((-3)^2\) et \(-3^2\) :</p>
+    <p style="margin-top:.5rem;">\((-3)^2 = (-3) \times (-3) = +9\) &nbsp;&nbsp;&nbsp; mais &nbsp;&nbsp;&nbsp; \(-3^2 = -(3 \times 3) = -9\)</p>
+    <p style="margin-top:.4rem;font-size:.92rem;color:var(--text-mid);">Sans parenthèses, l'exposant ne s'applique qu'à \(3\), pas au signe moins.</p>
+  </div>
+
+  <div class="sub-title">2) Règles de calcul</div>
+
+  <div class="block prop">
+    <div class="block-tag">📗 Propriétés — Règles de calcul avec les puissances</div>
+    <p style="margin-bottom:.5rem;font-size:.9rem;color:var(--text-mid);">\(a \neq 0\), \(m\) et \(n\) entiers relatifs</p>
+    <div class="formula-box">\(a^m \times a^n = a^{m+n}\)</div>
+    <div class="formula-box">\(\dfrac{a^m}{a^n} = a^{m-n}\)</div>
+    <div class="formula-box">\((a^m)^n = a^{m \times n}\)</div>
+    <div class="formula-box">\((a \times b)^n = a^n \times b^n \qquad \text{et} \qquad \left(\dfrac{a}{b}\right)^n = \dfrac{a^n}{b^n}\)</div>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemples — Règles de calcul</div>
+    <div class="ex-prompt">Simplifier les expressions suivantes sous la forme d'une puissance :</div>
+
+    <p style="font-weight:600;margin:.8rem 0 .3rem;">(A) &nbsp; \(2^3 \times 2^4\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">Même base \(2\) : on additionne les exposants.</div>
+        <div class="calc-line">\(2^3 \times 2^4 = 2^{3+4} = 2^7\)</div>
+      </div>
+      <div class="solution-box">\(2^3 \times 2^4 = 2^7\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(B) &nbsp; \(\dfrac{3^5}{3^2}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">Même base \(3\) : on soustrait les exposants.</div>
+        <div class="calc-line">\(\dfrac{3^5}{3^2} = 3^{5-2} = 3^3\)</div>
+      </div>
+      <div class="solution-box">\(\dfrac{3^5}{3^2} = 3^3\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(C) &nbsp; \((5^2)^3\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">Une puissance de puissance : on multiplie les exposants.</div>
+        <div class="calc-line">\((5^2)^3 = 5^{2 \times 3} = 5^6\)</div>
+      </div>
+      <div class="solution-box">\((5^2)^3 = 5^6\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(D) &nbsp; \(2^{-3}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">Un exposant négatif signifie qu'on prend l'inverse :</div>
+        <div class="calc-line">\(2^{-3} = \dfrac{1}{2^3}\)</div>
+      </div>
+      <div class="solution-box">\(2^{-3} = \dfrac{1}{2^3}\)</div>
+    </div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🧩 Exercice 3</div>
+    <div class="ex-prompt">Simplifier chaque expression sous la forme d'une puissance (ou d'une fraction de puissances).</div>
+    <p style="line-height:3;">
+      (a) &nbsp; \(5^3 \times 5^2\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (b) &nbsp; \(\dfrac{4^6}{4^4}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (c) &nbsp; \((3^2)^4\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (d) &nbsp; \(7^{-2}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (e) &nbsp; \(2^5 \times 2^{-3}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (f) &nbsp; \(\dfrac{10^7}{10^3}\)
+    </p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>(a)</strong> Même base, on additionne les exposants :</div>
+        <div class="calc-line">\(5^3 \times 5^2 = 5^{3+2} = 5^5\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(b)</strong> Même base, on soustrait les exposants :</div>
+        <div class="calc-line">\(\dfrac{4^6}{4^4} = 4^{6-4} = 4^2\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(c)</strong> Puissance de puissance, on multiplie :</div>
+        <div class="calc-line">\((3^2)^4 = 3^{2 \times 4} = 3^8\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(d)</strong> Exposant négatif = inverse :</div>
+        <div class="calc-line">\(7^{-2} = \dfrac{1}{7^2}\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(e)</strong> Même base, on additionne les exposants :</div>
+        <div class="calc-line">\(2^5 \times 2^{-3} = 2^{5+(-3)} = 2^2\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(f)</strong> Même base, on soustrait :</div>
+        <div class="calc-line">\(\dfrac{10^7}{10^3} = 10^{7-3} = 10^4\)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== III. PRIORITES ==================== -->
+<div class="section">
+  <div class="section-title">III. Priorités opératoires</div>
+
+  <div class="block rule">
+    <div class="block-tag">📋 Règle des priorités</div>
+    <p>Lorsqu'un calcul contient plusieurs opérations, on respecte <strong>impérativement</strong> cet ordre :</p>
+    <ul class="steps-list" style="margin-top:.8rem;">
+      <li><span class="step-num">1</span><span><strong>Parenthèses</strong> — on calcule d'abord ce qui est à l'intérieur, en commençant par les plus intérieures</span></li>
+      <li><span class="step-num">2</span><span><strong>Puissances et racines</strong></span></li>
+      <li><span class="step-num">3</span><span><strong>Multiplications et divisions</strong> — de gauche à droite</span></li>
+      <li><span class="step-num">4</span><span><strong>Additions et soustractions</strong> — de gauche à droite</span></li>
+    </ul>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemples — Priorités opératoires</div>
+
+    <p style="font-weight:600;margin:.8rem 0 .3rem;">(A) &nbsp; \(A = 3 + 4 \times 2 - 1\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>Étape 1 — Multiplication en priorité :</strong></div>
+        <div class="calc-line">\(A = 3 + \underbrace{4 \times 2}_{= \ 8} - 1 = 3 + 8 - 1\)</div>
+        <div class="method-step"><strong>Étape 2 — Additions et soustractions de gauche à droite :</strong></div>
+        <div class="calc-line">\(A = 3 + 8 - 1 = 11 - 1 = 10\)</div>
+      </div>
+      <div class="solution-box">\(A = 10\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(B) &nbsp; \(B = (3 + 2)^2 - 3 \times 4\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>Étape 1 — Parenthèse :</strong></div>
+        <div class="calc-line">\(B = (5)^2 - 3 \times 4\)</div>
+        <div class="method-step"><strong>Étape 2 — Puissance :</strong></div>
+        <div class="calc-line">\(B = 25 - 3 \times 4\)</div>
+        <div class="method-step"><strong>Étape 3 — Multiplication :</strong></div>
+        <div class="calc-line">\(B = 25 - 12 = 13\)</div>
+      </div>
+      <div class="solution-box">\(B = 13\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(C) &nbsp; \(C = \dfrac{3^2 \times 2}{6 - 2 \times 3}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">La barre de fraction agit comme des parenthèses : on calcule numérateur et dénominateur séparément.</div>
+        <div class="method-step"><strong>Numérateur :</strong> \(3^2 \times 2 = 9 \times 2 = 18\)</div>
+        <div class="method-step"><strong>Dénominateur :</strong> \(6 - 2 \times 3 = 6 - 6 = 0\)</div>
+        <div class="calc-line" style="background:var(--red-light);border-left-color:var(--red);">⚠️ Le dénominateur vaut \(0\) : cette expression est <strong>indéfinie</strong>. On ne peut pas diviser par zéro.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🧩 Exercice 4</div>
+    <div class="ex-prompt">Calculer en respectant les priorités opératoires. Détailler chaque étape.</div>
+    <p style="line-height:3;">
+      (a) &nbsp; \(2 + 3 \times 5 - 4\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (b) &nbsp; \((7 - 2)^2 \times 3\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (c) &nbsp; \(4^2 - 2 \times (3 + 1)\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (d) &nbsp; \(2 + 3^2 \times \dfrac{1}{3} - 1\)
+    </p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>(a)</strong></div>
+        <div class="calc-line">\(2 + 3 \times 5 - 4 = 2 + 15 - 4 = 13\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(b)</strong></div>
+        <div class="calc-line">\((7-2)^2 \times 3 = 5^2 \times 3 = 25 \times 3 = 75\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(c)</strong></div>
+        <div class="calc-line">\(4^2 - 2 \times (3+1) = 16 - 2 \times 4 = 16 - 8 = 8\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(d)</strong> Puissance d'abord, puis multiplication :</div>
+        <div class="calc-line">\(2 + 3^2 \times \dfrac{1}{3} - 1 = 2 + 9 \times \dfrac{1}{3} - 1 = 2 + 3 - 1 = 4\)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== IV. RACINES CARREES ==================== -->
+<div class="section">
+  <div class="section-title">IV. Racines carrées</div>
+
+  <div class="sub-title">1) La valeur absolue — un outil indispensable</div>
+
+  <div class="block def">
+    <div class="block-tag">📘 Définition — Valeur absolue</div>
+    <p>La <strong>valeur absolue</strong> d'un nombre \(a\), notée \(|a|\), est la <strong>distance</strong> entre \(a\) et \(0\) sur la droite des réels. Elle est toujours <strong>positive ou nulle</strong>.</p>
+    <div class="formula-box">
+      \(|a| = \begin{cases} a & \text{si } a \geq 0 \\ -a & \text{si } a < 0 \end{cases}\)
+    </div>
+    <p style="margin-top:.7rem;font-size:.93rem;">En pratique : on <strong>enlève le signe moins</strong> si le nombre est négatif.</p>
+    <p style="margin-top:.5rem;font-size:.93rem;color:var(--text-mid);">Exemples : \(|5| = 5\) &nbsp;&nbsp; ; &nbsp;&nbsp; \(|-3| = 3\) &nbsp;&nbsp; ; &nbsp;&nbsp; \(|0| = 0\) &nbsp;&nbsp; ; &nbsp;&nbsp; \(|-7{,}2| = 7{,}2\)</p>
+  </div>
+
+  <div class="block rem">
+    <div class="block-tag">📎 Remarque</div>
+    <p>La notation \(|a|\) ne doit pas être confondue avec les parenthèses. Ce sont bien deux barres verticales.</p>
+    <p style="margin-top:.5rem;">La valeur absolue est toujours <strong>positive ou nulle</strong> : \(|a| \geq 0\) pour tout réel \(a\).</p>
+  </div>
+
+  <div class="sub-title">2) Définition de la racine carrée</div>
+
+  <div class="block def">
+    <div class="block-tag">📘 Définition</div>
+    <p>Pour tout réel \(a \geq 0\), <strong>la racine carrée de \(a\)</strong>, notée \(\sqrt{a}\), est <strong>l'unique réel positif ou nul</strong> dont le carré vaut \(a\).</p>
+    <div class="formula-box">\(\sqrt{a} \geq 0 \qquad \text{et} \qquad \left(\sqrt{a}\right)^2 = a\)</div>
+    <p style="margin-top:.6rem;font-size:.9rem;color:var(--text-mid);">La racine carrée d'un nombre strictement négatif <strong>n'existe pas dans</strong> \(\mathbb{R}\).</p>
+  </div>
+
+  <div class="sub-title">3) Propriétés de calcul</div>
+
+  <div class="block prop">
+    <div class="block-tag">📗 Propriétés</div>
+    <p style="margin-bottom:.5rem;font-size:.9rem;color:var(--text-mid);">\(a \geq 0\) et \(b \geq 0\)</p>
+    <div class="formula-box">\(\sqrt{a \times b} = \sqrt{a} \times \sqrt{b}\)</div>
+    <div class="formula-box">\(\sqrt{\dfrac{a}{b}} = \dfrac{\sqrt{a}}{\sqrt{b}} \qquad (b \neq 0)\)</div>
+    <div class="formula-box">\(\sqrt{a^2} = |a| \qquad \text{(pour tout réel } a\text{, positif ou négatif)}\)</div>
+    <p style="margin-top:.8rem;font-size:.93rem;background:var(--blue-light);padding:.7rem 1rem;border-radius:var(--radius-sm);">
+      💡 <strong>Pourquoi \(\sqrt{a^2} = |a|\) et non \(a\) ?</strong><br>
+      Par définition, \(\sqrt{\cdot}\) est toujours positif. Or si \(a\) est négatif (par exemple \(a = -3\)), alors \((-3)^2 = 9\) et \(\sqrt{9} = 3\). Le résultat est \(3\), pas \(-3\).<br>
+      La valeur absolue permet d'exprimer cela : \(\sqrt{(-3)^2} = |-3| = 3\). &nbsp; En revanche, si \(a \geq 0\), alors \(\sqrt{a^2} = a\) directement.
+    </p>
+  </div>
+
+  <div class="block rem">
+    <div class="block-tag">⚠️ Erreur classique — À ne jamais faire</div>
+    <div class="danger-pair" style="margin-top:.8rem;">
+      <div class="danger-wrong">
+        <span class="danger-label">✗ Faux</span>
+        <p>\(\sqrt{9 + 16} = \sqrt{9} + \sqrt{16}\)</p>
+        <p style="font-size:.88rem;margin-top:.4rem;">On obtiendrait \(3 + 4 = 7\)</p>
+      </div>
+      <div class="danger-right">
+        <span class="danger-label">✓ Correct</span>
+        <p>\(\sqrt{9 + 16} = \sqrt{25} = 5\)</p>
+        <p style="font-size:.88rem;margin-top:.4rem;">On calcule d'abord la somme</p>
+      </div>
+    </div>
+    <p style="margin-top:.8rem;font-size:.93rem;">La propriété \(\sqrt{ab} = \sqrt{a} \times \sqrt{b}\) vaut pour un <strong>produit</strong>, <em>jamais</em> pour une somme.</p>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemples — Calculs avec les racines carrées</div>
+
+    <p style="font-weight:600;margin:.8rem 0 .3rem;">(A) &nbsp; Simplifier \(\sqrt{75}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">On cherche un facteur carré parfait dans \(75\) :</div>
+        <div class="calc-line">\(75 = 25 \times 3\)</div>
+        <div class="method-step">On applique \(\sqrt{a \times b} = \sqrt{a} \times \sqrt{b}\) :</div>
+        <div class="calc-line">\(\sqrt{75} = \sqrt{25 \times 3} = \sqrt{25} \times \sqrt{3} = 5\sqrt{3}\)</div>
+      </div>
+      <div class="solution-box">\(\sqrt{75} = 5\sqrt{3}\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(B) &nbsp; Calculer \(\sqrt{(-5)^2}\)</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">On applique la règle \(\sqrt{a^2} = |a|\). Ici \(a = -5\) :</div>
+        <div class="calc-line">\(\sqrt{(-5)^2} = |-5| = 5\)</div>
+        <div class="method-step">Le résultat est \(5\) et non \(-5\), car la racine carrée est <strong>toujours positive</strong>.</div>
+      </div>
+      <div class="solution-box">\(\sqrt{(-5)^2} = 5\)</div>
+    </div>
+
+    <p style="font-weight:600;margin:1.2rem 0 .3rem;">(C) &nbsp; Encadrer \(\sqrt{3}\) à \(10^{-1}\) près, sans calculatrice</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">On cherche deux entiers consécutifs dont le carré encadre \(3\) : \(1^2 = 1 < 3 < 4 = 2^2\), donc \(1 < \sqrt{3} < 2\).</div>
+        <div class="method-step">On affine avec des dixièmes. On calcule \(1{,}7^2\) et \(1{,}8^2\) :</div>
+        <div class="calc-line">\(1{,}7^2 = 2{,}89 \quad < \quad 3 \quad < \quad 3{,}24 = 1{,}8^2\)</div>
+        <div class="method-step">Comme la racine carrée est croissante :</div>
+        <div class="calc-line">\(1{,}7 < \sqrt{3} < 1{,}8\)</div>
+      </div>
+      <div class="conclusion">
+        <span class="donc-label">✓ Conclusion</span>
+        Un encadrement de \(\sqrt{3}\) à \(10^{-1}\) près est : \(1{,}7 \leq \sqrt{3} \leq 1{,}8\).
+      </div>
+    </div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🧩 Exercice 5</div>
+    <div class="ex-prompt">Simplifier ou calculer. Justifier chaque étape.</div>
+    <p style="line-height:3;">
+      (a) &nbsp; \(\sqrt{48}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (b) &nbsp; \(\sqrt{3} \times \sqrt{12}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (c) &nbsp; \(\sqrt{(-8)^2}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (d) &nbsp; \(|-7|\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (e) &nbsp; \(|3 - 7|\)
+    </p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>(a)</strong> \(48 = 16 \times 3\) :</div>
+        <div class="calc-line">\(\sqrt{48} = \sqrt{16 \times 3} = \sqrt{16} \times \sqrt{3} = 4\sqrt{3}\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(b)</strong></div>
+        <div class="calc-line">\(\sqrt{3} \times \sqrt{12} = \sqrt{3 \times 12} = \sqrt{36} = 6\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(c)</strong> On applique \(\sqrt{a^2} = |a|\) :</div>
+        <div class="calc-line">\(\sqrt{(-8)^2} = |-8| = 8\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(d)</strong> \(-7\) est négatif, donc on enlève le signe moins :</div>
+        <div class="calc-line">\(|-7| = 7\)</div>
+        <div class="method-step" style="margin-top:.8rem;"><strong>(e)</strong> On calcule d'abord la soustraction : \(3 - 7 = -4\), qui est négatif :</div>
+        <div class="calc-line">\(|3 - 7| = |-4| = 4\)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== V. DECOMPOSITION ==================== -->
+<div class="section">
+  <div class="section-title">V. Décomposition en facteurs premiers &amp; Simplification de fractions</div>
+
+  <div class="sub-title">1) Nombres premiers et décomposition</div>
+
+  <div class="block def">
+    <div class="block-tag">📘 Définition — Nombre premier</div>
+    <p>Un entier supérieur ou égal à \(2\) est <strong>premier</strong> s'il admet exactement deux diviseurs : \(1\) et lui-même.</p>
+    <p style="margin-top:.6rem;">Les premiers nombres premiers : \(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47\ldots\)</p>
+  </div>
+
+  <div class="block rule">
+    <div class="block-tag">📋 Méthode — Tableau de décomposition</div>
+    <p>On divise successivement par les nombres premiers en commençant par \(2\), puis \(3\), \(5\), \(7\)… On s'arrête quand le quotient atteint \(1\).</p>
+    <p style="margin-top:.7rem;font-size:.93rem;color:var(--text-mid);">On dresse un tableau à deux colonnes séparées par une <strong>barre verticale</strong> : à gauche les quotients successifs, à droite les diviseurs premiers utilisés.</p>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemple — Décomposer 360</div>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step">On divise successivement par les nombres premiers :</div>
+        <div style="margin:1rem 0 .5rem;">
+          <div class="decomp-table">
+            <div class="decomp-col-left">
+              <span>360</span><span>180</span><span>90</span><span>45</span><span>15</span><span>5</span><span>1</span>
+            </div>
+            <div class="decomp-col-right">
+              <span>2</span><span>2</span><span>2</span><span>3</span><span>3</span><span>5</span><span>&nbsp;</span>
+            </div>
+          </div>
+        </div>
+        <div class="method-step">On regroupe les facteurs identiques en utilisant les puissances :</div>
+        <div class="calc-line">\(360 = 2 \times 2 \times 2 \times 3 \times 3 \times 5 = 2^3 \times 3^2 \times 5\)</div>
+        <div class="method-step"><strong>Vérification :</strong> \(8 \times 9 \times 5 = 72 \times 5 = 360\) ✓</div>
+      </div>
+      <div class="solution-box">\(360 = 2^3 \times 3^2 \times 5\)</div>
+    </div>
+  </div>
+
+  <div class="sub-title">2) Simplification de fractions par décomposition</div>
+
+  <div class="block rule">
+    <div class="block-tag">📋 Méthode</div>
+    <ul class="steps-list" style="margin-top:.6rem;">
+      <li><span class="step-num">1</span><span>Décomposer le numérateur et le dénominateur en facteurs premiers (tableau avec barre verticale)</span></li>
+      <li><span class="step-num">2</span><span>Identifier les facteurs premiers communs aux deux décompositions</span></li>
+      <li><span class="step-num">3</span><span>Diviser numérateur et dénominateur par le produit de ces facteurs communs</span></li>
+      <li><span class="step-num">4</span><span>Vérifier que la fraction obtenue ne peut plus être simplifiée</span></li>
+    </ul>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemple — Simplifier \(\dfrac{84}{126}\)</div>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+        <div class="method-step"><strong>Étape 1 — Décomposer 84 :</strong></div>
+        <div style="margin:.6rem 0;">
+          <div class="decomp-table">
+            <div class="decomp-col-left">
+              <span>84</span><span>42</span><span>21</span><span>7</span><span>1</span>
+            </div>
+            <div class="decomp-col-right">
+              <span>2</span><span>2</span><span>3</span><span>7</span><span>&nbsp;</span>
+            </div>
+          </div>
+          <span style="margin-left:1.5rem;font-size:.95rem;">&nbsp; donc &nbsp; \(84 = 2^2 \times 3 \times 7\)</span>
+        </div>
+        <div class="method-step"><strong>Étape 2 — Décomposer 126 :</strong></div>
+        <div style="margin:.6rem 0;">
+          <div class="decomp-table">
+            <div class="decomp-col-left">
+              <span>126</span><span>63</span><span>21</span><span>7</span><span>1</span>
+            </div>
+            <div class="decomp-col-right">
+              <span>2</span><span>3</span><span>3</span><span>7</span><span>&nbsp;</span>
+            </div>
+          </div>
+          <span style="margin-left:1.5rem;font-size:.95rem;">&nbsp; donc &nbsp; \(126 = 2 \times 3^2 \times 7\)</span>
+        </div>
+        <div class="method-step"><strong>Étape 3 — Identifier les facteurs communs :</strong></div>
+        <div class="calc-line">\(84 = \mathbf{2} \times 2 \times \mathbf{3} \times \mathbf{7} \qquad 126 = \mathbf{2} \times \mathbf{3} \times 3 \times \mathbf{7}\)</div>
+        <div class="method-step">Facteurs communs : \(2\), \(3\) et \(7\), soit un produit \(2 \times 3 \times 7 = 42\).</div>
+        <div class="method-step"><strong>Étape 4 — Simplifier :</strong></div>
+        <div class="calc-line">\(\dfrac{84}{126} = \dfrac{84 \div 42}{126 \div 42} = \dfrac{2}{3}\)</div>
+        <div class="method-step">\(2\) et \(3\) n'ont pas de facteur commun autre que \(1\) : <strong>fraction irréductible</strong>.</div>
+      </div>
+      <div class="solution-box">\(\dfrac{84}{126} = \dfrac{2}{3}\)</div>
+    </div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🧩 Exercice 6</div>
+    <div class="ex-prompt">Pour chaque fraction, dresser le tableau de décomposition en facteurs premiers du numérateur et du dénominateur, puis simplifier au maximum.</div>
+    <p style="line-height:2.8;">
+      (a) &nbsp; \(\dfrac{60}{90}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (b) &nbsp; \(\dfrac{180}{252}\) &nbsp;&nbsp;&nbsp;&nbsp;
+      (c) &nbsp; \(\dfrac{56}{84}\)
+    </p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="method-box">
+
+        <div class="method-step"><strong>(a) \(\dfrac{60}{90}\)</strong></div>
+        <div style="display:flex;flex-wrap:wrap;gap:2rem;margin:.6rem 0 .8rem;">
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:.3rem;">Décomposition de 60</div>
+            <div class="decomp-table">
+              <div class="decomp-col-left"><span>60</span><span>30</span><span>15</span><span>5</span><span>1</span></div>
+              <div class="decomp-col-right"><span>2</span><span>2</span><span>3</span><span>5</span><span>&nbsp;</span></div>
+            </div>
+            <div style="font-size:.88rem;margin-top:.3rem;">\(60 = 2^2 \times 3 \times 5\)</div>
+          </div>
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:.3rem;">Décomposition de 90</div>
+            <div class="decomp-table">
+              <div class="decomp-col-left"><span>90</span><span>45</span><span>15</span><span>5</span><span>1</span></div>
+              <div class="decomp-col-right"><span>2</span><span>3</span><span>3</span><span>5</span><span>&nbsp;</span></div>
+            </div>
+            <div style="font-size:.88rem;margin-top:.3rem;">\(90 = 2 \times 3^2 \times 5\)</div>
+          </div>
+        </div>
+        <div class="calc-line">Facteurs communs : \(2 \times 3 \times 5 = 30\) &nbsp;→&nbsp; \(\dfrac{60}{90} = \dfrac{60 \div 30}{90 \div 30} = \dfrac{2}{3}\)</div>
+
+        <div class="method-step" style="margin-top:1.2rem;"><strong>(b) \(\dfrac{180}{252}\)</strong></div>
+        <div style="display:flex;flex-wrap:wrap;gap:2rem;margin:.6rem 0 .8rem;">
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:.3rem;">Décomposition de 180</div>
+            <div class="decomp-table">
+              <div class="decomp-col-left"><span>180</span><span>90</span><span>45</span><span>15</span><span>5</span><span>1</span></div>
+              <div class="decomp-col-right"><span>2</span><span>2</span><span>3</span><span>3</span><span>5</span><span>&nbsp;</span></div>
+            </div>
+            <div style="font-size:.88rem;margin-top:.3rem;">\(180 = 2^2 \times 3^2 \times 5\)</div>
+          </div>
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:.3rem;">Décomposition de 252</div>
+            <div class="decomp-table">
+              <div class="decomp-col-left"><span>252</span><span>126</span><span>63</span><span>21</span><span>7</span><span>1</span></div>
+              <div class="decomp-col-right"><span>2</span><span>2</span><span>3</span><span>3</span><span>7</span><span>&nbsp;</span></div>
+            </div>
+            <div style="font-size:.88rem;margin-top:.3rem;">\(252 = 2^2 \times 3^2 \times 7\)</div>
+          </div>
+        </div>
+        <div class="calc-line">Facteurs communs : \(2^2 \times 3^2 = 36\) &nbsp;→&nbsp; \(\dfrac{180}{252} = \dfrac{180 \div 36}{252 \div 36} = \dfrac{5}{7}\)</div>
+
+        <div class="method-step" style="margin-top:1.2rem;"><strong>(c) \(\dfrac{56}{84}\)</strong></div>
+        <div style="display:flex;flex-wrap:wrap;gap:2rem;margin:.6rem 0 .8rem;">
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:.3rem;">Décomposition de 56</div>
+            <div class="decomp-table">
+              <div class="decomp-col-left"><span>56</span><span>28</span><span>14</span><span>7</span><span>1</span></div>
+              <div class="decomp-col-right"><span>2</span><span>2</span><span>2</span><span>7</span><span>&nbsp;</span></div>
+            </div>
+            <div style="font-size:.88rem;margin-top:.3rem;">\(56 = 2^3 \times 7\)</div>
+          </div>
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:.3rem;">Décomposition de 84</div>
+            <div class="decomp-table">
+              <div class="decomp-col-left"><span>84</span><span>42</span><span>21</span><span>7</span><span>1</span></div>
+              <div class="decomp-col-right"><span>2</span><span>2</span><span>3</span><span>7</span><span>&nbsp;</span></div>
+            </div>
+            <div style="font-size:.88rem;margin-top:.3rem;">\(84 = 2^2 \times 3 \times 7\)</div>
+          </div>
+        </div>
+        <div class="calc-line">Facteurs communs : \(2^2 \times 7 = 28\) &nbsp;→&nbsp; \(\dfrac{56}{84} = \dfrac{56 \div 28}{84 \div 28} = \dfrac{2}{3}\)</div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- FIN CONTAINER -->
+</div>
+
+<script>
+const katexOpts = {
+  delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
+  throwOnError:false
+};
+function openBody(body){body.style.display='block';body.style.opacity='0';void body.offsetHeight;body.style.opacity='1';}
+function closeBody(body){body.style.opacity='0';body.addEventListener('transitionend',()=>{body.style.display='none';body.style.opacity='';body.classList.remove('show');},{once:true});}
+function toggle(btn){
+  const body=btn.nextElementSibling;
+  const open=body.style.display==='block';
+  if(!open){renderMathInElement(body,katexOpts);openBody(body);}
+  else{closeBody(body);}
+  btn.classList.toggle('open',!open);
+  btn.innerHTML='<span class="chev">▶</span> '+((!open)?'Masquer la correction':'Voir la correction');
+}
+function showAll(){
+  document.querySelectorAll('.corr-body').forEach(b=>{renderMathInElement(b,katexOpts);openBody(b);});
+  document.querySelectorAll('.corr-btn').forEach(b=>{b.classList.add('open');b.innerHTML='<span class="chev">▶</span> Masquer la correction';});
+}
+function hideAll(){
+  document.querySelectorAll('.corr-body').forEach(b=>closeBody(b));
+  document.querySelectorAll('.corr-btn').forEach(b=>{b.classList.remove('open');b.innerHTML='<span class="chev">▶</span> Voir la correction';});
+}
+document.addEventListener('DOMContentLoaded',function(){renderMathInElement(document.body,katexOpts);});
+</script>
+
+<a href="index.html" class="btn-retour-flottant"><span>🏠</span> Menu</a>
+<style>
+.btn-retour-flottant{position:fixed;top:20px;left:20px;z-index:9999;display:flex;align-items:center;gap:8px;background:white;color:#5c67f2;text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;padding:10px 18px;border-radius:50px;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:all .3s ease;}
+.btn-retour-flottant:hover{transform:scale(1.05);background:#5c67f2;color:white;}
+@media(max-width:600px){.btn-retour-flottant{top:auto;bottom:20px;left:20px;padding:12px 22px;font-size:1rem;}}
+</style>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

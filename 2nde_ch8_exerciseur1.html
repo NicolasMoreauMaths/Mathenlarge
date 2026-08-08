@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les Vecteurs — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-light: #8b5fc8;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --orange-border: rgba(184, 92, 11, 0.25);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #0c1624 0%, #162236 45%, #1c3358 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--blue), var(--purple), var(--green));
+}
+
+.app-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-title::before { content: '➡️'; font-size: 1.15em; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue), var(--purple)); border-radius: 6px; transition: width 0.4s; }
+
+/* ── CONTEXT CARD ── */
+.ctx-card {
+    background: linear-gradient(135deg, #f5f9ff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.93em;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.ctx-card .ctx-label {
+    font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); margin-bottom: 6px; display: block;
+}
+
+/* ── FORMULA REMINDER ── */
+.formula-remind {
+    background: var(--gold-pale);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.84em;
+    color: #7a5800;
+    margin: 0 0 18px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+/* ── QUESTION BLOCK ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ── INPUT FIELD ── */
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.answer-unit {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text-light);
+}
+
+.answer-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+
+.answer-input.wide { width: 220px; }
+.answer-input.narrow { width: 110px; }
+
+/* ── MULTI-INPUT ROW ── */
+.row-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.row-label {
+    font-size: 0.85em; font-weight: 600; color: var(--text-light);
+}
+
+/* ── CHOICE BUTTONS ── */
+.choice-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.choice-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.choice-btn:hover { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── MODE FACILE / DIFFICILE (niveau Chasles) ── */
+.mode-toggle { display: flex; gap: 8px; justify-content: center; margin: 0 0 18px; }
+.mode-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mode-btn:hover { transform: translateY(-1px); }
+.mode-btn.active[data-mode="facile"] { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.mode-btn.active[data-mode="difficile"] { background: var(--red-pale); border-color: var(--red); color: var(--red); }
+
+/* ── VECTEUR ÉCRIT DANS LE CHAMP (flèche superposée en direct) ── */
+.vec-input-wrap { position: relative; display: inline-block; }
+.answer-input.vec-input { padding-top: 22px; padding-bottom: 8px; }
+.vec-arrow-overlay {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 9px;
+    max-width: calc(100% - 16px);
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.15s, width 0.1s;
+    color: var(--blue);
+    pointer-events: none;
+}
+.vec-arrow-overlay.visible { opacity: 1; }
+.vec-arrow-overlay .v-line { flex: 1; height: 2px; background: currentColor; }
+.vec-arrow-overlay .v-head {
+    width: 0; height: 0; flex-shrink: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 6px solid currentColor;
+}
+.vec-mirror {
+    position: absolute;
+    visibility: hidden;
+    white-space: pre;
+    top: -9999px;
+    left: -9999px;
+}
+
+/* ── CALCULATOR ── */
+.calc-wrap {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+    max-width: 320px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.calc-display {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-family: 'DM Sans', monospace;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #7dd3fc;
+    text-align: right;
+    min-height: 52px;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+.calc-expr {
+    font-size: 0.55em;
+    color: #475569;
+    text-align: right;
+    min-height: 18px;
+    margin-bottom: 4px;
+    font-family: 'DM Sans', monospace;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.calc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    padding: 12px 6px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 46px;
+}
+
+.calc-btn:active { transform: scale(0.93); }
+
+.calc-num { background: #334155; color: #f1f5f9; }
+.calc-num:hover { background: #475569; }
+.calc-op { background: #1a6fa0; color: #fff; }
+.calc-op:hover { background: #2d8dc7; }
+.calc-eq { background: #1b7a40; color: #fff; }
+.calc-eq:hover { filter: brightness(1.1); }
+.calc-clear { background: #7f1d1d; color: #fecaca; }
+.calc-clear:hover { background: #991b1b; }
+.calc-back { background: #4c1d95; color: #ddd6fe; }
+.calc-back:hover { background: #5b21b6; }
+.calc-zero { grid-column: span 2; }
+.calc-pct { background: #334155; color: #94a3b8; }
+.calc-pct:hover { background: #475569; }
+
+.calc-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+
+.calc-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+
+.calc-container { display: none; }
+.calc-container.visible { display: block; }
+
+/* ── SCHÉMA REPLIABLE ── */
+.scene-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+.scene-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+.scene-container { display: none; margin-bottom: 18px; }
+.scene-container.visible { display: block; animation: fadeIn 0.25s ease; }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+.step-block.locked .choice-btn { pointer-events: none; }
+
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 500px; }
+
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-light);
+    text-align: center; width: 100%; margin-bottom: 8px;
+}
+
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── FEEDBACK ── */
+.fb {
+    margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.93em; text-align: center; display: none;
+    animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7;
+}
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 20px auto; border: 6px solid;
+}
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.05em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--blue),var(--blue));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,111,160,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(26,111,160,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 900px tablette ── */
+@media(max-width:900px){
+  .app { padding:0 12px; }
+  .main { padding:12px; }
+}
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-header-bar { flex-wrap:wrap; gap:4px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .mc-badge, .ex-badge { font-size:0.7rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn, .choice-grid .btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .screen { font-size:0.85rem; padding:10px; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind, .formula-box { font-size:0.85rem; padding:8px; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input, .ans-input { font-size:0.9rem; }
+  .answer-wrap, .row-inputs { flex-wrap:wrap; gap:6px; }
+  .pbar { height:6px; }
+  .mode-toggle, .mode-btn { font-size:0.8rem; }
+  .menu-btn { font-size:0.8rem; }
+  .ex-top { flex-wrap:wrap; gap:4px; }
+  .ex-score { font-size:0.8rem; }
+}
+/* ── overflow helpers ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Les Vecteurs — Exerciseur interactif</div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Cinq exerciseurs pour maîtriser les vecteurs de Seconde. Pose tes calculs toi-même : l'exerciseur te guide, mais ne calcule jamais à ta place !</p>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="mode-toggle" id="modeToggleBar" style="display:none;">
+                <button class="mode-btn" data-mode="facile" id="modeBtnFacile">🟢 Mode facile (couleurs)</button>
+                <button class="mode-btn active" data-mode="difficile" id="modeBtnDifficile">🔴 Mode difficile</button>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-ghost" id="btnHint" style="display:none">💡 Indice</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-ghost" id="btnDownload">📄 Télécharger le bilan</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX
+   ========================================================== */
+const LEVELS = [
+    { id: 'coords',     icon: '📍', title: 'Calculer les coordonnées d\'un vecteur', desc: 'À partir de deux points, avec ou sans somme', n: 8, badge: 'Calculatrice' },
+    { id: 'egalite',    icon: '▱',  title: 'Égalités de vecteurs et parallélogramme', desc: 'Vérifier ou construire un parallélogramme', n: 8, badge: 'Calculatrice' },
+    { id: 'chasles',    icon: '➕', title: 'Relation de Chasles', desc: 'Simplifier des sommes de vecteurs', n: 8 },
+    { id: 'calculs',    icon: '✖️', title: 'Calculer avec des vecteurs', desc: 'Somme, produit par un réel, vecteur opposé', n: 8, badge: 'Calculatrice' },
+    { id: 'colineaire', icon: '∥',  title: 'Vecteurs colinéaires', desc: 'Trouver k « à l\'œil » ou utiliser le déterminant', n: 8, badge: 'Calculatrice' },
+];
+
+let state = {
+    levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false,
+    easyMode: { chasles: 'difficile', colineaire: 'difficile' },
+    log: [],       // trace écrite : { levelTitle, prompt, correction, correct }
+    hintUsed: false
+};
+const EASY_LEVELS = ['chasles', 'colineaire'];
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/\u2212/g, '-').replace(/÷/g, '/');
+    if (s.includes('/')) {
+        const [n, d] = s.split('/').map(Number);
+        if (isNaN(n) || isNaN(d) || d === 0) return null;
+        return n / d;
+    }
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+function close(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
+
+function closeRel(a, b, eps = 1e-4) {
+    if (Math.abs(b) < 1e-10) return Math.abs(a) < eps;
+    return Math.abs((a - b) / b) < eps;
+}
+
+function round2(x) { return Math.round(x * 100) / 100; }
+function round4(x) { return Math.round(x * 10000) / 10000; }
+
+/* format number for display — avoids floating point noise */
+function fmt(x) {
+    const r = round2(x);
+    const s = r === 0 ? 0 : r; // évite -0
+    return (s % 1 === 0 ? String(s) : String(s).replace('.', ','));
+}
+
+/* format a number wrapped in parentheses when negative, for "arrivée moins départ" */
+function fmtSigned(n) {
+    const v = round2(n);
+    return v < 0 ? `(${fmt(v)})` : fmt(v);
+}
+
+/* ==========================================================
+   OUTILS GÉOMÉTRIQUES (points, lettres)
+   ========================================================== */
+const LETTER_POOL = ['A','B','C','D','E','F','G','H','K','L','M','N','P','Q','R','S','T','U','V','W'];
+
+function shuffleLetters() {
+    const arr = [...LETTER_POOL];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = rnd(0, i);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function randPoint(range = 6) {
+    return { x: rnd(-range, range), y: rnd(-range, range) };
+}
+
+function randDistinctPoints(nb, range = 6) {
+    const pts = [];
+    let guard = 0;
+    while (pts.length < nb && guard < 300) {
+        guard++;
+        const p = randPoint(range);
+        if (!pts.some(q => q.x === p.x && q.y === p.y)) pts.push(p);
+    }
+    return pts;
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+/* KaTeX auto-render — relancé après chaque rendu de question */
+function renderKatex(el) {
+    if (window.renderMathInElement) {
+        renderMathInElement(el || document.body, {
+            delimiters: [
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false
+        });
+    }
+}
+
+/* ==========================================================
+   MOTEUR GENERIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS = {};
+const CHECKERS = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex = 0;
+    state.score = 0;
+    state.total = lv.n;
+    state.questions = [];
+    state.log = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    const modeBar = document.getElementById('modeToggleBar');
+    if (EASY_LEVELS.includes(levelId)) {
+        modeBar.style.display = 'flex';
+        const m = state.easyMode[levelId] || 'difficile';
+        document.getElementById('modeBtnFacile').classList.toggle('active', m === 'facile');
+        document.getElementById('modeBtnDifficile').classList.toggle('active', m === 'difficile');
+    } else {
+        modeBar.style.display = 'none';
+    }
+    document.getElementById('btnHint').style.display = (levelId === 'calculs' || levelId === 'colineaire') ? '' : 'none';
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function setLevelMode(mode) {
+    if (!EASY_LEVELS.includes(state.levelId)) return;
+    state.easyMode[state.levelId] = mode;
+    document.getElementById('modeBtnFacile').classList.toggle('active', mode === 'facile');
+    document.getElementById('modeBtnDifficile').classList.toggle('active', mode === 'difficile');
+    renderQuestion();
+}
+document.getElementById('modeBtnFacile').addEventListener('click', () => setLevelMode('facile'));
+document.getElementById('modeBtnDifficile').addEventListener('click', () => setLevelMode('difficile'));
+
+function renderQuestion() {
+    state.checked = false;
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    body._choice = null;
+    body._dir = null;
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+    renderKatex(body);
+}
+
+/* ── INDICE (niveaux Calculer avec des vecteurs / Vecteurs colinéaires) ── */
+function hintText_calculs(q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    if (q.type === 'sum') return "Additionne d'abord les deux abscisses entre elles, puis les deux ordonnées entre elles.";
+    if (q.type === 'mult') return "Multiplie chaque coordonnée de \\(\\vec{u}\\) par le nombre \\(k\\), l'une après l'autre.";
+    if (q.type === 'opposite') return "Le vecteur opposé a exactement les mêmes coordonnées, mais avec le signe changé.";
+    if (stepsDone === 0) return "Commence par multiplier chaque coordonnée de \\(\\vec{u}\\) par \\(k\\).";
+    return "Soustrais maintenant la coordonnée correspondante de \\(\\vec{v}\\) à chaque coordonnée de \\(k\\vec{u}\\).";
+}
+function hintText_colineaire(q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    if (q.type === 'k_eye') return "Cherche par quel nombre il faut multiplier la 1ère coordonnée de \\(\\vec{u}\\) pour obtenir celle de \\(\\vec{v}\\), puis vérifie que ça fonctionne aussi pour la 2ᵉ coordonnée.";
+    if (q.type === 'determinant') {
+        if (stepsDone === 0) return "Le déterminant se calcule ainsi : (1ère coordonnée de \\(\\vec u\\)) × (2ᵉ coordonnée de \\(\\vec v\\)) − (2ᵉ coordonnée de \\(\\vec u\\)) × (1ère coordonnée de \\(\\vec v\\)).";
+        return "Si le déterminant vaut 0, les vecteurs sont colinéaires. Sinon, ils ne le sont pas.";
+    }
+    if (stepsDone === 0) return "Calcule d'abord les coordonnées de \\(\\overrightarrow{AB}\\) : arrivée moins départ.";
+    if (stepsDone === 1) return "Fais de même pour calculer \\(\\overrightarrow{AC}\\).";
+    return "Calcule le déterminant de \\(\\overrightarrow{AB}\\) et \\(\\overrightarrow{AC}\\). S'il vaut 0, les points sont alignés.";
+}
+document.getElementById('btnHint').addEventListener('click', () => {
+    const q = state.questions[state.qIndex];
+    let text;
+    if (state.levelId === 'calculs') text = hintText_calculs(q);
+    else if (state.levelId === 'colineaire') text = hintText_colineaire(q);
+    else return;
+    const box = document.getElementById('exBody');
+    let hintBox = document.getElementById('hintBox');
+    if (!hintBox) {
+        hintBox = document.createElement('div');
+        hintBox.id = 'hintBox';
+        hintBox.className = 'formula-remind';
+        hintBox.style.background = 'var(--blue-pale)';
+        hintBox.style.borderColor = 'var(--blue)';
+        hintBox.style.borderStyle = 'solid';
+        hintBox.style.color = 'var(--blue)';
+        box.insertBefore(hintBox, box.firstChild);
+    }
+    hintBox.innerHTML = '💡 ' + text;
+    renderKatex(hintBox);
+});
+
+/* ── JOURNAL DE SESSION (pour la trace écrite téléchargeable) ── */
+function logCurrentQuestion(finalOk) {
+    const lv = LEVELS.find(l => l.id === state.levelId);
+    const body = document.getElementById('exBody');
+    const promptEls = body.querySelectorAll('.ctx-card, .q-prompt');
+    const promptText = Array.from(promptEls).map(el => el.textContent.trim()).filter(Boolean).join(' — ');
+    const fb = document.getElementById('fb');
+    const correctionText = fb.textContent.replace(/^[✓✗]\s*/, '').trim();
+    state.log.push({
+        level: lv.title,
+        qNumber: state.qIndex + 1,
+        correct: finalOk,
+        prompt: promptText,
+        correction: correctionText
+    });
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb = document.getElementById('fb');
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        renderKatex(fb);
+        if (result.advanceOnly) {
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1400);
+            document.getElementById('btnNext').style.display = 'none';
+            return;
+        }
+        state.checked = true;
+        state.score++;
+        document.getElementById('btnCheck').style.display = 'none';
+        document.getElementById('btnNext').style.display = '';
+    } else {
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || 'Ce n\'est pas encore ça, réessaie.');
+        renderKatex(fb);
+        // Dès la première erreur, afficher Suivant à côté de Vérifier (pour pouvoir passer si besoin)
+        document.getElementById('btnNext').style.display = '';
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    logCurrentQuestion(state.checked);
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (state.checked && btnNext.style.display !== 'none' && btnNext.offsetParent) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises cette méthode.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+/* ── TRACE ÉCRITE TÉLÉCHARGEABLE ── */
+function buildBilanHTML() {
+    const lv = LEVELS.find(l => l.id === state.levelId);
+    const pct = Math.round(state.score / state.total * 100);
+    const rows = state.log.map(item => `
+        <div style="margin-bottom:18px;padding:14px 16px;border-radius:10px;border:1.5px solid ${item.correct ? '#1b7a40' : '#c0392b'};background:${item.correct ? '#f0f9f2' : '#fdf1f0'};">
+            <div style="font-weight:700;font-size:0.85em;color:${item.correct ? '#1b7a40' : '#c0392b'};margin-bottom:6px;">
+                Question ${item.qNumber} — ${item.correct ? '✓ Réussie' : '✗ Non réussie'}
+            </div>
+            <div style="font-size:0.92em;margin-bottom:8px;color:#1e293b;">${item.prompt}</div>
+            <div style="font-size:0.92em;color:#334155;"><strong>Corrigé :</strong> ${item.correction}</div>
+        </div>`).join('');
+    return `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>Bilan — ${lv.title}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"><\/script>
+<style>body{font-family:'DM Sans',Arial,sans-serif;max-width:700px;margin:30px auto;padding:0 16px;color:#1e293b;}
+h1{color:#1a6fa0;} .score{font-size:1.1em;font-weight:700;margin-bottom:24px;}</style>
+</head><body>
+<h1>Bilan — ${lv.title}</h1>
+<div class="score">Score : ${state.score}/${state.total} (${pct}%)</div>
+${rows}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  renderMathInElement(document.body, { delimiters: [
+    {left:'\\\\(', right:'\\\\)', display:false},
+    {left:'\\\\[', right:'\\\\]', display:true}
+  ], throwOnError:false });
+});
+<\/script>
+</body></html>`;
+}
+
+document.getElementById('btnDownload').addEventListener('click', () => {
+    const html = buildBilanHTML();
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bilan-${state.levelId || 'vecteurs'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
+
+/* ==========================================================
+   CALCULATRICE INTÉGRÉE
+   ========================================================== */
+function calcHTML(id) {
+    return `
+    <button class="calc-toggle" id="calc-toggle-${id}" onclick="toggleCalc('${id}')">🔢 Afficher la calculatrice</button>
+    <div class="calc-container" id="calc-${id}">
+        <div class="calc-wrap">
+            <div class="calc-display" id="calc-disp-${id}">
+                <div class="calc-expr" id="calc-expr-${id}"></div>
+                <div id="calc-val-${id}">0</div>
+            </div>
+            <div class="calc-grid">
+                <button class="calc-btn calc-clear" onclick="cCalc('${id}','C')">C</button>
+                <button class="calc-btn calc-back"  onclick="cCalc('${id}','⌫')">⌫</button>
+                <button class="calc-btn calc-pct"   onclick="cCalc('${id}','%')">%</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','/')">÷</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','7')">7</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','8')">8</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','9')">9</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','×')">×</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','4')">4</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','5')">5</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','6')">6</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','-')">−</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','1')">1</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','2')">2</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','3')">3</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','+')">+</button>
+                <button class="calc-btn calc-num calc-zero" onclick="cCalc('${id}','0')">0</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}',',')">.</button>
+                <button class="calc-btn calc-eq"    onclick="cCalc('${id}','=')">＝</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+const calcState = {};
+
+function toggleCalc(id) {
+    const c = document.getElementById('calc-' + id);
+    const btn = document.getElementById('calc-toggle-' + id);
+    const visible = c.classList.toggle('visible');
+    btn.textContent = visible ? '🔢 Masquer la calculatrice' : '🔢 Afficher la calculatrice';
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+}
+
+function cCalc(id, key) {
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+    const s = calcState[id];
+    const disp = document.getElementById('calc-val-' + id);
+    const exprEl = document.getElementById('calc-expr-' + id);
+
+    if (key === 'C') { s.expr = ''; s.result = '0'; s.fresh = true; }
+    else if (key === '⌫') {
+        if (s.fresh) { s.expr = ''; s.result = '0'; s.fresh = false; return; }
+        s.expr = s.expr.slice(0, -1);
+        if (!s.expr) { s.result = '0'; }
+    }
+    else if (key === '=') {
+        try {
+            let e = s.expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,/g, '.');
+            e = e.replace(/(\d+(?:\.\d+)?)\s*%/g, '($1/100)');
+            const v = Function('"use strict"; return (' + e + ')')();
+            s.result = isFinite(v) ? String(round4(v)).replace('.', ',') : 'Erreur';
+            exprEl.textContent = s.expr + ' =';
+            s.expr = s.result.replace(',', '.');
+            s.fresh = true;
+        } catch { s.result = 'Erreur'; }
+    }
+    else if (['+', '-', '×', '÷'].includes(key)) {
+        if (s.fresh) { s.fresh = false; }
+        s.expr += key;
+        s.result = s.expr;
+    }
+    else if (key === '%') {
+        s.expr += '%';
+        s.result = s.expr;
+    }
+    else {
+        if (s.fresh) { s.expr = key; s.fresh = false; }
+        else s.expr += key;
+        s.result = s.expr;
+    }
+    disp.textContent = s.result;
+    if (!s.fresh) exprEl.textContent = s.expr;
+}
+
+/* ==========================================================
+   OUTILS COMMUNS AUX NIVEAUX (étapes verrouillées, choix)
+   ========================================================== */
+function lockStepSimple(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('locked');
+    const tag = el.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+    el.querySelectorAll('input').forEach(i => i.disabled = true);
+}
+
+function insertStepBlock(html, id) {
+    const box = document.getElementById('exBody');
+    const calcToggle = box.querySelector('.calc-toggle');
+    const hr = document.createElement('hr'); hr.className = 'step-divider';
+    box.insertBefore(hr, calcToggle);
+    const div = document.createElement('div');
+    div.className = 'step-block active';
+    div.id = id;
+    div.innerHTML = html;
+    box.insertBefore(div, calcToggle);
+    renderKatex(div);
+    return div;
+}
+
+function wireChoiceGrid(containerSelector) {
+    const box = document.getElementById('exBody');
+    box.querySelectorAll(containerSelector + ' .choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll(containerSelector + ' .choice-btn').forEach(b => b.classList.remove('chosen'));
+            btn.classList.add('chosen');
+            box._choice = btn.dataset.val;
+        });
+    });
+    box._choice = null;
+}
+
+/* Normalise une réponse "vecteur" saisie en texte libre (ex: "vecteur XZ", "XZ", "0", "vecteur nul") */
+function normVec(str) {
+    let s = (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    s = s.replace(/VECTEUR/g, '').replace(/\bVECT\b/g, '').replace(/\bVEC\b/g, '');
+    s = s.replace(/NULLE?/g, '0');
+    s = s.replace(/[^A-Z0]/g, '');
+    return s;
+}
+
+/* ==========================================================
+   PETIT SCHÉMA (repère avec points / vecteurs) — rappel visuel
+   ========================================================== */
+const SCENE_PALETTE = { blue: '#1a6fa0', orange: '#b85c0b', purple: '#6b3fa0', green: '#1b7a40', red: '#c0392b' };
+
+function sceneSVG(points, vectors) {
+    points = points || []; vectors = vectors || [];
+    let xs = [0], ys = [0];
+    points.forEach(p => { xs.push(p.x); ys.push(p.y); });
+    vectors.forEach(v => { xs.push(v.x1, v.x2); ys.push(v.y1, v.y2); });
+    const minX = Math.min(...xs) - 1, maxX = Math.max(...xs) + 1;
+    const minY = Math.min(...ys) - 1, maxY = Math.max(...ys) + 1;
+    const W = 300, H = 240, pad = 26;
+    const spanX = Math.max(maxX - minX, 1), spanY = Math.max(maxY - minY, 1);
+    const scale = Math.min((W - 2 * pad) / spanX, (H - 2 * pad) / spanY);
+    const px = x => pad + (x - minX) * scale;
+    const py = y => H - pad - (y - minY) * scale;
+
+    let grid = '';
+    for (let gx = Math.ceil(minX); gx <= Math.floor(maxX); gx++) {
+        grid += `<line x1="${px(gx)}" y1="${pad}" x2="${px(gx)}" y2="${H - pad}" stroke="#e2e8f0" stroke-width="1"/>`;
+    }
+    for (let gy = Math.ceil(minY); gy <= Math.floor(maxY); gy++) {
+        grid += `<line x1="${pad}" y1="${py(gy)}" x2="${W - pad}" y2="${py(gy)}" stroke="#e2e8f0" stroke-width="1"/>`;
+    }
+    let axes = '';
+    if (minX <= 0 && maxX >= 0) axes += `<line x1="${px(0)}" y1="${pad}" x2="${px(0)}" y2="${H - pad}" stroke="#94a3b8" stroke-width="1.5"/>`;
+    if (minY <= 0 && maxY >= 0) axes += `<line x1="${pad}" y1="${py(0)}" x2="${W - pad}" y2="${py(0)}" stroke="#94a3b8" stroke-width="1.5"/>`;
+
+    const defs = Object.entries(SCENE_PALETTE).map(([k, c]) =>
+        `<marker id="arrow-${k}" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="${c}"/></marker>`
+    ).join('');
+
+    let vecSVG = '';
+    vectors.forEach(v => {
+        const key = v.color || 'blue';
+        const c = SCENE_PALETTE[key] || SCENE_PALETTE.blue;
+        const x1 = px(v.x1), y1 = py(v.y1), x2 = px(v.x2), y2 = py(v.y2);
+        vecSVG += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="2.5" marker-end="url(#arrow-${key})"/>`;
+        if (v.label) {
+            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+            vecSVG += `<text x="${mx + 8}" y="${my - 6}" font-size="13" font-weight="700" fill="${c}" font-family="DM Sans, sans-serif">${v.label}</text>`;
+        }
+    });
+
+    let ptSVG = '';
+    points.forEach(p => {
+        const c = SCENE_PALETTE[p.color] || '#1e293b';
+        const x = px(p.x), y = py(p.y);
+        ptSVG += `<circle cx="${x}" cy="${y}" r="4" fill="${c}"/>`;
+        ptSVG += `<text x="${x + 7}" y="${y - 7}" font-size="13" font-weight="700" fill="${c}" font-family="DM Sans, sans-serif">${p.label}</text>`;
+    });
+
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:280px;display:block;margin:0 auto;background:#fff;border-radius:12px;border:1.5px solid #e2e8f0;">
+        <defs>${defs}</defs>
+        ${grid}${axes}${vecSVG}${ptSVG}
+    </svg>`;
+}
+
+/* Le schéma est caché par défaut : un petit bouton permet à l'élève de
+   l'afficher s'il en a besoin, pour l'inciter à d'abord chercher seul. */
+let sceneCounter = 0;
+function sceneBlock(scene) {
+    sceneCounter++;
+    const id = 'scene-' + sceneCounter;
+    return `
+        <button type="button" class="scene-toggle" id="${id}-btn" onclick="toggleScene('${id}')">📐 Afficher le schéma</button>
+        <div class="scene-container" id="${id}">${scene}</div>`;
+}
+function toggleScene(id) {
+    const el = document.getElementById(id);
+    const btn = document.getElementById(id + '-btn');
+    const visible = el.classList.toggle('visible');
+    btn.textContent = visible ? '📐 Masquer le schéma' : '📐 Afficher le schéma';
+}
+
+/* ==========================================================
+   NIVEAU 1 : CALCULER LES COORDONNÉES D'UN VECTEUR
+   ========================================================== */
+GENERATORS.coords = function () {
+    const mode = Math.random() < 0.5 ? 'simple' : 'withU';
+    const [nameA, nameB] = shuffleLetters();
+    const [A, B] = randDistinctPoints(2, 6);
+    if (mode === 'simple') {
+        return { mode, nameA, nameB, A, B, ansX: B.x - A.x, ansY: B.y - A.y };
+    }
+    let u = randPoint(5);
+    while (u.x === 0 && u.y === 0) u = randPoint(5);
+    const abx = B.x - A.x, aby = B.y - A.y;
+    const wx = abx + u.x, wy = aby + u.y;
+    return { mode, nameA, nameB, A, B, u, abx, aby, wx, wy };
+};
+
+RENDERERS.coords = function (q, box) {
+    const { nameA, nameB, A, B } = q;
+    const ptTxt = `\\(${nameA}(${fmt(A.x)}\\,;\\,${fmt(A.y)})\\) et \\(${nameB}(${fmt(B.x)}\\,;\\,${fmt(B.y)})\\)`;
+    const scene = sceneBlock(sceneSVG(
+        [ { x: A.x, y: A.y, label: nameA, color: 'blue' }, { x: B.x, y: B.y, label: nameB, color: 'orange' } ],
+        [ { x1: A.x, y1: A.y, x2: B.x, y2: B.y, color: 'blue' } ]
+    ));
+    if (q.mode === 'simple') {
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(\\overrightarrow{${nameA}${nameB}}\\binom{x_{${nameB}}-x_{${nameA}}}{y_{${nameB}}-y_{${nameA}}}\\) (arrivée moins départ)</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>On donne les points ${ptTxt}.</div>
+            ${scene}
+            <div class="q-prompt">Calcule les coordonnées du vecteur \\(\\overrightarrow{${nameA}${nameB}}\\) :</div>
+            <div class="row-inputs">
+                <span class="row-label">x =</span>
+                <input type="text" class="answer-input narrow" id="vx" placeholder="…" inputmode="decimal">
+                <span class="row-label" style="margin-left:16px;">y =</span>
+                <input type="text" class="answer-input narrow" id="vy" placeholder="…" inputmode="decimal">
+            </div>
+            ${calcHTML('co')}`;
+    } else {
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : calcule d'abord \\(\\overrightarrow{${nameA}${nameB}}\\), puis additionne \\(\\vec{u}\\) coordonnée par coordonnée</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>On donne ${ptTxt} et le vecteur \\(\\vec{u}\\binom{${fmt(q.u.x)}}{${fmt(q.u.y)}}\\). On pose \\(\\vec{w} = \\overrightarrow{${nameA}${nameB}} + \\vec{u}\\).</div>
+            ${scene}
+            <div class="step-block active" id="step0">
+                <div class="step-tag">Étape 1 · Coordonnées de \\(\\overrightarrow{${nameA}${nameB}}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span>
+                    <input type="text" class="answer-input narrow" id="abx" placeholder="…" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span>
+                    <input type="text" class="answer-input narrow" id="aby" placeholder="…" inputmode="decimal">
+                </div>
+            </div>
+            ${calcHTML('co')}`;
+    }
+    setTimeout(() => document.getElementById(q.mode === 'simple' ? 'vx' : 'abx')?.focus(), 50);
+};
+
+CHECKERS.coords = function (q) {
+    if (q.mode === 'simple') {
+        const ix = document.getElementById('vx'), iy = document.getElementById('vy');
+        const vx = normNum(ix.value), vy = normNum(iy.value);
+        ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+        const okx = vx !== null && close(vx, q.ansX, 0.01);
+        const oky = vy !== null && close(vy, q.ansY, 0.01);
+        ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+        const msg = `\\(\\overrightarrow{${q.nameA}${q.nameB}}\\binom{${fmtSigned(q.B.x)}-${fmtSigned(q.A.x)}}{${fmtSigned(q.B.y)}-${fmtSigned(q.A.y)}} = \\binom{${fmt(q.ansX)}}{${fmt(q.ansY)}}\\)`;
+        if (okx && oky) return { ok: true, msg };
+        return { ok: false, msg: 'On calcule toujours arrivée moins départ : ' + msg };
+    }
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    if (stepsDone === 0) {
+        const ix = document.getElementById('abx'), iy = document.getElementById('aby');
+        const vx = normNum(ix.value), vy = normNum(iy.value);
+        ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+        const okx = vx !== null && close(vx, q.abx, 0.01);
+        const oky = vy !== null && close(vy, q.aby, 0.01);
+        ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+        if (okx && oky) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · \\(\\vec{w} = \\overrightarrow{${q.nameA}${q.nameB}} + \\vec{u}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="wx" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="wy" inputmode="decimal">
+                </div>`, 'step1');
+            setTimeout(() => document.getElementById('wx')?.focus(), 50);
+            return { ok: true, msg: `\\(\\overrightarrow{${q.nameA}${q.nameB}}\\binom{${fmt(q.abx)}}{${fmt(q.aby)}}\\). Maintenant ajoute \\(\\vec{u}\\) !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(\\overrightarrow{${q.nameA}${q.nameB}}\\binom{${fmtSigned(q.B.x)}-${fmtSigned(q.A.x)}}{${fmtSigned(q.B.y)}-${fmtSigned(q.A.y)}} = \\binom{${fmt(q.abx)}}{${fmt(q.aby)}}\\)` };
+    }
+    const ix = document.getElementById('wx'), iy = document.getElementById('wy');
+    const vx = normNum(ix.value), vy = normNum(iy.value);
+    ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+    const okx = vx !== null && close(vx, q.wx, 0.01);
+    const oky = vy !== null && close(vy, q.wy, 0.01);
+    ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+    const msg = `\\(\\vec{w}\\binom{${fmt(q.abx)}+${fmt(q.u.x)}}{${fmt(q.aby)}+${fmt(q.u.y)}} = \\binom{${fmt(q.wx)}}{${fmt(q.wy)}}\\)`;
+    if (okx && oky) return { ok: true, msg };
+    return { ok: false, msg: 'On additionne terme à terme : ' + msg };
+};
+
+/* ==========================================================
+   NIVEAU 2 : ÉGALITÉS DE VECTEURS ET PARALLÉLOGRAMME
+   ========================================================== */
+GENERATORS.egalite = function () {
+    const mode = Math.random() < 0.5 ? 'verify' : 'find';
+    const names = shuffleLetters().slice(0, 4);
+    if (mode === 'verify') {
+        const isParallelogram = Math.random() < 0.5;
+        const [A, B, C] = randDistinctPoints(3, 5);
+        const Dtrue = { x: C.x - (B.x - A.x), y: C.y - (B.y - A.y) };
+        let D;
+        if (isParallelogram) {
+            D = Dtrue;
+        } else {
+            let dx = rnd(1, 3) * (Math.random() < 0.5 ? 1 : -1);
+            let dy = rnd(0, 2) * (Math.random() < 0.5 ? 1 : -1);
+            if (dx === 0 && dy === 0) dx = 1;
+            D = { x: Dtrue.x + dx, y: Dtrue.y + dy };
+        }
+        const abx = B.x - A.x, aby = B.y - A.y;
+        const dcx = C.x - D.x, dcy = C.y - D.y;
+        const equal = abx === dcx && aby === dcy;
+        return { mode, names, A, B, C, D, abx, aby, dcx, dcy, equal };
+    }
+    const [E, F, G] = randDistinctPoints(3, 5);
+    const efx = F.x - E.x, efy = F.y - E.y;
+    const Hx = G.x - efx, Hy = G.y - efy;
+    return { mode, names, E, F, G, efx, efy, Hx, Hy };
+};
+
+RENDERERS.egalite = function (q, box) {
+    const [n0, n1, n2, n3] = q.names;
+    if (q.mode === 'verify') {
+        const scene = sceneBlock(sceneSVG(
+            [ { x: q.A.x, y: q.A.y, label: n0, color: 'blue' }, { x: q.B.x, y: q.B.y, label: n1, color: 'blue' },
+              { x: q.C.x, y: q.C.y, label: n2, color: 'orange' }, { x: q.D.x, y: q.D.y, label: n3, color: 'orange' } ],
+            [ { x1: q.A.x, y1: q.A.y, x2: q.B.x, y2: q.B.y, color: 'blue' },
+              { x1: q.D.x, y1: q.D.y, x2: q.C.x, y2: q.C.y, color: 'orange' } ]
+        ));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(\\overrightarrow{${n0}${n1}} = \\overrightarrow{${n3}${n2}} \\iff ${n0}${n1}${n2}${n3}\\) est un parallélogramme</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(${n0}(${fmt(q.A.x)}\\,;\\,${fmt(q.A.y)})\\), \\(${n1}(${fmt(q.B.x)}\\,;\\,${fmt(q.B.y)})\\), \\(${n2}(${fmt(q.C.x)}\\,;\\,${fmt(q.C.y)})\\), \\(${n3}(${fmt(q.D.x)}\\,;\\,${fmt(q.D.y)})\\)</div>
+            ${scene}
+            <div class="step-block active" id="step0">
+                <div class="step-tag">Étape 1 · Coordonnées de \\(\\overrightarrow{${n0}${n1}}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="abx" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="aby" inputmode="decimal">
+                </div>
+            </div>
+            ${calcHTML('eg')}`;
+        setTimeout(() => document.getElementById('abx')?.focus(), 50);
+    } else {
+        const scene = sceneBlock(sceneSVG(
+            [ { x: q.E.x, y: q.E.y, label: n0, color: 'blue' }, { x: q.F.x, y: q.F.y, label: n1, color: 'blue' },
+              { x: q.G.x, y: q.G.y, label: n2, color: 'purple' } ],
+            [ { x1: q.E.x, y1: q.E.y, x2: q.F.x, y2: q.F.y, color: 'blue' } ]
+        ));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(${n0}${n1}${n2}${n3}\\) parallélogramme \\(\\iff \\overrightarrow{${n0}${n1}} = \\overrightarrow{${n3}${n2}}\\)</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(${n0}(${fmt(q.E.x)}\\,;\\,${fmt(q.E.y)})\\), \\(${n1}(${fmt(q.F.x)}\\,;\\,${fmt(q.F.y)})\\), \\(${n2}(${fmt(q.G.x)}\\,;\\,${fmt(q.G.y)})\\). Détermine les coordonnées de \\(${n3}\\) tel que \\(${n0}${n1}${n2}${n3}\\) soit un parallélogramme.</div>
+            ${scene}
+            <div class="step-block active" id="step0">
+                <div class="step-tag">Étape 1 · Coordonnées de \\(\\overrightarrow{${n0}${n1}}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="efx" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="efy" inputmode="decimal">
+                </div>
+            </div>
+            ${calcHTML('eg')}`;
+        setTimeout(() => document.getElementById('efx')?.focus(), 50);
+    }
+};
+
+CHECKERS.egalite = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const [n0, n1, n2, n3] = q.names;
+
+    if (q.mode === 'verify') {
+        if (stepsDone === 0) {
+            const ix = document.getElementById('abx'), iy = document.getElementById('aby');
+            const vx = normNum(ix.value), vy = normNum(iy.value);
+            ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+            const okx = vx !== null && close(vx, q.abx, 0.01), oky = vy !== null && close(vy, q.aby, 0.01);
+            ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+            if (okx && oky) {
+                lockStepSimple('step0');
+                insertStepBlock(`
+                    <div class="step-tag">Étape 2 · Coordonnées de \\(\\overrightarrow{${n3}${n2}}\\)</div>
+                    <div class="row-inputs">
+                        <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="dcx" inputmode="decimal">
+                        <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="dcy" inputmode="decimal">
+                    </div>`, 'step1');
+                setTimeout(() => document.getElementById('dcx')?.focus(), 50);
+                return { ok: true, msg: `\\(\\overrightarrow{${n0}${n1}}\\binom{${fmt(q.abx)}}{${fmt(q.aby)}}\\). Calcule maintenant \\(\\overrightarrow{${n3}${n2}}\\) !`, advanceOnly: true };
+            }
+            return { ok: false, msg: `\\(\\overrightarrow{${n0}${n1}}\\binom{${fmtSigned(q.B.x)}-${fmtSigned(q.A.x)}}{${fmtSigned(q.B.y)}-${fmtSigned(q.A.y)}} = \\binom{${fmt(q.abx)}}{${fmt(q.aby)}}\\)` };
+        }
+        if (stepsDone === 1) {
+            const ix = document.getElementById('dcx'), iy = document.getElementById('dcy');
+            const vx = normNum(ix.value), vy = normNum(iy.value);
+            ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+            const okx = vx !== null && close(vx, q.dcx, 0.01), oky = vy !== null && close(vy, q.dcy, 0.01);
+            ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+            if (okx && oky) {
+                lockStepSimple('step1');
+                insertStepBlock(`
+                    <div class="step-tag">Étape 3 · Conclusion</div>
+                    <div class="q-prompt">\\(${n0}${n1}${n2}${n3}\\) est-il un parallélogramme ?</div>
+                    <div class="choice-grid" id="choiceEg">
+                        <button class="choice-btn" data-val="oui">Oui</button>
+                        <button class="choice-btn" data-val="non">Non</button>
+                    </div>`, 'step2');
+                wireChoiceGrid('#choiceEg');
+                return { ok: true, msg: `\\(\\overrightarrow{${n3}${n2}}\\binom{${fmt(q.dcx)}}{${fmt(q.dcy)}}\\). ${n0}${n1}${n2}${n3} est-il un parallélogramme ?`, advanceOnly: true };
+            }
+            return { ok: false, msg: `\\(\\overrightarrow{${n3}${n2}}\\binom{${fmtSigned(q.C.x)}-${fmtSigned(q.D.x)}}{${fmtSigned(q.C.y)}-${fmtSigned(q.D.y)}} = \\binom{${fmt(q.dcx)}}{${fmt(q.dcy)}}\\)` };
+        }
+        const chosen = box._choice;
+        const correctVal = q.equal ? 'oui' : 'non';
+        box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+        if (!chosen) return { ok: false, msg: 'Clique sur Oui ou Non pour répondre.' };
+        box.querySelectorAll('.choice-btn').forEach(b => {
+            if (b.dataset.val === correctVal) b.classList.add('ok');
+            else if (b.classList.contains('chosen')) b.classList.add('err');
+        });
+        const ok = chosen === correctVal;
+        const concl = q.equal
+            ? `\\(\\overrightarrow{${n0}${n1}} = \\overrightarrow{${n3}${n2}}\\), donc <strong>${n0}${n1}${n2}${n3} est un parallélogramme</strong>.`
+            : `\\(\\overrightarrow{${n0}${n1}} \\neq \\overrightarrow{${n3}${n2}}\\), donc <strong>${n0}${n1}${n2}${n3} n'est pas un parallélogramme</strong>.`;
+        return { ok, msg: concl };
+    }
+
+    // mode find
+    if (stepsDone === 0) {
+        const ix = document.getElementById('efx'), iy = document.getElementById('efy');
+        const vx = normNum(ix.value), vy = normNum(iy.value);
+        ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+        const okx = vx !== null && close(vx, q.efx, 0.01), oky = vy !== null && close(vy, q.efy, 0.01);
+        ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+        if (okx && oky) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · Coordonnées de \\(${n3}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x<sub>${n3}</sub> =</span><input type="text" class="answer-input narrow" id="hx" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y<sub>${n3}</sub> =</span><input type="text" class="answer-input narrow" id="hy" inputmode="decimal">
+                </div>`, 'step1');
+            setTimeout(() => document.getElementById('hx')?.focus(), 50);
+            return { ok: true, msg: `\\(\\overrightarrow{${n0}${n1}}\\binom{${fmt(q.efx)}}{${fmt(q.efy)}}\\). Pose \\(\\overrightarrow{${n0}${n1}} = \\overrightarrow{${n3}${n2}}\\) et résous le petit système coordonnée par coordonnée !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(\\overrightarrow{${n0}${n1}}\\binom{${fmtSigned(q.F.x)}-${fmtSigned(q.E.x)}}{${fmtSigned(q.F.y)}-${fmtSigned(q.E.y)}} = \\binom{${fmt(q.efx)}}{${fmt(q.efy)}}\\)` };
+    }
+    const ix = document.getElementById('hx'), iy = document.getElementById('hy');
+    const vx = normNum(ix.value), vy = normNum(iy.value);
+    ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+    const okx = vx !== null && close(vx, q.Hx, 0.01), oky = vy !== null && close(vy, q.Hy, 0.01);
+    ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+    const msg = `On résout \\(${fmtSigned(q.G.x)}-x_{${n3}}=${fmt(q.efx)}\\) et \\(${fmtSigned(q.G.y)}-y_{${n3}}=${fmt(q.efy)}\\), donc \\(${n3}(${fmt(q.Hx)}\\,;\\,${fmt(q.Hy)})\\).`;
+    if (okx && oky) return { ok: true, msg };
+    return { ok: false, msg };
+};
+
+/* ==========================================================
+   NIVEAU 3 : RELATION DE CHASLES
+   ========================================================== */
+GENERATORS.chasles = function () {
+    const types = ['two_term', 'two_term', 'three_loop', 'opposite'];
+    const type = types[rnd(0, types.length - 1)];
+    const [X, Y, Z] = shuffleLetters();
+    if (type === 'three_loop') return { type, X, Y, Z, answer: '0' };
+    return { type, X, Y, Z, answer: X + Z };
+};
+
+const CHASLES_COLORS = { X: '#1a6fa0', Y: '#b85c0b', Z: '#6b3fa0' };
+
+RENDERERS.chasles = function (q, box) {
+    const easy = (state.easyMode['chasles'] || 'difficile') === 'facile';
+    function tint(letter, key) {
+        return easy ? `\\textcolor{${CHASLES_COLORS[key]}}{${letter}}` : letter;
+    }
+
+    let exprHTML, hintHTML = '';
+    if (q.type === 'two_term') {
+        exprHTML = `\\(\\overrightarrow{${q.X}${tint(q.Y, 'Y')}} + \\overrightarrow{${tint(q.Y, 'Y')}${q.Z}}\\)`;
+    } else if (q.type === 'three_loop') {
+        exprHTML = `\\(\\overrightarrow{${tint(q.X, 'X')}${tint(q.Y, 'Y')}} + \\overrightarrow{${tint(q.Y, 'Y')}${tint(q.Z, 'Z')}} + \\overrightarrow{${tint(q.Z, 'Z')}${tint(q.X, 'X')}}\\)`;
+    } else {
+        exprHTML = `\\(\\overrightarrow{${q.X}${tint(q.Y, 'Y')}} - \\overrightarrow{${q.Z}${tint(q.Y, 'Y')}}\\)`;
+        hintHTML = `<div class="formula-remind">Indice : \\(-\\overrightarrow{${q.Z}${q.Y}} = \\overrightarrow{${q.Y}${q.Z}}\\)</div>`;
+    }
+    const easyNote = easy
+        ? `<div class="formula-remind" style="background:var(--green-pale);border-color:var(--green);color:var(--green);">🟢 Mode facile : les lettres de même couleur sont celles qui se simplifient entre elles.</div>`
+        : '';
+
+    // Petit schéma schématique (triangle) : place X, Y, Z à des positions fixes
+    // et trace les vecteurs concernés par l'expression à simplifier.
+    const positions = { X: { x: 0, y: 0 }, Y: { x: 4, y: 3 }, Z: { x: 8, y: 0 } };
+    let sceneVectors = [];
+    if (q.type === 'two_term') {
+        sceneVectors = [
+            { x1: positions.X.x, y1: positions.X.y, x2: positions.Y.x, y2: positions.Y.y, color: 'blue' },
+            { x1: positions.Y.x, y1: positions.Y.y, x2: positions.Z.x, y2: positions.Z.y, color: 'orange' }
+        ];
+    } else if (q.type === 'three_loop') {
+        sceneVectors = [
+            { x1: positions.X.x, y1: positions.X.y, x2: positions.Y.x, y2: positions.Y.y, color: 'blue' },
+            { x1: positions.Y.x, y1: positions.Y.y, x2: positions.Z.x, y2: positions.Z.y, color: 'orange' },
+            { x1: positions.Z.x, y1: positions.Z.y, x2: positions.X.x, y2: positions.X.y, color: 'purple' }
+        ];
+    } else {
+        sceneVectors = [
+            { x1: positions.X.x, y1: positions.X.y, x2: positions.Y.x, y2: positions.Y.y, color: 'blue' },
+            { x1: positions.Z.x, y1: positions.Z.y, x2: positions.Y.x, y2: positions.Y.y, color: 'orange' }
+        ];
+    }
+    const scene = sceneBlock(sceneSVG(
+        [ { x: positions.X.x, y: positions.X.y, label: q.X, color: 'blue' },
+          { x: positions.Y.x, y: positions.Y.y, label: q.Y, color: 'orange' },
+          { x: positions.Z.x, y: positions.Z.y, label: q.Z, color: 'purple' } ],
+        sceneVectors
+    ));
+
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : \\(\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}\\) — la lettre du milieu, présente deux fois « collée », disparaît</div>
+        ${easyNote}
+        ${hintHTML}
+        ${scene}
+        <div class="q-prompt">Simplifie l'écriture : ${exprHTML}</div>
+        <div class="answer-wrap">
+            <div class="vec-input-wrap" id="vecInputWrap">
+                <div class="vec-arrow-overlay" id="vecArrow"><span class="v-line"></span><span class="v-head"></span></div>
+                <input type="text" class="answer-input vec-input" id="ans" placeholder="écris juste les lettres, ou 0" autocomplete="off">
+            </div>
+            <span class="vec-mirror" id="vecMirror"></span>
+        </div>`;
+    setTimeout(() => document.getElementById('ans')?.focus(), 50);
+    wireVecPreview();
+};
+
+/* La flèche vectorielle s'affiche directement au-dessus des lettres tapées
+   dans le champ de saisie (et non plus dans un aperçu séparé en dessous). */
+function wireVecPreview() {
+    const inp = document.getElementById('ans');
+    const arrow = document.getElementById('vecArrow');
+    const mirror = document.getElementById('vecMirror');
+    if (!inp || !arrow || !mirror) return;
+    const cs = getComputedStyle(inp);
+    mirror.style.font = cs.font;
+    mirror.style.letterSpacing = cs.letterSpacing;
+    function update() {
+        const norm = normVec(inp.value);
+        const showArrow = norm.length >= 2 && norm !== '0' && !norm.includes('0');
+        if (!showArrow) { arrow.classList.remove('visible'); return; }
+        mirror.textContent = inp.value;
+        const w = Math.max(16, Math.min(mirror.offsetWidth, inp.clientWidth - 16));
+        arrow.style.width = w + 'px';
+        arrow.classList.add('visible');
+    }
+    inp.addEventListener('input', update);
+    update();
+}
+
+CHECKERS.chasles = function (q) {
+    const inp = document.getElementById('ans');
+    const norm = normVec(inp.value);
+    inp.classList.remove('ok', 'err');
+    let ok;
+    if (q.answer === '0') ok = norm === '0' || norm.includes('0');
+    else ok = norm === q.answer;
+    inp.classList.add(ok ? 'ok' : 'err');
+    const easy = (state.easyMode['chasles'] || 'difficile') === 'facile';
+    function tint(letter, key) { return easy ? `\\textcolor{${CHASLES_COLORS[key]}}{${letter}}` : letter; }
+    let msg;
+    if (q.type === 'two_term') {
+        msg = `\\(\\overrightarrow{${q.X}${tint(q.Y, 'Y')}} + \\overrightarrow{${tint(q.Y, 'Y')}${q.Z}} = \\overrightarrow{${q.X}${q.Z}}\\) (le ${q.Y} du milieu disparaît).`;
+    } else if (q.type === 'three_loop') {
+        msg = `\\(\\overrightarrow{${tint(q.X, 'X')}${tint(q.Y, 'Y')}} + \\overrightarrow{${tint(q.Y, 'Y')}${tint(q.Z, 'Z')}} + \\overrightarrow{${tint(q.Z, 'Z')}${tint(q.X, 'X')}} = \\overrightarrow{${q.X}${q.X}} = \\vec{0}\\) : c'est un circuit fermé.`;
+    } else {
+        msg = `\\(\\overrightarrow{${q.X}${tint(q.Y, 'Y')}} - \\overrightarrow{${q.Z}${tint(q.Y, 'Y')}} = \\overrightarrow{${q.X}${q.Y}} + \\overrightarrow{${q.Y}${q.Z}} = \\overrightarrow{${q.X}${q.Z}}\\).`;
+    }
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 4 : CALCULER AVEC DES VECTEURS
+   ========================================================== */
+const K_POOL_CALC = [-3, -2, -1, -0.5, 0.5, 1.5, 2, 2.5, 3, -1.5, -2.5];
+
+GENERATORS.calculs = function () {
+    const types = ['sum', 'mult', 'opposite', 'combo'];
+    const type = types[rnd(0, types.length - 1)];
+    if (type === 'sum') {
+        const u = randPoint(6), v = randPoint(6);
+        return { type, u, v, rx: u.x + v.x, ry: u.y + v.y };
+    }
+    if (type === 'mult') {
+        let u = randPoint(6);
+        while (u.x === 0 && u.y === 0) u = randPoint(6);
+        const k = K_POOL_CALC[rnd(0, K_POOL_CALC.length - 1)];
+        return { type, u, k, rx: round4(k * u.x), ry: round4(k * u.y) };
+    }
+    if (type === 'opposite') {
+        let u = randPoint(6);
+        while (u.x === 0 && u.y === 0) u = randPoint(6);
+        return { type, u, rx: -u.x, ry: -u.y };
+    }
+    const u = randPoint(5), v = randPoint(5);
+    const k = [2, 3, -2][rnd(0, 2)];
+    const kux = k * u.x, kuy = k * u.y;
+    return { type, u, v, k, kux, kuy, wx: kux - v.x, wy: kuy - v.y };
+};
+
+RENDERERS.calculs = function (q, box) {
+    if (q.type === 'sum') {
+        const scene = sceneBlock(sceneSVG([], [
+            { x1: 0, y1: 0, x2: q.u.x, y2: q.u.y, color: 'blue', label: 'u' },
+            { x1: 0, y1: 0, x2: q.v.x, y2: q.v.y, color: 'orange', label: 'v' }
+        ]));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(\\vec{u}+\\vec{v}\\binom{x+x'}{y+y'}\\) (coordonnée par coordonnée)</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(\\vec{u}\\binom{${fmt(q.u.x)}}{${fmt(q.u.y)}}\\) et \\(\\vec{v}\\binom{${fmt(q.v.x)}}{${fmt(q.v.y)}}\\)</div>
+            ${scene}
+            <div class="q-prompt">Calcule les coordonnées de \\(\\vec{u}+\\vec{v}\\) :</div>
+            <div class="row-inputs">
+                <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="rx" inputmode="decimal">
+                <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="ry" inputmode="decimal">
+            </div>
+            ${calcHTML('ca')}`;
+    } else if (q.type === 'mult') {
+        const scene = sceneBlock(sceneSVG([], [ { x1: 0, y1: 0, x2: q.u.x, y2: q.u.y, color: 'blue', label: 'u' } ]));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(k\\vec{u}\\binom{kx}{ky}\\)</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(\\vec{u}\\binom{${fmt(q.u.x)}}{${fmt(q.u.y)}}\\), \\(k = ${fmt(q.k)}\\)</div>
+            ${scene}
+            <div class="q-prompt">Calcule les coordonnées de \\(k\\vec{u}\\) :</div>
+            <div class="row-inputs">
+                <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="rx" inputmode="decimal">
+                <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="ry" inputmode="decimal">
+            </div>
+            ${calcHTML('ca')}`;
+    } else if (q.type === 'opposite') {
+        const scene = sceneBlock(sceneSVG([], [ { x1: 0, y1: 0, x2: q.u.x, y2: q.u.y, color: 'blue', label: 'u' } ]));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(-\\vec{u}\\) a les coordonnées opposées de \\(\\vec{u}\\)</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(\\vec{u}\\binom{${fmt(q.u.x)}}{${fmt(q.u.y)}}\\)</div>
+            ${scene}
+            <div class="q-prompt">Calcule les coordonnées du vecteur opposé \\(-\\vec{u}\\) :</div>
+            <div class="row-inputs">
+                <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="rx" inputmode="decimal">
+                <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="ry" inputmode="decimal">
+            </div>
+            ${calcHTML('ca')}`;
+    } else {
+        const scene = sceneBlock(sceneSVG([], [
+            { x1: 0, y1: 0, x2: q.u.x, y2: q.u.y, color: 'blue', label: 'u' },
+            { x1: 0, y1: 0, x2: q.v.x, y2: q.v.y, color: 'orange', label: 'v' }
+        ]));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : calcule d'abord \\(k\\vec{u}\\), puis soustrais \\(\\vec{v}\\) coordonnée par coordonnée</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(\\vec{u}\\binom{${fmt(q.u.x)}}{${fmt(q.u.y)}}\\), \\(\\vec{v}\\binom{${fmt(q.v.x)}}{${fmt(q.v.y)}}\\), \\(k=${fmt(q.k)}\\). On pose \\(\\vec{w}=k\\vec{u}-\\vec{v}\\).</div>
+            ${scene}
+            <div class="step-block active" id="step0">
+                <div class="step-tag">Étape 1 · Coordonnées de \\(${fmt(q.k)}\\vec{u}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="kux" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="kuy" inputmode="decimal">
+                </div>
+            </div>
+            ${calcHTML('ca')}`;
+    }
+    setTimeout(() => document.getElementById(q.type === 'combo' ? 'kux' : 'rx')?.focus(), 50);
+};
+
+CHECKERS.calculs = function (q) {
+    if (q.type !== 'combo') {
+        const ix = document.getElementById('rx'), iy = document.getElementById('ry');
+        const vx = normNum(ix.value), vy = normNum(iy.value);
+        ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+        const okx = vx !== null && close(vx, q.rx, 0.01), oky = vy !== null && close(vy, q.ry, 0.01);
+        ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+        let msg;
+        if (q.type === 'sum') msg = `\\(\\vec{u}+\\vec{v}\\binom{${fmt(q.u.x)}+${fmt(q.v.x)}}{${fmt(q.u.y)}+${fmt(q.v.y)}} = \\binom{${fmt(q.rx)}}{${fmt(q.ry)}}\\)`;
+        else if (q.type === 'mult') msg = `\\(k\\vec{u}\\binom{${fmt(q.k)}\\times ${fmt(q.u.x)}}{${fmt(q.k)}\\times ${fmt(q.u.y)}} = \\binom{${fmt(q.rx)}}{${fmt(q.ry)}}\\)`;
+        else msg = `\\(-\\vec{u}\\binom{-(${fmt(q.u.x)})}{-(${fmt(q.u.y)})} = \\binom{${fmt(q.rx)}}{${fmt(q.ry)}}\\)`;
+        if (okx && oky) return { ok: true, msg };
+        return { ok: false, msg };
+    }
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    if (stepsDone === 0) {
+        const ix = document.getElementById('kux'), iy = document.getElementById('kuy');
+        const vx = normNum(ix.value), vy = normNum(iy.value);
+        ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+        const okx = vx !== null && close(vx, q.kux, 0.01), oky = vy !== null && close(vy, q.kuy, 0.01);
+        ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+        if (okx && oky) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · \\(\\vec{w} = ${fmt(q.k)}\\vec{u} - \\vec{v}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="wx" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="wy" inputmode="decimal">
+                </div>`, 'step1');
+            setTimeout(() => document.getElementById('wx')?.focus(), 50);
+            return { ok: true, msg: `\\(${fmt(q.k)}\\vec{u}\\binom{${fmt(q.kux)}}{${fmt(q.kuy)}}\\). Maintenant soustrais \\(\\vec{v}\\) !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(${fmt(q.k)}\\vec{u}\\binom{${fmt(q.k)}\\times ${fmt(q.u.x)}}{${fmt(q.k)}\\times ${fmt(q.u.y)}} = \\binom{${fmt(q.kux)}}{${fmt(q.kuy)}}\\)` };
+    }
+    const ix = document.getElementById('wx'), iy = document.getElementById('wy');
+    const vx = normNum(ix.value), vy = normNum(iy.value);
+    ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+    const okx = vx !== null && close(vx, q.wx, 0.01), oky = vy !== null && close(vy, q.wy, 0.01);
+    ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+    const msg = `\\(\\vec{w}\\binom{${fmt(q.kux)}-${fmt(q.v.x)}}{${fmt(q.kuy)}-${fmt(q.v.y)}} = \\binom{${fmt(q.wx)}}{${fmt(q.wy)}}\\)`;
+    if (okx && oky) return { ok: true, msg };
+    return { ok: false, msg };
+};
+
+/* ==========================================================
+   NIVEAU 5 : VECTEURS COLINÉAIRES
+   ========================================================== */
+const K_POOL_COL = [-3, -2, -1, -0.5, 0.5, 1.5, 2, 2.5, 3];
+const K_POOL_ALIGN = [-3, -2, -1, 2, 3];
+
+GENERATORS.colineaire = function () {
+    const types = ['k_eye', 'determinant', 'determinant', 'alignment'];
+    const type = types[rnd(0, types.length - 1)];
+
+    if (type === 'k_eye') {
+        let u = randPoint(4);
+        while (u.x === 0 || u.y === 0) u = randPoint(4);
+        const k = K_POOL_COL[rnd(0, K_POOL_COL.length - 1)];
+        const v = { x: round4(k * u.x), y: round4(k * u.y) };
+        return { type, u, v, k };
+    }
+    if (type === 'determinant') {
+        const colinear = Math.random() < 0.5;
+        let u = randPoint(5);
+        while (u.x === 0 && u.y === 0) u = randPoint(5);
+        let v;
+        if (colinear) {
+            const k = K_POOL_COL[rnd(0, K_POOL_COL.length - 1)];
+            v = { x: round4(k * u.x), y: round4(k * u.y) };
+        } else {
+            let guard = 0;
+            do { v = randPoint(5); guard++; } while (guard < 60 && (u.x * v.y - u.y * v.x) === 0);
+        }
+        const det = round4(u.x * v.y - u.y * v.x);
+        return { type, u, v, det, colinear: Math.abs(det) < 1e-9 };
+    }
+    // alignment
+    const aligned = Math.random() < 0.5;
+    const [A, B] = randDistinctPoints(2, 5);
+    let C;
+    if (aligned) {
+        const k = K_POOL_ALIGN[rnd(0, K_POOL_ALIGN.length - 1)];
+        C = { x: A.x + k * (B.x - A.x), y: A.y + k * (B.y - A.y) };
+    } else {
+        let guard = 0;
+        do { C = randPoint(6); guard++; } while (guard < 60 && ((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) === 0);
+    }
+    const abx = B.x - A.x, aby = B.y - A.y;
+    const acx = C.x - A.x, acy = C.y - A.y;
+    const det = round4(abx * acy - aby * acx);
+    return { type: 'alignment', A, B, C, abx, aby, acx, acy, det, isAligned: Math.abs(det) < 1e-9 };
+};
+
+const COLIN_BLUE = '#1a6fa0', COLIN_ORANGE = '#b85c0b';
+
+RENDERERS.colineaire = function (q, box) {
+    const easy = (state.easyMode['colineaire'] || 'difficile') === 'facile';
+    function tint(txt, color) { return easy ? `\\textcolor{${color}}{${txt}}` : txt; }
+    const easyNote = easy
+        ? `<div class="formula-remind" style="background:var(--green-pale);border-color:var(--green);color:var(--green);">🟢 Mode facile : les coordonnées de même couleur se multiplient ensemble (produit en croix).</div>`
+        : '';
+
+    if (q.type === 'k_eye') {
+        const scene = sceneBlock(sceneSVG([], [
+            { x1: 0, y1: 0, x2: q.u.x, y2: q.u.y, color: 'blue', label: 'u' },
+            { x1: 0, y1: 0, x2: q.v.x, y2: q.v.y, color: 'orange', label: 'v' }
+        ]));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(\\vec{u}\\) et \\(\\vec{v}\\) colinéaires \\(\\iff \\vec{v}=k\\vec{u}\\). Compare les deux coordonnées pour trouver \\(k\\).</div>
+            ${easyNote}
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(\\vec{u}\\binom{${tint(fmt(q.u.x), COLIN_BLUE)}}{${tint(fmt(q.u.y), COLIN_ORANGE)}}\\) et \\(\\vec{v}\\binom{${tint(fmt(q.v.x), COLIN_BLUE)}}{${tint(fmt(q.v.y), COLIN_ORANGE)}}\\)</div>
+            ${scene}
+            <div class="q-prompt">On admet que \\(\\vec{u}\\) et \\(\\vec{v}\\) sont colinéaires. Trouve le réel \\(k\\) tel que \\(\\vec{v}=k\\vec{u}\\) :</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input" id="ans" placeholder="k = …" inputmode="decimal">
+            </div>
+            ${calcHTML('co2')}`;
+        setTimeout(() => document.getElementById('ans')?.focus(), 50);
+    } else if (q.type === 'determinant') {
+        const scene = sceneBlock(sceneSVG([], [
+            { x1: 0, y1: 0, x2: q.u.x, y2: q.u.y, color: 'blue', label: 'u' },
+            { x1: 0, y1: 0, x2: q.v.x, y2: q.v.y, color: 'orange', label: 'v' }
+        ]));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : pour \\(\\vec{u}\\binom{x}{y}\\) et \\(\\vec{v}\\binom{x'}{y'}\\), le déterminant est \\(${tint('x', COLIN_BLUE)}${tint('y\'', COLIN_BLUE)}-${tint('y', COLIN_ORANGE)}${tint('x\'', COLIN_ORANGE)}\\). Colinéaires \\(\\iff\\) déterminant nul.</div>
+            ${easyNote}
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(\\vec{u}\\binom{${tint(fmt(q.u.x), COLIN_BLUE)}}{${tint(fmt(q.u.y), COLIN_ORANGE)}}\\) et \\(\\vec{v}\\binom{${tint(fmt(q.v.x), COLIN_ORANGE)}}{${tint(fmt(q.v.y), COLIN_BLUE)}}\\)</div>
+            ${scene}
+            <div class="step-block active" id="step0">
+                <div class="step-tag">Étape 1 · Calcule le déterminant \\(xy'-yx'\\)</div>
+                <div class="answer-wrap">
+                    <input type="text" class="answer-input" id="det" placeholder="…" inputmode="decimal">
+                </div>
+            </div>
+            ${calcHTML('co2')}`;
+        setTimeout(() => document.getElementById('det')?.focus(), 50);
+    } else {
+        const scene = sceneBlock(sceneSVG(
+            [ { x: q.A.x, y: q.A.y, label: 'A', color: 'blue' },
+              { x: q.B.x, y: q.B.y, label: 'B', color: 'orange' },
+              { x: q.C.x, y: q.C.y, label: 'C', color: 'purple' } ],
+            []
+        ));
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : \\(A,B,C\\) alignés \\(\\iff \\overrightarrow{AB}\\) et \\(\\overrightarrow{AC}\\) colinéaires</div>
+            <div class="ctx-card"><span class="ctx-label">📝 Données</span>\\(A(${fmt(q.A.x)}\\,;\\,${fmt(q.A.y)})\\), \\(B(${fmt(q.B.x)}\\,;\\,${fmt(q.B.y)})\\), \\(C(${fmt(q.C.x)}\\,;\\,${fmt(q.C.y)})\\)</div>
+            ${scene}
+            <div class="step-block active" id="step0">
+                <div class="step-tag">Étape 1 · Coordonnées de \\(\\overrightarrow{AB}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="abx" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="aby" inputmode="decimal">
+                </div>
+            </div>
+            ${calcHTML('co2')}`;
+        setTimeout(() => document.getElementById('abx')?.focus(), 50);
+    }
+};
+
+CHECKERS.colineaire = function (q) {
+    const box = document.getElementById('exBody');
+
+    if (q.type === 'k_eye') {
+        const inp = document.getElementById('ans');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && closeRel(v, q.k, 0.01);
+        inp.classList.add(ok ? 'ok' : 'err');
+        const msg = `On compare : \\(${fmt(q.v.x)} = ${fmt(q.k)}\\times ${fmt(q.u.x)}\\) et \\(${fmt(q.v.y)} = ${fmt(q.k)}\\times ${fmt(q.u.y)}\\), donc \\(k = ${fmt(q.k)}\\).`;
+        return { ok, msg };
+    }
+
+    if (q.type === 'determinant') {
+        const easy = (state.easyMode['colineaire'] || 'difficile') === 'facile';
+        function tint(txt, color) { return easy ? `\\textcolor{${color}}{${txt}}` : txt; }
+        const stepsDone = box.querySelectorAll('.step-block.locked').length;
+        if (stepsDone === 0) {
+            const inp = document.getElementById('det');
+            const v = normNum(inp.value);
+            inp.classList.remove('ok', 'err');
+            const ok = v !== null && close(v, q.det, 0.01);
+            inp.classList.add(ok ? 'ok' : 'err');
+            const detExpr = `${tint(fmt(q.u.x), COLIN_BLUE)}\\times ${tint(fmt(q.v.y), COLIN_BLUE)} - ${tint(fmt(q.u.y), COLIN_ORANGE)}\\times ${tint(fmt(q.v.x), COLIN_ORANGE)}`;
+            if (ok) {
+                lockStepSimple('step0');
+                insertStepBlock(`
+                    <div class="step-tag">Étape 2 · Conclusion</div>
+                    <div class="q-prompt">\\(\\vec{u}\\) et \\(\\vec{v}\\) sont-ils colinéaires ?</div>
+                    <div class="choice-grid" id="choiceDet">
+                        <button class="choice-btn" data-val="oui">Oui</button>
+                        <button class="choice-btn" data-val="non">Non</button>
+                    </div>`, 'step1');
+                wireChoiceGrid('#choiceDet');
+                return { ok: true, msg: `\\(xy'-yx' = ${detExpr} = ${fmt(q.det)}\\). \\(\\vec{u}\\) et \\(\\vec{v}\\) sont-ils colinéaires ?`, advanceOnly: true };
+            }
+            return { ok: false, msg: `\\(xy'-yx' = ${detExpr} = ${fmt(q.det)}\\)` };
+        }
+        const chosen = box._choice;
+        const correctVal = q.colinear ? 'oui' : 'non';
+        box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+        if (!chosen) return { ok: false, msg: 'Clique sur Oui ou Non.' };
+        box.querySelectorAll('.choice-btn').forEach(b => {
+            if (b.dataset.val === correctVal) b.classList.add('ok');
+            else if (b.classList.contains('chosen')) b.classList.add('err');
+        });
+        const ok = chosen === correctVal;
+        const msg = q.colinear
+            ? `Le déterminant vaut ${fmt(q.det)} = 0, donc <strong>\\(\\vec{u}\\) et \\(\\vec{v}\\) sont colinéaires</strong>.`
+            : `Le déterminant vaut ${fmt(q.det)} \\(\\neq\\) 0, donc <strong>\\(\\vec{u}\\) et \\(\\vec{v}\\) ne sont pas colinéaires</strong>.`;
+        return { ok, msg };
+    }
+
+    // alignment
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    if (stepsDone === 0) {
+        const ix = document.getElementById('abx'), iy = document.getElementById('aby');
+        const vx = normNum(ix.value), vy = normNum(iy.value);
+        ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+        const okx = vx !== null && close(vx, q.abx, 0.01), oky = vy !== null && close(vy, q.aby, 0.01);
+        ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+        if (okx && oky) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · Coordonnées de \\(\\overrightarrow{AC}\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">x =</span><input type="text" class="answer-input narrow" id="acx" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">y =</span><input type="text" class="answer-input narrow" id="acy" inputmode="decimal">
+                </div>`, 'step1');
+            setTimeout(() => document.getElementById('acx')?.focus(), 50);
+            return { ok: true, msg: `\\(\\overrightarrow{AB}\\binom{${fmt(q.abx)}}{${fmt(q.aby)}}\\). Calcule maintenant \\(\\overrightarrow{AC}\\) !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(\\overrightarrow{AB}\\binom{${fmtSigned(q.B.x)}-${fmtSigned(q.A.x)}}{${fmtSigned(q.B.y)}-${fmtSigned(q.A.y)}} = \\binom{${fmt(q.abx)}}{${fmt(q.aby)}}\\)` };
+    }
+    if (stepsDone === 1) {
+        const ix = document.getElementById('acx'), iy = document.getElementById('acy');
+        const vx = normNum(ix.value), vy = normNum(iy.value);
+        ix.classList.remove('ok', 'err'); iy.classList.remove('ok', 'err');
+        const okx = vx !== null && close(vx, q.acx, 0.01), oky = vy !== null && close(vy, q.acy, 0.01);
+        ix.classList.add(okx ? 'ok' : 'err'); iy.classList.add(oky ? 'ok' : 'err');
+        if (okx && oky) {
+            lockStepSimple('step1');
+            insertStepBlock(`
+                <div class="step-tag">Étape 3 · Conclusion</div>
+                <div class="q-prompt">A, B et C sont-ils alignés ?</div>
+                <div class="choice-grid" id="choiceAlign">
+                    <button class="choice-btn" data-val="oui">Oui</button>
+                    <button class="choice-btn" data-val="non">Non</button>
+                </div>`, 'step2');
+            wireChoiceGrid('#choiceAlign');
+            return { ok: true, msg: `\\(\\overrightarrow{AC}\\binom{${fmt(q.acx)}}{${fmt(q.acy)}}\\). A, B, C sont-ils alignés ?`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(\\overrightarrow{AC}\\binom{${fmtSigned(q.C.x)}-${fmtSigned(q.A.x)}}{${fmtSigned(q.C.y)}-${fmtSigned(q.A.y)}} = \\binom{${fmt(q.acx)}}{${fmt(q.acy)}}\\)` };
+    }
+    const chosen = box._choice;
+    const correctVal = q.isAligned ? 'oui' : 'non';
+    box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+    if (!chosen) return { ok: false, msg: 'Clique sur Oui ou Non.' };
+    box.querySelectorAll('.choice-btn').forEach(b => {
+        if (b.dataset.val === correctVal) b.classList.add('ok');
+        else if (b.classList.contains('chosen')) b.classList.add('err');
+    });
+    const ok = chosen === correctVal;
+    const easyAlign = (state.easyMode['colineaire'] || 'difficile') === 'facile';
+    function tintA(txt, color) { return easyAlign ? `\\textcolor{${color}}{${txt}}` : txt; }
+    const detTxt = `\\(${tintA(fmt(q.abx), COLIN_BLUE)}\\times ${tintA(fmt(q.acy), COLIN_BLUE)} - ${tintA(fmt(q.aby), COLIN_ORANGE)}\\times ${tintA(fmt(q.acx), COLIN_ORANGE)} = ${fmt(q.det)}\\)`;
+    const msg = q.isAligned
+        ? `Déterminant : ${detTxt} = 0, donc \\(\\overrightarrow{AB}\\) et \\(\\overrightarrow{AC}\\) sont colinéaires : <strong>A, B, C sont alignés</strong>.`
+        : `Déterminant : ${detTxt} \\(\\neq\\) 0, donc \\(\\overrightarrow{AB}\\) et \\(\\overrightarrow{AC}\\) ne sont pas colinéaires : <strong>A, B, C ne sont pas alignés</strong>.`;
+    return { ok, msg };
+};
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

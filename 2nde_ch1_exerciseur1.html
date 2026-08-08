@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcul numérique — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#1b3a5c;--ink2:#3a6b9f;
+  --red:#c0392b;--red2:#e74c3c;--redp:#fdedec;
+  --grn:#1e8449;--grn2:#27ae60;--grnp:#d5f5e3;
+  --amb:#b45309;--ambp:#fef3c7;
+  --paper:#fdf8f0;--lb:#c8daea;--mp:#f0c0c0;
+  --pc:#6b6b6b;
+}
+body{font-family:'Patrick Hand',cursive;min-height:100vh;background:#e8e0d0;display:flex;align-items:flex-start;justify-content:center;padding:16px 10px 80px;}
+.book{background:var(--paper);border-radius:4px 16px 16px 4px;padding:28px 24px 32px 48px;max-width:900px;width:100%;position:relative;
+  box-shadow:-4px 0 0 #c0392b,-6px 0 0 #a93226,4px 4px 20px rgba(0,0,0,.15);
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 31px,var(--lb) 31px,var(--lb) 32px);
+  background-size:100% 32px;min-height:90vh;}
+.book::before{content:'';position:absolute;left:36px;top:0;bottom:0;width:2px;background:var(--mp);}
+.book::after{content:'';position:absolute;left:-2px;top:16px;bottom:16px;width:13px;
+  background-image:radial-gradient(circle 5px,#d0c8b8 90%,transparent 90%);background-size:13px 38px;background-repeat:repeat-y;}
+
+h1{font-family:'Libre Baskerville',serif;font-size:1.6em;color:var(--ink);text-align:center;margin-bottom:6px;line-height:1.3;}
+.sub{text-align:center;font-size:.98em;color:var(--pc);margin-bottom:20px;}
+.stitle{font-family:'Libre Baskerville',serif;font-size:.98em;color:var(--red);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(192,57,43,.22);}
+
+.screen{display:none;}
+.screen.active{display:block;animation:fi .3s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* boutons */
+.btn{font-family:'Patrick Hand',cursive;padding:10px 24px;border-radius:11px;font-size:1em;cursor:pointer;transition:all .2s;border:2px solid;min-height:42px;touch-action:manipulation;display:inline-flex;align-items:center;gap:5px;}
+.bi{background:var(--ink);color:#fff;border-color:var(--ink);} .bi:hover{background:var(--ink2);transform:translateY(-2px);}
+.br{background:var(--red);color:#fff;border-color:var(--red);} .br:hover{background:var(--red2);transform:translateY(-2px);}
+.bg{background:var(--grn);color:#fff;border-color:var(--grn);} .bg:hover{background:var(--grn2);transform:translateY(-2px);}
+.bo{background:transparent;color:var(--ink);border-color:var(--lb);} .bo:hover{background:rgba(200,218,234,.25);}
+.row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+
+/* menu */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:11px;margin:12px 0;}
+.mcard{background:white;border:2px solid var(--lb);border-radius:13px;padding:15px 11px;text-align:center;cursor:pointer;transition:all .22s;}
+.mcard:hover{border-color:var(--ink2);transform:translateY(-3px);box-shadow:0 7px 20px rgba(27,58,92,.12);}
+.mcard .ico{font-size:2em;margin-bottom:4px;}
+.mcard .mt{font-family:'Libre Baskerville',serif;font-size:.98em;color:var(--ink);font-weight:700;margin-bottom:2px;}
+.mcard .md{font-size:.8em;color:var(--pc);line-height:1.4;}
+
+/* header exercice */
+.exh{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;flex-wrap:wrap;gap:5px;}
+.badge{background:var(--ink);color:white;padding:4px 13px;border-radius:18px;font-size:.85em;}
+.xsc{font-size:.9em;color:var(--ink);background:rgba(200,218,234,.2);padding:4px 11px;border-radius:18px;}
+.pbar{width:100%;height:4px;background:var(--lb);border-radius:4px;overflow:hidden;margin-bottom:14px;}
+.pfill{height:100%;background:var(--ink);border-radius:4px;transition:width .5s;}
+
+/* boîtes */
+.qbox{background:rgba(200,218,234,.08);border:2px dashed var(--lb);border-radius:13px;padding:13px 15px;margin-bottom:11px;}
+.hint{background:var(--ambp);border:1px solid rgba(180,83,9,.22);border-radius:9px;padding:8px 12px;font-size:.85em;color:var(--amb);line-height:1.55;margin:8px 0;}
+
+/* feedback */
+.fb{margin-top:8px;padding:9px 13px;border-radius:10px;font-size:.93em;text-align:center;display:none;line-height:1.5;}
+.fb.ok{display:block;background:var(--grnp);color:var(--grn);border:2px solid var(--grn2);}
+.fb.ko{display:block;background:var(--redp);color:var(--red);border:2px solid var(--red2);}
+.fb.warn{display:block;background:var(--ambp);color:var(--amb);border:2px solid rgba(180,83,9,.28);}
+
+/* inputs */
+.inp{font-family:'Patrick Hand',cursive;font-size:1.08em;font-weight:700;text-align:center;
+  border:2.5px dashed var(--lb);border-radius:8px;background:rgba(255,255,255,.9);
+  padding:5px 3px;outline:none;color:var(--ink);transition:all .18s;min-height:38px;vertical-align:middle;width:62px;}
+.inp:focus{border-color:var(--ink2);background:white;}
+.inp.ok{border-color:var(--grn)!important;background:var(--grnp)!important;color:var(--grn)!important;border-style:solid!important;}
+.inp.ko{border-color:var(--red)!important;background:var(--redp)!important;animation:shake .35s;}
+.inp[disabled]{cursor:default;}
+.inp-sm{width:46px;font-size:.95em;}
+.inp-lg{width:78px;}
+
+/* fraction à saisir */
+.fi{display:inline-flex;flex-direction:column;align-items:center;gap:2px;vertical-align:middle;margin:0 3px;}
+.fi .bar{width:58px;height:3px;background:var(--ink);border-radius:2px;}
+.fi .inp{width:58px;}
+
+/* rule chips */
+.rchips{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+.rchip{font-family:'Patrick Hand',cursive;font-size:.97em;padding:11px 14px;border-radius:12px;border:2.5px solid var(--lb);background:white;color:var(--ink);cursor:pointer;text-align:left;transition:all .18s;line-height:1.4;touch-action:manipulation;}
+.rchip:hover:not(.dis){border-color:var(--ink2);transform:translateX(3px);}
+.rchip.ok{border-color:var(--grn);background:var(--grnp);color:var(--grn);}
+.rchip.ko{border-color:var(--red);background:var(--redp);color:var(--red);animation:shake .35s;}
+.rchip.dis{pointer-events:none;opacity:.45;}
+
+/* multiples chips */
+.mult-list{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.mchip{display:inline-flex;align-items:center;justify-content:center;min-width:38px;padding:5px 10px;border-radius:7px;border:2.5px solid var(--lb);background:white;color:var(--ink);font-family:'Libre Baskerville',serif;font-size:1.1em;font-weight:700;cursor:pointer;transition:all .18s;user-select:none;touch-action:manipulation;}
+.mchip:hover:not(.locked){border-color:var(--ink2);transform:scale(1.05);}
+.mchip.red{border-color:var(--red)!important;background:var(--redp)!important;color:var(--red)!important;box-shadow:0 0 0 2px rgba(192,57,43,.18);}
+.mchip.grn{border-color:var(--grn)!important;background:var(--grnp)!important;color:var(--grn)!important;}
+.mchip.locked{cursor:default;}
+
+/* factor chips (décomposition) */
+.fchip{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:4px 11px;border-radius:6px;border:2.5px solid var(--lb);background:white;color:var(--ink);font-family:'Libre Baskerville',serif;font-size:1.15em;font-weight:700;cursor:pointer;transition:all .18s;user-select:none;touch-action:manipulation;}
+.fchip:hover:not(.locked){border-color:var(--ink2);transform:scale(1.04);}
+.fchip.red{border-color:var(--red)!important;background:var(--redp)!important;color:var(--red)!important;}
+.fchip.grn{border-color:var(--grn)!important;background:var(--grnp)!important;color:var(--grn)!important;}
+.fchip.locked{cursor:default;}
+.frow{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:6px 0;}
+.fsep{color:var(--pc);font-weight:700;font-size:1.1em;}
+
+/* décomposition tableau */
+.dc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:10px 0;}
+.dc-panel{display:flex;flex-direction:column;align-items:center;}
+.dc-lbl{font-size:.8em;color:var(--pc);margin-bottom:3px;font-family:'Libre Baskerville',serif;}
+.dc-num{font-family:'Libre Baskerville',serif;font-size:1.7em;font-weight:700;color:var(--grn);margin-bottom:4px;}
+.dc-tbl{display:inline-flex;gap:0;}
+.dc-left{display:flex;flex-direction:column;align-items:flex-end;border-right:2.5px solid var(--ink);padding-right:7px;font-family:'Libre Baskerville',serif;font-size:1.05em;line-height:2.05;}
+.dc-right{display:flex;flex-direction:column;align-items:flex-start;padding-left:7px;font-family:'Libre Baskerville',serif;font-size:1.05em;line-height:2.05;color:var(--red);font-weight:700;}
+.dc-sfb{font-size:.8em;min-height:18px;margin-top:2px;text-align:center;}
+.dc-given{color:var(--grn);font-weight:700;}
+.dc-quo{color:var(--ink);}
+.dc-one{color:var(--pc);font-weight:700;}
+.dc-pinp{width:48px;font-size:.85em;}
+.dc-qinp{width:48px;font-size:.85em;}
+.eq-sec{background:rgba(200,218,234,.1);border:2px dashed var(--lb);border-radius:10px;padding:10px 12px;margin-top:7px;display:none;}
+.eq-sec.on{display:block;animation:fi .3s ease;}
+.eq-row{display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;font-size:1.15em;}
+.eq-num{color:var(--grn);font-weight:700;font-family:'Libre Baskerville',serif;}
+.eq-sep{color:var(--pc);font-weight:700;}
+.eq-inp{font-family:'Patrick Hand',cursive;font-size:.8em;width:38px;text-align:center;border:2px dashed var(--lb);border-radius:6px;background:rgba(255,255,255,.85);padding:3px;outline:none;color:var(--red);min-height:32px;transition:all .18s;}
+.eq-inp:focus{border-color:var(--red2);background:white;}
+.eq-inp.ok{border-style:solid;border-color:var(--grn2);background:var(--grnp);color:var(--grn);}
+.eq-inp.ko{border-color:var(--red);background:var(--redp);}
+.pgcd-inp{font-family:'Patrick Hand',cursive;font-size:1.15em;width:75px;text-align:center;border:2.5px dashed var(--lb);border-radius:8px;background:rgba(255,255,255,.9);padding:5px 4px;outline:none;color:var(--ink);font-weight:700;min-height:38px;}
+.pgcd-inp.ok{border-color:var(--grn)!important;background:var(--grnp)!important;color:var(--grn)!important;border-style:solid!important;}
+
+/* summary décompo (reste visible) */
+.dc-summary{background:white;border:2px solid var(--lb);border-radius:11px;padding:11px 13px;margin-bottom:10px;}
+.dc-summary h3{font-family:'Libre Baskerville',serif;font-size:.85em;color:var(--ink);margin-bottom:7px;}
+.dc-sum-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;}
+
+/* résultats */
+.rsc{text-align:center;padding:18px 0;}
+.remo{font-size:3.5em;margin-bottom:7px;}
+.rsco{font-family:'Libre Baskerville',serif;font-size:1.9em;color:var(--ink);font-weight:700;}
+.rlbl{color:var(--pc);margin-bottom:14px;}
+.rbar{width:100%;max-width:280px;height:10px;background:var(--lb);border-radius:7px;overflow:hidden;margin:0 auto 14px;}
+.rbar-f{height:100%;border-radius:7px;transition:width 1s;}
+.rbar-f.g{background:var(--grn);}.rbar-f.b{background:var(--amb);}
+.rmsg{font-size:1.08em;color:var(--ink);margin-bottom:14px;}
+
+/* calculatrice */
+.calc-btn{position:fixed;bottom:14px;right:14px;width:52px;height:52px;border-radius:50%;background:var(--ink);color:white;border:none;font-size:1.4em;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.24);z-index:100;transition:all .22s;}
+.calc-btn:hover{transform:scale(1.08);background:var(--ink2);}
+.calc-btn.open{background:var(--red);}
+.calc-pan{position:fixed;bottom:76px;right:14px;width:245px;background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:13px;box-shadow:0 7px 28px rgba(0,0,0,.18);z-index:99;display:none;}
+.calc-pan.on{display:block;animation:fi .22s ease;}
+.ct{font-family:'Libre Baskerville',serif;font-size:.86em;color:var(--ink);text-align:center;margin-bottom:9px;}
+.cos{display:flex;gap:3px;justify-content:center;margin-bottom:7px;}
+.cop{font-family:'Patrick Hand',cursive;font-size:1em;width:29px;height:29px;border-radius:6px;border:2px solid var(--lb);background:white;color:var(--ink);cursor:pointer;}
+.cop.on{background:var(--ink);color:white;border-color:var(--ink);}
+.cr2{display:flex;align-items:center;gap:5px;justify-content:center;margin-bottom:6px;}
+.ci{font-family:'Patrick Hand',cursive;font-size:1.15em;width:65px;text-align:center;border:2px solid var(--lb);border-radius:7px;padding:5px 3px;outline:none;background:white;color:var(--ink);}
+.cod{font-size:1.3em;color:var(--pc);font-weight:700;}
+.cgo{font-family:'Patrick Hand',cursive;font-size:.97em;padding:7px;border-radius:8px;background:var(--ink);color:white;border:none;cursor:pointer;width:100%;}
+.cgo:hover{background:var(--ink2);}
+.cres{text-align:center;font-size:1em;color:var(--ink);min-height:26px;padding:6px;background:rgba(200,218,234,.13);border-radius:7px;margin-top:5px;line-height:1.5;}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+@media(max-width:620px){
+  body{padding:11px 5px 74px;}
+  .book{padding:22px 12px 26px 32px;}
+  .book::before{left:24px;}
+  h1{font-size:1.35em;}
+  .dc-wrap{grid-template-columns:1fr;gap:10px;}
+  .calc-pan{right:7px;left:7px;width:auto;}
+}
+@media(max-width:420px){
+  .book{padding:18px 9px 22px 26px;}
+  .book::before{left:18px;}
+  h1{font-size:1.2em;}
+}
+
+/* ── Bouton bulle carrés parfaits ── */
+.sq-tip{
+  position:relative;cursor:pointer;touch-action:manipulation;
+  display:inline-flex;align-items:center;
+  background:var(--ambp);border:1.5px solid var(--amb);
+  border-radius:20px;padding:3px 10px 3px 8px;gap:5px;
+  font-family:'Patrick Hand',cursive;font-size:.82em;color:var(--amb);
+  font-weight:700;transition:all .18s;user-select:none;
+  white-space:nowrap;vertical-align:middle;
+}
+.sq-tip:hover,.sq-tip.sq-open{background:var(--amb);color:white;}
+.sq-tip-label{pointer-events:none;}
+.sq-tip-box{
+  position:absolute;left:0;top:calc(100% + 6px);z-index:60;
+  background:white;border:2px solid var(--amb);border-radius:10px;
+  padding:10px 14px;font-family:'Patrick Hand',cursive;font-size:.9em;
+  color:var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.15);
+  pointer-events:none;opacity:0;transform:translateY(-4px);
+  transition:opacity .2s,transform .2s;
+  min-width:240px;
+}
+.sq-tip-title{display:block;font-weight:700;color:var(--amb);margin-bottom:4px;font-size:.95em;}
+.sq-tip:hover .sq-tip-box,.sq-tip.sq-open .sq-tip-box{
+  opacity:1;transform:translateY(0);pointer-events:auto;
+}
+
+/* ── inputs dans les radicaux SVG ── */
+.rcinp{
+  font-family:'Patrick Hand',cursive;font-size:.95em;font-weight:700;
+  text-align:center;border:none;border-bottom:2.5px dashed var(--lb);
+  background:transparent;padding:1px 2px;outline:none;color:var(--ink);
+  min-height:28px;vertical-align:middle;transition:all .18s;
+  display:inline-block;
+}
+.rcinp:focus{border-bottom-color:var(--ink2);}
+.rcinp.ok{border-bottom-style:solid;border-bottom-color:var(--grn);color:var(--grn);}
+.rcinp.ko{border-bottom-color:var(--red);color:var(--red);}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--ink),var(--ink));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(27,58,92,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(27,58,92,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 900px tablette ── */
+@media(max-width:900px){
+  body { padding:0 12px; }
+}
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; padding:0 6px; }
+  h1 { font-size:1.1rem; }
+  .badge { font-size:0.7rem; padding:2px 6px; }
+  .btn { font-size:0.85rem; padding:8px 12px; }
+  .mc { padding:8px; }
+  .bar { height:6px; }
+  .dc-panel { padding:8px; }
+  .dc-wrap { padding:6px; }
+  .dc-tbl { font-size:0.8rem; }
+  .calc-pan { padding:8px; }
+  .calc-btn { font-size:0.85rem; padding:6px; min-width:36px; }
+  .book { font-size:0.85rem; }
+}
+/* ── KaTeX overflow ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+
+</style>
+</head>
+<body>
+<div class="book">
+
+<!-- INTRO -->
+<div class="screen active" id="S_intro">
+  <div style="text-align:center;padding:6px 0;">
+    <div style="font-size:1.4em;margin-bottom:11px;line-height:2.2;font-family:'Libre Baskerville',serif;">
+      \(\dfrac{3}{4}+\dfrac{1}{6}\) &nbsp;·&nbsp; \(2^3\times 2^{-1}\) &nbsp;·&nbsp; \(\sqrt{48}=4\sqrt{3}\) &nbsp;·&nbsp; \(84=2^2\!\times\!3\!\times\!7\)
+    </div>
+    <h1>Calcul numérique</h1>
+    <p class="sub">Exerciseur — Seconde GT</p>
+    <p style="color:var(--pc);font-size:.95em;max-width:480px;margin:0 auto 20px;line-height:1.7;text-align:center;">
+      Cinq thèmes du cours. Tu écriras toi-même chaque étape.
+    </p>
+    <button class="btn bi" onclick="show('S_menu')">Commencer ✏️</button>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="S_menu">
+  <h1>Que veux-tu travailler ?</h1>
+  <div class="mgrid">
+    <div class="mcard" onclick="startEx('fr_add')">
+      <div class="ico">➕</div><div class="mt">Fractions +/−</div>
+      <div class="md">Additionner et soustraire des fractions</div>
+    </div>
+    <div class="mcard" onclick="startEx('fr_mul')">
+      <div class="ico">✖️</div><div class="mt">Fractions ×/÷</div>
+      <div class="md">Multiplier et diviser des fractions</div>
+    </div>
+    <div class="mcard" onclick="startEx('pw')">
+      <div class="ico">⬆️</div><div class="mt">Puissances</div>
+      <div class="md">Toutes les règles de calcul</div>
+    </div>
+    <div class="mcard" onclick="startEx('rc')">
+      <div class="ico">🌿</div><div class="mt">Racines carrées</div>
+      <div class="md">Simplifier et calculer</div>
+    </div>
+    <div class="mcard" onclick="startEx('dc')">
+      <div class="ico">🧩</div><div class="mt">Décomposition</div>
+      <div class="md">Facteurs premiers et simplification</div>
+    </div>
+  </div>
+  <div class="row"><button class="btn bo" onclick="show('S_intro')">← Retour</button></div>
+</div>
+
+<!-- EXERCICE -->
+<div class="screen" id="S_ex">
+  <div class="exh">
+    <div class="badge" id="exBadge">—</div>
+    <div class="xsc">Q&thinsp;<span id="exIdx">1</span>&thinsp;/&thinsp;<span id="exTotal">6</span></div>
+  </div>
+  <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+  <div id="exContent"></div>
+  <div class="fb" id="exFb"></div>
+  <div class="row" id="exRow">
+    <button class="btn bi" id="btnNext" style="display:none" onclick="nextQ()">Continuer →</button>
+    <button class="btn bo" onclick="show('S_menu');hideCalc()">← Menu</button>
+  </div>
+</div>
+
+<!-- RÉSULTATS -->
+<div class="screen" id="S_res">
+  <div class="rsc">
+    <div class="remo" id="remo">🏆</div>
+    <div class="rsco" id="rsco">6/6</div>
+    <div class="rlbl">bonnes réponses</div>
+    <div class="rbar"><div class="rbar-f" id="rbf"></div></div>
+    <div class="rmsg" id="rmsg">Parfait !</div>
+    <div class="row"><button class="btn bi" onclick="show('S_menu');hideCalc()">Autre thème</button></div>
+  </div>
+</div>
+</div>
+
+<!-- CALCULATRICE -->
+<button class="calc-btn" id="calcBtn" onclick="toggleCalc()">🧮</button>
+<div class="calc-pan" id="calcPan">
+  <div class="ct">Calculatrice</div>
+  <div class="cos">
+    <button class="cop on" data-op="+" onclick="setOp('+')">+</button>
+    <button class="cop" data-op="-" onclick="setOp('-')">−</button>
+    <button class="cop" data-op="x" onclick="setOp('x')">×</button>
+    <button class="cop" data-op="/" onclick="setOp('/')">÷</button>
+  </div>
+  <div class="cr2">
+    <input type="number" class="ci" id="cA" inputmode="numeric" placeholder="…">
+    <span class="cod" id="cOD">+</span>
+    <input type="number" class="ci" id="cB" inputmode="numeric" placeholder="…">
+  </div>
+  <button class="cgo" onclick="doCalc()">=</button>
+  <div class="cres" id="cRes"></div>
+</div>
+
+<script>
+// ═══ KATEX : auto-render seulement, jamais renderToString ═══
+function reK(){
+  if(window.renderMathInElement){
+    renderMathInElement(document.body,{
+      delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
+      throwOnError:false
+    });
+  }
+}
+// Render KaTeX dès que le DOM est prêt (pour l'écran intro)
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',reK);
+}else{
+  reK();
+}
+// Fermer tooltip si clic en dehors
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.sq-tip')){
+    document.querySelectorAll('.sq-tip.sq-open').forEach(t=>t.classList.remove('sq-open'));
+  }
+});
+
+// ══ MATH HTML HELPERS — rendu pur HTML/CSS, sans dépendance KaTeX ══════
+function mFrac(n,d,col){
+  const c=col||'var(--ink)';
+  return `<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;color:${c};font-family:'Libre Baskerville',serif;font-weight:700;font-size:.95em;"><span style="padding:0 5px;border-bottom:2px solid currentColor;line-height:1.4;">${n}</span><span style="padding:0 5px;line-height:1.4;">${d}</span></span>`;
+}
+function mSqrt(inner){
+  return `<span style="display:inline-flex;align-items:center;vertical-align:middle;font-family:'Libre Baskerville',serif;"><span style="font-size:1.45em;line-height:1;padding-bottom:1px;margin-right:-1px;">√</span><span style="border-top:2.5px solid var(--ink);padding:2px 6px 1px 4px;display:inline-flex;align-items:center;gap:3px;line-height:1.3;">${inner}</span></span>`;
+}
+function mPow(base,exp){
+  return `<span style="display:inline-flex;align-items:flex-start;vertical-align:middle;font-family:'Libre Baskerville',serif;font-weight:700;">${base}<sup style="font-size:.62em;line-height:1;">${exp}</sup></span>`;
+}
+const mX='<span style="font-weight:700;font-family:\'Libre Baskerville\',serif;margin:0 3px;">×</span>';
+const mEq='<span style="margin:0 5px;">=</span>';
+// ════════════════════════════════════════════════════════════════════════
+
+// ═══ UTILS ═══
+const g=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));g(id).classList.add('active');reK();}
+function foc(id,d){setTimeout(()=>{const e=g(id);if(e){e.focus();try{e.select();}catch(_){}}},d||80);}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+function lcm(a,b){return Math.abs(a*b)/gcd(a,b);}
+function isPrime(n){if(n<2)return false;for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true;}
+function primeFactors(n){const f=[];let d=2;while(d*d<=n){while(n%d===0){f.push(d);n/=d;}d++;}if(n>1)f.push(n);return f;}
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rv(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function isSquareFree(n){if(n<=1)return true;for(let p=2;p*p<=n;p++)if(n%(p*p)===0)return false;return true;}
+function simplifySqrt(n){let k=1,m=n;for(let p=2;p*p<=m;p++){while(m%(p*p)===0){m/=p*p;k*=p;}}return{k,m};}
+function largestSqDiv(n){const SQ=[4,9,16,25,36,49,64,81,100,121,144,169,196,225,256,289,324,361,400,441,484,529];let b=1;for(const s of SQ){if(s>n)break;if(n%s===0)b=s;}return b;}
+function multiMinus(a,sub){const p=[...sub];return a.filter(x=>{const i=p.indexOf(x);if(i!==-1){p.splice(i,1);return false;}return true;});}
+function multiInter(a,b){const p=[...b],r=[];for(const x of a){const i=p.indexOf(x);if(i!==-1){r.push(x);p.splice(i,1);}}return r;}
+function smallF(n){for(let i=2;i*i<=n;i++)if(n%i===0)return i;return n;}
+function fracSimp(n,d){const g_=gcd(Math.abs(n),d);return[n/g_,d/g_];}
+// Fraction LaTeX inline : \(\frac{n}{d}\)
+function fL(n,d){return`\\(\\dfrac{${n}}{${d}}\\)`;}
+// Fraction HTML statique pour les expressions dans les qbox
+function fH(n,d,col){const c=col||'var(--ink)';return`<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;color:${c};font-family:'Libre Baskerville',serif;font-weight:700;"><span style="padding:0 7px">${n}</span><span style="height:2.5px;background:currentColor;width:100%;border-radius:2px"></span><span style="padding:0 7px">${d}</span></span>`;}
+
+function errI(el){el.classList.remove('ok','ko');el.classList.add('ko');setTimeout(()=>el.classList.remove('ko'),600);}
+function okI(el){el.classList.remove('ko');el.classList.add('ok');el.disabled=true;}
+function setFb(t,m){const f=g('exFb');f.className='fb '+t;f.innerHTML=m;reK();}
+function clearFb(){const f=g('exFb');f.className='fb';f.innerHTML='';}
+function showNext(l){const b=g('btnNext');b.style.display='';b.textContent=l||'Continuer →';}
+function hideNext(){g('btnNext').style.display='none';}
+
+// Calculatrice
+var cOp='+';
+function toggleCalc(){const p=g('calcPan'),b=g('calcBtn');const op=p.classList.toggle('on');b.classList.toggle('open',op);b.textContent=op?'✕':'🧮';if(op){g('cA').value='';g('cB').value='';g('cRes').innerHTML='';g('cA').focus();}}
+function hideCalc(){g('calcPan').classList.remove('on');g('calcBtn').classList.remove('open');g('calcBtn').textContent='🧮';}
+function setOp(op){cOp=op;document.querySelectorAll('.cop').forEach(b=>b.classList.toggle('on',b.dataset.op===op));g('cOD').textContent=op==='+'?'+':op==='-'?'−':op==='x'?'×':'÷';}
+function doCalc(){
+  const a=parseFloat(g('cA').value),b=parseFloat(g('cB').value);
+  if(isNaN(a)||isNaN(b)){g('cRes').innerHTML='<span style="color:var(--red)">Invalide</span>';return;}
+  if(cOp==='/'){if(b===0){g('cRes').innerHTML='<span style="color:var(--red)">÷0 impossible</span>';return;}
+    const q=Math.floor(a/b),r=a-q*b;g('cRes').innerHTML=(Number.isInteger(a)&&Number.isInteger(b)&&r!==0)?`${a}÷${b} = <b style="color:var(--grn)">${q}</b> r <b style="color:var(--red)">${r}</b>`:`<b style="color:var(--grn)">${a/b}</b>`;}
+  else if(cOp==='x')g('cRes').innerHTML=`<b style="color:var(--grn)">${a*b}</b>`;
+  else if(cOp==='-')g('cRes').innerHTML=`<b style="color:var(--grn)">${a-b}</b>`;
+  else g('cRes').innerHTML=`<b style="color:var(--grn)">${a+b}</b>`;
+}
+g('cA').addEventListener('keydown',e=>{if(e.key==='Enter')g('cB').focus();});
+g('cB').addEventListener('keydown',e=>{if(e.key==='Enter')doCalc();});
+
+// ═══ ÉTAT GLOBAL ═══
+var MOD='',exScore=0,exIdx=0,TOTAL=6,cur=null;
+const BADGE={fr_add:'Fractions +/−',fr_mul:'Fractions ×/÷',pw:'Puissances',rc:'Racines carrées',dc:'Décomposition'};
+
+function startEx(mod){MOD=mod;exScore=0;exIdx=0;g('exBadge').textContent=BADGE[mod];g('exTotal').textContent=TOTAL;show('S_ex');loadQ();}
+function nextQ(){hideNext();clearFb();if(exIdx>=TOTAL){showRes();return;}loadQ();}
+function loadQ(){exIdx++;g('exIdx').textContent=exIdx;g('pfill').style.width=((exIdx-1)/TOTAL*100)+'%';clearFb();hideNext();
+  if(MOD==='fr_add')loadFrAdd();else if(MOD==='fr_mul')loadFrMul();else if(MOD==='pw')loadPw();else if(MOD==='rc')loadRc();else if(MOD==='dc')loadDc();reK();}
+function markOk(msg){exScore++;setFb('ok',msg);if(exIdx>=TOTAL)showNext('Voir les résultats 🏆');else showNext('Question suivante →');}
+function showRes(){const p=Math.round(exScore/TOTAL*100);const e=p===100?'🏆':p>=80?'⭐':p>=60?'📝':'💪';const m=p===100?'Parfait !':p>=80?'Très bien !':p>=60?'Bon travail !':'Continue !';g('remo').textContent=e;g('rsco').textContent=exScore+'/'+TOTAL;g('rmsg').textContent=m;const f=g('rbf');f.className='rbar-f '+(p>=60?'g':'b');f.style.width='0%';show('S_res');setTimeout(()=>f.style.width=p+'%',120);hideCalc();}
+</script>
+<script>
+// ═══════════════════════════════════════
+// MODULE 1 — FRACTIONS +/−
+// 3 étapes exactes demandées :
+// 1) multiples des 2 dénominateurs → surligner PPMC
+// 2) réécrire chaque fraction avec le bon dénominateur (num ET den saisis)
+// 3) écrire entièrement le résultat (num + den)
+// ═══════════════════════════════════════
+// Banque : uniquement des paires où les dénominateurs sont différents,
+// ne sont pas multiples l'un de l'autre, et ont un PPMC non trivial à trouver
+var FR_ADD_BANK=[
+  // dénominateurs copremiers (gcd=1) — PPMC = d1×d2
+  [1,4,1,3,'+'],[2,3,1,4,'+'],[5,6,1,4,'-'],[3,4,1,3,'-'],
+  [1,3,1,4,'+'],[1,4,1,5,'+'],[2,5,1,3,'+'],[3,7,1,4,'+'],
+  [1,4,1,7,'+'],[2,3,1,5,'+'],[3,5,1,4,'-'],[1,3,2,5,'+'],
+  [4,5,1,3,'-'],[2,7,1,3,'+'],[1,5,1,4,'+'],[3,4,2,5,'-'],
+  // dénominateurs avec gcd>1 (PPMC < produit) — cas intéressants
+  [5,6,1,4,'-'],[7,8,1,6,'+'],[5,6,3,4,'-'],[1,6,3,4,'+'],
+  [7,10,1,6,'+'],[1,4,5,6,'+'],[3,8,5,6,'+'],[5,8,1,6,'-'],
+  [1,6,1,4,'+'],[5,6,5,8,'-'],[7,8,5,6,'-'],[3,4,7,10,'+'],
+  [1,6,3,8,'+'],[5,6,7,8,'-'],[3,8,7,10,'+'],[1,4,5,6,'-']
+];
+
+var fr={};
+
+function loadFrAdd(){
+  const [n1,d1,n2,d2,op]=rv(FR_ADD_BANK);
+  const L=lcm(d1,d2),k1=L/d1,k2=L/d2;
+  const c1=n1*k1,c2=n2*k2;
+  const rN=op==='+'?c1+c2:c1-c2;
+  const[sN,sD]=fracSimp(rN,L);
+  fr={n1,d1,n2,d2,op,L,k1,k2,c1,c2,rN,sD:L,simpN:sN,simpD:sD};
+  // Toujours PPMC à chercher (banque filtrée)
+  fr.step=1;renderFrAdd();
+}
+
+function renderFrAdd(){
+  const c=fr,opS=c.op==='+'?'+':'−';
+  const expr=`\\(\\dfrac{${c.n1}}{${c.d1}} ${c.op==='+'?'+':'-'} \\dfrac{${c.n2}}{${c.d2}}\\)`;
+  let h=`<div class="qbox"><div class="stitle">Calculer ${expr}</div>`;
+
+  if(c.step===1){
+    // ÉTAPE 1 : lister les multiples et surligner le PPMC
+    const nb=10;
+    const m1=[...Array(nb)].map((_,i)=>(i+1)*c.d1);
+    const m2=[...Array(nb)].map((_,i)=>(i+1)*c.d2);
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:6px;"><b>Étape 1</b> — Surligne en rouge le PPMC (plus petit multiple commun) :</p>`;
+    h+=`<div style="margin:8px 0 4px;font-size:.88em;color:var(--pc);">Multiples de ${c.d1} :</div>`;
+    h+=`<div class="mult-list" id="ml1">${m1.map(v=>`<span class="mchip" data-v="${v}" data-side="1" onclick="toggleMult(this)">${v}</span>`).join('')}</div>`;
+    h+=`<div style="margin:8px 0 4px;font-size:.88em;color:var(--pc);">Multiples de ${c.d2} :</div>`;
+    h+=`<div class="mult-list" id="ml2">${m2.map(v=>`<span class="mchip" data-v="${v}" data-side="2" onclick="toggleMult(this)">${v}</span>`).join('')}</div>`;
+    h+=`<div class="row" style="margin-top:10px;"><button class="btn bi" onclick="valFrPPMC()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_ppmc"></div>`;
+  } else if(c.step===2){
+    // ÉTAPE 2 : convertir chaque fraction — l'élève saisit num ET den
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 2</b> — Réécris chaque fraction avec le dénominateur commun ${c.L} :</p>`;
+    h+=`<div style="text-align:center;margin:14px 0;font-size:1.3em;line-height:2.8;">`;
+    h+=`\\(\\dfrac{${c.n1}}{${c.d1}}\\) = <span class="fi"><input class="inp" id="fn1" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="fd1" type="number" inputmode="numeric" placeholder="?"></span>`;
+    h+=`&emsp;`;
+    h+=`\\(\\dfrac{${c.n2}}{${c.d2}}\\) = <span class="fi"><input class="inp" id="fn2" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="fd2" type="number" inputmode="numeric" placeholder="?"></span>`;
+    h+=`</div>`;
+    h+=`<div class="row"><button class="btn bi" onclick="valFrConv()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_conv"></div>`;
+  } else if(c.step===3){
+    // ÉTAPE 3 : écrire le résultat entièrement
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 3</b> — Calcule et donne le résultat :</p>`;
+    h+=`<div style="text-align:center;margin:14px 0;font-size:1.3em;line-height:2.8;">`;
+    h+=`\\(\\dfrac{${c.c1}}{${c.L}} ${c.op==='+'?'+':'-'} \\dfrac{${c.c2}}{${c.L}}\\) = `;
+    h+=`<span class="fi"><input class="inp" id="frN" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="frD" type="number" inputmode="numeric" placeholder="?"></span>`;
+    h+=`</div>`;
+    h+=`<div class="row"><button class="btn bi" onclick="valFrResult()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_res"></div>`;
+  } else if(c.step===4){
+    // ÉTAPE 4 : continuer à simplifier (réponse sous-optimale en étape 3)
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 4</b> — Continue à simplifier :</p>`;
+    h+=`<div style="text-align:center;margin:14px 0;font-size:1.3em;line-height:2.8;">`;
+    h+=`\\(\\dfrac{${c.partialN}}{${c.partialD}}\\) = `;
+    h+=`<span class="fi"><input class="inp" id="frN2" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="frD2" type="number" inputmode="numeric" placeholder="?"></span>`;
+    h+=`</div>`;
+    h+=`<div class="row"><button class="btn bi" onclick="valFrSimp2()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_res2"></div>`;
+  }
+  h+=`</div>`;
+  g('exContent').innerHTML=h;reK();
+  if(c.step===1){/* chips */}
+  else if(c.step===2){g('fn1').addEventListener('keydown',e=>{if(e.key==='Enter')foc('fd1');});g('fd1').addEventListener('keydown',e=>{if(e.key==='Enter')foc('fn2');});g('fn2').addEventListener('keydown',e=>{if(e.key==='Enter')foc('fd2');});g('fd2').addEventListener('keydown',e=>{if(e.key==='Enter')valFrConv();});foc('fn1',80);}
+  else if(c.step===3){g('frN').addEventListener('keydown',e=>{if(e.key==='Enter')foc('frD');});g('frD').addEventListener('keydown',e=>{if(e.key==='Enter')valFrResult();});foc('frN',80);}
+  else if(c.step===4){g('frN2').addEventListener('keydown',e=>{if(e.key==='Enter')foc('frD2');});g('frD2').addEventListener('keydown',e=>{if(e.key==='Enter')valFrSimp2();});foc('frN2',80);}
+}
+
+function toggleMult(el){if(!el.classList.contains('locked'))el.classList.toggle('red');}
+
+function valFrPPMC(){
+  const fb=g('fb_ppmc');
+  // Récupérer ce qui est surligné dans les deux listes
+  const redL1=[...document.querySelectorAll('#ml1 .mchip.red')].map(e=>parseInt(e.dataset.v));
+  const redL2=[...document.querySelectorAll('#ml2 .mchip.red')].map(e=>parseInt(e.dataset.v));
+  // Doit y avoir exactement 1 chip rouge par liste, et c'est le même nombre = PPMC
+  if(redL1.length!==1||redL2.length!==1){fb.className='fb ko';fb.innerHTML='❌ Surligne exactement un multiple dans chaque liste : le premier commun aux deux.';return;}
+  if(redL1[0]!==redL2[0]){fb.className='fb ko';fb.innerHTML=`❌ ${redL1[0]} et ${redL2[0]} ne sont pas le même nombre. Le PPMC doit apparaître dans les deux listes.`;return;}
+  if(redL1[0]!==fr.L){fb.className='fb ko';fb.innerHTML=`❌ ${redL1[0]} est bien commun aux deux, mais ce n'est pas le <em>plus petit</em>. Le PPMC est ${fr.L}.`;return;}
+  // Verrouiller
+  document.querySelectorAll('.mchip').forEach(c=>c.classList.add('locked'));
+  fb.className='fb ok';fb.innerHTML=`✅ PPMC(${fr.d1} ; ${fr.d2}) = ${fr.L}`;
+  fr.step=2;renderFrAdd();
+}
+
+function valFrConv(){
+  const n1=parseInt(g('fn1').value),d1=parseInt(g('fd1').value);
+  const n2=parseInt(g('fn2').value),d2=parseInt(g('fd2').value);
+  const fb=g('fb_conv');let ok=true;
+  // Vérifier : équivalence ET dénominateur = L
+  if(n1!==fr.c1||d1!==fr.L){errI(g('fn1'));errI(g('fd1'));ok=false;}else{okI(g('fn1'));okI(g('fd1'));}
+  if(n2!==fr.c2||d2!==fr.L){errI(g('fn2'));errI(g('fd2'));ok=false;}else{okI(g('fn2'));okI(g('fd2'));}
+  if(!ok){fb.className='fb ko';fb.innerHTML=`❌ Vérifie les deux conversions.`;return;}
+  fb.className='fb ok';fb.innerHTML=`✅ \\(\\dfrac{${fr.n1}}{${fr.d1}} = \\dfrac{${fr.c1}}{${fr.L}}\\) et \\(\\dfrac{${fr.n2}}{${fr.d2}} = \\dfrac{${fr.c2}}{${fr.L}}\\)`;
+  fr.step=3;renderFrAdd();
+}
+
+function valFrResult(){
+  const uN=parseInt(g('frN').value),uD=parseInt(g('frD').value);
+  const fb=g('fb_res');
+  if(isNaN(uN)||isNaN(uD)||uD<=0){errI(g('frN'));errI(g('frD'));fb.className='fb ko';fb.innerHTML='❌ Saisis numérateur et dénominateur.';return;}
+  // Équivalence avec le résultat brut
+  const rN=fr.rN,L=fr.L;
+  const equiv=(uN*L===rN*uD);
+  if(!equiv){errI(g('frN'));errI(g('frD'));fb.className='fb ko';fb.innerHTML=`❌ Ce n'est pas le bon résultat.`;return;}
+  if(gcd(Math.abs(uN),uD)!==1){
+    const d=gcd(Math.abs(uN),uD);
+    okI(g('frN'));okI(g('frD'));
+    fb.className='fb warn';
+    fb.innerHTML=`🟡 Bien ! Mais cette fraction peut encore se simplifier : ${uN} et ${uD} ont ${d} en commun. Continue !`;
+    fr.partialN=uN; fr.partialD=uD; fr.step=4; renderFrAdd(); return;
+  }
+  okI(g('frN'));okI(g('frD'));
+  markOk(`🏆 \\(\\dfrac{${fr.n1}}{${fr.d1}} ${fr.op==='+'?'+':'-'} \\dfrac{${fr.n2}}{${fr.d2}} = \\dfrac{${fr.simpN}}{${fr.simpD}}\\)`);
+}
+
+function valFrSimp2(){
+  const uN=parseInt(g('frN2').value),uD=parseInt(g('frD2').value);
+  const fb=g('fb_res2');
+  if(isNaN(uN)||isNaN(uD)||uD<=0){errI(g('frN2'));errI(g('frD2'));fb.className='fb ko';fb.innerHTML='❌ Saisis numérateur et dénominateur.';return;}
+  const equiv=(uN*fr.partialD===fr.partialN*uD);
+  if(!equiv){errI(g('frN2'));errI(g('frD2'));fb.className='fb ko';fb.innerHTML=`❌ Ce n'est pas correct.`;return;}
+  if(gcd(Math.abs(uN),uD)!==1){
+    const d=gcd(Math.abs(uN),uD);
+    okI(g('frN2'));okI(g('frD2'));
+    fb.className='fb warn';fb.innerHTML=`🟡 Encore simplifiable : ${uN} et ${uD} ont ${d} en commun. Continue !`;
+    fr.partialN=uN; fr.partialD=uD; renderFrAdd(); return;
+  }
+  okI(g('frN2'));okI(g('frD2'));
+  markOk(`🏆 \(\dfrac{${fr.n1}}{${fr.d1}} ${fr.op==='+'?'+':'-'} \dfrac{${fr.n2}}{${fr.d2}} = \dfrac{${fr.simpN}}{${fr.simpD}}\)`);
+}
+
+// ═══════════════════════════════════════
+// MODULE 2 — FRACTIONS ×/÷
+// Présentation façon photo :
+// ×: num×num / den×den → résultat brut → simplifié
+// ÷: montrer = frac × inverse → puis pareil
+// ═══════════════════════════════════════
+const FR_MUL_BANK=[
+  [2,3,9,4,'*'],[4,5,15,8,'*'],[7,3,9,14,'*'],[5,6,10,3,'/'],[3,4,9,8,'/'],[5,6,5,3,'/'],
+  [3,7,14,9,'*'],[5,8,4,15,'*'],[2,5,15,6,'*'],[7,4,14,3,'/'],[9,10,3,5,'/'],[11,6,3,22,'*'],
+  [3,8,16,9,'*'],[5,12,4,15,'*'],[4,7,21,8,'*'],[6,5,15,4,'/'],[8,3,6,4,'/'],[10,7,14,5,'/'],
+  [1,4,8,3,'*'],[5,9,3,10,'*'],[7,6,12,14,'*'],[3,5,10,9,'/'],[7,8,14,3,'/'],[4,3,9,8,'/'],
+  [5,4,8,15,'*'],[11,3,9,22,'*'],[6,7,14,9,'*'],[15,4,8,5,'/'],[9,4,12,3,'/'],[7,5,10,21,'/']
+];
+
+var fm={};
+
+function loadFrMul(){
+  const [n1,d1,n2,d2,op]=rv(FR_MUL_BANK);
+  // Pour ÷: on transforme en ×  →  n1/d1 × d2/n2
+  const mulN1=n1,mulD1=d1,mulN2=op==='*'?n2:d2,mulD2=op==='*'?d2:n2;
+  const rN=mulN1*mulN2,rD=mulD1*mulD2;
+  const[sN,sD]=fracSimp(rN,rD);
+  fm={n1,d1,n2,d2,op,mulN1,mulD1,mulN2,mulD2,rN,rD,sN,sD,step:1};
+  renderFrMul();
+}
+
+function renderFrMul(){
+  const c=fm;
+  const opS=c.op==='*'?'×':'÷';
+  let h=`<div class="qbox"><div class="stitle">Calculer \\(\\dfrac{${c.n1}}{${c.d1}} ${opS} \\dfrac{${c.n2}}{${c.d2}}\\)</div>`;
+
+  if(c.step===1){
+    if(c.op==='*'){
+      // Montrer la structure num×num / den×den avec cases à remplir
+      h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 1</b> — Multiplie numérateurs entre eux et dénominateurs entre eux :</p>`;
+      h+=`<div style="text-align:center;margin:14px 0;font-size:1.15em;line-height:3;">`;
+      h+=`\\(\\dfrac{${c.n1}}{${c.d1}} \\times \\dfrac{${c.n2}}{${c.d2}}\\) = `;
+      // Structure : (n1×n2) / (d1×d2) = résultat brut
+      h+=`<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;">`;
+      h+=`<span style="display:flex;align-items:center;gap:3px;padding:2px 6px;"><input class="inp inp-sm" id="fmn1a" type="number" inputmode="numeric" placeholder="?"> <span style="font-weight:700">×</span> <input class="inp inp-sm" id="fmn2a" type="number" inputmode="numeric" placeholder="?"></span>`;
+      h+=`<span style="height:2.5px;background:var(--ink);width:140px;border-radius:2px;margin:2px 0;display:block;"></span>`;
+      h+=`<span style="display:flex;align-items:center;gap:3px;padding:2px 6px;"><input class="inp inp-sm" id="fmd1a" type="number" inputmode="numeric" placeholder="?"> <span style="font-weight:700">×</span> <input class="inp inp-sm" id="fmd2a" type="number" inputmode="numeric" placeholder="?"></span>`;
+      h+=`</span>`;
+      h+=` = <span class="fi"><input class="inp" id="fmrN" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="fmrD" type="number" inputmode="numeric" placeholder="?"></span>`;
+      h+=`</div>`;
+    } else {
+      // ÷ : montrer qu'on remplace par × inverse
+      h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 1</b> — Transforme la division en multiplication par l'inverse, puis calcule :</p>`;
+      h+=`<div style="text-align:center;margin:14px 0;font-size:1.15em;line-height:3;">`;
+      h+=`\\(\\dfrac{${c.n1}}{${c.d1}} \\div \\dfrac{${c.n2}}{${c.d2}}\\) = `;
+      // Fraction 1 avec cases à remplir (= n1/d1 — l'élève recopie)
+      h+=`<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;">`;
+      h+=`<input class="inp inp-sm" id="fminv1N" type="number" inputmode="numeric" placeholder="?">`;
+      h+=`<span style="height:2px;background:var(--ink);width:46px;border-radius:2px;margin:2px 0;display:block;"></span>`;
+      h+=`<input class="inp inp-sm" id="fminv1D" type="number" inputmode="numeric" placeholder="?">`;
+      h+=`</span>`;
+      h+=` <span style="font-weight:700">×</span> `;
+      // Fraction inverse avec cases à remplir (= d2/n2)
+      h+=`<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;">`;
+      h+=`<input class="inp inp-sm" id="fminv2N" type="number" inputmode="numeric" placeholder="?">`;
+      h+=`<span style="height:2px;background:var(--ink);width:46px;border-radius:2px;margin:2px 0;display:block;"></span>`;
+      h+=`<input class="inp inp-sm" id="fminv2D" type="number" inputmode="numeric" placeholder="?">`;
+      h+=`</span>`;
+      h+=` = `;
+      // Résultat brut
+      h+=`<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;">`;
+      h+=`<span style="display:flex;align-items:center;gap:3px;padding:2px 6px;"><input class="inp inp-sm" id="fmn1a" type="number" inputmode="numeric" placeholder="?"> <span style="font-weight:700">×</span> <input class="inp inp-sm" id="fmn2a" type="number" inputmode="numeric" placeholder="?"></span>`;
+      h+=`<span style="height:2.5px;background:var(--ink);width:140px;border-radius:2px;margin:2px 0;display:block;"></span>`;
+      h+=`<span style="display:flex;align-items:center;gap:3px;padding:2px 6px;"><input class="inp inp-sm" id="fmd1a" type="number" inputmode="numeric" placeholder="?"> <span style="font-weight:700">×</span> <input class="inp inp-sm" id="fmd2a" type="number" inputmode="numeric" placeholder="?"></span>`;
+      h+=`</span>`;
+      h+=` = <span class="fi"><input class="inp" id="fmrN" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="fmrD" type="number" inputmode="numeric" placeholder="?"></span>`;
+      h+=`</div>`;
+    }
+    h+=`<div class="row"><button class="btn bi" onclick="valFmStep1()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_fm1"></div>`;
+  } else {
+    // Étape 2 : simplifier
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 2</b> — Simplifie \\(\\dfrac{${c.rN}}{${c.rD}}\\) :</p>`;
+    h+=`<div style="text-align:center;margin:14px 0;font-size:1.3em;">\\(\\dfrac{${c.rN}}{${c.rD}}\\) = <span class="fi"><input class="inp" id="fm2N" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="fm2D" type="number" inputmode="numeric" placeholder="?"></span></div>`;
+    h+=`<div class="row"><button class="btn bi" onclick="valFmStep2()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_fm2"></div>`;
+  }
+  h+=`</div>`;
+  g('exContent').innerHTML=h;reK();
+  if(c.step===1){foc('fmn1a',80);['fmn1a','fmn2a','fmd1a','fmd2a','fmrN','fmrD'].forEach((id,i,arr)=>{const el=g(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){const nx=g(arr[i+1]);if(nx)nx.focus();else valFmStep1();}});});}
+  else{g('fm2N').addEventListener('keydown',e=>{if(e.key==='Enter')foc('fm2D');});g('fm2D').addEventListener('keydown',e=>{if(e.key==='Enter')valFmStep2();});foc('fm2N',80);}
+}
+
+function valFmStep1(){
+  const c=fm;
+  const fb=g('fb_fm1');let ok=true;
+  // Pour ÷: valider aussi les fractions de la transformation (inverse)
+  if(c.op==='/'){
+    const inv1N=parseInt(g('fminv1N')?.value),inv1D=parseInt(g('fminv1D')?.value);
+    const inv2N=parseInt(g('fminv2N')?.value),inv2D=parseInt(g('fminv2D')?.value);
+    if(inv1N!==c.n1){if(g('fminv1N'))errI(g('fminv1N'));ok=false;}else if(g('fminv1N'))okI(g('fminv1N'));
+    if(inv1D!==c.d1){if(g('fminv1D'))errI(g('fminv1D'));ok=false;}else if(g('fminv1D'))okI(g('fminv1D'));
+    if(inv2N!==c.d2){if(g('fminv2N'))errI(g('fminv2N'));ok=false;}else if(g('fminv2N'))okI(g('fminv2N'));
+    if(inv2D!==c.n2){if(g('fminv2D'))errI(g('fminv2D'));ok=false;}else if(g('fminv2D'))okI(g('fminv2D'));
+    if(!ok){fb.className='fb ko';fb.innerHTML='❌ Vérifie les deux fractions.';return;}
+  }
+  const n1a=parseInt(g('fmn1a').value),n2a=parseInt(g('fmn2a').value);
+  const d1a=parseInt(g('fmd1a').value),d2a=parseInt(g('fmd2a').value);
+  const rN=parseInt(g('fmrN').value),rD=parseInt(g('fmrD').value);
+  if(n1a!==c.mulN1){errI(g('fmn1a'));ok=false;}else okI(g('fmn1a'));
+  if(n2a!==c.mulN2){errI(g('fmn2a'));ok=false;}else okI(g('fmn2a'));
+  if(d1a!==c.mulD1){errI(g('fmd1a'));ok=false;}else okI(g('fmd1a'));
+  if(d2a!==c.mulD2){errI(g('fmd2a'));ok=false;}else okI(g('fmd2a'));
+  if(!ok){fb.className='fb ko';fb.innerHTML='❌ Vérifie les facteurs.';return;}
+  if(rN!==c.rN||rD!==c.rD){errI(g('fmrN'));errI(g('fmrD'));fb.className='fb ko';fb.innerHTML=`❌ ${c.mulN1}×${c.mulN2}=? et ${c.mulD1}×${c.mulD2}=?`;return;}
+  okI(g('fmrN'));okI(g('fmrD'));
+  if(gcd(c.rN,c.rD)===1){markOk(`🏆 \\(\\dfrac{${c.n1}}{${c.d1}} ${c.op==='*'?'\\times':'\\div'} \\dfrac{${c.n2}}{${c.d2}} = \\dfrac{${c.sN}}{${c.sD}}\\)`);}
+  else{fb.className='fb ok';fb.innerHTML=`✅ Résultat brut = \\(\\dfrac{${c.rN}}{${c.rD}}\\). À simplifier !`;fm.step=2;renderFrMul();}
+}
+
+function valFmStep2(){
+  const c=fm;const uN=parseInt(g('fm2N').value),uD=parseInt(g('fm2D').value);const fb=g('fb_fm2');
+  if(isNaN(uN)||isNaN(uD)||uD<=0){errI(g('fm2N'));errI(g('fm2D'));fb.className='fb ko';fb.innerHTML='❌ Saisis numérateur et dénominateur.';return;}
+  if(uN*c.rD!==c.rN*uD){errI(g('fm2N'));errI(g('fm2D'));fb.className='fb ko';fb.innerHTML=`❌ \\(\\dfrac{${uN}}{${uD}} \\neq \\dfrac{${c.rN}}{${c.rD}}\\)`;return;}
+  if(gcd(uN,uD)!==1){const d=gcd(uN,uD);errI(g('fm2N'));errI(g('fm2D'));fb.className='fb ko';fb.innerHTML=`❌ Encore simplifiable : ${uN} et ${uD} ont ${d} en commun.`;return;}
+  okI(g('fm2N'));okI(g('fm2D'));
+  markOk(`🏆 \\(\\dfrac{${c.n1}}{${c.d1}} ${c.op==='*'?'\\times':'\\div'} \\dfrac{${c.n2}}{${c.d2}} = \\dfrac{${c.sN}}{${c.sD}}\\)`);
+}
+</script>
+<script>
+// ═══════════════════════════════════════
+// MODULE 3 — PUISSANCES
+// ═══════════════════════════════════════
+const PW_RULES={
+  mul:{lbl:`Même base → on additionne les exposants : \\(a^m \\times a^n = a^{m+n}\\)`,w:[`On multiplie les exposants`,`On soustrait les exposants`]},
+  div:{lbl:`Même base → on soustrait les exposants : \\(\\dfrac{a^m}{a^n} = a^{m-n}\\)`,w:[`On additionne les exposants`,`On divise les exposants`]},
+  pow:{lbl:`Puissance de puissance → on multiplie les exposants : \\((a^m)^n = a^{m \\times n}\\)`,w:[`On additionne les exposants`,`On garde l'exposant extérieur`]},
+  prodab:{lbl:`L'exposant s'applique à chaque facteur : \\((a \\times b)^n = a^n \\times b^n\\)`,w:[`On additionne les exposants`,`L'exposant ne s'applique qu'au premier`]},
+  quotab:{lbl:`L'exposant s'applique en haut et en bas : \\(\\left(\\dfrac{a}{b}\\right)^n = \\dfrac{a^n}{b^n}\\)`,w:[`On soustrait les exposants`,`L'exposant ne s'applique qu'au numérateur`]},
+  neg:{lbl:`Exposant négatif = inverse : \\(a^{-n} = \\dfrac{1}{a^n}\\)`,w:[`Le résultat est négatif`,`On multiplie la base par \\(-1\\)`]},
+  sign:{lbl:`Sans parenthèses, l'exposant ne porte que sur le nombre, pas sur le signe \\(-\\)`,w:[`L'exposant s'applique aussi au signe \\(-\\)`,`Cela dépend de la parité de l'exposant`]}
+};
+const BASES=[2,3,5,7,10];
+var pw={};
+
+function genPw(){
+  const a=rv(BASES);
+  const types=['mul','div','pow','prodab','quotab','neg','sign','mul','div'];
+  const type=rv(types);
+  if(type==='mul'){const m=ri(1,6),n=ri(1,6);return{type,a,m,n,ansExp:m+n,rule:'mul'};}
+  if(type==='div'){const m=ri(1,7),n=ri(1,7);return{type,a,m,n,ansExp:m-n,rule:'div'};}
+  if(type==='pow'){const m=ri(2,4),n=ri(2,3);return{type,a,m,n,ansExp:m*n,rule:'pow'};}
+  if(type==='prodab'){const b=rv(BASES.filter(x=>x!==a)),n=ri(2,3);return{type,a,b,n,ans:Math.pow(a*b,n),rule:'prodab'};}
+  if(type==='quotab'){const b=rv(BASES.filter(x=>x!==a)),n=2;return{type,a,b,n,ansN:Math.pow(a,n),ansD:Math.pow(b,n),rule:'quotab'};}
+  if(type==='neg'){const n=ri(1,3);return{type,a,n,ansD:Math.pow(a,n),rule:'neg'};}
+  if(type==='sign'){const base=ri(2,9);return{type,base,ans1:base*base,ans2:-(base*base),rule:'sign'};}
+}
+
+function pwTex(c){
+  if(c.type==='mul')return`\\(${c.a}^{${c.m}} \\times ${c.a}^{${c.n}}\\)`;
+  if(c.type==='div')return`\\(\\dfrac{${c.a}^{${c.m}}}{${c.a}^{${c.n}}}\\)`;
+  if(c.type==='pow')return`\\(\\left(${c.a}^{${c.m}}\\right)^{${c.n}}\\)`;
+  if(c.type==='prodab')return`\\(\\left(${c.a} \\times ${c.b}\\right)^{${c.n}}\\)`;
+  if(c.type==='quotab')return`\\(\\left(\\dfrac{${c.a}}{${c.b}}\\right)^{${c.n}}\\)`;
+  if(c.type==='neg')return`\\(${c.a}^{-${c.n}}\\)`;
+  if(c.type==='sign')return`\\((-${c.base})^2\\) et \\(-${c.base}^2\\)`;
+}
+
+function loadPw(){pw=genPw();renderPw(0);}
+
+function renderPw(st){
+  const c=pw;
+  let h=`<div class="qbox"><div class="stitle">Calculer ${pwTex(c)}</div>`;
+  if(st===0){
+    const rule=PW_RULES[c.rule];
+    const opts=shuffle([{l:rule.lbl,ok:true},...rule.w.map(w=>({l:w,ok:false}))]);
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 1</b> — Quelle règle utilises-tu ?</p>`;
+    h+=`<div class="rchips">${opts.map((o,i)=>`<button class="rchip" id="rch${i}" data-ok="${o.ok}" onclick="valPwRule(${i})">${o.l}</button>`).join('')}</div>`;
+    h+=`<div class="fb" id="fb_pw0"></div>`;
+  } else {
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.9em;color:var(--ink);margin-bottom:8px;"><b>Étape 2</b> — Calcule le résultat :</p>`;
+    if(c.type==='mul'||c.type==='div'||c.type==='pow'){
+      const hint=c.type==='mul'?`${c.m}+${c.n}`:c.type==='div'?`${c.m}-(${c.n})=${c.m}-${c.n}`:`${c.m}\\times ${c.n}`;
+      h+=`<div style="text-align:center;margin:12px 0;font-size:1.2em;">${pwTex(c)} = \\(${c.a}^{\\square}\\) &nbsp; exposant = <input class="inp inp-sm" id="ipwE" type="number" inputmode="numeric" placeholder="?"></div>`;
+    } else if(c.type==='prodab'){
+      h+=`<div style="text-align:center;margin:12px 0;font-size:1.2em;">${pwTex(c)} = \\(${c.a}^${c.n} \\times ${c.b}^${c.n}\\) = <input class="inp inp-lg" id="ipwV" type="number" inputmode="numeric" placeholder="?"></div>`;
+    } else if(c.type==='quotab'){
+      h+=`<div style="text-align:center;margin:12px 0;font-size:1.2em;">${pwTex(c)} = <span class="fi"><input class="inp inp-sm" id="ipwN" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp inp-sm" id="ipwD" type="number" inputmode="numeric" placeholder="?"></span></div>`;
+    } else if(c.type==='neg'){
+      h+=`<div style="text-align:center;margin:12px 0;font-size:1.2em;">\\(${c.a}^{-${c.n}} = \\dfrac{1}{${c.a}^{${c.n}}} = \\dfrac{1}{\\square}\\) &nbsp; dénominateur = <input class="inp inp-sm" id="ipwD" type="number" inputmode="numeric" placeholder="?"></div>`;
+    } else if(c.type==='sign'){
+      h+=`<div style="text-align:center;margin:14px 0;font-size:1.1em;line-height:3;">`;
+      h+=`\\((-${c.base})^2\\) = <input class="inp" id="ipwS1" type="number" inputmode="numeric" placeholder="?"><br>`;
+      h+=`\\(-${c.base}^2\\) = <input class="inp" id="ipwS2" type="number" inputmode="numeric" placeholder="?">`;
+      h+=`</div>`;
+    }
+    h+=`<div class="row"><button class="btn bi" onclick="valPwCalc()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_pw1"></div>`;
+  }
+  h+=`</div>`;
+  g('exContent').innerHTML=h;reK();
+  if(st===1){
+    if(c.type==='mul'||c.type==='div'||c.type==='pow'){g('ipwE').addEventListener('keydown',e=>{if(e.key==='Enter')valPwCalc();});foc('ipwE',80);}
+    else if(c.type==='prodab'){g('ipwV').addEventListener('keydown',e=>{if(e.key==='Enter')valPwCalc();});foc('ipwV',80);}
+    else if(c.type==='quotab'){g('ipwN').addEventListener('keydown',e=>{if(e.key==='Enter')foc('ipwD');});g('ipwD').addEventListener('keydown',e=>{if(e.key==='Enter')valPwCalc();});foc('ipwN',80);}
+    else if(c.type==='neg'){g('ipwD').addEventListener('keydown',e=>{if(e.key==='Enter')valPwCalc();});foc('ipwD',80);}
+    else if(c.type==='sign'){g('ipwS1').addEventListener('keydown',e=>{if(e.key==='Enter')foc('ipwS2');});g('ipwS2').addEventListener('keydown',e=>{if(e.key==='Enter')valPwCalc();});foc('ipwS1',80);}
+  }
+}
+
+function valPwRule(i){
+  const btn=g('rch'+i);const ok=btn.dataset.ok==='true';const fb=g('fb_pw0');
+  if(ok){document.querySelectorAll('.rchip').forEach(b=>b.classList.add('dis'));btn.classList.add('ok');btn.classList.remove('dis');fb.className='fb ok';fb.innerHTML='✅ Bonne règle !';renderPw(1);}
+  else{btn.classList.add('ko');fb.className='fb ko';fb.innerHTML='❌ Réessaie.';setTimeout(()=>btn.classList.remove('ko'),500);}
+}
+
+function valPwCalc(){
+  const c=pw;const fb=g('fb_pw1');
+  if(c.type==='mul'||c.type==='div'||c.type==='pow'){
+    const v=parseInt(g('ipwE').value);
+    if(isNaN(v)||v!==c.ansExp){errI(g('ipwE'));fb.className='fb ko';fb.innerHTML=`❌ Recalcule l'exposant.`;return;}
+    okI(g('ipwE'));markOk(`🏆 ${pwTex(c)} = \\(${c.a}^{${c.ansExp}}\\)`);
+  } else if(c.type==='prodab'){
+    const v=parseInt(g('ipwV').value);
+    if(isNaN(v)||v!==c.ans){errI(g('ipwV'));fb.className='fb ko';fb.innerHTML=`❌ \\(${c.a}^${c.n} \\times ${c.b}^${c.n}\\) = ?`;return;}
+    okI(g('ipwV'));markOk(`🏆 ${pwTex(c)} = ${c.ans}`);
+  } else if(c.type==='quotab'){
+    const vN=parseInt(g('ipwN').value),vD=parseInt(g('ipwD').value);let ok=true;
+    if(isNaN(vN)||vN!==c.ansN){errI(g('ipwN'));ok=false;}else okI(g('ipwN'));
+    if(isNaN(vD)||vD!==c.ansD){errI(g('ipwD'));ok=false;}else okI(g('ipwD'));
+    if(!ok){fb.className='fb ko';fb.innerHTML=`❌ \\(${c.a}^${c.n}=?\\) et \\(${c.b}^${c.n}=?\\)`;return;}
+    markOk(`🏆 ${pwTex(c)} = \\(\\dfrac{${c.ansN}}{${c.ansD}}\\)`);
+  } else if(c.type==='neg'){
+    const v=parseInt(g('ipwD').value);
+    if(isNaN(v)||v!==c.ansD){errI(g('ipwD'));fb.className='fb ko';fb.innerHTML=`❌ \\(${c.a}^${c.n}=?\\)`;return;}
+    okI(g('ipwD'));markOk(`🏆 \\(${c.a}^{-${c.n}} = \\dfrac{1}{${c.ansD}}\\)`);
+  } else if(c.type==='sign'){
+    const v1=parseInt(g('ipwS1').value),v2=parseInt(g('ipwS2').value);let ok=true;
+    if(isNaN(v1)||v1!==c.ans1){errI(g('ipwS1'));ok=false;}else okI(g('ipwS1'));
+    if(isNaN(v2)||v2!==c.ans2){errI(g('ipwS2'));ok=false;}else okI(g('ipwS2'));
+    if(!ok){fb.className='fb ko';fb.innerHTML=`❌ Rappel : les parenthèses font toute la différence.`;return;}
+    markOk(`🏆 \\((-${c.base})^2 = ${c.ans1}\\) mais \\(-${c.base}^2 = ${c.ans2}\\)`);
+  }
+}
+
+// ═══════════════════════════════════════
+// MODULE 4 — RACINES CARRÉES
+// ═══════════════════════════════════════
+
+// Banque pédagogique : nombres petits et accessibles
+var RC_SIMP=[8,12,18,20,24,27,28,32,45,48,50,52,63,72,75,80,98];
+var RC_PROD=[[2,8],[3,12],[4,9],[2,18],[3,27],[5,20],[2,32],[3,75],[5,45],[7,28]];
+const SQ_LIST=[4,9,16,25,36,49,64,81,100,121,144];
+
+var rc={};
+
+function loadRc(){
+  if(Math.random()<0.7){
+    const N=rv(RC_SIMP);
+    const bestSq=largestSqDiv(N);
+    const sqrtBest=Math.round(Math.sqrt(bestSq));
+    const rem=N/bestSq;
+    const{k,m}=simplifySqrt(N);
+    rc={sub:'simp',N,bestSq,sqrtBest,rem,k,m};
+    renderRcSimp(0);
+  } else {
+    const[pa,pb]=rv(RC_PROD);
+    rc={sub:'prod',pa,pb,prod:pa*pb,ans:Math.round(Math.sqrt(pa*pb))};
+    renderRcProd();
+  }
+}
+
+// ── Bouton "Carrés parfaits" ─────────────────────────────────────────────
+function sqTooltip(){
+  return `<button class="sq-tip" onclick="this.classList.toggle('sq-open')" type="button">
+    <span class="sq-tip-label">📋 Carrés parfaits</span>
+    <span class="sq-tip-box">
+      <span class="sq-tip-title">Les carrés parfaits :</span>
+      4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144
+    </span>
+  </button>`;
+}
+
+// ── Radical : symbole √ HTML + barre supérieure autour du contenu ─────────
+function rcWrap(innerHtml){
+  return `<span style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;">
+    <span style="font-size:1.55em;font-family:'Libre Baskerville',serif;color:var(--ink);
+      display:flex;align-items:flex-end;padding-bottom:1px;line-height:1;margin-right:-1px;">√</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;
+      border-top:2.5px solid var(--ink);padding:3px 7px 2px 5px;">${innerHtml}</span>
+  </span>`;
+}
+// Alias
+function rcInpRaw(id,w){return rcInp_rc(id,w);}
+function rcSvgWrap(inner){return rcWrap(inner);}
+
+function rcInp_rc(id,w){
+  return `<input id="${id}" type="number" inputmode="numeric" placeholder="□" class="rcinp"
+    style="width:${w||44}px;">`;
+}
+
+function renderRcSimp(st){
+  const c=rc;
+  const LS='display:flex;align-items:center;gap:10px;font-family:"Libre Baskerville",serif;font-size:1.25em;margin:12px 0 12px 6px;flex-wrap:wrap;';
+  const IND='margin-left:2.6em;';
+  const sqN=mSqrt(`<b>${c.N}</b>`);
+  const sqFact=mSqrt(`<b>${c.bestSq}</b>${mX}<b>${c.rem}</b>`);
+  const sqA=mSqrt(`<b>${c.bestSq}</b>`);
+  const sqB=mSqrt(`<b>${c.rem}</b>`);
+  let h=`<div class="qbox">
+    <div class="stitle" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <span>Simplifier ${sqN}</span>${sqTooltip()}
+    </div>`;
+
+  if(st===0){
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin:10px 0 8px;line-height:1.6;">
+      Écris ${c.N} comme le produit d'un <b>carré parfait</b> et d'un autre nombre, puis complète :
+    </p>`;
+    const inner=rcInp_rc('rc_sq',46)+mX+rcInp_rc('rc_rm',46);
+    h+=`<div style="${LS}">${sqN} ${mEq} ${mSqrt(inner)}</div>`;
+    h+=`<div class="row"><button class="btn bi" onclick="valRcLine1()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_rc0"></div>`;
+
+  }else if(st===1){
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin:10px 0 8px;line-height:1.6;">
+      Utilise ${mSqrt('a'+mX+'b')+mEq+mSqrt('a')+mX+mSqrt('b')} : sépare la racine en deux.
+    </p>`;
+    h+=`<div style="${LS}">${sqN} ${mEq} ${sqFact}</div>`;
+    h+=`<div style="${LS}"><span style="${IND}">${mEq}</span>${mSqrt(rcInp_rc('rc_a2',46))}${mX}${mSqrt(rcInp_rc('rc_b2',46))}</div>`;
+    h+=`<div class="row"><button class="btn bi" onclick="valRcLine2()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_rc1"></div>`;
+
+  }else{
+    h+=`<p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin:10px 0 8px;line-height:1.6;">
+      ${sqA} = <b>${c.sqrtBest}</b> car ${c.sqrtBest}² = ${c.bestSq}. Écris la forme simplifiée :
+    </p>`;
+    h+=`<div style="${LS}">${sqN} ${mEq} ${sqFact}</div>`;
+    h+=`<div style="${LS}"><span style="${IND}">${mEq}</span>${sqA} ${mX} ${sqB}</div>`;
+    h+=`<div style="${LS}"><span style="${IND}">${mEq}</span><input id="rc_k" type="number" inputmode="numeric" placeholder="□" class="rcinp inp" style="width:46px;">${mX}${mSqrt(rcInp_rc('rc_m',46))}</div>`;
+    h+=`<div class="row"><button class="btn bi" onclick="valRcLine3()">✓ Valider</button></div>`;
+    h+=`<div class="fb" id="fb_rc2"></div>`;
+  }
+  h+=`</div>`;
+  g('exContent').innerHTML=h;
+  if(st===0){
+    const sq=g('rc_sq'),rm=g('rc_rm');
+    sq.addEventListener('keydown',e=>{if(e.key==='Enter')rm.focus();});
+    rm.addEventListener('keydown',e=>{if(e.key==='Enter')valRcLine1();});
+    setTimeout(()=>sq.focus(),80);
+  }else if(st===1){
+    const a=g('rc_a2'),b=g('rc_b2');
+    a.addEventListener('keydown',e=>{if(e.key==='Enter')b.focus();});
+    b.addEventListener('keydown',e=>{if(e.key==='Enter')valRcLine2();});
+    setTimeout(()=>a.focus(),80);
+  }else{
+    const k=g('rc_k'),m=g('rc_m');
+    k.addEventListener('keydown',e=>{if(e.key==='Enter')m.focus();});
+    m.addEventListener('keydown',e=>{if(e.key==='Enter')valRcLine3();});
+    setTimeout(()=>k.focus(),80);
+  }
+}
+function rcEI(el){
+  if(!el)return;
+  // Pour les .rcinp (dans SVG radical), utiliser classList
+  if(el.classList.contains('rcinp')){
+    el.classList.remove('ok');el.classList.add('ko');
+    setTimeout(()=>el.classList.remove('ko'),650);
+  } else {
+    el.style.borderColor='var(--red)';el.style.background='var(--redp)';
+    setTimeout(()=>{el.style.borderColor='';el.style.background='';},650);
+  }
+}
+function rcOI(el){
+  if(!el)return;
+  if(el.classList.contains('rcinp')){
+    el.classList.remove('ko');el.classList.add('ok');el.disabled=true;
+  } else {
+    el.style.borderStyle='solid';el.style.borderColor='var(--grn)';
+    el.style.background='var(--grnp)';el.style.color='var(--grn)';el.disabled=true;
+  }
+}
+
+function valRcLine1(){
+  const sq=parseInt(g('rc_sq').value),rm=parseInt(g('rc_rm').value);const fb=g('fb_rc0');
+  if(isNaN(sq)||isNaN(rm)||sq<1||rm<1){rcEI(g('rc_sq'));rcEI(g('rc_rm'));fb.className='fb ko';fb.innerHTML='❌ Entre deux entiers positifs.';return;}
+  if(sq*rm!==rc.N){rcEI(g('rc_sq'));rcEI(g('rc_rm'));fb.className='fb ko';fb.innerHTML=`❌ ${sq}×${rm}=${sq*rm}≠${rc.N}.`;return;}
+  if(!SQ_LIST.includes(sq)&&sq!==1){rcEI(g('rc_sq'));fb.className='fb ko';fb.innerHTML=`❌ ${sq} n'est pas un carré parfait (4, 9, 16, 25, 36, 49…).`;return;}
+  if(sq!==rc.bestSq){fb.className='fb warn';fb.innerHTML=`🟡 ${sq} est un carré parfait qui divise ${rc.N}, mais pas le plus grand. Essaie un plus grand !`;rcEI(g('rc_sq'));return;}
+  rcOI(g('rc_sq'));rcOI(g('rc_rm'));fb.className='fb ok';fb.innerHTML=`✅ \\(${rc.N} = ${rc.bestSq} \\times ${rc.rem}\\)`;renderRcSimp(1);
+}
+function valRcLine2(){
+  const a=parseInt(g('rc_a2').value),b=parseInt(g('rc_b2').value);const fb=g('fb_rc1');
+  let ok=true;
+  if(a!==rc.bestSq){rcEI(g('rc_a2'));ok=false;}else rcOI(g('rc_a2'));
+  if(b!==rc.rem){rcEI(g('rc_b2'));ok=false;}else rcOI(g('rc_b2'));
+  if(!ok){fb.className='fb ko';fb.innerHTML=`❌ Pas tout à fait.`;return;}
+  fb.className='fb ok';fb.innerHTML=`✅`;renderRcSimp(2);
+}
+function valRcLine3(){
+  const k=parseInt(g('rc_k').value),m=parseInt(g('rc_m').value);const fb=g('fb_rc2');
+  if(isNaN(k)||isNaN(m)||k<=0||m<=0){rcEI(g('rc_k'));rcEI(g('rc_m'));fb.className='fb ko';fb.innerHTML='❌ Entre deux entiers positifs.';return;}
+  if(k*k*m!==rc.N){rcEI(g('rc_k'));rcEI(g('rc_m'));fb.className='fb ko';fb.innerHTML=`❌ \\(${k}²×${m}=${k*k*m}\\neq${rc.N}\\)`;return;}
+  if(!isSquareFree(m)){rcEI(g('rc_k'));rcEI(g('rc_m'));fb.className='fb ko';fb.innerHTML=`❌ \\(\\sqrt{${m}}\\) peut encore se simplifier.`;return;}
+  rcOI(g('rc_k'));rcOI(g('rc_m'));
+  markOk(`🏆 \\(\\sqrt{${rc.N}} = ${rc.k}\\sqrt{${rc.m}}\\)`);
+}
+
+function renderRcProd(){
+  const c=rc;
+  const LS='display:flex;align-items:center;gap:10px;font-family:"Libre Baskerville",serif;font-size:1.25em;margin:12px 0 12px 6px;';
+  const IND='margin-left:2.6em;';
+  const spA=mSqrt(`<b>${c.pa}</b>`), spB=mSqrt(`<b>${c.pb}</b>`);
+  g('exContent').innerHTML=`<div class="qbox">
+    <div class="stitle">Calculer ${spA} × ${spB}</div>
+    <p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin:10px 0 8px;line-height:1.6;">
+      Utilise ${spA}${mX}${spB}${mEq}${mSqrt(c.pa+' × '+c.pb)}, puis calcule la racine.
+    </p>
+    <div style="${LS}">${spA} ${mX} ${spB} ${mEq} ${mSqrt(rcInp_rc('rc_prod',48))}</div>
+    <div style="${LS}"><span style="${IND}">${mEq}</span><input id="rc_ans" type="number" inputmode="numeric" placeholder="□" class="rcinp inp" style="width:52px;font-family:'Patrick Hand',cursive;font-size:1em;font-weight:700;text-align:center;border:2px dashed var(--lb);border-radius:7px;background:rgba(255,255,255,.9);padding:2px;outline:none;color:var(--ink);min-height:32px;"></div>
+    <div class="row"><button class="btn bi" onclick="valRcProd()">✓ Valider</button></div>
+    <div class="fb" id="fb_rcp"></div>
+  </div>`;
+  const rp=g('rc_prod'),ra=g('rc_ans');
+  rp.addEventListener('keydown',e=>{if(e.key==='Enter')ra.focus();});
+  ra.addEventListener('keydown',e=>{if(e.key==='Enter')valRcProd();});
+  setTimeout(()=>rp.focus(),80);
+}
+function valRcProd(){
+  const vP=parseInt(g('rc_prod').value),vA=parseInt(g('rc_ans').value);const fb=g('fb_rcp');
+  function sErrI(el){el.style.borderColor='var(--red)';el.style.background='var(--redp)';setTimeout(()=>{el.style.borderColor='';el.style.background='';},600);}
+  function sOkI(el){el.style.borderStyle='solid';el.style.borderColor='var(--grn)';el.style.background='var(--grnp)';el.style.color='var(--grn)';el.disabled=true;}
+  let ok=true;
+  if(isNaN(vP)||vP!==rc.prod){sErrI(g('rc_prod'));ok=false;}else sOkI(g('rc_prod'));
+  if(isNaN(vA)||vA!==rc.ans){sErrI(g('rc_ans'));ok=false;}else sOkI(g('rc_ans'));
+  if(!ok){fb.className='fb ko';fb.innerHTML=`❌ ${rc.pa}×${rc.pb}=? puis quel entier au carré donne ce résultat ?`;return;}
+  markOk(`🏆 \\(\\sqrt{${rc.pa}} \\times \\sqrt{${rc.pb}} = \\sqrt{${rc.prod}} = ${rc.ans}\\)`);
+}
+</script>
+<script>
+// ═══════════════════════════════════════
+// MODULE 5 — DÉCOMPOSITION & SIMPLIFICATION
+// - Tableau de décomposition style leçon (bien affiché)
+// - Tout reste visible pendant toute la séquence
+// - Simplification : surligner en vert les facteurs non communs → réécrire
+// - PAS de mention "diviser par le PGCD"
+// ═══════════════════════════════════════
+const DC_PAIRS=[
+  [8,12],[12,18],[6,9],[16,24],[10,15],[14,21],[9,12],[20,30],[10,4],[18,24],
+  [21,28],[15,20],[8,6],[12,16],[9,15],[36,60],[60,84],[45,75],[84,126],
+  [56,84],[48,72],[63,105],[54,90],[70,98],[45,60],[75,100],[44,66],[36,48],
+  [64,96],[84,126],[180,252],[126,210],[168,252],[126,168],[132,198],[91,143],
+  [275,385],[204,306],[228,342],[315,441]
+];
+
+var dc={}, dcDS=[], dcP={};
+
+function loadDc(){
+  const[a,b]=rv(DC_PAIRS);
+  dc={a,b};
+  dcDS=[
+    {target:a,primes:primeFactors(a),steps:[],current:a,done:false,eq:null},
+    {target:b,primes:primeFactors(b),steps:[],current:b,done:false,eq:null}
+  ];
+  dcP={};
+  renderDc();
+}
+
+// ── Rendu principal — tout reste affiché ──
+function renderDc(){
+  const{a,b}=dc;
+  let h=`<div class="qbox" id="dc_main">
+    <div class="stitle">Simplifier \\(\\dfrac{${a}}{${b}}\\)</div>
+    <p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin-bottom:10px;">
+      <b>Étape 1</b> — Décompose chaque nombre en produit de facteurs premiers.
+      Pour chaque ligne : écris le diviseur premier à droite, le résultat à gauche en dessous.
+    </p>`;
+
+  // Les deux tableaux côte à côte
+  h+=`<div class="dc-wrap">`;
+  h+=dcPanelHtml(0);
+  h+=dcPanelHtml(1);
+  h+=`</div>`;
+
+  // Zone B : facteurs communs (cachée initialement)
+  h+=`<div id="dcZB" style="display:none;">
+    <hr style="border:none;border-top:1px solid var(--lb);margin:12px 0;">
+    <!-- récapitulatif toujours visible -->
+    <div class="dc-summary" id="dc_summ">
+      <h3>Décompositions :</h3>
+      <div class="dc-sum-row" id="dc_sumrow"></div>
+    </div>
+    <p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin-bottom:8px;">
+      <b>Étape 2</b> — Clique sur les facteurs premiers <b style="color:var(--red)">communs aux deux</b> pour les surligner en rouge.
+    </p>
+    <div style="margin:8px 0;">
+      <div style="font-size:.82em;color:var(--pc);margin-bottom:3px;">${a} = </div>
+      <div class="frow" id="fc_A"></div>
+      <div style="font-size:.82em;color:var(--pc);margin-top:7px;margin-bottom:3px;">${b} = </div>
+      <div class="frow" id="fc_B"></div>
+    </div>
+    <div class="row"><button class="btn br" onclick="valDcCommon()">✓ Valider le surlignage rouge</button></div>
+    <div class="fb" id="fb_dcB"></div>
+  </div>`;
+
+  // Zone C : simplification (cachée initialement)
+  h+=`<div id="dcZC" style="display:none;">
+    <hr style="border:none;border-top:1px solid var(--lb);margin:12px 0;">
+    <p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin-bottom:8px;">
+      <b>Étape 3</b> — Clique sur les facteurs <b style="color:var(--grn)">non communs</b> (ceux qui ne sont pas en rouge) pour les surligner en vert.
+    </p>
+    <div style="margin:8px 0;">
+      <div style="font-size:.82em;color:var(--pc);margin-bottom:3px;">${a} = </div>
+      <div class="frow" id="fc_A2"></div>
+      <div style="font-size:.82em;color:var(--pc);margin-top:7px;margin-bottom:3px;">${b} = </div>
+      <div class="frow" id="fc_B2"></div>
+    </div>
+    <div class="row"><button class="btn bg" onclick="valDcGreen()">✓ Valider le surlignage vert</button></div>
+    <div class="fb" id="fb_dcG"></div>
+    <div id="dcZFrac" style="display:none;margin-top:12px;">
+      <p style="font-family:'Libre Baskerville',serif;font-size:.88em;color:var(--ink);margin-bottom:8px;">
+        Recopie les facteurs verts pour écrire la fraction simplifiée :
+      </p>
+      <div style="text-align:center;margin:12px 0;font-size:1.25em;">
+        \\(\\dfrac{${a}}{${b}}\\) = <span class="fi"><input class="inp" id="dc_fN" type="number" inputmode="numeric" placeholder="?"><div class="bar"></div><input class="inp" id="dc_fD" type="number" inputmode="numeric" placeholder="?"></span>
+      </div>
+      <div class="row"><button class="btn bg" onclick="valDcFrac()">✓ Valider</button></div>
+      <div class="fb" id="fb_dcF"></div>
+    </div>
+  </div>`;
+
+  h+=`</div>`;
+  g('exContent').innerHTML=h;
+  reK();
+  dcBuildTable(0);
+  dcBuildTable(1);
+}
+
+function dcPanelHtml(idx){
+  const ds=dcDS[idx];
+  const lbl=idx===0?`Numérateur (${ds.target})`:`Dénominateur (${ds.target})`;
+  return `<div class="dc-panel">
+    <div class="dc-lbl">${lbl}</div>
+    <div class="dc-tbl">
+      <div class="dc-left" id="dcL${idx}"></div>
+      <div class="dc-right" id="dcR${idx}"></div>
+    </div>
+    <div class="dc-sfb" id="dcSfb${idx}"></div>
+    <div class="eq-sec" id="dcEq${idx}">
+      <p style="font-size:.8em;color:var(--pc);margin-bottom:5px;">Écris l'égalité (l'ordre n'a pas d'importance) :</p>
+      <div class="eq-row" id="dcEqRow${idx}"></div>
+      <div class="row" style="margin-top:7px;">
+        <button class="btn bg" style="padding:6px 14px;font-size:.85em;min-height:34px;" id="dcEqBtn${idx}" onclick="valDcEq(${idx})">✓ Valider</button>
+      </div>
+      <div class="fb" id="dcEqFb${idx}"></div>
+    </div>
+  </div>`;
+}
+
+function dcBuildTable(idx){
+  const ds=dcDS[idx];
+  const L=g('dcL'+idx), R=g('dcR'+idx);
+  L.innerHTML=''; R.innerHTML='';
+
+  // Lignes déjà validées
+  ds.steps.forEach((s,i)=>{
+    const ls=document.createElement('span');
+    ls.className=i===0?'dc-given':'dc-quo';
+    ls.textContent=s.number;
+    L.appendChild(ls);
+    const rs=document.createElement('span');
+    rs.textContent=s.prime;
+    R.appendChild(rs);
+  });
+
+  if(ds.current!==1){
+    // Nombre courant (à gauche) + input diviseur premier (à droite)
+    const lcur=document.createElement('span');
+    lcur.className=ds.steps.length===0?'dc-given':'dc-quo';
+    lcur.textContent=ds.current;
+    L.appendChild(lcur);
+
+    const pInp=document.createElement('input');
+    pInp.type='number'; pInp.className='decomp-input dc-pinp'; pInp.id='dcp'+idx;
+    pInp.placeholder='÷?'; pInp.inputMode='numeric'; pInp.min='2';
+    // style inline pour hériter du tableau
+    pInp.style.cssText='width:48px;font-family:Patrick Hand,cursive;font-size:.88em;text-align:center;border:2px dashed var(--lb);border-radius:7px;background:rgba(255,255,255,.85);padding:3px;outline:none;color:var(--red);min-height:34px;touch-action:manipulation;';
+    R.appendChild(pInp);
+
+    // Quotient (à gauche ligne suivante)
+    const qInp=document.createElement('input');
+    qInp.type='number'; qInp.className='decomp-input dc-qinp'; qInp.id='dcq'+idx;
+    qInp.placeholder='=?'; qInp.inputMode='numeric'; qInp.min='1';
+    qInp.style.cssText='width:48px;font-family:Patrick Hand,cursive;font-size:.88em;text-align:center;border:2px dashed var(--lb);border-radius:7px;background:rgba(255,255,255,.85);padding:3px;outline:none;color:var(--ink);min-height:34px;touch-action:manipulation;';
+    L.appendChild(qInp);
+    R.appendChild(document.createElement('span')); // vide
+
+    pInp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();qInp.focus();}
+    });
+    qInp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();valDcStep(idx);}
+    });
+    if(!ds.done) setTimeout(()=>{ if(!dcDS[1-idx].done||idx===0) pInp.focus(); },60);
+  } else {
+    // Ligne finale "1"
+    const le=document.createElement('span'); le.className='dc-one'; le.textContent='1';
+    L.appendChild(le);
+    R.appendChild(document.createElement('span'));
+    // Construire zone égalité
+    dcBuildEqRow(idx);
+    g('dcEq'+idx).classList.add('on');
+  }
+}
+
+function valDcStep(idx){
+  const ds=dcDS[idx];
+  const pEl=g('dcp'+idx), qEl=g('dcq'+idx);
+  if(!pEl||!qEl) return;
+  const p=parseInt(pEl.value), q=parseInt(qEl.value);
+  const sfb=g('dcSfb'+idx);
+  const errStyle='border-color:var(--red)!important;background:var(--redp)!important;';
+  const clrStyle='';
+
+  if(isNaN(p)||p<2){ pEl.style.cssText+=errStyle; sfb.innerHTML=`<span style="color:var(--red)">Entre un entier ≥ 2.</span>`; setTimeout(()=>pEl.style.cssText=pEl.style.cssText.replace(errStyle,''),600); pEl.focus(); return; }
+  if(!isPrime(p)){ pEl.style.cssText+=errStyle; sfb.innerHTML=`<span style="color:var(--red)">❌ ${p} n'est pas premier (divisible par ${smallF(p)}).</span>`; setTimeout(()=>pEl.style.cssText=pEl.style.cssText.replace(errStyle,''),600); pEl.focus(); return; }
+  if(ds.current%p!==0){ pEl.style.cssText+=errStyle; sfb.innerHTML=`<span style="color:var(--red)">❌ ${ds.current} n'est pas divisible par ${p}.</span>`; setTimeout(()=>pEl.style.cssText=pEl.style.cssText.replace(errStyle,''),600); pEl.focus(); return; }
+  const exp=ds.current/p;
+  if(isNaN(q)||q!==exp){ qEl.style.cssText+=errStyle; sfb.innerHTML=`<span style="color:var(--red)">❌ ${ds.current}÷${p}=${exp}, pas ${q}.</span>`; setTimeout(()=>qEl.style.cssText=qEl.style.cssText.replace(errStyle,''),600); qEl.focus(); return; }
+
+  sfb.innerHTML=`<span style="color:var(--grn)">✓ ${ds.current}÷${p}=${q}</span>`;
+  ds.steps.push({number:ds.current,prime:p,quotient:q});
+  ds.current=q;
+  sfb.innerHTML=''; dcBuildTable(idx); dcCheckBothDone();
+}
+
+function dcBuildEqRow(idx){
+  const ds=dcDS[idx];
+  const row=g('dcEqRow'+idx); row.innerHTML='';
+  const ns=document.createElement('span'); ns.className='eq-num'; ns.textContent=ds.target;
+  row.appendChild(ns);
+  const eq=document.createElement('span'); eq.className='eq-sep'; eq.textContent=' = ';
+  row.appendChild(eq);
+  ds.steps.forEach((s,i)=>{
+    if(i>0){ const x=document.createElement('span'); x.className='eq-sep'; x.textContent=' × '; row.appendChild(x); }
+    const inp=document.createElement('input');
+    inp.type='number'; inp.className='eq-inp'; inp.min='2'; inp.id=`dceq_${idx}_${i}`; inp.inputMode='numeric';
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const nx=g(`dceq_${idx}_${i+1}`); if(nx) nx.focus(); else valDcEq(idx); } });
+    row.appendChild(inp);
+  });
+  foc(`dceq_${idx}_0`,100);
+}
+
+function valDcEq(idx){
+  const ds=dcDS[idx];
+  const vals=[]; let hasErr=false;
+  ds.steps.forEach((_,i)=>{
+    const el=g(`dceq_${idx}_${i}`); el.classList.remove('ok','ko');
+    const v=parseInt(el.value);
+    if(isNaN(v)||v<2){ el.classList.add('ko'); hasErr=true; } else vals.push(v);
+  });
+  const fb=g('dcEqFb'+idx);
+  if(hasErr){ fb.className='fb ko'; fb.innerHTML='❌ Remplis tous les facteurs.'; return; }
+  // Ordre indifférent
+  const correct=[...ds.steps.map(s=>s.prime)].sort((a,b)=>a-b);
+  const user=[...vals].sort((a,b)=>a-b);
+  if(!user.every((v,i)=>v===correct[i])){
+    ds.steps.forEach((_,i)=>g(`dceq_${idx}_${i}`)?.classList.add('ko'));
+    fb.className='fb ko'; fb.innerHTML=`❌ Facteurs : ${correct.join(' × ')}. L'ordre n'a pas d'importance.`;
+    return;
+  }
+  ds.steps.forEach((_,i)=>{ const el=g(`dceq_${idx}_${i}`); if(el){ el.classList.add('ok'); el.disabled=true; } });
+  g('dcEqBtn'+idx).style.display='none';
+  ds.done=true; ds.eq=correct;
+  fb.className='fb ok'; fb.innerHTML=`✅ ${ds.target} = ${correct.join(' × ')}`;
+  dcCheckBothDone();
+}
+
+function dcCheckBothDone(){
+  if(dcDS[0].done && dcDS[1].done) dcShowB();
+}
+
+function dcShowB(){
+  const fa=dcDS[0].eq, fb=dcDS[1].eq;
+  // Récap
+  g('dc_sumrow').innerHTML=`<div style="margin-right:16px;"><b style="color:var(--grn)">${dc.a}</b> = ${fa.join(' × ')}</div><div><b style="color:var(--grn)">${dc.b}</b> = ${fb.join(' × ')}</div>`;
+  // Construire chips cliquables
+  function buildChips(factors, side, id){
+    const row=g(id); row.innerHTML='';
+    factors.forEach((f,i)=>{
+      const c=document.createElement('span'); c.className='fchip';
+      c.textContent=f; c.id=`fch_${side}_${i}`; c.dataset.v=f;
+      c.onclick=()=>{ if(!c.classList.contains('locked')) c.classList.toggle('red'); };
+      row.appendChild(c);
+      if(i<factors.length-1){ const s=document.createElement('span'); s.className='fsep'; s.textContent='×'; row.appendChild(s); }
+    });
+  }
+  buildChips(fa,'A','fc_A'); buildChips(fb,'B','fc_B');
+  dcP.fa=fa; dcP.fb=fb;
+  g('dcZB').style.display='block'; reK();
+}
+
+function valDcCommon(){
+  const{fa,fb}=dcP;
+  const selA=fa.filter((_,i)=>g(`fch_A_${i}`)?.classList.contains('red'));
+  const selB=fb.filter((_,i)=>g(`fch_B_${i}`)?.classList.contains('red'));
+  const common=multiInter(fa,fb);
+  const sA=[...selA].sort((a,b)=>a-b), sB=[...selB].sort((a,b)=>a-b), sc=[...common].sort((a,b)=>a-b);
+  const fbEl=g('fb_dcB');
+  if(JSON.stringify(sA)!==JSON.stringify(sc)||JSON.stringify(sB)!==JSON.stringify(sc)){
+    fbEl.className='fb ko'; fbEl.innerHTML='❌ Surligne exactement les facteurs qui apparaissent dans les deux listes (même nombre de fois).'; return;
+  }
+  fa.forEach((_,i)=>g(`fch_A_${i}`)?.classList.add('locked'));
+  fb.forEach((_,i)=>g(`fch_B_${i}`)?.classList.add('locked'));
+  dcP.common=common;
+  const remA=multiMinus(fa,common), remB=multiMinus(fb,common);
+  dcP.remA=remA; dcP.remB=remB;
+  dcP.remAval=remA.reduce((a,x)=>a*x,1)||1;
+  dcP.remBval=remB.reduce((a,x)=>a*x,1)||1;
+
+  if(common.length===0){
+    fbEl.className='fb ok'; fbEl.innerHTML=`✅ Aucun facteur commun : la fraction \\(\\dfrac{${dc.a}}{${dc.b}}\\) est déjà irréductible.`;
+    reK(); dcShowC(); return;
+  }
+  fbEl.className='fb ok'; fbEl.innerHTML=`✅ Facteurs communs : ${common.join(' × ')}`;
+  reK(); dcShowC();
+}
+
+function dcShowC(){
+  const{fa,fb,common}=dcP;
+  // Construire chips pour zone C (rouge = communs verrouillés, autres = cliquables en vert)
+  function buildChips2(factors, side, id){
+    const row=g(id); row.innerHTML='';
+    const usedC=[...common];
+    factors.forEach((f,i)=>{
+      const isCommon=usedC.indexOf(f)!==-1;
+      if(isCommon) usedC.splice(usedC.indexOf(f),1);
+      const c=document.createElement('span');
+      c.textContent=f; c.id=`fch2_${side}_${i}`;
+      if(isCommon){
+        c.className='fchip red locked';
+      } else {
+        c.className='fchip';
+        c.onclick=()=>{ if(!c.classList.contains('locked')) c.classList.toggle('grn'); };
+      }
+      row.appendChild(c);
+      if(i<factors.length-1){ const s=document.createElement('span'); s.className='fsep'; s.textContent='×'; row.appendChild(s); }
+    });
+  }
+  buildChips2(fa,'A','fc_A2'); buildChips2(fb,'B','fc_B2');
+  g('dcZC').style.display='block'; reK();
+}
+
+function valDcGreen(){
+  const{fa,fb,common,remA,remB}=dcP;
+  function getGreen(factors, side){
+    const usedC=[...common];
+    return factors.filter((f,i)=>{
+      const ci=usedC.indexOf(f);
+      if(ci!==-1){ usedC.splice(ci,1); return false; }
+      return g(`fch2_${side}_${i}`)?.classList.contains('grn');
+    });
+  }
+  const selGA=[...getGreen(fa,'A')].sort((a,b)=>a-b);
+  const selGB=[...getGreen(fb,'B')].sort((a,b)=>a-b);
+  const sRA=[...remA].sort((a,b)=>a-b);
+  const sRB=[...remB].sort((a,b)=>a-b);
+  const fbEl=g('fb_dcG');
+  if(JSON.stringify(selGA)!==JSON.stringify(sRA)||JSON.stringify(selGB)!==JSON.stringify(sRB)){
+    fbEl.className='fb ko'; fbEl.innerHTML='❌ Surligne en vert exactement les facteurs qui ne sont pas en rouge.'; return;
+  }
+  fa.forEach((_,i)=>g(`fch2_A_${i}`)?.classList.add('locked'));
+  fb.forEach((_,i)=>g(`fch2_B_${i}`)?.classList.add('locked'));
+  fbEl.className='fb ok'; fbEl.innerHTML=`✅`;
+  g('dcZFrac').style.display='block';
+  g('dc_fN').addEventListener('keydown',e=>{ if(e.key==='Enter') foc('dc_fD'); });
+  g('dc_fD').addEventListener('keydown',e=>{ if(e.key==='Enter') valDcFrac(); });
+  foc('dc_fN',150); reK();
+}
+
+function valDcFrac(){
+  const uN=parseInt(g('dc_fN').value), uD=parseInt(g('dc_fD').value);
+  const fbEl=g('fb_dcF');
+  if(isNaN(uN)||isNaN(uD)||uD<=0){ errI(g('dc_fN')); errI(g('dc_fD')); fbEl.className='fb ko'; fbEl.innerHTML='❌ Saisis numérateur et dénominateur.'; return; }
+  if(uN!==dcP.remAval||uD!==dcP.remBval){ errI(g('dc_fN')); errI(g('dc_fD')); fbEl.className='fb ko'; fbEl.innerHTML=`❌ Ce n'est pas le bon résultat.`; return; }
+  if(gcd(uN,uD)!==1){ const d=gcd(uN,uD); errI(g('dc_fN')); errI(g('dc_fD')); fbEl.className='fb ko'; fbEl.innerHTML=`❌ ${uN} et ${uD} ont encore ${d} en commun.`; return; }
+  okI(g('dc_fN')); okI(g('dc_fD'));
+  markOk(`🏆 \\(\\dfrac{${dc.a}}{${dc.b}} = \\dfrac{${dcP.remAval}}{${dcP.remBval}}\\) (irréductible ✓)`);
+}
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

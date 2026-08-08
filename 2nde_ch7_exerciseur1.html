@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Information chiffrée — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-light: #8b5fc8;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --orange-border: rgba(184, 92, 11, 0.25);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #0c1624 0%, #162236 45%, #1c3358 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--blue), var(--purple), var(--green));
+}
+
+.app-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-title::before { content: '📊'; font-size: 1.15em; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue), var(--purple)); border-radius: 6px; transition: width 0.4s; }
+
+/* ── CONTEXT CARD ── */
+.ctx-card {
+    background: linear-gradient(135deg, #f5f9ff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.93em;
+    line-height: 1.7;
+}
+
+.ctx-card .ctx-label {
+    font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); margin-bottom: 6px; display: block;
+}
+
+/* ── FORMULA REMINDER ── */
+.formula-remind {
+    background: var(--gold-pale);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.84em;
+    color: #7a5800;
+    margin: 0 0 18px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+/* ── QUESTION BLOCK ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ── INPUT FIELD ── */
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.answer-unit {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text-light);
+}
+
+.answer-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+
+.answer-input.wide { width: 220px; }
+.answer-input.narrow { width: 110px; }
+
+/* ── MULTI-INPUT ROW ── */
+.row-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.row-label {
+    font-size: 0.85em; font-weight: 600; color: var(--text-light);
+}
+
+/* ── CHOICE BUTTONS ── */
+.choice-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.choice-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.choice-btn:hover { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── CALCULATOR ── */
+.calc-wrap {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+    max-width: 320px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.calc-display {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-family: 'DM Sans', monospace;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #7dd3fc;
+    text-align: right;
+    min-height: 52px;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+.calc-expr {
+    font-size: 0.55em;
+    color: #475569;
+    text-align: right;
+    min-height: 18px;
+    margin-bottom: 4px;
+    font-family: 'DM Sans', monospace;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.calc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    padding: 12px 6px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 46px;
+}
+
+.calc-btn:active { transform: scale(0.93); }
+
+.calc-num { background: #334155; color: #f1f5f9; }
+.calc-num:hover { background: #475569; }
+.calc-op { background: #1a6fa0; color: #fff; }
+.calc-op:hover { background: #2d8dc7; }
+.calc-eq { background: #1b7a40; color: #fff; }
+.calc-eq:hover { filter: brightness(1.1); }
+.calc-clear { background: #7f1d1d; color: #fecaca; }
+.calc-clear:hover { background: #991b1b; }
+.calc-back { background: #4c1d95; color: #ddd6fe; }
+.calc-back:hover { background: #5b21b6; }
+.calc-zero { grid-column: span 2; }
+.calc-pct { background: #334155; color: #94a3b8; }
+.calc-pct:hover { background: #475569; }
+
+.calc-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+
+.calc-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+
+.calc-container { display: none; }
+.calc-container.visible { display: block; }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 500px; }
+
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-light);
+    text-align: center; width: 100%; margin-bottom: 8px;
+}
+
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── FEEDBACK ── */
+.fb {
+    margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.93em; text-align: center; display: none;
+    animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7;
+}
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 20px auto; border: 6px solid;
+}
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.05em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--blue),var(--blue));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,111,160,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(26,111,160,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 900px tablette ── */
+@media(max-width:900px){
+  .app { padding:0 12px; }
+  .main { padding:12px; }
+}
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-header-bar { flex-wrap:wrap; gap:4px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .mc-badge, .ex-badge { font-size:0.7rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn, .choice-grid .btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .screen { font-size:0.85rem; padding:10px; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind, .formula-box { font-size:0.85rem; padding:8px; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input, .ans-input { font-size:0.9rem; }
+  .answer-wrap, .row-inputs { flex-wrap:wrap; gap:6px; }
+  .pbar { height:6px; }
+  .mode-toggle, .mode-btn { font-size:0.8rem; }
+  .menu-btn { font-size:0.8rem; }
+  .ex-top { flex-wrap:wrap; gap:4px; }
+  .ex-score { font-size:0.8rem; }
+}
+/* ── overflow helpers ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Information chiffrée — Proportions &amp; Évolutions</div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Six exerciseurs pour maîtriser les proportions, les pourcentages et les évolutions.</p>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX
+   ========================================================== */
+const LEVELS = [
+    { id: 'ecritures',   icon: '🔢', title: 'Pourcentages et écritures décimales',    desc: 'Convertir entre %, écriture décimale et fraction', n: 10 },
+    { id: 'proprop',     icon: '🪆', title: 'Proportion de proportion',               desc: 'Calculer un pourcentage de pourcentage', n: 8, badge: 'Calculatrice' },
+    { id: 'variation',   icon: '📈', title: 'Variation absolue et taux d\'évolution', desc: 'Calculer la variation absolue et le taux d\'évolution', n: 8, badge: 'Calculatrice' },
+    { id: 'cm',          icon: '✖️', title: 'Coefficient multiplicateur',             desc: 'Écrire le CM depuis une hausse/baisse, et inversement', n: 10 },
+    { id: 'successives', icon: '🔗', title: 'Évolutions successives',                 desc: 'CM global = CM₁ × CM₂ × … Taux global', n: 8, badge: 'Calculatrice' },
+    { id: 'reciproque',  icon: '↩️', title: 'Évolution réciproque',                  desc: 'Trouver l\'évolution qui annule une autre', n: 8, badge: 'Calculatrice' },
+];
+
+let state = { levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false };
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/\u2212/g, '-').replace(/÷/g, '/');
+    if (s.includes('/')) {
+        const [n, d] = s.split('/').map(Number);
+        if (isNaN(n) || isNaN(d) || d === 0) return null;
+        return n / d;
+    }
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+function close(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
+
+function closeRel(a, b, eps = 1e-4) {
+    if (Math.abs(b) < 1e-10) return Math.abs(a) < eps;
+    return Math.abs((a - b) / b) < eps;
+}
+
+function round2(x) { return Math.round(x * 100) / 100; }
+function round4(x) { return Math.round(x * 10000) / 10000; }
+
+/* format number for display — avoids floating point noise */
+function fmt(x) {
+    const r = round2(x);
+    return r % 1 === 0 ? String(r) : String(r).replace('.', ',');
+}
+
+function fmtPct(x) {
+    // x is a decimal, display as percentage
+    const p = round2(x * 100);
+    return p % 1 === 0 ? p + '\u202f%' : String(p).replace('.', ',') + '\u202f%';
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+/* KaTeX auto-render — relancé après chaque rendu de question */
+function renderKatex(el) {
+    if (window.renderMathInElement) {
+        renderMathInElement(el || document.body, {
+            delimiters: [
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false
+        });
+    }
+}
+
+/* ==========================================================
+   MOTEUR GENERIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS = {};
+const CHECKERS = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex = 0;
+    state.score = 0;
+    state.total = lv.n;
+    state.questions = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked = false;
+    state.attempts = 0;
+    const lv = LEVELS.find(l => l.id === state.levelId);
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+    renderKatex(body);
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb = document.getElementById('fb');
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        renderKatex(fb);
+        if (result.advanceOnly) {
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1200);
+            // Cacher le Suivant provisoire (erreur précédente) s'il était visible
+            document.getElementById('btnNext').style.display = 'none';
+            return;
+        }
+        state.checked = true;
+        state.score++;
+        document.getElementById('btnCheck').style.display = 'none';
+        document.getElementById('btnNext').style.display = '';
+    } else {
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || 'Ce n\'est pas encore ça, réessaie.');
+        renderKatex(fb);
+        // Dès la première erreur, afficher Suivant à côté de Vérifier
+        document.getElementById('btnNext').style.display = '';
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none' && btnNext.offsetParent) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises ce thème.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+/* ==========================================================
+   CALCULATRICE INTÉGRÉE
+   ========================================================== */
+function calcHTML(id) {
+    return `
+    <button class="calc-toggle" id="calc-toggle-${id}" onclick="toggleCalc('${id}')">🔢 Afficher la calculatrice</button>
+    <div class="calc-container" id="calc-${id}">
+        <div class="calc-wrap">
+            <div class="calc-display" id="calc-disp-${id}">
+                <div class="calc-expr" id="calc-expr-${id}"></div>
+                <div id="calc-val-${id}">0</div>
+            </div>
+            <div class="calc-grid">
+                <button class="calc-btn calc-clear" onclick="cCalc('${id}','C')">C</button>
+                <button class="calc-btn calc-back"  onclick="cCalc('${id}','⌫')">⌫</button>
+                <button class="calc-btn calc-pct"   onclick="cCalc('${id}','%')">%</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','/')">÷</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','7')">7</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','8')">8</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','9')">9</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','×')">×</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','4')">4</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','5')">5</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','6')">6</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','-')">−</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','1')">1</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','2')">2</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','3')">3</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','+')">+</button>
+                <button class="calc-btn calc-num calc-zero" onclick="cCalc('${id}','0')">0</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}',',')">.</button>
+                <button class="calc-btn calc-eq"    onclick="cCalc('${id}','=')">＝</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+const calcState = {};
+
+function toggleCalc(id) {
+    const c = document.getElementById('calc-' + id);
+    const btn = document.getElementById('calc-toggle-' + id);
+    const visible = c.classList.toggle('visible');
+    btn.textContent = visible ? '🔢 Masquer la calculatrice' : '🔢 Afficher la calculatrice';
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+}
+
+function cCalc(id, key) {
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+    const s = calcState[id];
+    const disp = document.getElementById('calc-val-' + id);
+    const exprEl = document.getElementById('calc-expr-' + id);
+
+    if (key === 'C') { s.expr = ''; s.result = '0'; s.fresh = true; }
+    else if (key === '⌫') {
+        if (s.fresh) { s.expr = ''; s.result = '0'; s.fresh = false; return; }
+        s.expr = s.expr.slice(0, -1);
+        if (!s.expr) { s.result = '0'; }
+    }
+    else if (key === '=') {
+        try {
+            let e = s.expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,/g, '.');
+            // handle % : replace number% by number/100
+            e = e.replace(/(\d+(?:\.\d+)?)\s*%/g, '($1/100)');
+            const v = Function('"use strict"; return (' + e + ')')();
+            s.result = isFinite(v) ? String(round4(v)).replace('.', ',') : 'Erreur';
+            exprEl.textContent = s.expr + ' =';
+            s.expr = s.result.replace(',', '.');
+            s.fresh = true;
+        } catch { s.result = 'Erreur'; }
+    }
+    else if (['+', '-', '×', '÷'].includes(key)) {
+        if (s.fresh) { s.fresh = false; }
+        s.expr += key;
+        s.result = s.expr;
+    }
+    else if (key === '%') {
+        s.expr += '%';
+        s.result = s.expr;
+    }
+    else {
+        if (s.fresh) { s.expr = key; s.fresh = false; }
+        else s.expr += key;
+        s.result = s.expr;
+    }
+    disp.textContent = s.result;
+    if (!s.fresh) exprEl.textContent = s.expr;
+}
+
+/* ==========================================================
+   NIVEAU 1 : ÉCRITURES — Pourcentage ↔ Décimal ↔ Fraction
+   ========================================================== */
+GENERATORS.ecritures = function () {
+    // Pourcentages propres : entiers ou demi
+    const pcts = [5, 10, 12.5, 15, 20, 25, 30, 40, 45, 50, 60, 75, 80, 90];
+    const pct = pcts[rnd(0, pcts.length - 1)];
+    const dec = pct / 100;
+    // Deux seuls modes : % → décimal ou décimal → %
+    const mode = Math.random() < 0.5 ? 'pct2dec' : 'dec2pct';
+    return { mode, pct, dec };
+};
+
+RENDERERS.ecritures = function (q, box) {
+    // Rappel en LaTeX via KaTeX
+    const formula = `<div class="formula-remind">Rappel : \\(x\\,\\% = \\dfrac{x}{100}\\) en écriture décimale &nbsp;|&nbsp; décimal \\(\\times\\,100 = \\%\\)</div>`;
+
+    if (q.mode === 'pct2dec') {
+        const pctStr = String(q.pct).replace('.', ',');
+        box.innerHTML = `
+            ${formula}
+            <div class="q-prompt">Écris <strong>${pctStr}&nbsp;%</strong> sous forme décimale :</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input" id="ans" placeholder="0,…" inputmode="decimal">
+            </div>`;
+    } else {
+        const decStr = String(q.dec).replace('.', ',');
+        box.innerHTML = `
+            ${formula}
+            <div class="q-prompt">Écris <strong>${decStr}</strong> sous forme de pourcentage :</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input" id="ans" placeholder="…" inputmode="decimal">
+                <span class="answer-unit">%</span>
+            </div>`;
+    }
+    setTimeout(() => document.getElementById('ans')?.focus(), 50);
+};
+
+CHECKERS.ecritures = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const pctStr = String(q.pct).replace('.', ',');
+    const decStr = String(q.dec).replace('.', ',');
+
+    if (q.mode === 'pct2dec') {
+        const ok = v !== null && closeRel(v, q.dec, 0.005);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) return { ok: true, msg: `\\(${pctStr}\\,\\% = \\dfrac{${pctStr}}{100} = ${decStr}\\)` };
+        return { ok: false, msg: `On divise par 100 : \\(${pctStr}\\,\\% = \\dfrac{${pctStr}}{100} = ${decStr}\\)` };
+    } else {
+        const ok = v !== null && closeRel(v, q.pct, 0.5);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) return { ok: true, msg: `\\(${decStr} \\times 100 = ${pctStr}\\,\\%\\)` };
+        return { ok: false, msg: `On multiplie par 100 : \\(${decStr} \\times 100 = ${pctStr}\\,\\%\\)` };
+    }
+};
+
+/* ==========================================================
+   NIVEAU 2 : PROPORTION DE PROPORTION
+   ========================================================== */
+const CONTEXTS_PROPROP = [
+    (p1, p2) => ({ txt: `Dans un lycée, <strong>${fmt(p1*100)}&nbsp;%</strong> des élèves sont des filles. Parmi les filles, <strong>${fmt(p2*100)}&nbsp;%</strong> ont choisi l'option Sport. Quelle est la proportion d'élèves filles ayant choisi l'option Sport dans l'ensemble du lycée ?`, p1, p2 }),
+    (p1, p2) => ({ txt: `Une commune rurale représente <strong>${fmt(p1*100)}&nbsp;%</strong> de la population d'un département. <strong>${fmt(p2*100)}&nbsp;%</strong> de ses habitants sont des seniors. Quelle proportion les seniors de cette commune représentent-ils dans l'ensemble du département ?`, p1, p2 }),
+    (p1, p2) => ({ txt: `Dans une usine, <strong>${fmt(p1*100)}&nbsp;%</strong> de la production est vendue à l'export. Sur cette part exportée, <strong>${fmt(p2*100)}&nbsp;%</strong> part vers l'Asie. Quelle est la proportion de la production totale vendue en Asie ?`, p1, p2 }),
+    (p1, p2) => ({ txt: `Un sac contient des fruits. <strong>${fmt(p1*100)}&nbsp;%</strong> sont des pommes. Parmi les pommes, <strong>${fmt(p2*100)}&nbsp;%</strong> sont des pommes vertes. Quelle proportion les pommes vertes représentent-elles dans l'ensemble du sac ?`, p1, p2 }),
+    (p1, p2) => ({ txt: `Dans une ville, <strong>${fmt(p1*100)}&nbsp;%</strong> des habitations sont des appartements. <strong>${fmt(p2*100)}&nbsp;%</strong> des appartements ont une terrasse. Quelle est la proportion d'habitations avec terrasse dans la ville ?`, p1, p2 }),
+];
+
+GENERATORS.proprop = function () {
+    const pcts1 = [30, 40, 45, 50, 60, 75, 80];
+    const pcts2 = [10, 15, 20, 25, 30, 40, 50];
+    const p1 = pcts1[rnd(0, pcts1.length - 1)] / 100;
+    const p2 = pcts2[rnd(0, pcts2.length - 1)] / 100;
+    const ctx = CONTEXTS_PROPROP[rnd(0, CONTEXTS_PROPROP.length - 1)](p1, p2);
+    const result = round4(p1 * p2);
+    return { p1, p2, result, ctx };
+};
+
+RENDERERS.proprop = function (q, box) {
+    const resDec = round4(q.result);
+    const resPct = round2(resDec * 100);
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : proportion de proportion = <strong>p<sub>1</sub> × p<sub>2</sub></strong></div>
+        <div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx.txt}</div>
+        <div class="q-prompt">Donne la proportion cherchée (en écriture décimale ou en %) :</div>
+        <div class="answer-wrap">
+            <input type="text" class="answer-input" id="ans" placeholder="0,…" inputmode="decimal">
+        </div>
+        ${calcHTML('pp')}`;
+    setTimeout(() => document.getElementById('ans')?.focus(), 50);
+};
+
+CHECKERS.proprop = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    // Accept decimal (e.g. 0.15) or percentage (e.g. 15)
+    const asDecOk = v !== null && closeRel(v, q.result, 0.01);
+    const asPctOk  = v !== null && closeRel(v, q.result * 100, 0.5);
+    const ok = asDecOk || asPctOk;
+    inp.classList.add(ok ? 'ok' : 'err');
+    const decStr = String(round4(q.result)).replace('.', ',');
+    const pctStr = String(round2(q.result * 100)).replace('.', ',');
+    if (ok) return { ok: true, msg: `${fmt(q.p1*100)} % × ${fmt(q.p2*100)} % = ${fmt(q.p1*100)} % × ${fmt(q.p2*100)} % = <strong>${pctStr}&nbsp;%</strong> (soit ${decStr} en décimal).` };
+    return { ok: false, msg: `Multiplie les deux proportions : ${String(q.p1).replace('.', ',')} × ${String(q.p2).replace('.', ',')} = <strong>${decStr}</strong>, soit <strong>${pctStr}&nbsp;%</strong>.` };
+};
+
+/* ==========================================================
+   NIVEAU 3 : VARIATION ABSOLUE ET TAUX D'ÉVOLUTION
+   ========================================================== */
+const CONTEXTS_VAR = [
+    (vi, vf) => `Le prix d'un billet est passé de <strong>${fmt(vi)}&nbsp;€</strong> à <strong>${fmt(vf)}&nbsp;€</strong>.`,
+    (vi, vf) => `Le nombre d'abonnés d'un réseau social est passé de <strong>${fmt(vi)}</strong> à <strong>${fmt(vf)}</strong>.`,
+    (vi, vf) => `La température est passée de <strong>${fmt(vi)}&nbsp;°C</strong> à <strong>${fmt(vf)}&nbsp;°C</strong>.`,
+    (vi, vf) => `Le chiffre d'affaires d'une boutique est passé de <strong>${fmt(vi)}&nbsp;€</strong> à <strong>${fmt(vf)}&nbsp;€</strong>.`,
+    (vi, vf) => `Le stock d'une pièce est passé de <strong>${fmt(vi)}&nbsp;unités</strong> à <strong>${fmt(vf)}&nbsp;unités</strong>.`,
+    (vi, vf) => `Le nombre d'élèves inscrits est passé de <strong>${fmt(vi)}</strong> à <strong>${fmt(vf)}</strong>.`,
+];
+
+GENERATORS.variation = function () {
+    const vis = [40, 50, 80, 100, 120, 150, 200, 250, 300, 400, 500];
+    const vi = vis[rnd(0, vis.length - 1)];
+    // taux entre -40% et +60%, pas de 5%
+    const taux_pct = rnd(-8, 12) * 5;
+    if (taux_pct === 0) { return GENERATORS.variation(); }
+    const vf = round2(vi * (1 + taux_pct / 100));
+    const delta = round2(vf - vi);
+    const taux = round4(delta / vi);
+    const ctx = CONTEXTS_VAR[rnd(0, CONTEXTS_VAR.length - 1)](vi, vf);
+    return { vi, vf, delta, taux, taux_pct, ctx };
+};
+
+RENDERERS.variation = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">
+            Variation absolue : \\(V_f - V_i\\) &nbsp;|&nbsp;
+            Taux d'évolution : \\(t = \\dfrac{V_f - V_i}{V_i}\\)
+        </div>
+        <div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx}</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Variation absolue</div>
+            <div class="q-prompt">Calcule la variation absolue (en unités) :</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input narrow" id="delta" placeholder="…" inputmode="decimal">
+            </div>
+        </div>
+        ${calcHTML('var')}`;
+};
+
+function lockStepSimple(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('locked');
+    const tag = el.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+    el.querySelectorAll('input').forEach(i => i.disabled = true);
+}
+
+function appendStepVar(q) {
+    const box = document.getElementById('exBody');
+    const hr = document.createElement('hr'); hr.className = 'step-divider';
+    // Insérer avant la calculatrice
+    const calcToggle = box.querySelector('.calc-toggle');
+    box.insertBefore(hr, calcToggle);
+    const div = document.createElement('div');
+    div.className = 'step-block active';
+    div.id = 'step1';
+    div.innerHTML = `
+        <div class="step-tag">Étape 2 · Taux d'évolution</div>
+        <div class="q-prompt">Calcule le taux d'évolution \\(t\\) (écriture décimale ou %) :</div>
+        <div class="answer-wrap">
+            <input type="text" class="answer-input" id="taux" placeholder="…" inputmode="decimal">
+        </div>`;
+    box.insertBefore(div, calcToggle);
+    renderKatex(div);
+    setTimeout(() => document.getElementById('taux')?.focus(), 50);
+}
+
+CHECKERS.variation = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const sign = q.delta >= 0 ? '+' : '';
+
+    if (stepsDone === 0) {
+        const inp = document.getElementById('delta');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && close(v, q.delta, 0.05);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step0');
+            appendStepVar(q);
+            return { ok: true, msg: `\\(V_f - V_i = ${fmt(q.vf)} - ${fmt(q.vi)} = ${sign}${fmt(q.delta)}\\). Maintenant calcule le taux d'évolution !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `La variation absolue se calcule ainsi : \\(V_f - V_i = ${fmt(q.vf)} - ${fmt(q.vi)} = ${sign}${fmt(q.delta)}\\). Attention : si la valeur <em>baisse</em>, la variation est <strong>négative</strong>.` };
+    }
+
+    const inp = document.getElementById('taux');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const asDecOk = v !== null && closeRel(v, q.taux, 0.005);
+    const asPctOk  = v !== null && closeRel(v, q.taux_pct, 0.5);
+    const ok = asDecOk || asPctOk;
+    inp.classList.add(ok ? 'ok' : 'err');
+    const tSign = q.taux_pct >= 0 ? '+' : '';
+    const tStr  = String(q.taux_pct).replace('.', ',');
+    const viStr = fmt(q.vi); const vfStr = fmt(q.vf); const dStr = fmt(Math.abs(q.delta));
+    if (ok) return { ok: true, msg: `\\(t = \\dfrac{V_f - V_i}{V_i} = \\dfrac{${sign}${fmt(q.delta)}}{${viStr}} = ${tSign}${String(q.taux).replace('.', ',')}\\), soit <strong>${tSign}${tStr} %</strong>. ${q.taux >= 0 ? 'C\'est une hausse.' : 'C\'est une baisse.'}` };
+    return { ok: false, msg: `On applique : \\(t = \\dfrac{V_f - V_i}{V_i} = \\dfrac{${fmt(q.vf)} - ${fmt(q.vi)}}{${viStr}} = \\dfrac{${sign}${fmt(q.delta)}}{${viStr}} = ${String(q.taux).replace('.', ',')}\\), soit <strong>${tSign}${tStr} %</strong>. Le taux est la variation rapportée à la valeur initiale.` };
+};
+
+/* ==========================================================
+   NIVEAU 4 : COEFFICIENT MULTIPLICATEUR
+   ========================================================== */
+GENERATORS.cm = function () {
+    const modes = ['taux2cm', 'cm2taux', 'verbal2cm', 'cm2verbal'];
+    const mode = modes[rnd(0, modes.length - 1)];
+    const hausse = Math.random() < 0.55;
+    const taux_pct = rnd(1, 8) * 5 * (hausse ? 1 : -1);
+    const taux = taux_pct / 100;
+    const cm = round4(1 + taux);
+    return { mode, taux_pct, taux, cm, hausse };
+};
+
+RENDERERS.cm = function (q, box) {
+    const sign = q.taux_pct >= 0 ? '+' : '';
+
+    if (q.mode === 'taux2cm') {
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : CM = 1 + t &nbsp;(avec t en écriture décimale)</div>
+            <div class="q-prompt">Une valeur évolue de <strong>${sign}${String(q.taux_pct).replace('.', ',')} %</strong>.<br>Quel est le coefficient multiplicateur correspondant ?</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input" id="ans" placeholder="…" inputmode="decimal">
+            </div>`;
+    } else if (q.mode === 'cm2taux') {
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : t = CM − 1 &nbsp;(puis × 100 pour le %)</div>
+            <div class="q-prompt">Le coefficient multiplicateur d'une évolution est <strong>${String(q.cm).replace('.', ',')}</strong>.<br>Quel est le taux d'évolution en % ?</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input" id="ans" placeholder="…" inputmode="decimal">
+                <span class="answer-unit">%</span>
+            </div>`;
+    } else if (q.mode === 'verbal2cm') {
+        const verb = q.hausse
+            ? `Une ${q.hausse ? 'hausse' : 'baisse'} de <strong>${Math.abs(q.taux_pct)} %</strong>`
+            : `Une baisse de <strong>${Math.abs(q.taux_pct)} %</strong>`;
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : hausse de t % → CM = 1 + t/100 &nbsp;|&nbsp; baisse de t % → CM = 1 − t/100</div>
+            <div class="q-prompt">${verb} correspond à quel coefficient multiplicateur ?</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input" id="ans" placeholder="…" inputmode="decimal">
+            </div>`;
+    } else {
+        // cm2verbal
+        const hausse = q.cm > 1;
+        box.innerHTML = `
+            <div class="formula-remind">Rappel : CM &gt; 1 → hausse &nbsp;|&nbsp; CM &lt; 1 → baisse &nbsp;|&nbsp; t % = (CM − 1) × 100</div>
+            <div class="q-prompt">Un coefficient multiplicateur de <strong>${String(q.cm).replace('.', ',')}</strong> correspond à :<br>une hausse ou une baisse de combien de % ?</div>
+            <div class="choice-grid" id="choiceDir">
+                <button class="choice-btn" data-val="hausse">📈 Hausse</button>
+                <button class="choice-btn" data-val="baisse">📉 Baisse</button>
+            </div>
+            <div class="q-prompt" style="margin-top:12px;">De combien de % :</div>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input narrow" id="ans" placeholder="…" inputmode="decimal">
+                <span class="answer-unit">%</span>
+            </div>`;
+        // Bouton direction
+        box.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+                btn.classList.add('chosen');
+                box._dir = btn.dataset.val;
+            });
+        });
+        box._dir = null;
+    }
+    setTimeout(() => document.getElementById('ans')?.focus(), 50);
+};
+
+CHECKERS.cm = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+
+    const sign = q.taux_pct >= 0 ? '+' : '';
+
+    if (q.mode === 'taux2cm' || q.mode === 'verbal2cm') {
+        const ok = v !== null && closeRel(v, q.cm, 0.005);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) return { ok: true, msg: `CM = 1 ${q.taux >= 0 ? '+' : '−'} ${String(Math.abs(q.taux)).replace('.', ',')} = <strong>${String(q.cm).replace('.', ',')}</strong>.` };
+        return { ok: false, msg: `CM = 1 + t = 1 + (${sign}${String(q.taux_pct).replace('.', ',')} / 100) = 1 ${q.taux >= 0 ? '+' : '−'} ${String(Math.abs(q.taux)).replace('.', ',')} = <strong>${String(q.cm).replace('.', ',')}</strong>.` };
+    }
+
+    if (q.mode === 'cm2taux') {
+        const asPctOk  = v !== null && closeRel(v, q.taux_pct, 0.5);
+        const asDecOk = v !== null && closeRel(v, q.taux, 0.005);
+        const ok = asPctOk || asDecOk;
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) return { ok: true, msg: `t = CM − 1 = ${String(q.cm).replace('.', ',')} − 1 = ${String(q.taux).replace('.', ',')} → <strong>${sign}${String(q.taux_pct).replace('.', ',')} %</strong>.` };
+        return { ok: false, msg: `t = CM − 1 = ${String(q.cm).replace('.', ',')} − 1 = ${String(q.taux).replace('.', ',')} → <strong>${sign}${String(q.taux_pct).replace('.', ',')} %</strong>.` };
+    }
+
+    // cm2verbal
+    const box = document.getElementById('exBody');
+    const dirOk = box._dir === (q.hausse ? 'hausse' : 'baisse');
+    const pctOk = v !== null && closeRel(v, Math.abs(q.taux_pct), 0.5);
+    box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+    box.querySelectorAll('.choice-btn').forEach(b => {
+        if (b.dataset.val === (q.hausse ? 'hausse' : 'baisse')) b.classList.add('ok');
+        else if (b.classList.contains('chosen')) b.classList.add('err');
+    });
+    inp.classList.add(pctOk ? 'ok' : 'err');
+    const ok = dirOk && pctOk;
+    if (ok) return { ok: true, msg: `CM = ${String(q.cm).replace('.', ',')} ${q.hausse ? '> 1' : '< 1'} → <strong>${q.hausse ? 'hausse' : 'baisse'} de ${Math.abs(q.taux_pct)} %</strong>.` };
+    if (!box._dir) return { ok: false, msg: 'Choisis d\'abord hausse ou baisse, puis saisis le pourcentage.' };
+    return { ok: false, msg: `t = CM − 1 = ${String(q.cm).replace('.', ',')} − 1 = ${String(q.taux).replace('.', ',')} → <strong>${q.hausse ? 'hausse' : 'baisse'} de ${Math.abs(q.taux_pct)} %</strong>.` };
+};
+
+/* ==========================================================
+   NIVEAU 5 : ÉVOLUTIONS SUCCESSIVES
+   ========================================================== */
+const CONTEXTS_SUCC = [
+    (t1, t2) => `Un appartement prend <strong>${t1 >= 0 ? '+' : ''}${t1} %</strong> en valeur la première année, puis <strong>${t2 >= 0 ? '+' : ''}${t2} %</strong> la deuxième année.`,
+    (t1, t2) => `Un produit est d'abord augmenté de <strong>${t1 >= 0 ? '+' : ''}${t1} %</strong>, puis ${t2 >= 0 ? 'augmenté' : 'réduit'} de <strong>${Math.abs(t2)} %</strong>.`,
+    (t1, t2) => `Les effectifs d'une école varient de <strong>${t1 >= 0 ? '+' : ''}${t1} %</strong> une année, puis de <strong>${t2 >= 0 ? '+' : ''}${t2} %</strong> l'année suivante.`,
+    (t1, t2) => `Un abonnement est soldes à <strong>${t1 >= 0 ? '+' : ''}${t1} %</strong> en janvier puis à <strong>${t2 >= 0 ? '+' : ''}${t2} %</strong> en mars.`,
+];
+
+GENERATORS.successives = function () {
+    const taux_pool = [-30, -25, -20, -15, -10, -5, 5, 10, 15, 20, 25, 30, 40, 50];
+    const t1 = taux_pool[rnd(0, taux_pool.length - 1)];
+    const t2 = taux_pool[rnd(0, taux_pool.length - 1)];
+    const cm1 = round4(1 + t1 / 100);
+    const cm2 = round4(1 + t2 / 100);
+    const cm_global = round4(cm1 * cm2);
+    const t_global = round4(cm_global - 1);
+    const t_global_pct = round2(t_global * 100);
+    const ctx = CONTEXTS_SUCC[rnd(0, CONTEXTS_SUCC.length - 1)](t1, t2);
+    return { t1, t2, cm1, cm2, cm_global, t_global, t_global_pct, ctx };
+};
+
+RENDERERS.successives = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : CM<sub>global</sub> = CM<sub>1</sub> × CM<sub>2</sub> &nbsp;|&nbsp; t<sub>global</sub> = CM<sub>global</sub> − 1</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx}</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Coefficients multiplicateurs individuels</div>
+            <div class="row-inputs">
+                <span class="row-label">CM<sub>1</sub> =</span>
+                <input type="text" class="answer-input narrow" id="cm1" placeholder="…" inputmode="decimal">
+                <span class="row-label" style="margin-left:16px;">CM<sub>2</sub> =</span>
+                <input type="text" class="answer-input narrow" id="cm2" placeholder="…" inputmode="decimal">
+            </div>
+        </div>
+        ${calcHTML('succ')}`;
+    setTimeout(() => document.getElementById('cm1')?.focus(), 50);
+};
+
+CHECKERS.successives = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    if (stepsDone === 0) {
+        const i1 = document.getElementById('cm1'), i2 = document.getElementById('cm2');
+        const v1 = normNum(i1.value), v2 = normNum(i2.value);
+        const ok1 = v1 !== null && closeRel(v1, q.cm1, 0.005);
+        const ok2 = v2 !== null && closeRel(v2, q.cm2, 0.005);
+        [i1, i2].forEach((el, idx) => { el.classList.remove('ok','err'); el.classList.add([ok1,ok2][idx] ? 'ok' : 'err'); });
+        if (ok1 && ok2) {
+            lockStepSimple('step0');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.insertBefore(hr, box.querySelector('.calc-toggle'));
+            const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+            div.innerHTML = `
+                <div class="step-tag">Étape 2 · CM global et taux global</div>
+                <div class="row-inputs">
+                    <span class="row-label">CM<sub>global</sub> =</span>
+                    <input type="text" class="answer-input narrow" id="cmg" placeholder="…" inputmode="decimal">
+                    <span class="row-label" style="margin-left:16px;">t<sub>global</sub> =</span>
+                    <input type="text" class="answer-input narrow" id="tg" placeholder="…" inputmode="decimal">
+                    <span class="answer-unit">%</span>
+                </div>`;
+            box.insertBefore(div, box.querySelector('.calc-toggle'));
+            setTimeout(() => document.getElementById('cmg')?.focus(), 50);
+            return { ok: true, msg: `CM<sub>1</sub> = ${String(q.cm1).replace('.', ',')} et CM<sub>2</sub> = ${String(q.cm2).replace('.', ',')}. Maintenant calcule le CM global !`, advanceOnly: true };
+        }
+        const sign1 = q.t1 >= 0 ? '+' : '−'; const sign2 = q.t2 >= 0 ? '+' : '−';
+        return { ok: false, msg: `CM = 1 + t/100. CM<sub>1</sub> = 1 ${sign1} ${Math.abs(q.t1/100)} = <strong>${String(q.cm1).replace('.', ',')}</strong>, CM<sub>2</sub> = 1 ${sign2} ${Math.abs(q.t2/100)} = <strong>${String(q.cm2).replace('.', ',')}</strong>.` };
+    }
+
+    const icmg = document.getElementById('cmg'), itg = document.getElementById('tg');
+    const vcmg = normNum(icmg.value), vtg = normNum(itg.value);
+    const okCmg = vcmg !== null && closeRel(vcmg, q.cm_global, 0.005);
+    const okTgDec = vtg !== null && closeRel(vtg, q.t_global, 0.005);
+    const okTgPct = vtg !== null && closeRel(vtg, q.t_global_pct, 0.5);
+    const okTg = okTgDec || okTgPct;
+    [icmg, itg].forEach((el, idx) => { el.classList.remove('ok','err'); el.classList.add([okCmg, okTg][idx] ? 'ok' : 'err'); });
+    if (okCmg && okTg) {
+        const sign = q.t_global_pct >= 0 ? '+' : '';
+        return { ok: true, msg: `CM<sub>global</sub> = ${String(q.cm1).replace('.', ',')} × ${String(q.cm2).replace('.', ',')} = <strong>${String(q.cm_global).replace('.', ',')}</strong> → t<sub>global</sub> = <strong>${sign}${String(q.t_global_pct).replace('.', ',')} %</strong>.` };
+    }
+    const sign = q.t_global_pct >= 0 ? '+' : '';
+    return { ok: false, msg: `CM<sub>global</sub> = ${String(q.cm1).replace('.', ',')} × ${String(q.cm2).replace('.', ',')} = <strong>${String(q.cm_global).replace('.', ',')}</strong>, donc t<sub>global</sub> = <strong>${sign}${String(q.t_global_pct).replace('.', ',')} %</strong>.` };
+};
+
+/* ==========================================================
+   NIVEAU 6 : ÉVOLUTION RÉCIPROQUE
+   ========================================================== */
+const CONTEXTS_RECIP = [
+    t => `Un article est augmenté de <strong>${t} %</strong>. Quelle baisse (en %) permettrait de retrouver le prix initial ?`,
+    t => `La production d'une usine diminue de <strong>${t} %</strong>. Quelle hausse (en %) permettrait de retrouver le niveau initial ?`,
+    t => `Un loyer est augmenté de <strong>${t} %</strong>. Quelle évolution (en %) lui ferait retrouver son niveau initial ?`,
+    t => `Le nombre de visiteurs d'un site baisse de <strong>${t} %</strong>. Quelle hausse faudrait-il pour retrouver le niveau de départ ?`,
+    t => `Une action en bourse prend <strong>${t} %</strong> un jour. Quelle variation (en %) la ramènerait à sa valeur de la veille ?`,
+];
+
+GENERATORS.reciproque = function () {
+    const tauxPool = [-40, -30, -25, -20, -15, -10, 10, 15, 20, 25, 30, 40, 50];
+    const t = tauxPool[rnd(0, tauxPool.length - 1)];
+    const cm = round4(1 + t / 100);
+    const cm_recip = round4(1 / cm);
+    const t_recip = round4(cm_recip - 1);
+    const t_recip_pct = round2(t_recip * 100);
+    const ctx = CONTEXTS_RECIP[rnd(0, CONTEXTS_RECIP.length - 1)](Math.abs(t));
+    return { t, cm, cm_recip, t_recip, t_recip_pct, ctx };
+};
+
+RENDERERS.reciproque = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : CM<sub>réciproque</sub> = 1 / CM &nbsp;|&nbsp; t<sub>réciproque</sub> = CM<sub>réciproque</sub> − 1</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx}</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · CM de l'évolution initiale</div>
+            <div class="row-inputs">
+                <span class="row-label">CM =</span>
+                <input type="text" class="answer-input narrow" id="cm" placeholder="…" inputmode="decimal">
+            </div>
+        </div>
+        ${calcHTML('rec')}`;
+    setTimeout(() => document.getElementById('cm')?.focus(), 50);
+};
+
+CHECKERS.reciproque = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    if (stepsDone === 0) {
+        const inp = document.getElementById('cm');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && closeRel(v, q.cm, 0.005);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step0');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.insertBefore(hr, box.querySelector('.calc-toggle'));
+            const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+            div.innerHTML = `
+                <div class="step-tag">Étape 2 · CM réciproque et taux réciproque</div>
+                <div class="row-inputs">
+                    <span class="row-label">CM<sub>rép.</sub> = 1 / ${String(q.cm).replace('.', ',')} =</span>
+                    <input type="text" class="answer-input narrow" id="cmr" placeholder="…" inputmode="decimal">
+                </div>
+                <div class="row-inputs" style="margin-top:10px;">
+                    <span class="row-label">t<sub>rép.</sub> =</span>
+                    <input type="text" class="answer-input narrow" id="tr" placeholder="…" inputmode="decimal">
+                    <span class="answer-unit">%</span>
+                </div>`;
+            box.insertBefore(div, box.querySelector('.calc-toggle'));
+            setTimeout(() => document.getElementById('cmr')?.focus(), 50);
+            return { ok: true, msg: `CM = <strong>${String(q.cm).replace('.', ',')}</strong>. Maintenant calcule 1 / CM !`, advanceOnly: true };
+        }
+        const sign = q.t >= 0 ? '+' : '−';
+        return { ok: false, msg: `CM = 1 ${sign} ${Math.abs(q.t / 100)} = <strong>${String(q.cm).replace('.', ',')}</strong>.` };
+    }
+
+    const icmr = document.getElementById('cmr'), itr = document.getElementById('tr');
+    const vcmr = normNum(icmr.value), vtr = normNum(itr.value);
+    const okCmr = vcmr !== null && (closeRel(vcmr, q.cm_recip, 0.005) || close(vcmr, q.cm_recip, 0.001));
+    const okTrDec = vtr !== null && (closeRel(vtr, q.t_recip, 0.005) || close(vtr, q.t_recip, 0.001));
+    const okTrPct = vtr !== null && (closeRel(vtr, q.t_recip_pct, 1.0)  || close(vtr, q.t_recip_pct, 0.1));
+    const okTr = okTrDec || okTrPct;
+    [icmr, itr].forEach((el, idx) => { el.classList.remove('ok','err'); el.classList.add([okCmr, okTr][idx] ? 'ok' : 'err'); });
+    if (okCmr && okTr) {
+        const sign = q.t_recip_pct >= 0 ? '+' : '';
+        return { ok: true, msg: `CM<sub>rép.</sub> = 1 / ${String(q.cm).replace('.', ',')} ≈ <strong>${String(q.cm_recip).replace('.', ',')}</strong> → t<sub>rép.</sub> ≈ <strong>${sign}${String(q.t_recip_pct).replace('.', ',')} %</strong>.` };
+    }
+    const sign = q.t_recip_pct >= 0 ? '+' : '';
+    return { ok: false, msg: `CM<sub>rép.</sub> = 1 / ${String(q.cm).replace('.', ',')} ≈ <strong>${String(q.cm_recip).replace('.', ',')}</strong>, t<sub>rép.</sub> ≈ <strong>${sign}${String(q.t_recip_pct).replace('.', ',')} %</strong>.` };
+};
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>
