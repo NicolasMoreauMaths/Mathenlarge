@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TP 1 – Découverte de Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+<style>
+:root {
+  --bleu:#1E3A5F; --bleu-clair:#2E5B9A; --vert:#5A9E2F; --vert-btn:#6DB33F;
+  --vert-hover:#568F30; --jaune:#F4C430; --fond:#F7F8FA; --fond-sec:#FFFFFF;
+  --gris-clair:#EEF0F3; --gris-bord:#D0D5DD; --rouge:#C0392B;
+  --texte:#1A1D23; --texte-sec:#4A5568;
+  --console-bg:#0F1923; --console-fg:#C8D8E8;
+  --console-prompt:#6DB33F; --console-out:#A8C8E8; --console-err:#FF6B6B;
+  --ok:#1A7A3C; --ok-bg:#E8F5ED; --ok-bord:#A3D9B1;
+  --ko:#B91C1C; --ko-bg:#FEE2E2; --ko-bord:#FCA5A5;
+  --qcm-sel:#EBF4FF; --qcm-sel-bord:#2E5B9A;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--fond);color:var(--texte);font-size:15px;line-height:1.65;}
+
+/* HEADER */
+header{background:var(--bleu);padding:36px 48px 28px;position:relative;overflow:hidden;}
+header::after{content:'';position:absolute;right:-60px;bottom:-80px;width:260px;height:260px;border-radius:50%;background:rgba(109,179,63,0.15);}
+.header-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--vert-btn);margin-bottom:8px;}
+header h1{font-family:'Space Grotesk',sans-serif;font-size:2.1rem;font-weight:700;color:#fff;line-height:1.2;}
+header h1 span{color:var(--jaune);}
+.header-sub{margin-top:10px;color:rgba(255,255,255,0.65);font-size:14px;max-width:560px;}
+.header-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
+.badge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85);padding:4px 12px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;}
+
+/* STATUS */
+#py-status{background:var(--bleu-clair);color:#fff;text-align:center;padding:10px;font-size:13px;font-family:'JetBrains Mono',monospace;}
+#py-status.ready{background:var(--vert);}
+#py-status.error{background:var(--rouge);}
+
+/* LAYOUT */
+main{max-width:860px;margin:0 auto;padding:40px 24px 80px;}
+
+/* SECTION */
+.section{background:var(--fond-sec);border:1px solid var(--gris-bord);border-radius:12px;margin-bottom:28px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.section-header{display:flex;align-items:center;gap:14px;padding:18px 24px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:background 0.15s;}
+.section-header:hover{background:var(--gris-clair);}
+.section-header.open{border-bottom-color:var(--gris-bord);}
+.section-num{width:34px;height:34px;background:var(--bleu);color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;flex-shrink:0;}
+.section-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.05rem;color:var(--bleu);flex:1;}
+.section-arrow{color:var(--texte-sec);transition:transform 0.2s;font-size:18px;}
+.section-header.open .section-arrow{transform:rotate(90deg);}
+.section-body{padding:24px;display:none;overflow-x:auto;}
+.section-body.open{display:block;}
+
+/* OBJECTIF */
+.objectif{background:linear-gradient(135deg,#EBF4FF 0%,#F0FAE8 100%);border-left:4px solid var(--bleu-clair);border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px;}
+.objectif-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bleu-clair);margin-bottom:4px;}
+.objectif p{font-style:italic;color:var(--bleu);font-size:14px;}
+
+/* EXERCICE */
+.exercice{margin-bottom:28px;}
+.exercice-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--texte-sec);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.exercice-title::after{content:'';flex:1;height:1px;background:var(--gris-bord);}
+
+/* STEPS */
+.steps{list-style:none;padding:0;margin:12px 0 16px;}
+.steps li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;}
+.step-num{min-width:26px;height:26px;background:var(--bleu);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;flex-shrink:0;margin-top:1px;}
+.step-num.alpha{background:var(--bleu-clair);}
+.step-text{flex:1;padding-top:2px;}
+
+/* NOTES */
+.note{background:#FFFBEA;border:1px solid #F4C430;border-radius:8px;padding:12px 16px;font-size:13.5px;margin:14px 0;color:#5C4A00;}
+.note strong{color:#3D3000;}
+.attention{background:#FFF0F0;border:1px solid #FFAAAA;border-radius:8px;padding:12px 16px;font-size:13.5px;margin:14px 0;color:#7B1A1A;}
+
+/* CODE */
+code{font-family:'JetBrains Mono',monospace;background:var(--gris-clair);padding:2px 7px;border-radius:4px;font-size:13px;color:var(--bleu);}
+
+/* TABLE */
+.table-resume{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;border-radius:8px;overflow:hidden;border:1px solid var(--gris-bord);}
+.table-resume th{background:var(--bleu);color:#fff;padding:10px 14px;font-family:'Space Grotesk',sans-serif;font-weight:600;text-align:left;font-size:12px;}
+.table-resume td{padding:9px 14px;border-bottom:1px solid var(--gris-bord);font-family:'JetBrains Mono',monospace;font-size:12.5px;}
+.table-resume tr:last-child td{border-bottom:none;}
+.table-resume tr:nth-child(even) td{background:var(--gris-clair);}
+.table-resume .op{color:var(--bleu-clair);font-weight:500;}
+.table-resume .res{color:var(--vert);font-weight:500;}
+
+/* CONSOLE */
+.console-wrapper{margin:16px 0;border-radius:10px;overflow:hidden;border:1px solid #2A3A4A;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
+.console-topbar{background:#1A2A3A;padding:8px 14px;display:flex;align-items:center;gap:10px;}
+.console-dots{display:flex;gap:6px;}
+.console-dots span{width:11px;height:11px;border-radius:50%;}
+.d-red{background:#FF5F57;}.d-yellow{background:#FEBC2E;}.d-green{background:#28C840;}
+.console-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);flex:1;text-align:center;margin-right:60px;}
+.console-output{background:var(--console-bg);padding:14px 16px 6px;min-height:60px;max-height:240px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-all;}
+.console-output .out-line{color:var(--console-out);display:block;}
+.console-output .err-line{color:var(--console-err);display:block;}
+.console-output .hist-line{color:rgba(255,255,255,0.3);display:block;font-size:11.5px;}
+.console-input-row{background:var(--console-bg);display:flex;align-items:center;padding:6px 16px 12px;border-top:1px solid rgba(255,255,255,0.06);gap:8px;}
+.console-prompt-sym{font-family:'JetBrains Mono',monospace;color:var(--console-prompt);font-size:14px;font-weight:500;user-select:none;}
+.console-input{flex:1;background:transparent;border:none;outline:none;color:#E8F0FA;font-family:'JetBrains Mono',monospace;font-size:13px;caret-color:var(--vert-btn);}
+.console-input::placeholder{color:rgba(255,255,255,0.2);}
+.console-run-btn{background:var(--vert-btn);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;cursor:pointer;transition:background 0.15s;}
+.console-run-btn:hover{background:var(--vert-hover);}
+.console-run-btn:disabled{background:#555;cursor:default;}
+.console-clear-btn{background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all 0.15s;}
+.console-clear-btn:hover{border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.7);}
+
+/* EDITOR */
+.editor-wrapper{margin:16px 0;border-radius:10px;overflow:hidden;border:1px solid #2A3A4A;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
+.editor-topbar{background:#1A2A3A;padding:8px 14px;display:flex;align-items:center;gap:10px;}
+.editor-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);flex:1;text-align:center;}
+.editor-textarea{width:100%;background:#0F1923;color:#E8F0FA;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;border:none;outline:none;padding:14px 16px;resize:vertical;min-height:140px;tab-size:4;}
+.editor-run-row{background:#1A2A3A;padding:8px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.06);}
+.editor-run-btn{background:var(--vert-btn);color:#fff;border:none;border-radius:6px;padding:7px 20px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background 0.15s;}
+.editor-run-btn:hover{background:var(--vert-hover);}
+.editor-run-btn:disabled{background:#555;cursor:default;}
+.editor-output{background:#0D151E;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.6;white-space:pre-wrap;min-height:36px;max-height:180px;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.06);display:none;}
+.editor-output.visible{display:block;}
+.editor-output .out-line{color:var(--console-out);display:block;}
+.editor-output .err-line{color:var(--console-err);display:block;}
+
+/* ═══ QCM ═══ */
+.qcm-block{background:#F9FAFB;border:1px solid var(--gris-bord);border-radius:10px;padding:18px 20px;margin:18px 0;}
+.qcm-question{font-weight:600;color:var(--bleu);margin-bottom:12px;font-size:14.5px;display:flex;gap:8px;align-items:flex-start;}
+.qcm-question-icon{background:var(--bleu);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;}
+.qcm-options{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.qcm-option{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1.5px solid var(--gris-bord);border-radius:8px;cursor:pointer;transition:all 0.15s;background:#fff;user-select:none;}
+.qcm-option:hover{border-color:var(--bleu-clair);background:var(--qcm-sel);}
+.qcm-option.selected{border-color:var(--bleu-clair);background:var(--qcm-sel);}
+.qcm-option.correct{border-color:var(--ok-bord);background:var(--ok-bg);}
+.qcm-option.wrong{border-color:var(--ko-bord);background:var(--ko-bg);}
+.qcm-option.missed{border-color:var(--ok-bord);background:#F0FBF4;}
+.qcm-radio{width:17px;height:17px;border:2px solid var(--gris-bord);border-radius:50%;flex-shrink:0;margin-top:2px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+.qcm-option.selected .qcm-radio{border-color:var(--bleu-clair);background:var(--bleu-clair);}
+.qcm-option.correct .qcm-radio{border-color:var(--ok);background:var(--ok);}
+.qcm-option.wrong .qcm-radio{border-color:var(--ko);background:var(--ko);}
+.qcm-radio-dot{width:7px;height:7px;border-radius:50%;background:#fff;display:none;}
+.qcm-option.selected .qcm-radio-dot,.qcm-option.correct .qcm-radio-dot,.qcm-option.wrong .qcm-radio-dot{display:block;}
+.qcm-label{font-size:14px;line-height:1.5;color:var(--texte);}
+.qcm-validate-btn{background:var(--bleu);color:#fff;border:none;border-radius:7px;padding:8px 20px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:background 0.15s;}
+.qcm-validate-btn:hover{background:var(--bleu-clair);}
+.qcm-validate-btn:disabled{background:#AAA;cursor:default;}
+.qcm-feedback{margin-top:12px;padding:12px 16px;border-radius:8px;font-size:14px;display:none;}
+.qcm-feedback.ok{background:var(--ok-bg);border:1px solid var(--ok-bord);color:var(--ok);}
+.qcm-feedback.ko{background:var(--ko-bg);border:1px solid var(--ko-bord);color:var(--ko);}
+.qcm-feedback .fb-icon{font-size:16px;margin-right:6px;}
+.qcm-feedback strong{font-weight:700;}
+
+/* ═══ CHAMP LIBRE ═══ */
+.libre-block{background:#F9FAFB;border:1px solid var(--gris-bord);border-radius:10px;padding:18px 20px;margin:18px 0;}
+.libre-question{font-weight:600;color:var(--bleu);margin-bottom:10px;font-size:14.5px;display:flex;gap:8px;align-items:flex-start;}
+.libre-question-icon{background:var(--vert);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;}
+.libre-input{width:100%;border:1.5px solid var(--gris-bord);border-radius:7px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--texte);outline:none;transition:border-color 0.15s;background:#fff;margin-bottom:10px;}
+.libre-input:focus{border-color:var(--bleu-clair);background:#EBF4FF;}
+.libre-input.correct{border-color:var(--ok);background:var(--ok-bg);}
+.libre-input.wrong{border-color:var(--ko);background:var(--ko-bg);}
+.libre-validate-btn{background:var(--vert-btn);color:#fff;border:none;border-radius:7px;padding:8px 20px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:background 0.15s;}
+.libre-validate-btn:hover{background:var(--vert-hover);}
+.libre-feedback{margin-top:10px;padding:11px 15px;border-radius:8px;font-size:14px;display:none;}
+.libre-feedback.ok{background:var(--ok-bg);border:1px solid var(--ok-bord);color:var(--ok);}
+.libre-feedback.ko{background:var(--ko-bg);border:1px solid var(--ko-bord);color:var(--ko);}
+.libre-hint{font-size:12.5px;color:var(--texte-sec);margin-bottom:8px;font-style:italic;}
+
+/* SCORE */
+.score-bar{background:var(--gris-clair);border-radius:10px;padding:16px 20px;margin-top:30px;display:flex;align-items:center;gap:16px;}
+.score-label{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--bleu);font-size:14px;}
+.score-track{flex:1;height:10px;background:rgba(0,0,0,0.1);border-radius:5px;overflow:hidden;}
+.score-fill{height:100%;background:var(--vert-btn);border-radius:5px;transition:width 0.4s ease;}
+.score-count{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--bleu);white-space:nowrap;}
+
+.sep{height:1px;background:var(--gris-bord);margin:20px 0;}
+p{margin-bottom:10px;}
+ul,ol{padding-left:22px;margin-bottom:10px;}
+li{margin-bottom:4px;}
+
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:16px 0;}
+  .table-wrap .table-resume{margin:0;}
+
+  /* ══ RESPONSIVE ══ */
+  @media(max-width:900px){
+    header{padding:28px 32px 22px;}
+    header h1{font-size:1.75rem;}
+    main{padding:28px 18px 60px;}
+  }
+  @media(max-width:600px){
+    header{padding:20px 16px 16px;}
+    header h1{font-size:1.35rem;}
+    .header-sub,.hsub,.hs{font-size:13px;}
+    .header-badges{gap:5px;margin-top:14px;}
+    .badge{font-size:10.5px;padding:3px 8px;}
+    main{padding:18px 10px 48px;}
+    .section-header{padding:14px 14px;gap:10px;}
+    .section-num{width:28px;height:28px;font-size:13px;}
+    .section-title{font-size:0.95rem;}
+    .section-body{padding:14px;}
+    .objectif,.obj{padding:10px 12px;}
+    .steps li{gap:8px;padding:3px 0;}
+    .step-num{min-width:22px;height:22px;font-size:11px;}
+    .console-output{font-size:12px;padding:10px 10px 4px;max-height:200px;}
+    .console-input-row{padding:4px 10px 8px;}
+    .console-input{font-size:12px;}
+    .console-label{margin-right:20px;}
+    .editor-textarea{font-size:12px;padding:10px 10px;min-height:110px;}
+    .editor-output{font-size:11.5px;padding:8px 10px;}
+    .qcm-block{padding:14px 12px;margin:14px 0;}
+    .qcm-option{padding:8px 10px;gap:8px;}
+    .qcm-label{font-size:13px;}
+    .qcm-validate-btn{padding:8px 16px;font-size:12px;width:100%;}
+    .qcm-feedback{font-size:13px;padding:10px 12px;}
+    .table-resume{font-size:12px;}
+    .table-resume th{padding:8px 8px;font-size:11px;}
+    .table-resume td{padding:7px 8px;font-size:11.5px;}
+    .note,.attention{padding:10px 12px;font-size:12.5px;}
+    code{font-size:12px;padding:1px 5px;}
+    .score-bar{padding:12px 14px;gap:10px;flex-wrap:wrap;}
+    .score-label{font-size:13px;}
+    .score-count{font-size:12px;}
+    #py-status{font-size:12px;padding:8px;}
+  }
+  @media(max-width:380px){
+    header{padding:16px 12px 12px;}
+    header h1{font-size:1.15rem;}
+    .header-eyebrow,.heb{font-size:10px;letter-spacing:1.5px;}
+    main{padding:12px 6px 36px;}
+    .section-header{padding:10px 10px;}
+    .section-body{padding:10px;}
+    .section-title{font-size:0.88rem;}
+    .console-output{font-size:11px;}
+    .console-input{font-size:11px;}
+    .editor-textarea{font-size:11px;min-height:90px;}
+    .qcm-option{padding:7px 8px;}
+    .qcm-label{font-size:12px;}
+    .table-resume th,.table-resume td{padding:5px 5px;}
+    .score-bar{flex-direction:column;align-items:stretch;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Travaux Pratiques · Seconde · Informatique</div>
+  <h1>TP 1 : Découverte de <span>Python</span></h1>
+  <p class="header-sub">Apprends à communiquer avec un ordinateur en utilisant le langage Python — directement dans ce document.</p>
+  <div class="header-badges">
+    <span class="badge">Python 3</span>
+    <span class="badge">Console interactive</span>
+    <span class="badge">Variables &amp; affectations</span>
+  </div>
+</header>
+
+<div id="py-status">⏳ Chargement de Python en cours… (quelques secondes)</div>
+
+<main>
+
+<!-- ══════════════════════════════════
+     SECTION 0 — MISE EN ROUTE
+══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header open" onclick="toggleSection(this)">
+    <div class="section-num">0</div>
+    <div class="section-title">Mise en route &amp; interface</div>
+    <div class="section-arrow">›</div>
+  </div>
+  <div class="section-body open">
+    <p>Ce TP est entièrement interactif : <strong>tu n'as besoin d'aucun autre logiciel</strong>. Python fonctionne directement dans cette page grâce à un moteur intégré. Tu peux taper du code dans les <em>consoles</em> ci-dessous et observer les résultats immédiatement.</p>
+
+    <div class="objectif">
+      <div class="objectif-label">Comment fonctionne ce TP ?</div>
+      <p>Dans les zones <strong>Console Python</strong>, tape une instruction et appuie sur <kbd>Entrée</kbd> ou clique sur <strong>▶ Exécuter</strong>. Dans les zones <strong>Éditeur</strong>, écris un programme complet puis clique sur <strong>▶ Lancer le programme</strong>. Réponds ensuite aux <strong>questions de validation</strong> (QCM ou réponse courte) pour vérifier ta compréhension.</p>
+    </div>
+
+    <p>Voici les deux espaces de travail Python :</p>
+    <ul>
+      <li>L'<strong>éditeur</strong> sert à écrire un programme complet qu'on exécute en un clic.</li>
+      <li>La <strong>console</strong> sert à tester des commandes une par une, rapidement.</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SECTION 1 — OPÉRATIONS
+══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header open" onclick="toggleSection(this)">
+    <div class="section-num">1</div>
+    <div class="section-title">Opérations mathématiques</div>
+    <div class="section-arrow">›</div>
+  </div>
+  <div class="section-body open">
+
+    <div class="objectif">
+      <div class="objectif-label">Objectif n°1</div>
+      <p>Découvrir comment effectuer des calculs en Python et comprendre la notion de bibliothèque.</p>
+    </div>
+
+    <div class="exercice">
+      <div class="exercice-title">Exercice 1 · Les opérations de base</div>
+
+      <p>Utilise la console ci-dessous pour tester les calculs suivants. Tape chaque expression et appuie sur <kbd>Entrée</kbd>.</p>
+
+      <ul class="steps">
+        <li><span class="step-num">1</span><span class="step-text">Calcule <code>6 + 7</code></span></li>
+        <li><span class="step-num">2</span><span class="step-text">Calcule <code>3 * 5</code></span></li>
+        <li><span class="step-num">3</span><span class="step-text">Calcule <code>3 ** 2</code> puis <code>4 ** 2</code> — observe les résultats</span></li>
+        <li><span class="step-num">4</span><span class="step-text">Tape successivement : <code>sqrt(4)</code>, puis <code>from math import sqrt</code>, puis à nouveau <code>sqrt(4)</code> et <code>sqrt(9)</code></span></li>
+      </ul>
+
+      <div class="console-wrapper">
+        <div class="console-topbar">
+          <div class="console-dots"><span class="d-red"></span><span class="d-yellow"></span><span class="d-green"></span></div>
+          <div class="console-label">Console Python — Exercice 1</div>
+        </div>
+        <div class="console-output" id="out-ex1"><span class="hist-line"># Console prête. Tape une instruction et appuie sur Entrée.</span></div>
+        <div class="console-input-row">
+          <span class="console-prompt-sym">&gt;&gt;&gt;</span>
+          <input class="console-input" id="inp-ex1" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false">
+          <button class="console-clear-btn" onclick="clearConsole('out-ex1')">Effacer</button>
+          <button class="console-run-btn" id="btn-ex1" onclick="runConsole('inp-ex1','out-ex1','ns1')" disabled>▶ Exécuter</button>
+        </div>
+      </div>
+
+      <!-- QCM 1 -->
+      <div class="qcm-block" id="qcm1">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Quel est le résultat de <code>6 + 7</code> en Python ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm1',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">67 (Python colle les deux chiffres)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm1',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">13</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm1',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">6 + 7 (Python affiche l'expression telle quelle)</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm1')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm1"></div>
+      </div>
+
+      <!-- QCM 2 -->
+      <div class="qcm-block" id="qcm2">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>À quelle opération mathématique correspond le symbole <code>**</code> en Python ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm2',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">La multiplication</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm2',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">La division entière</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm2',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">La puissance (exposant) : <code>3 ** 2</code> = 3²= 9</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm2',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Le reste de la division euclidienne</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm2')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm2"></div>
+      </div>
+
+      <!-- QCM 3 -->
+      <div class="qcm-block" id="qcm3">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Que se passe-t-il quand tu tapes <code>sqrt(4)</code> <em>avant</em> d'avoir tapé <code>from math import sqrt</code> ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm3',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python calcule correctement la racine carrée de 4</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm3',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche une erreur : il ne connaît pas <code>sqrt</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm3',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche 0</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm3')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm3"></div>
+      </div>
+
+      <!-- QCM 4 -->
+      <div class="qcm-block" id="qcm4">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Que signifie la commande <code>from math import sqrt</code> ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm4',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Cela crée une nouvelle variable appelée <code>math</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm4',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Cela calcule immédiatement la racine carrée de <code>math</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm4',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Cela importe la fonction <code>sqrt</code> depuis la bibliothèque <code>math</code>, pour pouvoir l'utiliser ensuite</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm4',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Cela installe la bibliothèque <code>math</code> sur l'ordinateur</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm4')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm4"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <p><strong>Résumé</strong> des opérations disponibles en Python :</p>
+    <table class="table-resume">
+      <thead><tr><th>Opération</th><th>Syntaxe Python</th><th>Exemple</th><th>Résultat</th></tr></thead>
+      <tbody>
+        <tr><td>Addition</td><td class="op">a + b</td><td>3 + 5</td><td class="res">8</td></tr>
+        <tr><td>Soustraction</td><td class="op">a - b</td><td>10 - 4</td><td class="res">6</td></tr>
+        <tr><td>Multiplication</td><td class="op">a * b</td><td>3 * 5</td><td class="res">15</td></tr>
+        <tr><td>Division</td><td class="op">a / b</td><td>7 / 2</td><td class="res">3.5</td></tr>
+        <tr><td>Puissance</td><td class="op">a ** b</td><td>2 ** 3</td><td class="res">8</td></tr>
+        <tr><td>Reste (modulo)</td><td class="op">a % b</td><td>10 % 3</td><td class="res">1</td></tr>
+        <tr><td>Quotient entier</td><td class="op">a // b</td><td>10 // 3</td><td class="res">3</td></tr>
+        <tr><td>Racine carrée</td><td class="op">sqrt(a)</td><td>sqrt(16)</td><td class="res">4.0</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><strong>Note :</strong> pour utiliser <code>sqrt</code>, il faut d'abord taper <code>from math import sqrt</code>.</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SECTION 2 — VARIABLES
+══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header open" onclick="toggleSection(this)">
+    <div class="section-num">2</div>
+    <div class="section-title">Variables et affectations</div>
+    <div class="section-arrow">›</div>
+  </div>
+  <div class="section-body open">
+
+    <p>Il est possible de créer des <strong>variables</strong> en utilisant le symbole <code>=</code>.</p>
+
+    <div class="attention">
+      <strong>⚠ Mise en garde :</strong>
+      <ul style="margin-top:6px">
+        <li>Le nom d'une variable ne doit contenir <strong>aucun espace</strong>.</li>
+        <li>En informatique, le symbole <code>=</code> <strong>n'a pas le même sens</strong> qu'en mathématiques : il signifie « affecter la valeur de droite à la variable de gauche ».</li>
+        <li>Les nombres décimaux s'écrivent avec un <strong>point</strong> : <code>1.25</code> et non <code>1,25</code>.</li>
+      </ul>
+    </div>
+
+    <p><strong>Exemple :</strong> <code>longueur = 5.7</code> affecte la valeur 5.7 à la variable <em>longueur</em>. En maths, on noterait : <em>longueur ← 5.7</em>.</p>
+
+    <div class="objectif">
+      <div class="objectif-label">Objectif n°2</div>
+      <p>Découvrir comment manipuler des variables et comprendre la notion d'affectation.</p>
+    </div>
+
+    <!-- Exercice 2 -->
+    <div class="exercice">
+      <div class="exercice-title">Exercice 2 · Le comportement du symbole =</div>
+      <p>Tape les commandes ci-dessous <strong>dans l'ordre indiqué</strong> dans la console, et observe.</p>
+
+      <ul class="steps">
+        <li><span class="step-num alpha">a</span><span class="step-text">Tape <code>a = 4</code> (Entrée), puis <code>a = 1</code> (Entrée), puis <code>a</code> (Entrée). Que vaut <code>a</code> ?</span></li>
+        <li><span class="step-num alpha">b</span><span class="step-text">Tape <code>a = 4</code>, <code>b = 7</code>, <code>a = b</code>, puis tape <code>a</code> et <code>b</code> séparément. Qu'observes-tu ?</span></li>
+      </ul>
+
+      <div class="console-wrapper">
+        <div class="console-topbar">
+          <div class="console-dots"><span class="d-red"></span><span class="d-yellow"></span><span class="d-green"></span></div>
+          <div class="console-label">Console Python — Exercice 2</div>
+        </div>
+        <div class="console-output" id="out-ex2"><span class="hist-line"># Console indépendante de l'exercice 1.</span></div>
+        <div class="console-input-row">
+          <span class="console-prompt-sym">&gt;&gt;&gt;</span>
+          <input class="console-input" id="inp-ex2" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false">
+          <button class="console-clear-btn" onclick="clearConsole('out-ex2')">Effacer</button>
+          <button class="console-run-btn" id="btn-ex2" onclick="runConsole('inp-ex2','out-ex2','ns2')" disabled>▶ Exécuter</button>
+        </div>
+      </div>
+
+      <!-- QCM 5 -->
+      <div class="qcm-block" id="qcm5">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Après avoir tapé <code>a = 4</code> puis <code>a = 1</code>, quelle est la valeur de <code>a</code> ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm5',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">4 (la première valeur est conservée)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm5',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">1 (la nouvelle valeur écrase l'ancienne)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm5',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">5 (Python additionne les deux valeurs)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm5',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche une erreur</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm5')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm5"></div>
+      </div>
+
+      <!-- QCM 6 -->
+      <div class="qcm-block" id="qcm6">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Après <code>a = 4</code>, <code>b = 7</code>, <code>a = b</code> — que valent <code>a</code> et <code>b</code> ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm6',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>a = 4</code> et <code>b = 7</code> (rien n'a changé)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm6',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>a = 7</code> et <code>b = 4</code> (les valeurs ont été échangées)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm6',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>a = 7</code> et <code>b = 7</code> (la valeur de b a été copiée dans a)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm6',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>a = 4</code> et <code>b = 4</code></div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm6')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm6"></div>
+      </div>
+
+      <!-- QCM 7 -->
+      <div class="qcm-block" id="qcm7">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>En Python, <code>a = b</code> signifie…</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm7',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">« a et b sont toujours égaux » (comme en maths)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm7',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">« copie la valeur de b dans a à cet instant » — les modifications futures de b n'affectent pas a</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm7',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">« a et b partagent le même emplacement mémoire pour toujours »</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm7')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm7"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Exercice 3 -->
+    <div class="exercice">
+      <div class="exercice-title">Exercice 3 · Le prix du pain — programme complet</div>
+      <p>Une baguette de pain coûte <strong>1,25 €</strong>. Son prix augmente de <strong>10 %</strong>.</p>
+
+      <!-- QCM 8 : calcul à la main -->
+      <div class="qcm-block" id="qcm8">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Sans ordinateur : quel est le montant de l'augmentation pour une baguette à 1,25 € avec une hausse de 10 % ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm8',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">0,10 €</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm8',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">0,125 €</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm8',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">1,10 €</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm8',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">0,25 €</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm8')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm8"></div>
+      </div>
+
+      <!-- QCM 9 : nouveau prix -->
+      <div class="qcm-block" id="qcm9">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Quel est le nouveau prix de la baguette après l'augmentation de 10 % ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm9',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">1,10 €</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm9',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">1,30 €</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm9',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">1,375 €</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm9',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">1,25 €</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm9')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm9"></div>
+      </div>
+
+      <p style="margin-top:16px">Maintenant, utilisons Python pour faire ces mêmes calculs. Complète les parties marquées <code>...</code> dans l'éditeur ci-dessous, puis clique sur <strong>▶ Lancer le programme</strong>.</p>
+
+      <div class="note"><strong>Rappel :</strong> 10 % = 0.10 en Python (point à la place de la virgule).</div>
+
+      <div class="editor-wrapper">
+        <div class="editor-topbar">
+          <div class="console-dots"><span class="d-red"></span><span class="d-yellow"></span><span class="d-green"></span></div>
+          <div class="editor-label">Éditeur Python — TP1_exo3.py</div>
+        </div>
+        <textarea class="editor-textarea" id="editor-ex3" spellcheck="false">pain = 1.25
+
+# À toi de jouer : quelle valeur correspond à 10% ?
+# Rappel : les décimaux s'écrivent avec un POINT et non une virgule
+pourcentage = ...
+
+# Remplace * par l'opérateur qui calcule l'augmentation
+augmentation = pourcentage * pain
+
+# Remplace ... par la formule du nouveau prix
+pain2 = ...
+
+# Affichage des résultats
+print("Prix initial    :", pain, "€")
+print("Augmentation    :", augmentation, "€")
+print("Nouveau prix    :", pain2, "€")</textarea>
+        <div class="editor-run-row">
+          <button class="editor-run-btn" id="btn-editor-ex3" onclick="runEditor('editor-ex3','editor-out-ex3','ns3')" disabled>
+            <span>▶</span> Lancer le programme
+          </button>
+        </div>
+        <div class="editor-output" id="editor-out-ex3"></div>
+      </div>
+
+      <!-- QCM 10 : valeur de pourcentage -->
+      <div class="qcm-block" id="qcm10">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Quelle valeur doit-on affecter à la variable <code>pourcentage</code> pour représenter 10 % ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm10',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>10</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm10',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>0.10</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm10',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>10%</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm10',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>0,10</code></div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm10')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm10"></div>
+      </div>
+
+      <!-- QCM 11 : formule pain2 -->
+      <div class="qcm-block" id="qcm11">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Quelle formule permet de calculer le nouveau prix <code>pain2</code> à partir de <code>pain</code> et <code>augmentation</code> ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm11',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>pain2 = pain * augmentation</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm11',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>pain2 = pain + augmentation</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm11',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>pain2 = augmentation - pain</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm11',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>pain2 = pain / augmentation</code></div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm11')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm11"></div>
+      </div>
+
+      <!-- Champ libre : modification pour 5% -->
+      <div class="libre-block">
+        <div class="libre-question"><div class="libre-question-icon">✎</div><div>Si l'augmentation est de 5 % au lieu de 10 %, quelle est l'<strong>unique ligne</strong> du programme qu'il faut modifier ?</div></div>
+        <div class="libre-hint">Réponds sous la forme : <em>nom_variable = nouvelle_valeur</em></div>
+        <input class="libre-input" id="libre1" type="text" placeholder="Tape la ligne modifiée…" autocomplete="off" spellcheck="false">
+        <button class="libre-validate-btn" onclick="validateLibre('libre1', ['pourcentage = 0.05','pourcentage=0.05','pourcentage = 0,05'], 'fb-libre1', 'pourcentage = 0.05', 'Il suffit de changer la valeur de <code>pourcentage</code> : <code>pourcentage = 0.05</code>. Une seule ligne à modifier, c\'est tout l\'intérêt des variables !')">Valider</button>
+        <div class="libre-feedback" id="fb-libre1"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SECTION 3 — PRINT
+══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header open" onclick="toggleSection(this)">
+    <div class="section-num">3</div>
+    <div class="section-title">Afficher des informations avec <code style="font-size:0.95rem;background:rgba(30,58,95,0.12);color:inherit">print()</code></div>
+    <div class="section-arrow">›</div>
+  </div>
+  <div class="section-body open">
+
+    <div class="objectif">
+      <div class="objectif-label">Objectif n°3</div>
+      <p>Apprendre à afficher des résultats et des messages à l'écran grâce à la fonction <code>print()</code>.</p>
+    </div>
+
+    <p>Jusqu'ici, dans la console, Python affichait automatiquement le résultat d'un calcul. Mais dans un <strong>programme</strong> (l'éditeur), rien ne s'affiche si on ne le demande pas explicitement. C'est le rôle de <code>print()</code>.</p>
+
+    <table class="table-resume" style="margin-bottom:16px">
+      <thead><tr><th>Ce qu'on veut afficher</th><th>Syntaxe Python</th><th>Résultat affiché</th></tr></thead>
+      <tbody>
+        <tr><td>Un texte fixe</td><td class="op">print("Bonjour !")</td><td>Bonjour !</td></tr>
+        <tr><td>La valeur d'une variable</td><td class="op">print(age)</td><td>17 <span style="color:var(--texte-sec);font-size:11px">(si age = 17)</span></td></tr>
+        <tr><td>Un texte + une variable</td><td class="op">print("Age :", age)</td><td>Age : 17</td></tr>
+        <tr><td>Plusieurs variables</td><td class="op">print(a, "+", b, "=", a+b)</td><td>3 + 5 = 8</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note"><strong>Règle :</strong> les textes (appelés <em>chaînes de caractères</em>) s'écrivent entre guillemets <code>"..."</code>. Les variables et les calculs, eux, s'écrivent sans guillemets.</div>
+
+    <!-- Exercice 4 : découverte de print -->
+    <div class="exercice">
+      <div class="exercice-title">Exercice 4 · Premiers print()</div>
+      <p>Teste les instructions suivantes dans la console, une par une.</p>
+      <ul class="steps">
+        <li><span class="step-num">1</span><span class="step-text">Tape <code>print("Bonjour !")</code> — observe ce qui s'affiche.</span></li>
+        <li><span class="step-num">2</span><span class="step-text">Tape <code>prenom = "Ada"</code>, puis <code>print(prenom)</code>.</span></li>
+        <li><span class="step-num">3</span><span class="step-text">Tape <code>print("Bonjour", prenom)</code> — qu'est-ce que Python ajoute entre les deux éléments ?</span></li>
+        <li><span class="step-num">4</span><span class="step-text">Tape <code>print("Bonjour" + prenom)</code> (avec <code>+</code> au lieu de la virgule). Quelle différence remarques-tu ?</span></li>
+      </ul>
+
+      <div class="console-wrapper">
+        <div class="console-topbar">
+          <div class="console-dots"><span class="d-red"></span><span class="d-yellow"></span><span class="d-green"></span></div>
+          <div class="console-label">Console Python — Exercice 4</div>
+        </div>
+        <div class="console-output" id="out-ex4"><span class="hist-line"># Console prête. Tape tes instructions print() ici.</span></div>
+        <div class="console-input-row">
+          <span class="console-prompt-sym">&gt;&gt;&gt;</span>
+          <input class="console-input" id="inp-ex4" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false">
+          <button class="console-clear-btn" onclick="clearConsole('out-ex4')">Effacer</button>
+          <button class="console-run-btn" id="btn-ex4" onclick="runConsole('inp-ex4','out-ex4','ns4')" disabled>▶ Exécuter</button>
+        </div>
+      </div>
+
+      <!-- QCM 12 -->
+      <div class="qcm-block" id="qcm12">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Que se passe-t-il si on tape <code>print("Bonjour", prenom)</code> avec <code>prenom = "Ada"</code> ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm12',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche : <code>BonjourAda</code> (les deux collés)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm12',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche : <code>Bonjour Ada</code> (avec un espace automatique entre les éléments séparés par une virgule)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm12',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche : <code>Bonjour prenom</code> (le mot prenom tel quel)</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm12',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche une erreur</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm12')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm12"></div>
+      </div>
+
+      <!-- QCM 13 -->
+      <div class="qcm-block" id="qcm13">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Quelle est la différence entre <code>print("Bonjour", prenom)</code> et <code>print("Bonjour" + prenom)</code> ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm13',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Aucune différence, les deux affichent la même chose.</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm13',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">La virgule ajoute un espace automatiquement (<code>Bonjour Ada</code>), le <code>+</code> colle sans espace (<code>BonjourAda</code>).</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm13',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Le <code>+</code> ajoute un espace, la virgule colle sans espace.</div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm13',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>print("Bonjour" + prenom)</code> affiche une erreur car on ne peut pas mélanger texte et variable.</div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm13')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm13"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Exercice 5 : print dans un programme -->
+    <div class="exercice">
+      <div class="exercice-title">Exercice 5 · Écrire un programme avec print()</div>
+      <p>L'éditeur ci-dessous contient un programme incomplet. Il calcule le périmètre et l'aire d'un rectangle, mais les lignes <code>print()</code> sont à compléter par toi.</p>
+
+      <ul class="steps">
+        <li><span class="step-num">1</span><span class="step-text">Complète la ligne <code>print()</code> pour afficher <code>Longueur : 8 m</code></span></li>
+        <li><span class="step-num">2</span><span class="step-text">Complète la ligne <code>print()</code> pour afficher <code>Largeur : 5 m</code></span></li>
+        <li><span class="step-num">3</span><span class="step-text">Complète la ligne <code>print()</code> pour afficher <code>Périmètre : 26 m</code></span></li>
+        <li><span class="step-num">4</span><span class="step-text">Complète la ligne <code>print()</code> pour afficher <code>Aire : 40 m²</code></span></li>
+        <li><span class="step-num">5</span><span class="step-text">Clique sur <strong>▶ Lancer le programme</strong> et vérifie que tout s'affiche correctement.</span></li>
+      </ul>
+
+      <div class="editor-wrapper">
+        <div class="editor-topbar">
+          <div class="console-dots"><span class="d-red"></span><span class="d-yellow"></span><span class="d-green"></span></div>
+          <div class="editor-label">Éditeur Python — TP1_exo5.py</div>
+        </div>
+        <textarea class="editor-textarea" id="editor-ex5" spellcheck="false">longueur = 8
+largeur = 5
+
+perimetre = 2 * (longueur + largeur)
+aire = longueur * largeur
+
+# Complète chaque print() pour afficher les résultats
+# Exemple : print("Longueur :", longueur, "m")
+
+print(...)  # doit afficher : Longueur : 8 m
+print(...)  # doit afficher : Largeur : 5 m
+print(...)  # doit afficher : Périmètre : 26 m
+print(...)  # doit afficher : Aire : 40 m²</textarea>
+        <div class="editor-run-row">
+          <button class="editor-run-btn" id="btn-editor-ex5" onclick="runEditor('editor-ex5','editor-out-ex5','ns4')" disabled>
+            <span>▶</span> Lancer le programme
+          </button>
+        </div>
+        <div class="editor-output" id="editor-out-ex5"></div>
+      </div>
+
+      <!-- QCM 14 -->
+      <div class="qcm-block" id="qcm14">
+        <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Pour afficher <code>Périmètre : 26 m</code> en utilisant la variable <code>perimetre</code>, quelle instruction est correcte ?</div></div>
+        <div class="qcm-options">
+          <div class="qcm-option" onclick="selectQcm('qcm14',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>print("Périmètre : 26 m")</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm14',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>print("Périmètre :", perimetre, "m")</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm14',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>print(Périmètre, perimetre, m)</code></div></div>
+          <div class="qcm-option" onclick="selectQcm('qcm14',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label"><code>print("Périmètre" + perimetre + "m")</code></div></div>
+        </div>
+        <button class="qcm-validate-btn" onclick="validateQcm('qcm14')">Valider</button>
+        <div class="qcm-feedback" id="fb-qcm14"></div>
+      </div>
+
+      <!-- Champ libre : pourquoi print("Périmètre : 26 m") est déconseillé -->
+      <div class="libre-block">
+        <div class="libre-question"><div class="libre-question-icon">✎</div><div>La réponse <code>print("Périmètre : 26 m")</code> fonctionne aussi… mais elle a un gros défaut. Lequel ? (réponse en un mot)</div></div>
+        <div class="libre-hint">Que se passe-t-il si on change la valeur de <code>longueur</code> ou <code>largeur</code> ?</div>
+        <input class="libre-input" id="libre-print" type="text" placeholder="Le défaut est que…" autocomplete="off" spellcheck="false">
+        <button class="libre-validate-btn" onclick="validateLibre('libre-print', ['faux','fausse','incorrecte','incorrect','wrong','statique','fixe','codé en dur','hardcodé','hardcode','hard code','codé','valeur fixe'], 'fb-libre-print', 'la valeur est fixe (codée en dur)', 'Si on change <code>longueur = 10</code>, le <code>print</code> afficherait toujours <code>26</code> — qui serait faux ! En utilisant la variable <code>perimetre</code>, le résultat se met à jour automatiquement. C\'est tout l\'intérêt des variables.')">Valider</button>
+        <div class="libre-feedback" id="fb-libre-print"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     SECTION 4 — BONUS
+══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-num" style="background:var(--vert);font-size:18px">+</div>
+    <div class="section-title">Pour aller plus loin <span style="font-weight:400;color:var(--texte-sec);font-size:0.9em">(bonus)</span></div>
+    <div class="section-arrow">›</div>
+  </div>
+  <div class="section-body">
+    <p>Si tu as terminé les exercices précédents, essaie les défis suivants dans la console libre.</p>
+    <ul class="steps">
+      <li><span class="step-num alpha">A</span><span class="step-text">Calcule l'hypoténuse d'un triangle dont les côtés mesurent 3 et 4. (<em>c = √(a² + b²)</em>). N'oublie pas d'importer <code>sqrt</code> !</span></li>
+      <li><span class="step-num alpha">B</span><span class="step-text">Crée une variable <code>celsius = 100</code> et calcule la température en Fahrenheit grâce à la formule : <em>F = C × 9/5 + 32</em>. En Python, tu peux écrire : <code>fahrenheit = celsius * 9/5 + 32</code>, puis <code>fahrenheit</code> pour afficher le résultat.</span></li>
+      <li><span class="step-num alpha">C</span><span class="step-text">Que se passe-t-il si tu tapes <code>5 / 0</code> ?</span></li>
+    </ul>
+
+    <div class="console-wrapper">
+      <div class="console-topbar">
+        <div class="console-dots"><span class="d-red"></span><span class="d-yellow"></span><span class="d-green"></span></div>
+        <div class="console-label">Console Python — Défis bonus</div>
+      </div>
+      <div class="console-output" id="out-bonus"><span class="hist-line"># Console libre pour les défis bonus.</span></div>
+      <div class="console-input-row">
+        <span class="console-prompt-sym">&gt;&gt;&gt;</span>
+        <input class="console-input" id="inp-bonus" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false">
+        <button class="console-clear-btn" onclick="clearConsole('out-bonus')">Effacer</button>
+        <button class="console-run-btn" id="btn-bonus" onclick="runConsole('inp-bonus','out-bonus','ns-bonus')" disabled>▶ Exécuter</button>
+      </div>
+    </div>
+
+    <!-- QCM bonus A -->
+    <div class="qcm-block" id="qcm-bA">
+      <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Défi A : quelle est la valeur de l'hypoténuse d'un triangle rectangle de côtés 3 et 4 ?</div></div>
+      <div class="qcm-options">
+        <div class="qcm-option" onclick="selectQcm('qcm-bA',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">3.5</div></div>
+        <div class="qcm-option" onclick="selectQcm('qcm-bA',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">5.0</div></div>
+        <div class="qcm-option" onclick="selectQcm('qcm-bA',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">7.0</div></div>
+        <div class="qcm-option" onclick="selectQcm('qcm-bA',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">12.0</div></div>
+      </div>
+      <button class="qcm-validate-btn" onclick="validateQcm('qcm-bA')">Valider</button>
+      <div class="qcm-feedback" id="fb-qcm-bA"></div>
+    </div>
+
+    <!-- Champ libre bonus B -->
+    <div class="libre-block">
+      <div class="libre-question"><div class="libre-question-icon">✎</div><div>Défi B : en utilisant la formule <em>F = C × 9/5 + 32</em>, quelle valeur Python affiche-t-il pour <code>celsius = 100</code> ?</div></div>
+      <div class="libre-hint">Donne uniquement la valeur numérique affichée par Python (ex : 42 ou 42.0).</div>
+      <input class="libre-input" id="libre-b" type="text" placeholder="Ex : 42" autocomplete="off" spellcheck="false">
+      <button class="libre-validate-btn" onclick="validateLibre('libre-b', ['212','212.0'], 'fb-libre-b', '212', 'Exact ! 100 × 9/5 + 32 = 180 + 32 = 212 °F. C\'est le point d\'ébullition de l\'eau en degrés Fahrenheit.')">Valider</button>
+      <div class="libre-feedback" id="fb-libre-b"></div>
+    </div>
+
+    <!-- QCM bonus C -->
+    <div class="qcm-block" id="qcm-bC">
+      <div class="qcm-question"><div class="qcm-question-icon">?</div><div>Défi C : que se passe-t-il quand on divise par zéro en Python ?</div></div>
+      <div class="qcm-options">
+        <div class="qcm-option" onclick="selectQcm('qcm-bC',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python renvoie 0</div></div>
+        <div class="qcm-option" onclick="selectQcm('qcm-bC',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python renvoie « infini »</div></div>
+        <div class="qcm-option" onclick="selectQcm('qcm-bC',this,true)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python affiche une erreur : <code>ZeroDivisionError</code></div></div>
+        <div class="qcm-option" onclick="selectQcm('qcm-bC',this,false)"><div class="qcm-radio"><div class="qcm-radio-dot"></div></div><div class="qcm-label">Python renvoie 1</div></div>
+      </div>
+      <button class="qcm-validate-btn" onclick="validateQcm('qcm-bC')">Valider</button>
+      <div class="qcm-feedback" id="fb-qcm-bC"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCORE GLOBAL -->
+<div class="score-bar" id="score-bar">
+  <div class="score-label">🏆 Score TP :</div>
+  <div class="score-track"><div class="score-fill" id="score-fill" style="width:0%"></div></div>
+  <div class="score-count" id="score-count">0 / 0 validé(s)</div>
+</div>
+
+</main>
+
+<script>
+// ══ SECTION TOGGLE ══
+function toggleSection(header){
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+// ══ SCORE ══
+let totalQ = 0, correctQ = 0;
+function updateScore(){
+  const pct = totalQ === 0 ? 0 : Math.round(correctQ/totalQ*100);
+  document.getElementById('score-fill').style.width = pct+'%';
+  document.getElementById('score-count').textContent = correctQ+' / '+totalQ+' validé(s)';
+}
+
+// ══ QCM ══
+const qcmState = {};
+function selectQcm(id, el, isCorrect){
+  if(qcmState[id] && qcmState[id].locked) return;
+  const block = document.getElementById(id);
+  block.querySelectorAll('.qcm-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  if(!qcmState[id]) qcmState[id] = {};
+  qcmState[id].selected = el;
+  qcmState[id].correct = isCorrect;
+}
+
+const qcmFeedbacks = {
+  'qcm1': {ok:'Exact ! <code>6 + 7 = 13</code>. Python effectue les opérations comme une calculatrice.', ko:'Non — Python calcule bien <code>6 + 7 = 13</code>. Essaie dans la console !'},
+  'qcm2': {ok:'Parfait ! <code>**</code> est l\'opérateur de puissance : <code>3 ** 2 = 9</code>, <code>4 ** 2 = 16</code>.', ko:'Non — <code>**</code> correspond à la puissance (exposant). <code>3 ** 2</code> calcule 3².'},
+  'qcm3': {ok:'Exact ! Python ne connaît pas <code>sqrt</code> par défaut — il faut d\'abord l\'importer.', ko:'Non — avant l\'import, Python affiche une erreur <code>NameError</code> car il ne connaît pas <code>sqrt</code>.'},
+  'qcm4': {ok:'Très bien ! <code>from math import sqrt</code> va chercher la fonction <code>sqrt</code> dans la bibliothèque <code>math</code> et la met à disposition.', ko:'Non — cette commande importe la fonction <code>sqrt</code> depuis la bibliothèque <code>math</code>. Rien n\'est installé ni calculé automatiquement.'},
+  'qcm5': {ok:'Correct ! En Python, affecter une nouvelle valeur à une variable <strong>écrase</strong> l\'ancienne.', ko:'Non — la valeur 1 écrase la valeur 4. <code>a</code> vaut donc <strong>1</strong>.'},
+  'qcm6': {ok:'Exact ! <code>a = b</code> copie la valeur de <code>b</code> dans <code>a</code>. <code>b</code> ne change pas.', ko:'Non — <code>a = b</code> copie la valeur 7 de <code>b</code> dans <code>a</code>. <code>b</code> reste 7. On obtient <code>a = 7</code> et <code>b = 7</code>.'},
+  'qcm7': {ok:'Parfait ! En Python, <code>=</code> est une affectation ponctuelle — c\'est très différent de l\'égalité mathématique.', ko:'Non — en Python, <code>a = b</code> copie la valeur de <code>b</code> dans <code>a</code> à cet instant précis. Si <code>b</code> change ensuite, <code>a</code> ne change pas.'},
+  'qcm8': {ok:'Exact ! 10 % de 1,25 € = 0,10 × 1,25 = <strong>0,125 €</strong>.', ko:'Non — 10 % de 1,25 € = 0,10 × 1,25 = 0,125 €.'},
+  'qcm9': {ok:'Correct ! 1,25 + 0,125 = <strong>1,375 €</strong>.', ko:'Non — le nouveau prix est 1,25 + 0,125 = 1,375 €.'},
+  'qcm10': {ok:'Exact ! 10 % s\'écrit <code>0.10</code> en Python (point décimal, pas de symbole %).', ko:'Non — 10 % = 0,10 = <code>0.10</code> en Python. Rappel : les nombres décimaux s\'écrivent avec un point.'},
+  'qcm11': {ok:'Parfait ! Le nouveau prix = prix initial + augmentation, donc <code>pain2 = pain + augmentation</code>.', ko:'Non — le nouveau prix s\'obtient en ajoutant l\'augmentation au prix initial : <code>pain2 = pain + augmentation</code>.'},
+  'qcm12': {ok:'Exact ! Avec la virgule, <code>print()</code> insère automatiquement un espace entre chaque élément — très pratique pour des affichages lisibles.', ko:'Non — avec la virgule, Python ajoute un espace entre les éléments : <code>Bonjour Ada</code>. Essaie dans la console !'},
+  'qcm13': {ok:'Parfait ! La virgule dans <code>print()</code> ajoute un espace, le <code>+</code> colle les chaînes sans espace. Pour mélanger texte et nombre, la virgule est souvent plus simple.', ko:'Non — la virgule ajoute un espace automatique (<code>Bonjour Ada</code>), tandis que <code>+</code> colle les chaînes sans espace (<code>BonjourAda</code>). Teste les deux dans la console pour bien voir la différence.'},
+  'qcm14': {ok:'Parfait ! En passant la variable <code>perimetre</code> sans guillemets, Python affiche sa valeur réelle — et si le rectangle change, l\'affichage se met à jour automatiquement.', ko:'Non — il faut alterner texte entre guillemets et variables sans guillemets, séparés par des virgules : <code>print("Périmètre :", perimetre, "m")</code>.'},
+  'qcm-bA': {ok:'Bravo ! √(3² + 4²) = √(9 + 16) = √25 = <strong>5.0</strong>. C\'est le triangle 3-4-5 classique !', ko:'Non — √(3² + 4²) = √25 = 5.0. Essaie dans la console avec <code>from math import sqrt</code> puis <code>sqrt(3**2 + 4**2)</code>.'},
+  'qcm-bC': {ok:'Exact ! Python lève une erreur <code>ZeroDivisionError: division by zero</code> — la division par zéro est impossible, même en informatique.', ko:'Non — Python affiche <code>ZeroDivisionError</code>. La division par zéro n\'est pas définie.'},
+};
+
+function validateQcm(id){
+  const state = qcmState[id];
+  if(!state || !state.selected) return;
+  if(state.locked) return;
+  state.locked = true;
+  totalQ++;
+
+  const block = document.getElementById(id);
+  const fb = document.getElementById('fb-'+id);
+  const btn = block.querySelector('.qcm-validate-btn');
+  btn.disabled = true;
+
+  // Mark all options
+  block.querySelectorAll('.qcm-option').forEach(opt => {
+    const isThis = opt === state.selected;
+    const isCorrectOpt = opt.onclick && opt.onclick.toString().includes('true');
+    if(isThis && state.correct){ opt.classList.remove('selected'); opt.classList.add('correct'); }
+    else if(isThis && !state.correct){ opt.classList.remove('selected'); opt.classList.add('wrong'); }
+    else if(!isThis && isCorrectOpt){ opt.classList.add('missed'); }
+  });
+
+  const msgs = qcmFeedbacks[id] || {ok:'Bonne réponse !', ko:'Mauvaise réponse.'};
+  fb.style.display = 'block';
+  if(state.correct){
+    correctQ++;
+    fb.className = 'qcm-feedback ok';
+    fb.innerHTML = '<span class="fb-icon">✓</span> <strong>Bonne réponse !</strong> '+msgs.ok;
+  } else {
+    fb.className = 'qcm-feedback ko';
+    fb.innerHTML = '<span class="fb-icon">✗</span> <strong>Pas tout à fait.</strong> '+msgs.ko;
+  }
+  updateScore();
+}
+
+// ══ CHAMP LIBRE ══
+function validateLibre(inputId, acceptedList, fbId, canonical, explanation){
+  const input = document.getElementById(inputId);
+  const fb = document.getElementById(fbId);
+  if(fb.style.display === 'block') return;
+
+  const val = input.value.trim().toLowerCase().replace(/\s+/g,' ');
+  const accepted = acceptedList.map(a => a.toLowerCase().trim());
+  const isOk = accepted.some(a => val === a || val.replace(/\s/g,'') === a.replace(/\s/g,''));
+
+  totalQ++;
+  input.disabled = true;
+  fb.style.display = 'block';
+
+  if(isOk){
+    correctQ++;
+    input.classList.add('correct');
+    fb.className = 'libre-feedback ok';
+    fb.innerHTML = '<span class="fb-icon">✓</span> <strong>Bonne réponse !</strong> '+explanation;
+  } else {
+    input.classList.add('wrong');
+    fb.className = 'libre-feedback ko';
+    fb.innerHTML = '<span class="fb-icon">✗</span> <strong>Pas tout à fait.</strong> La bonne réponse était : <code>'+canonical+'</code>. '+explanation;
+  }
+  updateScore();
+}
+
+// ══ PYODIDE ══
+let pyodide = null;
+const ns = {};
+
+async function initPyodide(){
+  const status = document.getElementById('py-status');
+  try {
+    pyodide = await loadPyodide();
+    status.textContent = '✓ Python prêt — tu peux commencer !';
+    status.classList.add('ready');
+    ['ns1','ns2','ns3','ns4','ns-bonus'].forEach(k => {
+      ns[k] = pyodide.globals.get('dict')();
+    });
+    document.querySelectorAll('.console-run-btn,.editor-run-btn').forEach(b => b.disabled = false);
+    bindEnters();
+  } catch(e){
+    status.textContent = '✗ Erreur : '+e.message;
+    status.classList.add('error');
+  }
+}
+
+function bindEnters(){
+  [['inp-ex1','out-ex1','ns1'],['inp-ex2','out-ex2','ns2'],['inp-ex4','out-ex4','ns4'],['inp-bonus','out-bonus','ns-bonus']].forEach(([i,o,n])=>{
+    const el = document.getElementById(i);
+    if(el) el.addEventListener('keydown', e=>{ if(e.key==='Enter'){e.preventDefault();runConsole(i,o,n);} });
+  });
+}
+
+async function runConsole(inputId, outputId, nsKey){
+  if(!pyodide) return;
+  const input = document.getElementById(inputId);
+  const output = document.getElementById(outputId);
+  const code = input.value.trim();
+  if(!code) return;
+  const cmd = document.createElement('span');
+  cmd.className='hist-line';
+  cmd.textContent='>>> '+code;
+  output.appendChild(cmd);
+  let result='', isErr=false;
+  try {
+    pyodide.runPython('import sys,io\n_b=io.StringIO()\nsys.stdout=_b');
+    const val = pyodide.runPython(code, {globals: ns[nsKey]});
+    pyodide.runPython('sys.stdout=sys.__stdout__');
+    const printed = pyodide.runPython('_b.getvalue()');
+    if(printed) result+=printed;
+    if(val!==undefined && val!==null && String(val)!=='None') result+=String(val);
+  } catch(e){
+    try{ pyodide.runPython('sys.stdout=sys.__stdout__'); }catch(_){}
+    result = e.message.split('\n').slice(-2).join('\n');
+    isErr=true;
+  }
+  if(result.trim()){
+    const r=document.createElement('span');
+    r.className=isErr?'err-line':'out-line';
+    r.textContent=result.trim();
+    output.appendChild(r);
+  }
+  output.scrollTop=output.scrollHeight;
+  input.value='';
+}
+
+async function runEditor(editorId, outputId, nsKey){
+  if(!pyodide) return;
+  const editor=document.getElementById(editorId);
+  const output=document.getElementById(outputId);
+  const code=editor.value;
+  output.innerHTML='';
+  output.classList.add('visible');
+  try {
+    pyodide.runPython('import sys,io\n_b=io.StringIO()\nsys.stdout=_b');
+    pyodide.runPython(code, {globals: ns[nsKey]});
+    pyodide.runPython('sys.stdout=sys.__stdout__');
+    const printed=pyodide.runPython('_b.getvalue()');
+    if(printed.trim()){
+      printed.trim().split('\n').forEach(line=>{
+        const el=document.createElement('span');
+        el.className='out-line'; el.textContent=line;
+        output.appendChild(el);
+      });
+    } else {
+      const el=document.createElement('span');
+      el.className='hist-line'; el.textContent='(programme exécuté sans affichage)';
+      output.appendChild(el);
+    }
+  } catch(e){
+    try{ pyodide.runPython('sys.stdout=sys.__stdout__'); }catch(_){}
+    const el=document.createElement('span');
+    el.className='err-line';
+    el.textContent=e.message.split('\n').slice(-2).join('\n');
+    output.appendChild(el);
+  }
+  output.scrollTop=output.scrollHeight;
+}
+
+function clearConsole(id){
+  document.getElementById(id).innerHTML='<span class="hist-line"># Console effacée.</span>';
+}
+
+initPyodide();
+</script>
+
+<a href="index.html" class="btn-retour-flottant" title="Retour au menu">🏠</a>
+<style>
+.btn-retour-flottant{position:fixed;bottom:20px;left:20px;z-index:9999;display:flex;align-items:center;justify-content:center;background:white;color:#5c67f2;text-decoration:none;font-size:1.3rem;width:48px;height:48px;border-radius:50%;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all 0.3s ease;}
+.btn-retour-flottant:hover{transform:scale(1.1);background:#5c67f2;color:white;}
+</style>
+</body>
+</html>

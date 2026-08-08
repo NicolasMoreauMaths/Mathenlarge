@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La médiatrice d'un segment — 6ème</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root {
+    --bg:#f4f1eb;--card-bg:#ffffff;--text:#2b2724;--text-mid:#5c5652;--text-light:#8a8380;
+    --accent:#c0392b;--blue:#1a6fa0;--blue-light:#e8f2fa;--green:#1b7a40;--green-light:#e6f5ec;
+    --purple:#6b3fa0;--purple-light:#f1ecf8;--orange:#b85c0b;--orange-light:#fef2e8;
+    --gold:#b8860b;--gold-light:#fef8e8;--border:#e0dbd4;
+    --correction-bg:linear-gradient(135deg,#fffef5 0%,#fefbee 100%);--correction-border:#e8c84a;
+    --shadow-sm:0 1px 4px rgba(0,0,0,0.04);--shadow:0 3px 16px rgba(0,0,0,0.06);
+    --radius:12px;--radius-sm:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16.5px;}
+
+  /* HEADER */
+  .header{background:linear-gradient(160deg,#0f1b2d 0%,#1a2940 40%,#1e3a5f 100%);color:#fff;padding:3rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+  .header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(192,57,43,.12) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(26,111,160,.12) 0%,transparent 55%);pointer-events:none;}
+  .header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--blue),var(--purple),var(--green));}
+  .header .chapter-badge{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.6rem;}
+  .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.55rem,4.2vw,2.5rem);font-weight:800;letter-spacing:-.01em;line-height:1.25;}
+  .header .line{width:50px;height:2px;background:rgba(255,255,255,.25);margin:.8rem auto 0;border-radius:2px;}
+
+  /* CONTROLS BAR */
+  .controls-bar{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  .btn-ctrl{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.45rem 1.1rem;border:2px solid var(--accent);border-radius:50px;background:transparent;color:var(--accent);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;}
+  .btn-ctrl:hover{background:var(--accent);color:#fff;transform:translateY(-1px);box-shadow:0 4px 14px rgba(192,57,43,.22);}
+  .btn-ctrl.sec{border-color:var(--text-light);color:var(--text-mid);}
+  .btn-ctrl.sec:hover{background:var(--text-mid);color:#fff;}
+
+  /* LAYOUT */
+  .container{max-width:860px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+  .section{margin-bottom:2.8rem;animation:fadeUp .55s ease both;}
+  .section:nth-child(2){animation-delay:.08s;}.section:nth-child(3){animation-delay:.16s;}.section:nth-child(4){animation-delay:.24s;}.section:nth-child(5){animation-delay:.32s;}.section:nth-child(6){animation-delay:.4s;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+  .section-title{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--accent);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;}
+  .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:2px;}
+  .sub-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--blue);margin:1.8rem 0 .8rem;}
+
+  /* BLOCKS */
+  .block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border-left:5px solid;}
+  .block.def{border-left-color:var(--blue);}.block.prop{border-left-color:var(--green);}.block.rule{border-left-color:var(--purple);}.block.warn{border-left-color:var(--orange);}
+  .block-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;}
+  .block.def .block-tag{color:var(--blue);background:var(--blue-light);}
+  .block.prop .block-tag{color:var(--green);background:var(--green-light);}
+  .block.rule .block-tag{color:var(--purple);background:var(--purple-light);}
+  .block.warn .block-tag{color:var(--orange);background:var(--orange-light);}
+
+  /* EXAMPLE BLOCK */
+  .ex-block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .ex-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.45rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--accent);background:#fceae8;}
+  .ex-prompt{margin-bottom:.7rem;}
+
+  /* CORRECTION */
+  .corr-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem .95rem;border:1.5px solid var(--correction-border);border-radius:50px;background:var(--gold-light);color:var(--gold);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;margin-top:.2rem;}
+  .corr-btn:hover{background:#fdf2c5;transform:translateY(-1px);}
+  .corr-btn .chev{display:inline-block;font-size:.6rem;transition:transform .3s ease;}
+  .corr-btn.open .chev{transform:rotate(90deg);}
+  .corr-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),opacity .35s ease,padding .35s ease;opacity:0;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:0 1.1rem;}
+  .corr-body.show{max-height:4000px;opacity:1;padding:1.1rem;}
+
+  /* DIAGRAM + METHODE LAYOUT (remplace le bloc vidéo : pas de vidéo disponible, on illustre par un schéma SVG) */
+  .diagram-methode{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin:.9rem 0;align-items:start;}
+  .diagram-wrap{border-radius:var(--radius-sm);overflow:hidden;background:#faf8f5;box-shadow:var(--shadow);border:1px solid var(--border);padding:.6rem;}
+  .diagram-wrap svg{width:100%;height:auto;display:block;}
+  .diagram-frame{background:#faf8f5;border-radius:var(--radius-sm);padding:1rem;border:1px solid var(--border);text-align:center;margin:.9rem 0;}
+  .diagram-frame svg{max-width:100%;height:auto;}
+  .diagram-caption{font-size:.82rem;color:var(--text-mid);margin-top:.5rem;font-style:italic;}
+  .methode-box{background:#faf8f5;border-radius:var(--radius-sm);padding:1rem 1.1rem;border:1px solid var(--border);height:100%;}
+  .methode-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);display:flex;align-items:center;gap:.4rem;margin-bottom:.65rem;}
+  .methode-steps{list-style:none;padding:0;}
+  .methode-steps li{padding:.32rem 0 .32rem 1.6rem;position:relative;font-size:.95rem;border-bottom:1px dashed var(--border);}
+  .methode-steps li:last-child{border-bottom:none;}
+  .methode-steps li::before{content:counter(step-counter);counter-increment:step-counter;position:absolute;left:0;top:.38rem;width:1.1rem;height:1.1rem;background:var(--blue);color:#fff;border-radius:50%;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .methode-steps{counter-reset:step-counter;}
+
+  .conclusion{margin-top:.8rem;padding:.7rem 1rem;background:var(--green-light);border-radius:var(--radius-sm);border-left:4px solid var(--green);}
+  .conclusion .donc-label{font-family:'DM Sans',sans-serif;font-weight:700;color:var(--green);font-size:.88rem;display:block;margin-bottom:.15rem;}
+  .conclusion-false{background:#fdecea;border-left-color:var(--accent);}
+  .conclusion-false .donc-label{color:var(--accent);}
+
+  .calc-steps{font-size:1rem;line-height:1.9;}
+  .calc-steps .step{display:flex;align-items:flex-start;gap:.5rem;margin:.25rem 0;}
+  .calc-steps .step-label{font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;opacity:.45;white-space:nowrap;padding-top:.28rem;min-width:90px;}
+  .calc-steps .eq{flex:1;}
+
+  .formula-box{text-align:center;font-size:1.05rem;padding:.85rem 1rem;margin:.7rem 0 .3rem;background:#faf8f5;border-radius:var(--radius-sm);border:1px solid var(--border);}
+
+  .check-list{list-style:none;padding:0;}
+  .check-list li{padding:.3rem 0 .3rem 1.8rem;position:relative;}
+  .check-list li::before{content:'';position:absolute;left:.5rem;top:.87rem;width:7px;height:7px;background:var(--purple);border-radius:50%;}
+
+  /* OBJECTIFS INTRO */
+  .objectifs-box{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:1.6rem 0 0;box-shadow:var(--shadow);border:1.5px solid var(--border);}
+  .objectifs-box .obj-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:.6rem;}
+  .objectifs-box ol{padding-left:1.3rem;}
+  .objectifs-box li{margin:.3rem 0;font-size:.95rem;color:var(--text-mid);}
+
+  /* RESPONSIVE */
+  @media(max-width:700px){
+    .diagram-methode{grid-template-columns:1fr;}
+    body{font-size:15px;}
+    .container{padding:1.2rem .8rem 3rem;}
+    .header{padding:2rem 1rem 1.5rem;}
+    .block,.ex-block{padding:1rem 1.1rem;}
+    .methode-steps li{font-size:.88rem;}
+  }
+  @media print{
+    .controls-bar{display:none;}
+    .corr-body{max-height:none!important;opacity:1!important;padding:1rem!important;}
+    .corr-btn{display:none;}
+  }
+
+  /* ══ RESPONSIVE ENHANCEMENTS ══ */
+  svg{max-width:100%;height:auto;}
+  .block,.ex-block{overflow-wrap:break-word;word-break:break-word;}
+  @media(max-width:600px){
+    body{font-size:14.5px;}
+    .container{padding:1rem .6rem 2.5rem;}
+    .header{padding:1.8rem .8rem 1.3rem;}
+    .header h1{font-size:1.35rem;}
+    .block,.ex-block{padding:.9rem 1rem;}
+    .section-title{font-size:1.2rem;}
+    .btn-ctrl{font-size:.72rem;padding:.3rem .7rem;}
+    .controls-bar{padding:.5rem .8rem;gap:.4rem;}
+    .corr-body.show{padding:.9rem;}
+  }
+  @media(max-width:380px){
+    body{font-size:13.5px;}
+    .container{padding:.8rem .4rem 2rem;}
+    .header{padding:1.4rem .6rem 1rem;}
+    .header h1{font-size:1.15rem;}
+    .block,.ex-block{padding:.7rem .8rem;}
+    .section-title{font-size:1.05rem;gap:.4rem;}
+    .btn-ctrl{font-size:.65rem;padding:.25rem .5rem;}
+  }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="chapter-badge">Chapitre — Géométrie</span>
+  <h1>La médiatrice d'un segment</h1>
+  <div class="line"></div>
+</div>
+
+<div class="controls-bar">
+  <button class="btn-ctrl" onclick="showAll()">📖 Afficher toutes les corrections</button>
+  <button class="btn-ctrl sec" onclick="hideAll()">🔒 Tout masquer</button>
+</div>
+
+<div class="container">
+
+  <div class="objectifs-box">
+    <div class="obj-title">🎯 Objectifs de la leçon</div>
+    <ol>
+      <li>Connaître la définition de la médiatrice d'un segment.</li>
+      <li>Comprendre et utiliser la propriété caractéristique de la médiatrice d'un segment.</li>
+      <li>Résoudre des problèmes en s'appuyant sur la propriété caractéristique de la médiatrice.</li>
+      <li>Savoir que les médiatrices d'un triangle sont concourantes.</li>
+      <li>Connaître et construire le cercle circonscrit à un triangle.</li>
+    </ol>
+  </div>
+
+  <!-- ======================== I. DEFINITION ======================== -->
+  <div class="section">
+    <div class="section-title">I. Définition de la médiatrice d'un segment</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition</div>
+      <p>La <strong>médiatrice</strong> d'un segment [AB] est la droite qui passe par le <strong>milieu</strong> de [AB] et qui est <strong>perpendiculaire</strong> à [AB].</p>
+    </div>
+
+    <div class="diagram-frame">
+      <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+        <line x1="80" y1="150" x2="320" y2="150" stroke="#2b2724" stroke-width="2"/>
+        <line x1="200" y1="25" x2="200" y2="275" stroke="#1b7a40" stroke-width="2.4"/>
+        <rect x="190" y="140" width="20" height="20" fill="none" stroke="#2b2724" stroke-width="1.3"/>
+        <!-- codage : AI = IB -->
+        <line x1="140" y1="145" x2="140" y2="155" stroke="#2b2724" stroke-width="2"/>
+        <line x1="260" y1="145" x2="260" y2="155" stroke="#2b2724" stroke-width="2"/>
+        <circle cx="80" cy="150" r="3.5" fill="#2b2724"/>
+        <circle cx="320" cy="150" r="3.5" fill="#2b2724"/>
+        <circle cx="200" cy="150" r="3.5" fill="#2b2724"/>
+        <text x="65" y="175" font-size="16" font-weight="700" font-family="DM Sans">A</text>
+        <text x="328" y="175" font-size="16" font-weight="700" font-family="DM Sans">B</text>
+        <text x="205" y="172" font-size="14" font-weight="700" font-family="DM Sans">I</text>
+        <text x="205" y="42" font-size="15" font-weight="700" fill="#1b7a40" font-family="DM Sans">(d)</text>
+      </svg>
+      <div class="diagram-caption">La droite (d) passe par le milieu I de [AB] (AI = IB, codé par un trait) et forme un angle droit avec [AB] : c'est la médiatrice de [AB].</div>
+    </div>
+
+    <div class="sub-title">Construire la médiatrice d'un segment</div>
+
+    <div class="diagram-methode">
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 400 460" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <!-- arc tracé au compas depuis A, écartement = longueur AB -->
+          <path d="M 200,22 A 240,240 0 0 1 200,438" fill="none" stroke="#c0392b" stroke-width="2"/>
+          <!-- arc tracé au compas depuis B, même écartement = longueur AB -->
+          <path d="M 200,22 A 240,240 0 0 0 200,438" fill="none" stroke="#1a6fa0" stroke-width="2"/>
+          <line x1="80" y1="230" x2="320" y2="230" stroke="#2b2724" stroke-width="2"/>
+          <line x1="200" y1="22" x2="200" y2="438" stroke="#1b7a40" stroke-width="2.4" stroke-dasharray="7 5"/>
+          <rect x="190" y="220" width="20" height="20" fill="none" stroke="#2b2724" stroke-width="1.3"/>
+          <!-- codage : AI = IB (I est le milieu de [AB], le segment dont on trace la médiatrice) -->
+          <line x1="140" y1="225" x2="140" y2="235" stroke="#2b2724" stroke-width="2"/>
+          <line x1="260" y1="225" x2="260" y2="235" stroke="#2b2724" stroke-width="2"/>
+          <circle cx="80" cy="230" r="3.5" fill="#2b2724"/>
+          <circle cx="320" cy="230" r="3.5" fill="#2b2724"/>
+          <circle cx="200" cy="22" r="4.5" fill="#1b7a40" stroke="#fff" stroke-width="1.2"/>
+          <circle cx="200" cy="438" r="4.5" fill="#1b7a40" stroke="#fff" stroke-width="1.2"/>
+          <text x="65" y="255" font-size="16" font-weight="700" font-family="DM Sans">A</text>
+          <text x="328" y="255" font-size="16" font-weight="700" font-family="DM Sans">B</text>
+          <text x="207" y="14" font-size="14" font-weight="700" font-family="DM Sans">C</text>
+          <text x="207" y="458" font-size="14" font-weight="700" font-family="DM Sans">D</text>
+          <text x="295" y="145" font-size="11" fill="#c0392b" font-family="DM Sans">arc depuis A</text>
+          <text x="35" y="145" font-size="11" fill="#1a6fa0" font-family="DM Sans" text-anchor="end">arc depuis B</text>
+        </svg>
+        <div class="diagram-caption">I, point d'intersection de (CD) et (AB), est le milieu de [AB] : AI = IB (codé par un trait).</div>
+      </div>
+      <div class="methode-box">
+        <div class="methode-title">📐 Méthode — Au compas</div>
+        <ol class="methode-steps">
+          <li>Piquer le compas en A et écarter les branches jusqu'en B : l'écartement du compas est égal à la longueur du segment [AB].</li>
+          <li>Sans changer l'écartement, tracer un grand arc de cercle de part et d'autre de la droite (AB).</li>
+          <li>Piquer ensuite le compas en B, garder le <strong>même écartement</strong> (toujours la longueur AB), et tracer un second arc qui coupe le premier en deux points C et D.</li>
+          <li>Tracer la droite (CD) : c'est la médiatrice du segment [AB].</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="block warn" style="margin-top:.9rem;">
+      <div class="block-tag">✂️ Autre méthode — Par pliage</div>
+      <p>Sur une feuille, on plie le papier de façon à superposer exactement le point A sur le point B. Le <strong>pli obtenu</strong> est la médiatrice du segment [AB] : il passe par le milieu de [AB] et lui est perpendiculaire.</p>
+    </div>
+  </div><!-- end section I -->
+
+  <!-- ======================== II. PROPRIETE ======================== -->
+  <div class="section">
+    <div class="section-title">II. Propriété caractéristique</div>
+
+    <div class="block prop">
+      <div class="block-tag">📗 Propriété</div>
+      <p>Un point appartient à la médiatrice d'un segment <strong>si et seulement si</strong> il est équidistant des extrémités de ce segment.</p>
+      <ul class="check-list" style="margin-top:.6rem;">
+        <li>Si M appartient à la médiatrice de [AB], alors <strong>MA = MB</strong>.</li>
+        <li>Si MA = MB, alors M appartient à la médiatrice de [AB].</li>
+      </ul>
+      <div class="formula-box">\(M \in \text{médiatrice de } [AB] \iff MA = MB\)</div>
+    </div>
+
+    <div class="diagram-frame">
+      <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+        <line x1="200" y1="15" x2="200" y2="265" stroke="#1b7a40" stroke-width="2.2"/>
+        <line x1="80" y1="200" x2="320" y2="200" stroke="#2b2724" stroke-width="2"/>
+        <line x1="200" y1="70" x2="80" y2="200" stroke="#c0392b" stroke-width="1.8"/>
+        <line x1="200" y1="70" x2="320" y2="200" stroke="#1a6fa0" stroke-width="1.8"/>
+        <!-- codage : AI = IB, un trait (segment [AB] dont on trace la médiatrice) -->
+        <line x1="140" y1="195" x2="140" y2="205" stroke="#2b2724" stroke-width="2"/>
+        <line x1="260" y1="195" x2="260" y2="205" stroke="#2b2724" stroke-width="2"/>
+        <!-- codage : MA = MB, deux traits (propriété caractéristique) -->
+        <line x1="133" y1="134" x2="142" y2="142" stroke="#2b2724" stroke-width="2"/>
+        <line x1="138" y1="128" x2="147" y2="136" stroke="#2b2724" stroke-width="2"/>
+        <line x1="267" y1="134" x2="258" y2="142" stroke="#2b2724" stroke-width="2"/>
+        <line x1="262" y1="128" x2="253" y2="136" stroke="#2b2724" stroke-width="2"/>
+        <rect x="190" y="190" width="20" height="20" fill="none" stroke="#2b2724" stroke-width="1.2"/>
+        <circle cx="80" cy="200" r="3.5" fill="#2b2724"/>
+        <circle cx="320" cy="200" r="3.5" fill="#2b2724"/>
+        <circle cx="200" cy="200" r="3.5" fill="#2b2724"/>
+        <circle cx="200" cy="70" r="3.5" fill="#2b2724"/>
+        <text x="63" y="225" font-size="16" font-weight="700" font-family="DM Sans">A</text>
+        <text x="328" y="225" font-size="16" font-weight="700" font-family="DM Sans">B</text>
+        <text x="207" y="222" font-size="14" font-weight="700" font-family="DM Sans">I</text>
+        <text x="207" y="65" font-size="16" font-weight="700" font-family="DM Sans">M</text>
+        <text x="120" y="130" font-size="13" fill="#c0392b" font-family="DM Sans">MA</text>
+        <text x="260" y="130" font-size="13" fill="#1a6fa0" font-family="DM Sans">MB</text>
+      </svg>
+      <div class="diagram-caption">I est le milieu de [AB] : AI = IB (un trait). Comme M appartient à la médiatrice de [AB], MA = MB (deux traits), quelle que soit la position de M sur la droite.</div>
+    </div>
+
+    <div class="ex-block">
+      <div class="ex-tag">✏️ Exemple</div>
+      <div class="ex-prompt">Soit [AB] un segment et (d) sa médiatrice. Un point M de (d) est tel que MA = 5,3 cm. Que peut-on dire de la longueur MB ? Justifier.</div>
+      <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+      <div class="corr-body">
+        <div class="calc-steps">
+          <div class="step"><span class="step-label">Propriété</span><span class="eq">M appartient à la médiatrice de [AB], donc M est équidistant de A et de B.</span></div>
+          <div class="step"><span class="step-label">Conclusion</span><span class="eq">\(MA = MB\)</span></div>
+        </div>
+        <div class="conclusion">
+          <span class="donc-label">Conclusion :</span>
+          Comme MA = 5,3 cm, on a donc <strong>MB = 5,3 cm</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="ex-block">
+      <div class="ex-tag">✏️ Exemple</div>
+      <div class="ex-prompt">On donne un segment [AB] et un point N tel que NA = 6,2 cm et NB = 6,2 cm. Que peut-on affirmer sur le point N ?</div>
+      <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+      <div class="corr-body">
+        <div class="calc-steps">
+          <div class="step"><span class="step-label">Constat</span><span class="eq">\(NA = NB = 6{,}2 \text{ cm}\)</span></div>
+          <div class="step"><span class="step-label">Propriété</span><span class="eq">Le point N est équidistant de A et de B.</span></div>
+        </div>
+        <div class="conclusion">
+          <span class="donc-label">Conclusion :</span>
+          D'après la réciproque de la propriété caractéristique, le point <strong>N appartient à la médiatrice de [AB]</strong>.
+        </div>
+      </div>
+    </div>
+  </div><!-- end section II -->
+
+  <!-- ======================== III. PROBLEMES ======================== -->
+  <div class="section">
+    <div class="section-title">III. Résoudre des problèmes avec la médiatrice</div>
+
+    <div class="methode-box" style="margin:.9rem 0;">
+      <div class="methode-title">🧭 Méthode — Utiliser la propriété caractéristique</div>
+      <ol class="methode-steps">
+        <li>Repérer dans l'énoncé une situation d'équidistance ou une médiatrice tracée.</li>
+        <li>Traduire la situation avec la propriété caractéristique (égalité de distances ⇔ appartenance à la médiatrice).</li>
+        <li>En déduire l'information demandée (une longueur, ou le fait qu'un point appartient à la médiatrice).</li>
+      </ol>
+    </div>
+
+    <div class="ex-block">
+      <div class="ex-tag">✏️ Problème</div>
+      <div class="ex-prompt">Deux villages A et B souhaitent construire une antenne relais à un endroit situé à la même distance des deux villages. Sur quelle ligne doit se trouver l'antenne ? Justifier.</div>
+      <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+      <div class="corr-body">
+        <div class="calc-steps">
+          <div class="step"><span class="step-label">Traduction</span><span class="eq">On cherche l'ensemble des points équidistants de A et de B.</span></div>
+          <div class="step"><span class="step-label">Propriété</span><span class="eq">Ces points sont exactement ceux de la médiatrice de [AB].</span></div>
+        </div>
+        <div class="conclusion">
+          <span class="donc-label">Conclusion :</span>
+          L'antenne doit être placée <strong>sur la médiatrice du segment [AB]</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="ex-block">
+      <div class="ex-tag">✏️ Problème</div>
+      <div class="ex-prompt">ABC est un triangle. On appelle (d) la médiatrice de [AB]. Sachant que le point C appartient à (d) et que AC = 4,8 cm, que peut-on dire du triangle ABC ?</div>
+      <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+      <div class="corr-body">
+        <div class="calc-steps">
+          <div class="step"><span class="step-label">Propriété</span><span class="eq">C appartient à la médiatrice de [AB], donc CA = CB.</span></div>
+          <div class="step"><span class="step-label">Donnée</span><span class="eq">\(CA = 4{,}8 \text{ cm}\)</span></div>
+          <div class="step"><span class="step-label">Déduction</span><span class="eq">\(CB = 4{,}8 \text{ cm}\)</span></div>
+        </div>
+        <div class="conclusion">
+          <span class="donc-label">Conclusion :</span>
+          Le triangle ABC a deux côtés de même longueur (CA = CB) : c'est un <strong>triangle isocèle en C</strong>.
+        </div>
+      </div>
+    </div>
+  </div><!-- end section III -->
+
+  <!-- ======================== IV. CONCOURANCE ======================== -->
+  <div class="section">
+    <div class="section-title">IV. Les médiatrices d'un triangle</div>
+
+    <div class="block prop">
+      <div class="block-tag">📗 Propriété</div>
+      <p>Dans un triangle, les trois médiatrices des côtés se coupent en <strong>un seul et même point</strong>. On dit qu'elles sont <strong>concourantes</strong>.</p>
+    </div>
+
+    <div class="diagram-frame">
+      <svg viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+        <polygon points="200,50 80,250 340,230" fill="none" stroke="#2b2724" stroke-width="2"/>
+        <line x1="120" y1="138" x2="232" y2="206" stroke="#1a6fa0" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <line x1="289" y1="125" x2="180" y2="210" stroke="#c0392b" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <line x1="211" y1="255" x2="204" y2="170" stroke="#6b3fa0" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <!-- codage : chaque médiatrice passe par le milieu de son côté (couleur assortie à la médiatrice) -->
+        <line x1="165" y1="97" x2="175" y2="103" stroke="#1a6fa0" stroke-width="2"/>
+        <line x1="105" y1="197" x2="115" y2="203" stroke="#1a6fa0" stroke-width="2"/>
+        <line x1="230" y1="99" x2="240" y2="91" stroke="#c0392b" stroke-width="2"/>
+        <line x1="300" y1="189" x2="310" y2="181" stroke="#c0392b" stroke-width="2"/>
+        <line x1="145" y1="239" x2="145" y2="251" stroke="#6b3fa0" stroke-width="2"/>
+        <line x1="275" y1="229" x2="275" y2="241" stroke="#6b3fa0" stroke-width="2"/>
+        <circle cx="206" cy="190" r="4" fill="#1b7a40"/>
+        <circle cx="200" cy="50" r="3.5" fill="#2b2724"/>
+        <circle cx="80" cy="250" r="3.5" fill="#2b2724"/>
+        <circle cx="340" cy="230" r="3.5" fill="#2b2724"/>
+        <text x="195" y="38" font-size="16" font-weight="700" font-family="DM Sans">A</text>
+        <text x="58" y="268" font-size="16" font-weight="700" font-family="DM Sans">B</text>
+        <text x="348" y="248" font-size="16" font-weight="700" font-family="DM Sans">C</text>
+        <text x="212" y="185" font-size="15" font-weight="700" fill="#1b7a40" font-family="DM Sans">O</text>
+      </svg>
+      <div class="diagram-caption">Chaque médiatrice passe par le milieu de son côté (codé par un trait de la même couleur) et toutes se coupent en un même point O.</div>
+    </div>
+
+    <div class="block warn">
+      <div class="block-tag">💡 Bon à savoir</div>
+      <p>Ce point de concours, noté ici O, est équidistant des trois sommets du triangle : \(OA = OB = OC\). Selon la forme du triangle, ce point peut se trouver <strong>à l'intérieur</strong>, <strong>sur un côté</strong>, ou même <strong>à l'extérieur</strong> du triangle.</p>
+    </div>
+  </div><!-- end section IV -->
+
+  <!-- ======================== V. CERCLE CIRCONSCRIT ======================== -->
+  <div class="section">
+    <div class="section-title">V. Le cercle circonscrit à un triangle</div>
+
+    <div class="block def">
+      <div class="block-tag">📘 Définition</div>
+      <p>Le point de concours des médiatrices d'un triangle est le <strong>centre</strong> d'un cercle qui passe par les trois sommets du triangle. Ce cercle est appelé <strong>cercle circonscrit</strong> au triangle.</p>
+    </div>
+
+    <div class="diagram-methode">
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <circle cx="206" cy="190" r="140" fill="none" stroke="#1b7a40" stroke-width="2"/>
+          <!-- médiatrice de [AB] -->
+          <line x1="20" y1="78" x2="326" y2="263" stroke="#1a6fa0" stroke-width="1.6" stroke-dasharray="6 4"/>
+          <!-- médiatrice de [AC] -->
+          <line x1="380" y1="54" x2="96" y2="276" stroke="#c0392b" stroke-width="1.6" stroke-dasharray="6 4"/>
+          <!-- médiatrice de [BC] -->
+          <line x1="199" y1="100" x2="217" y2="330" stroke="#6b3fa0" stroke-width="1.6" stroke-dasharray="6 4"/>
+          <!-- codage : chaque médiatrice passe par le milieu de son côté (couleur assortie à la médiatrice) -->
+          <line x1="165" y1="97" x2="175" y2="103" stroke="#1a6fa0" stroke-width="2"/>
+          <line x1="105" y1="197" x2="115" y2="203" stroke="#1a6fa0" stroke-width="2"/>
+          <line x1="230" y1="99" x2="240" y2="91" stroke="#c0392b" stroke-width="2"/>
+          <line x1="300" y1="189" x2="310" y2="181" stroke="#c0392b" stroke-width="2"/>
+          <line x1="145" y1="239" x2="145" y2="251" stroke="#6b3fa0" stroke-width="2"/>
+          <line x1="275" y1="229" x2="275" y2="241" stroke="#6b3fa0" stroke-width="2"/>
+          <polygon points="200,50 80,250 340,230" fill="none" stroke="#2b2724" stroke-width="2"/>
+          <circle cx="206" cy="190" r="4" fill="#1b7a40"/>
+          <circle cx="200" cy="50" r="3.5" fill="#2b2724"/>
+          <circle cx="80" cy="250" r="3.5" fill="#2b2724"/>
+          <circle cx="340" cy="230" r="3.5" fill="#2b2724"/>
+          <text x="195" y="38" font-size="16" font-weight="700" font-family="DM Sans">A</text>
+          <text x="58" y="268" font-size="16" font-weight="700" font-family="DM Sans">B</text>
+          <text x="348" y="248" font-size="16" font-weight="700" font-family="DM Sans">C</text>
+          <text x="214" y="182" font-size="15" font-weight="700" fill="#1b7a40" font-family="DM Sans">O</text>
+          <text x="298" y="275" font-size="10.5" fill="#1a6fa0" font-family="DM Sans">méd. [AB]</text>
+          <text x="330" y="48" font-size="10.5" fill="#c0392b" font-family="DM Sans">méd. [AC]</text>
+          <text x="221" y="326" font-size="10.5" fill="#6b3fa0" font-family="DM Sans">méd. [BC]</text>
+        </svg>
+        <div class="diagram-caption">Chaque médiatrice passe par le milieu de son côté (codé par un trait de la même couleur) ; leur point de concours O est le centre du cercle circonscrit.</div>
+      </div>
+      <div class="methode-box">
+        <div class="methode-title">📐 Méthode — Construire le cercle circonscrit</div>
+        <ol class="methode-steps">
+          <li>Tracer le triangle ABC.</li>
+          <li>Construire au compas la médiatrice de [AB], puis celle de [AC] (deux suffisent).</li>
+          <li>Le point d'intersection O des deux médiatrices est le centre du cercle circonscrit.</li>
+          <li>Piquer le compas en O, l'ouvrir jusqu'à un sommet (OA), et tracer le cercle : il passe par A, B et C.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="ex-block">
+      <div class="ex-tag">✏️ Exemple</div>
+      <div class="ex-prompt">RST est un triangle rectangle en S. On construit le cercle circonscrit à RST. Où se situe le centre de ce cercle ?</div>
+      <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+      <div class="corr-body">
+        <div class="calc-steps">
+          <div class="step"><span class="step-label">Propriété</span><span class="eq">Le centre du cercle circonscrit est le point de concours des médiatrices, équidistant de R, S et T.</span></div>
+          <div class="step"><span class="step-label">Cas particulier</span><span class="eq">Lorsque le triangle est rectangle, ce centre se situe exactement au milieu de l'hypoténuse.</span></div>
+        </div>
+        <div class="conclusion">
+          <span class="donc-label">Conclusion :</span>
+          Le centre du cercle circonscrit à RST est le <strong>milieu de [RT]</strong>, l'hypoténuse du triangle rectangle en S.
+        </div>
+      </div>
+    </div>
+  </div><!-- end section V -->
+
+  <!-- ======================== RECAP ======================== -->
+  <div class="section">
+    <div class="section-title">Ce qu'il faut retenir</div>
+    <div class="block rule">
+      <div class="block-tag">🧠 Synthèse</div>
+      <ul class="check-list">
+        <li>La médiatrice de [AB] passe par le milieu de [AB] et lui est perpendiculaire.</li>
+        <li>Un point est sur la médiatrice de [AB] si et seulement si il est équidistant de A et de B.</li>
+        <li>On utilise cette équivalence pour résoudre des problèmes de distances égales.</li>
+        <li>Dans un triangle, les trois médiatrices sont concourantes en un point O.</li>
+        <li>Ce point O est le centre du cercle circonscrit au triangle, qui passe par ses trois sommets.</li>
+      </ul>
+    </div>
+  </div>
+
+</div><!-- end container -->
+
+<script>
+const katexOpts = {
+  delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
+  throwOnError:false
+};
+
+function toggle(btn){
+  const body = btn.nextElementSibling;
+  const open = body.classList.contains('show');
+  body.classList.toggle('show');
+  btn.classList.toggle('open');
+  btn.innerHTML = '<span class="chev">▶</span> ' + (open ? 'Voir la correction' : 'Masquer la correction');
+  if(!open){ renderMathInElement(body, katexOpts); }
+}
+
+function showAll(){
+  document.querySelectorAll('.corr-body').forEach(b => { b.classList.add('show'); renderMathInElement(b, katexOpts); });
+  document.querySelectorAll('.corr-btn').forEach(b => {
+    b.classList.add('open');
+    b.innerHTML = '<span class="chev">▶</span> Masquer la correction';
+  });
+}
+function hideAll(){
+  document.querySelectorAll('.corr-body').forEach(b => b.classList.remove('show'));
+  document.querySelectorAll('.corr-btn').forEach(b => {
+    b.classList.remove('open');
+    b.innerHTML = '<span class="chev">▶</span> Voir la correction';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  renderMathInElement(document.body, katexOpts);
+});
+</script>
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<a href="index.html" class="btn-retour-flottant" title="Retour au menu">🏠</a>
+<style>
+.btn-retour-flottant{position:fixed;bottom:20px;left:20px;z-index:9999;display:flex;align-items:center;justify-content:center;background:white;color:#5c67f2;text-decoration:none;font-size:1.3rem;width:48px;height:48px;border-radius:50%;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all 0.3s ease;}
+.btn-retour-flottant:hover{transform:scale(1.1);background:#5c67f2;color:white;}
+</style>
+</body>
+</html>
