@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TP 2 – Les types de données en Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+<style>
+:root{--bleu:#1E3A5F;--bleu-clair:#2E5B9A;--vert:#5A9E2F;--vert-btn:#6DB33F;--vert-hover:#568F30;--jaune:#F4C430;--fond:#F7F8FA;--fond-sec:#FFFFFF;--gris-clair:#EEF0F3;--gris-bord:#D0D5DD;--rouge:#C0392B;--texte:#1A1D23;--texte-sec:#4A5568;--cbg:#0F1923;--cprompt:#6DB33F;--cout:#A8C8E8;--cerr:#FF6B6B;--ok:#1A7A3C;--okbg:#E8F5ED;--okb:#A3D9B1;--ko:#B91C1C;--kobg:#FEE2E2;--kob:#FCA5A5;--ic:#7C3AED;--fc:#0369A1;--sc:#B45309;--bc:#0F766E;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--fond);color:var(--texte);font-size:15px;line-height:1.65;}
+header{background:var(--bleu);padding:36px 48px 28px;position:relative;overflow:hidden;}
+header::after{content:'';position:absolute;right:-60px;bottom:-80px;width:260px;height:260px;border-radius:50%;background:rgba(109,179,63,0.15);}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--vert-btn);margin-bottom:8px;}
+h1{font-family:'Space Grotesk',sans-serif;font-size:2.1rem;font-weight:700;color:#fff;line-height:1.2;}
+h1 span{color:var(--jaune);}
+.hsub{margin-top:10px;color:rgba(255,255,255,0.65);font-size:14px;max-width:580px;}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
+.badge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85);padding:4px 12px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;}
+.bi{background:rgba(124,58,237,0.25);border-color:rgba(124,58,237,0.5);}
+.bf{background:rgba(3,105,161,0.25);border-color:rgba(3,105,161,0.5);}
+.bs{background:rgba(180,83,9,0.25);border-color:rgba(180,83,9,0.5);}
+.bb{background:rgba(15,118,110,0.25);border-color:rgba(15,118,110,0.5);}
+#pys{background:var(--bleu-clair);color:#fff;text-align:center;padding:10px;font-size:13px;font-family:'JetBrains Mono',monospace;}
+#pys.ready{background:var(--vert);}#pys.error{background:var(--rouge);}
+main{max-width:860px;margin:0 auto;padding:40px 24px 80px;}
+.pill{display:inline-block;padding:2px 9px;border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;vertical-align:middle;}
+.pi{background:rgba(124,58,237,0.12);color:var(--ic);border:1px solid rgba(124,58,237,0.3);}
+.pf{background:rgba(3,105,161,0.12);color:var(--fc);border:1px solid rgba(3,105,161,0.3);}
+.ps{background:rgba(180,83,9,0.12);color:var(--sc);border:1px solid rgba(180,83,9,0.3);}
+.pb{background:rgba(15,118,110,0.12);color:var(--bc);border:1px solid rgba(15,118,110,0.3);}
+.section{background:var(--fond-sec);border:1px solid var(--gris-bord);border-radius:12px;margin-bottom:28px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.sh{display:flex;align-items:center;gap:14px;padding:18px 24px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:background 0.15s;}
+.sh:hover{background:var(--gris-clair);}
+.sh.open{border-bottom-color:var(--gris-bord);}
+.sn{width:34px;height:34px;background:var(--bleu);color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;flex-shrink:0;}
+.st{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.05rem;color:var(--bleu);flex:1;}
+.sa{color:var(--texte-sec);transition:transform 0.2s;font-size:18px;}
+.sh.open .sa{transform:rotate(90deg);}
+.sb{padding:24px;display:none;}
+.sb.open{display:block;}
+.obj{background:linear-gradient(135deg,#EBF4FF 0%,#F0FAE8 100%);border-left:4px solid var(--bleu-clair);border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px;}
+.obj-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bleu-clair);margin-bottom:4px;}
+.obj p{font-style:italic;color:var(--bleu);font-size:14px;}
+.rappel{background:#F0F4FF;border:1px solid #C7D7F5;border-radius:8px;padding:13px 16px;margin:14px 0;font-size:13.5px;color:#1E3A5F;}
+.exo{margin-bottom:28px;}
+.exo-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--texte-sec);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.exo-title::after{content:'';flex:1;height:1px;background:var(--gris-bord);}
+.steps{list-style:none;padding:0;margin:12px 0 16px;}
+.steps li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;}
+.snum{min-width:26px;height:26px;background:var(--bleu);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;flex-shrink:0;margin-top:1px;}
+.snum.a{background:var(--bleu-clair);}
+.stxt{flex:1;padding-top:2px;}
+.note{background:#FFFBEA;border:1px solid #F4C430;border-radius:8px;padding:12px 16px;font-size:13.5px;margin:14px 0;color:#5C4A00;}
+.warn{background:#FFF0F0;border:1px solid #FFAAAA;border-radius:8px;padding:12px 16px;font-size:13.5px;margin:14px 0;color:#7B1A1A;}
+code{font-family:'JetBrains Mono',monospace;background:var(--gris-clair);padding:2px 7px;border-radius:4px;font-size:13px;color:var(--bleu);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;border-radius:8px;overflow:hidden;border:1px solid var(--gris-bord);}
+.tbl th{background:var(--bleu);color:#fff;padding:10px 14px;font-family:'Space Grotesk',sans-serif;font-weight:600;text-align:left;font-size:12px;}
+.tbl td{padding:9px 14px;border-bottom:1px solid var(--gris-bord);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:nth-child(even) td{background:var(--gris-clair);}
+.mn{font-family:'JetBrains Mono',monospace;font-size:12.5px;}
+.cw{margin:16px 0;border-radius:10px;overflow:hidden;border:1px solid #2A3A4A;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
+.ctb{background:#1A2A3A;padding:8px 14px;display:flex;align-items:center;gap:10px;}
+.dots{display:flex;gap:6px;}
+.dots span{width:11px;height:11px;border-radius:50%;}
+.dr{background:#FF5F57;}.dy{background:#FEBC2E;}.dg{background:#28C840;}
+.clbl{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);flex:1;text-align:center;margin-right:60px;}
+.cout{background:var(--cbg);padding:14px 16px 6px;min-height:60px;max-height:240px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-all;}
+.cout .ol{color:var(--cout);display:block;}
+.cout .el{color:var(--cerr);display:block;}
+.cout .hl{color:rgba(255,255,255,0.3);display:block;font-size:11.5px;}
+.cir{background:var(--cbg);display:flex;align-items:center;padding:6px 16px 12px;border-top:1px solid rgba(255,255,255,0.06);gap:8px;}
+.cps{font-family:'JetBrains Mono',monospace;color:var(--cprompt);font-size:14px;font-weight:500;user-select:none;}
+.ci{flex:1;background:transparent;border:none;outline:none;color:#E8F0FA;font-family:'JetBrains Mono',monospace;font-size:13px;caret-color:var(--vert-btn);}
+.ci::placeholder{color:rgba(255,255,255,0.2);}
+.crb{background:var(--vert-btn);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;cursor:pointer;transition:background 0.15s;}
+.crb:hover{background:var(--vert-hover);}
+.crb:disabled{background:#555;cursor:default;}
+.ccb{background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.ccb:hover{border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.7);}
+.ew{margin:16px 0;border-radius:10px;overflow:hidden;border:1px solid #2A3A4A;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
+.etb{background:#1A2A3A;padding:8px 14px;display:flex;align-items:center;gap:10px;}
+.elbl{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);flex:1;text-align:center;}
+.eta{width:100%;background:#0F1923;color:#E8F0FA;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;border:none;outline:none;padding:14px 16px;resize:vertical;min-height:140px;tab-size:4;}
+.err{background:#1A2A3A;padding:8px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.06);}
+.erb{background:var(--vert-btn);color:#fff;border:none;border-radius:6px;padding:7px 20px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background 0.15s;}
+.erb:hover{background:var(--vert-hover);}
+.erb:disabled{background:#555;cursor:default;}
+.eout{background:#0D151E;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.6;white-space:pre-wrap;min-height:36px;max-height:200px;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.06);display:none;}
+.eout.v{display:block;}
+.eout .ol{color:var(--cout);display:block;}
+.eout .el{color:var(--cerr);display:block;}
+.qb{background:#F9FAFB;border:1px solid var(--gris-bord);border-radius:10px;padding:18px 20px;margin:18px 0;}
+.qq{font-weight:600;color:var(--bleu);margin-bottom:12px;font-size:14.5px;display:flex;gap:8px;align-items:flex-start;}
+.qi{background:var(--bleu);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;}
+.qo{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.qopt{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1.5px solid var(--gris-bord);border-radius:8px;cursor:pointer;transition:all 0.15s;background:#fff;user-select:none;}
+.qopt:hover{border-color:var(--bleu-clair);background:#EBF4FF;}
+.qopt.sel{border-color:var(--bleu-clair);background:#EBF4FF;}
+.qopt.ok{border-color:var(--okb);background:var(--okbg);}
+.qopt.ko{border-color:var(--kob);background:var(--kobg);}
+.qopt.mis{border-color:var(--okb);background:#F0FBF4;}
+.qr{width:17px;height:17px;border:2px solid var(--gris-bord);border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;}
+.qopt.sel .qr{border-color:var(--bleu-clair);background:var(--bleu-clair);}
+.qopt.ok .qr{border-color:var(--ok);background:var(--ok);}
+.qopt.ko .qr{border-color:var(--ko);background:var(--ko);}
+.dot{width:7px;height:7px;border-radius:50%;background:#fff;display:none;}
+.qopt.sel .dot,.qopt.ok .dot,.qopt.ko .dot{display:block;}
+.ql{font-size:14px;line-height:1.5;}
+.qvb{background:var(--bleu);color:#fff;border:none;border-radius:7px;padding:8px 20px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;}
+.qvb:hover{background:var(--bleu-clair);}
+.qvb:disabled{background:#AAA;cursor:default;}
+.qfb{margin-top:12px;padding:12px 16px;border-radius:8px;font-size:14px;display:none;line-height:1.55;}
+.qfb.ok{background:var(--okbg);border:1px solid var(--okb);color:var(--ok);}
+.qfb.ko{background:var(--kobg);border:1px solid var(--kob);color:var(--ko);}
+.lb{background:#F9FAFB;border:1px solid var(--gris-bord);border-radius:10px;padding:18px 20px;margin:18px 0;}
+.lq{font-weight:600;color:var(--bleu);margin-bottom:10px;font-size:14.5px;display:flex;gap:8px;align-items:flex-start;}
+.li2{background:var(--vert);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;}
+.lhint{font-size:12.5px;color:var(--texte-sec);margin-bottom:8px;font-style:italic;}
+.linp{width:100%;border:1.5px solid var(--gris-bord);border-radius:7px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--texte);outline:none;transition:border-color 0.15s;background:#fff;margin-bottom:10px;}
+.linp:focus{border-color:var(--bleu-clair);background:#EBF4FF;}
+.linp.ok{border-color:var(--ok);background:var(--okbg);}
+.linp.ko{border-color:var(--ko);background:var(--kobg);}
+.lvb{background:var(--vert-btn);color:#fff;border:none;border-radius:7px;padding:8px 20px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;}
+.lvb:hover{background:var(--vert-hover);}
+.lfb{margin-top:10px;padding:11px 15px;border-radius:8px;font-size:14px;display:none;line-height:1.55;}
+.lfb.ok{background:var(--okbg);border:1px solid var(--okb);color:var(--ok);}
+.lfb.ko{background:var(--kobg);border:1px solid var(--kob);color:var(--ko);}
+.score{background:var(--gris-clair);border-radius:10px;padding:16px 20px;margin-top:30px;display:flex;align-items:center;gap:16px;}
+.slbl{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--bleu);font-size:14px;white-space:nowrap;}
+.str{flex:1;height:10px;background:rgba(0,0,0,0.1);border-radius:5px;overflow:hidden;}
+.sfi{height:100%;background:var(--vert-btn);border-radius:5px;transition:width 0.4s ease;}
+.sct{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--bleu);white-space:nowrap;}
+.sep{height:1px;background:var(--gris-bord);margin:20px 0;}
+p{margin-bottom:10px;}ul,ol{padding-left:22px;margin-bottom:10px;}li{margin-bottom:4px;}
+kbd{font-family:'JetBrains Mono',monospace;background:#fff;border:1.5px solid #C0C8D4;border-bottom-width:3px;border-radius:5px;padding:1px 6px;font-size:12px;color:#333;}
+
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:16px 0;}
+  .table-wrap .table-resume{margin:0;}
+
+  /* ══ RESPONSIVE ══ */
+  @media(max-width:900px){
+    header{padding:28px 32px 22px;}
+    header h1{font-size:1.75rem;}
+    main{padding:28px 18px 60px;}
+  }
+  @media(max-width:600px){
+    header{padding:20px 16px 16px;}
+    header h1{font-size:1.35rem;}
+    .header-sub,.hsub,.hs{font-size:13px;}
+    .header-badges{gap:5px;margin-top:14px;}
+    .badge{font-size:10.5px;padding:3px 8px;}
+    main{padding:18px 10px 48px;}
+    .section-header{padding:14px 14px;gap:10px;}
+    .section-num{width:28px;height:28px;font-size:13px;}
+    .section-title{font-size:0.95rem;}
+    .section-body{padding:14px;}
+    .objectif,.obj{padding:10px 12px;}
+    .steps li{gap:8px;padding:3px 0;}
+    .step-num{min-width:22px;height:22px;font-size:11px;}
+    .console-output{font-size:12px;padding:10px 10px 4px;max-height:200px;}
+    .console-input-row{padding:4px 10px 8px;}
+    .console-input{font-size:12px;}
+    .console-label{margin-right:20px;}
+    .editor-textarea{font-size:12px;padding:10px 10px;min-height:110px;}
+    .editor-output{font-size:11.5px;padding:8px 10px;}
+    .qcm-block{padding:14px 12px;margin:14px 0;}
+    .qcm-option{padding:8px 10px;gap:8px;}
+    .qcm-label{font-size:13px;}
+    .qcm-validate-btn{padding:8px 16px;font-size:12px;width:100%;}
+    .qcm-feedback{font-size:13px;padding:10px 12px;}
+    .table-resume{font-size:12px;}
+    .table-resume th{padding:8px 8px;font-size:11px;}
+    .table-resume td{padding:7px 8px;font-size:11.5px;}
+    .note,.attention{padding:10px 12px;font-size:12.5px;}
+    code{font-size:12px;padding:1px 5px;}
+    .score-bar{padding:12px 14px;gap:10px;flex-wrap:wrap;}
+    .score-label{font-size:13px;}
+    .score-count{font-size:12px;}
+    #py-status{font-size:12px;padding:8px;}
+  }
+  @media(max-width:380px){
+    header{padding:16px 12px 12px;}
+    header h1{font-size:1.15rem;}
+    .header-eyebrow,.heb{font-size:10px;letter-spacing:1.5px;}
+    main{padding:12px 6px 36px;}
+    .section-header{padding:10px 10px;}
+    .section-body{padding:10px;}
+    .section-title{font-size:0.88rem;}
+    .console-output{font-size:11px;}
+    .console-input{font-size:11px;}
+    .editor-textarea{font-size:11px;min-height:90px;}
+    .qcm-option{padding:7px 8px;}
+    .qcm-label{font-size:12px;}
+    .table-resume th,.table-resume td{padding:5px 5px;}
+    .score-bar{flex-direction:column;align-items:stretch;text-align:center;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Travaux Pratiques · Seconde · Informatique</div>
+  <h1>TP 2 : Les <span>types de données</span> en Python</h1>
+  <p class="hsub">Découvrir les différents types que Python utilise pour représenter l'information : nombres entiers, décimaux, texte et valeurs logiques.</p>
+  <div class="badges">
+    <span class="badge bi">int</span><span class="badge bf">float</span>
+    <span class="badge bs">str</span><span class="badge bb">bool</span>
+    <span class="badge">print()</span><span class="badge">variables</span>
+  </div>
+</header>
+<div id="pys">⏳ Chargement de Python en cours…</div>
+<main>
+
+<!-- SECTION 0 — RAPPELS -->
+<div class="section">
+  <div class="sh open" onclick="tog(this)"><div class="sn">0</div><div class="st">Rappels du TP 1</div><div class="sa">›</div></div>
+  <div class="sb open">
+    <p>Avant de démarrer, voici un rappel rapide du TP 1. Utilise la console pour vérifier que tu t'en souviens.</p>
+    <div class="rappel"><strong>À retenir :</strong><ul style="margin-top:6px">
+      <li>On crée une variable avec <code>=</code> : <code>age = 17</code></li>
+      <li>Opérateurs : <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>**</code> <code>%</code> <code>//</code></li>
+      <li>On affiche avec <code>print()</code> : <code>print("Age :", age)</code></li>
+      <li>Les décimaux s'écrivent avec un <strong>point</strong> : <code>3.14</code> et non <code>3,14</code></li>
+    </ul></div>
+    <ul class="steps">
+      <li><span class="snum">1</span><span class="stxt">Crée une variable <code>annee_naissance</code> avec ton année de naissance.</span></li>
+      <li><span class="snum">2</span><span class="stxt">Calcule ton âge : <code>age = 2026 - annee_naissance</code></span></li>
+      <li><span class="snum">3</span><span class="stxt">Affiche le résultat : <code>print("Mon âge :", age)</code></span></li>
+    </ul>
+    <div class="cw"><div class="ctb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="clbl">Console Python — Rappels</div></div>
+      <div class="cout" id="or"><span class="hl"># Console prête !</span></div>
+      <div class="cir"><span class="cps">&gt;&gt;&gt;</span><input class="ci" id="ir" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false"><button class="ccb" onclick="clr('or')">Effacer</button><button class="crb" id="br" onclick="rc('ir','or','nr')" disabled>▶ Exécuter</button></div>
+    </div>
+    <div class="qb" id="qr1">
+      <div class="qq"><div class="qi">?</div><div>Quelle instruction affiche le texte <code>Bonjour</code> suivi de la valeur de la variable <code>prenom</code> ?</div></div>
+      <div class="qo">
+        <div class="qopt" onclick="sel('qr1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>print("Bonjour prenom")</code></div></div>
+        <div class="qopt" onclick="sel('qr1',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>print("Bonjour", prenom)</code></div></div>
+        <div class="qopt" onclick="sel('qr1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>print(Bonjour, prenom)</code></div></div>
+        <div class="qopt" onclick="sel('qr1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>print("Bonjour" + "prenom")</code></div></div>
+      </div>
+      <button class="qvb" onclick="val('qr1')">Valider</button>
+      <div class="qfb" id="fb-qr1"></div>
+    </div>
+    <div class="qb" id="qr2">
+      <div class="qq"><div class="qi">?</div><div>Quelle est la valeur de <code>a</code> après <code>a = 10</code> puis <code>a = a + 3</code> ?</div></div>
+      <div class="qo">
+        <div class="qopt" onclick="sel('qr2',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">10 — la première valeur reste</div></div>
+        <div class="qopt" onclick="sel('qr2',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">3</div></div>
+        <div class="qopt" onclick="sel('qr2',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql">13 — Python calcule 10 + 3 et affecte le résultat à <code>a</code></div></div>
+        <div class="qopt" onclick="sel('qr2',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">Erreur : on ne peut pas écrire <code>a</code> des deux côtés</div></div>
+      </div>
+      <button class="qvb" onclick="val('qr2')">Valider</button>
+      <div class="qfb" id="fb-qr2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1 — INT & FLOAT -->
+<div class="section">
+  <div class="sh open" onclick="tog(this)"><div class="sn">1</div><div class="st"><span class="pill pi">int</span> &amp; <span class="pill pf">float</span> — Entiers et décimaux</div><div class="sa">›</div></div>
+  <div class="sb open">
+    <div class="obj"><div class="obj-lbl">Objectif n°1</div><p>Comprendre la différence entre un entier (<code>int</code>) et un décimal (<code>float</code>), et utiliser <code>type()</code> pour interroger Python sur le type d'une valeur.</p></div>
+    <table class="tbl">
+      <thead><tr><th>Type</th><th>Nom complet</th><th>Exemples</th><th>Remarque</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill pi">int</span></td><td class="mn">integer (entier)</td><td class="mn">3 &nbsp;-7 &nbsp;0 &nbsp;2026</td><td>Jamais de point décimal</td></tr>
+        <tr><td><span class="pill pf">float</span></td><td class="mn">floating point (décimal)</td><td class="mn">3.14 &nbsp;-0.5 &nbsp;7.0</td><td>Toujours un point décimal</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><strong>La fonction <code>type()</code></strong> permet de demander à Python le type d'une valeur. Exemples : <code>type(3)</code> → <code>&lt;class 'int'&gt;</code> &nbsp;|&nbsp; <code>type(3.0)</code> → <code>&lt;class 'float'&gt;</code></div>
+
+    <div class="exo">
+      <div class="exo-title">Exercice 1 · Découverte de type()</div>
+      <ul class="steps">
+        <li><span class="snum">1</span><span class="stxt">Tape <code>type(42)</code> — quel type Python indique-t-il ?</span></li>
+        <li><span class="snum">2</span><span class="stxt">Tape <code>type(3.14)</code> puis <code>type(7.0)</code> — est-ce différent de <code>type(7)</code> ?</span></li>
+        <li><span class="snum">3</span><span class="stxt">Tape <code>x = 10</code> puis <code>type(x)</code> — <code>type()</code> fonctionne aussi sur les variables.</span></li>
+        <li><span class="snum">4</span><span class="stxt">Tape <code>7 / 2</code> puis <code>type(7 / 2)</code>. Surpris ? Essaie aussi <code>6 / 2</code> et <code>type(6 / 2)</code>.</span></li>
+        <li><span class="snum">5</span><span class="stxt">Pour avoir un résultat entier en divisant, tape <code>7 // 2</code> et vérifie son type.</span></li>
+      </ul>
+      <div class="cw"><div class="ctb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="clbl">Console Python — Exercice 1</div></div>
+        <div class="cout" id="o1"><span class="hl"># Teste type() ici.</span></div>
+        <div class="cir"><span class="cps">&gt;&gt;&gt;</span><input class="ci" id="i1" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false"><button class="ccb" onclick="clr('o1')">Effacer</button><button class="crb" id="b1" onclick="rc('i1','o1','n1')" disabled>▶ Exécuter</button></div>
+      </div>
+      <div class="qb" id="q1">
+        <div class="qq"><div class="qi">?</div><div>Que renvoie <code>type(7.0)</code> ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>&lt;class 'int'&gt;</code> — c'est le chiffre 7, donc un entier</div></div>
+          <div class="qopt" onclick="sel('q1',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>&lt;class 'float'&gt;</code> — le point décimal en fait un float, même si la partie décimale est nulle</div></div>
+          <div class="qopt" onclick="sel('q1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>&lt;class 'int'&gt;</code> — 7.0 étant égal à 7, Python simplifie automatiquement</div></div>
+        </div>
+        <button class="qvb" onclick="val('q1')">Valider</button><div class="qfb" id="fb-q1"></div>
+      </div>
+      <div class="qb" id="q2">
+        <div class="qq"><div class="qi">?</div><div>Quel est le type du résultat de <code>6 / 2</code> (qui vaut pourtant 3 exactement) ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q2',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pi">int</span> — le résultat étant entier, Python le stocke comme tel</div></div>
+          <div class="qopt" onclick="sel('q2',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pf">float</span> — l'opérateur <code>/</code> renvoie <em>toujours</em> un float en Python 3, même quand le résultat est rond</div></div>
+          <div class="qopt" onclick="sel('q2',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">Cela dépend de la parité du dividende</div></div>
+        </div>
+        <button class="qvb" onclick="val('q2')">Valider</button><div class="qfb" id="fb-q2"></div>
+      </div>
+      <div class="qb" id="q3">
+        <div class="qq"><div class="qi">?</div><div>Quel opérateur renvoie un résultat de type <span class="pill pi">int</span> lors d'une division ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q3',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>/</code> — division classique</div></div>
+          <div class="qopt" onclick="sel('q3',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>%</code> — modulo</div></div>
+          <div class="qopt" onclick="sel('q3',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>//</code> — division entière, renvoie le quotient sans la partie décimale</div></div>
+        </div>
+        <button class="qvb" onclick="val('q3')">Valider</button><div class="qfb" id="fb-q3"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="exo">
+      <div class="exo-title">Exercice 2 · Moyenne de trois notes</div>
+      <p>Ce programme calcule la moyenne de trois notes. Remplace tous les <code>...</code> et lance-le.</p>
+      <div class="ew"><div class="etb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="elbl">Éditeur Python — TP2_exo2.py</div></div>
+        <textarea class="eta" id="e2" spellcheck="false"># Affecter les trois notes (choisis des entiers ou des décimaux)
+note1 = ...
+note2 = ...
+note3 = ...
+
+# Calculer la moyenne
+moyenne = ...
+
+# Afficher les notes et la moyenne
+print("Note 1 :", ...)
+print("Note 2 :", ...)
+print("Note 3 :", ...)
+print("Moyenne :", ...)
+
+# Afficher les types
+print("Type de note1  :", type(note1))
+print("Type de moyenne:", type(moyenne))</textarea>
+        <div class="err"><button class="erb" id="be2" onclick="re('e2','oe2','n1')" disabled>▶ Lancer le programme</button></div>
+        <div class="eout" id="oe2"></div>
+      </div>
+      <div class="qb" id="q4">
+        <div class="qq"><div class="qi">?</div><div>Si <code>note1 = 12</code>, <code>note2 = 14</code>, <code>note3 = 10</code>, quel est le type de <code>moyenne</code> ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q4',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pi">int</span> — les trois notes sont entières, la moyenne aussi</div></div>
+          <div class="qopt" onclick="sel('q4',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pf">float</span> — car l'opérateur <code>/</code> renvoie toujours un float</div></div>
+          <div class="qopt" onclick="sel('q4',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">Cela dépend : si la moyenne est ronde, c'est un <span class="pill pi">int</span></div></div>
+        </div>
+        <button class="qvb" onclick="val('q4')">Valider</button><div class="qfb" id="fb-q4"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2 — STR -->
+<div class="section">
+  <div class="sh open" onclick="tog(this)"><div class="sn">2</div><div class="st"><span class="pill ps">str</span> — Les chaînes de caractères</div><div class="sa">›</div></div>
+  <div class="sb open">
+    <div class="obj"><div class="obj-lbl">Objectif n°2</div><p>Apprendre à créer et manipuler des chaînes de caractères (<code>str</code>) : concaténation, longueur, et pièges à éviter.</p></div>
+    <table class="tbl">
+      <thead><tr><th>Opération</th><th>Syntaxe</th><th>Exemple</th><th>Résultat</th></tr></thead>
+      <tbody>
+        <tr><td>Créer</td><td class="mn">nom = "Alice"</td><td class="mn">prenom = "Ada"</td><td class="mn">"Ada"</td></tr>
+        <tr><td>Concaténer (coller)</td><td class="mn">a + b</td><td class="mn">"Bon" + "jour"</td><td class="mn">"Bonjour"</td></tr>
+        <tr><td>Répéter</td><td class="mn">a * n</td><td class="mn">"Ha" * 3</td><td class="mn">"HaHaHa"</td></tr>
+        <tr><td>Longueur</td><td class="mn">len(a)</td><td class="mn">len("Bonjour")</td><td class="mn">7</td></tr>
+        <tr><td>Type</td><td class="mn">type(a)</td><td class="mn">type("Ada")</td><td class="mn">&lt;class 'str'&gt;</td></tr>
+      </tbody>
+    </table>
+    <div class="warn"><strong>⚠ Piège :</strong> <code>"3" + "5"</code> donne <code>"35"</code> (concaténation de texte) et <strong>non</strong> <code>8</code> (addition). Le type change tout !</div>
+
+    <div class="exo">
+      <div class="exo-title">Exercice 3 · Manipuler des chaînes</div>
+      <ul class="steps">
+        <li><span class="snum">1</span><span class="stxt">Tape <code>type("Bonjour")</code> — quel type obtiens-tu ?</span></li>
+        <li><span class="snum">2</span><span class="stxt">Tape <code>"Bon" + "jour"</code> — que se passe-t-il ?</span></li>
+        <li><span class="snum">3</span><span class="stxt">Tape <code>"Ha" * 3</code> — qu'obtiens-tu ?</span></li>
+        <li><span class="snum">4</span><span class="stxt">Tape <code>len("Python")</code> — à quoi correspond ce nombre ?</span></li>
+        <li><span class="snum">5</span><span class="stxt">Tape <code>"3" + "5"</code> puis compare avec <code>3 + 5</code>. Explique la différence.</span></li>
+        <li><span class="snum">6</span><span class="stxt">Tape <code>prenom = "Ada"</code> puis <code>print("Bonjour " + prenom + " !")</code></span></li>
+      </ul>
+      <div class="cw"><div class="ctb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="clbl">Console Python — Exercice 3</div></div>
+        <div class="cout" id="o3"><span class="hl"># Explore les chaînes de caractères ici.</span></div>
+        <div class="cir"><span class="cps">&gt;&gt;&gt;</span><input class="ci" id="i3" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false"><button class="ccb" onclick="clr('o3')">Effacer</button><button class="crb" id="b3" onclick="rc('i3','o3','n3')" disabled>▶ Exécuter</button></div>
+      </div>
+      <div class="qb" id="q5">
+        <div class="qq"><div class="qi">?</div><div>Quel est le résultat de <code>"3" + "5"</code> en Python ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q5',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>8</code> — Python reconnaît que ce sont des chiffres et les additionne</div></div>
+          <div class="qopt" onclick="sel('q5',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>"35"</code> — les guillemets en font du texte, <code>+</code> les colle</div></div>
+          <div class="qopt" onclick="sel('q5',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>"8"</code> — Python additionne et met entre guillemets</div></div>
+          <div class="qopt" onclick="sel('q5',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">Une erreur — on ne peut pas utiliser <code>+</code> sur des chaînes</div></div>
+        </div>
+        <button class="qvb" onclick="val('q5')">Valider</button><div class="qfb" id="fb-q5"></div>
+      </div>
+      <div class="qb" id="q6">
+        <div class="qq"><div class="qi">?</div><div>Que renvoie <code>len("Python")</code> ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q6',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">5</div></div>
+          <div class="qopt" onclick="sel('q6',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql">6 — <code>len()</code> compte chaque caractère : P-y-t-h-o-n</div></div>
+          <div class="qopt" onclick="sel('q6',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">7</div></div>
+        </div>
+        <button class="qvb" onclick="val('q6')">Valider</button><div class="qfb" id="fb-q6"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="exo">
+      <div class="exo-title">Exercice 4 · Programme de présentation</div>
+      <p>Complète ce programme qui génère une fiche de présentation. Remplace tous les <code>...</code>.</p>
+      <div class="ew"><div class="etb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="elbl">Éditeur Python — TP2_exo4.py</div></div>
+        <textarea class="eta" id="e4" spellcheck="false"># Remplis tes informations
+prenom = "..."
+nom    = "..."
+age    = ...        # un entier
+ville  = "..."
+
+# Construire le nom complet (avec un espace entre prénom et nom)
+nom_complet = prenom + ... + nom
+
+# Calculer la longueur du prénom
+longueur_prenom = len(...)
+
+# Afficher la fiche
+print("=== Fiche de présentation ===")
+print("Nom complet :", ...)
+print("Âge         :", ..., "ans")
+print("Ville       :", ...)
+print("Ton prénom comporte", ..., "lettres.")
+print("--- Types ---")
+print("type(age)    :", type(...))
+print("type(prenom) :", type(...))</textarea>
+        <div class="err"><button class="erb" id="be4" onclick="re('e4','oe4','n3')" disabled>▶ Lancer le programme</button></div>
+        <div class="eout" id="oe4"></div>
+      </div>
+      <div class="qb" id="q7">
+        <div class="qq"><div class="qi">?</div><div>Pour obtenir <code>"Ada Lovelace"</code> depuis <code>prenom = "Ada"</code> et <code>nom = "Lovelace"</code>, quelle expression est correcte ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q7',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>prenom + nom</code> → donne <code>"AdaLovelace"</code></div></div>
+          <div class="qopt" onclick="sel('q7',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>prenom + " " + nom</code> → donne <code>"Ada Lovelace"</code></div></div>
+          <div class="qopt" onclick="sel('q7',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>print(prenom, nom)</code> → affiche mais ne crée pas de variable</div></div>
+          <div class="qopt" onclick="sel('q7',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>prenom * nom</code></div></div>
+        </div>
+        <button class="qvb" onclick="val('q7')">Valider</button><div class="qfb" id="fb-q7"></div>
+      </div>
+      <div class="lb">
+        <div class="lq"><div class="li2">✎</div><div>Quel est le type de <code>nom_complet</code> après <code>nom_complet = prenom + " " + nom</code> ? (en minuscules, en anglais)</div></div>
+        <div class="lhint">C'est le type de base du texte en Python.</div>
+        <input class="linp" id="ls1" type="text" placeholder="Tape le nom du type…" autocomplete="off" spellcheck="false">
+        <button class="lvb" onclick="vl('ls1',['str','string'],'lf-ls1','str','La concaténation de chaînes donne toujours une chaîne : <code>type(nom_complet)</code> renvoie <code>&lt;class \'str\'&gt;</code>.')">Valider</button>
+        <div class="lfb" id="lf-ls1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3 — BOOL -->
+<div class="section">
+  <div class="sh open" onclick="tog(this)"><div class="sn">3</div><div class="st"><span class="pill pb">bool</span> — Les valeurs logiques</div><div class="sa">›</div></div>
+  <div class="sb open">
+    <div class="obj"><div class="obj-lbl">Objectif n°3</div><p>Comprendre le type <code>bool</code> et les opérateurs de comparaison qui permettent de poser des questions à Python.</p></div>
+    <p>Un <strong>booléen</strong> (<span class="pill pb">bool</span>) ne peut prendre que deux valeurs : <code>True</code> (vrai) ou <code>False</code> (faux). Python les produit automatiquement lors d'une <strong>comparaison</strong>.</p>
+    <div class="warn"><strong>⚠ Attention à la majuscule !</strong> C'est <code>True</code> et <code>False</code> avec une majuscule. <code>true</code> ou <code>false</code> provoquent une erreur.</div>
+    <table class="tbl">
+      <thead><tr><th>Opérateur</th><th>Signification</th><th>Comment le taper</th><th>Exemple</th><th>Résultat</th></tr></thead>
+      <tbody>
+        <tr><td class="mn">==</td><td>Égal à</td><td><kbd>=</kbd> deux fois</td><td class="mn">5 == 5</td><td class="mn">True</td></tr>
+        <tr><td class="mn">!=</td><td>Différent de</td><td><kbd>!</kbd> puis <kbd>=</kbd></td><td class="mn">5 != 3</td><td class="mn">True</td></tr>
+        <tr><td class="mn">&lt;</td><td>Inférieur strict</td><td><kbd>&lt;</kbd> (touche à gauche de <kbd>&gt;</kbd>)</td><td class="mn">3 &lt; 5</td><td class="mn">True</td></tr>
+        <tr><td class="mn">&gt;</td><td>Supérieur strict</td><td><kbd>&gt;</kbd> (Maj + <kbd>&lt;</kbd>)</td><td class="mn">3 &gt; 5</td><td class="mn">False</td></tr>
+        <tr><td class="mn">&lt;=</td><td>Inférieur ou égal</td><td><kbd>&lt;</kbd> puis <kbd>=</kbd></td><td class="mn">5 &lt;= 5</td><td class="mn">True</td></tr>
+        <tr><td class="mn">&gt;=</td><td>Supérieur ou égal</td><td><kbd>&gt;</kbd> puis <kbd>=</kbd></td><td class="mn">4 &gt;= 7</td><td class="mn">False</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <strong>⚠ Ne pas confondre <code>=</code> et <code>==</code> !</strong><br>
+      <code>=</code> (un seul symbole) → <strong>affecte</strong> une valeur à une variable : <code>a = 5</code><br>
+      <code>==</code> (deux symboles collés) → <strong>compare</strong> et renvoie <code>True</code> ou <code>False</code> : <code>a == 5</code><br>
+      C'est l'une des erreurs les plus fréquentes en Python !
+    </div>
+
+    <div class="exo">
+      <div class="exo-title">Exercice 5 · Découverte des booléens</div>
+      <ul class="steps">
+        <li><span class="snum">1</span><span class="stxt">Tape <code>10 == 10</code> puis <code>10 == 11</code> — observe les résultats.</span></li>
+        <li><span class="snum">2</span><span class="stxt">Tape <code>7 &gt; 3</code> puis <code>7 &lt; 3</code>.</span></li>
+        <li><span class="snum">3</span><span class="stxt">Tape <code>type(True)</code> — quel type Python renvoie-t-il ?</span></li>
+        <li><span class="snum">4</span><span class="stxt">Tape <code>a = 15</code> puis <code>a &gt;= 10</code> — Python compare une variable à un nombre.</span></li>
+        <li><span class="snum">5</span><span class="stxt">Tape <code>a = 5</code> (un seul <code>=</code>), puis <code>a == 5</code> (deux <code>=</code>). Explique la différence.</span></li>
+      </ul>
+      <div class="cw"><div class="ctb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="clbl">Console Python — Exercice 5</div></div>
+        <div class="cout" id="o5"><span class="hl"># Explore les booléens et comparaisons ici.</span></div>
+        <div class="cir"><span class="cps">&gt;&gt;&gt;</span><input class="ci" id="i5" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false"><button class="ccb" onclick="clr('o5')">Effacer</button><button class="crb" id="b5" onclick="rc('i5','o5','n5')" disabled>▶ Exécuter</button></div>
+      </div>
+      <div class="qb" id="q8">
+        <div class="qq"><div class="qi">?</div><div>Quelle est la différence entre <code>a = 5</code> et <code>a == 5</code> ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q8',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">Aucune différence.</div></div>
+          <div class="qopt" onclick="sel('q8',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>a = 5</code> <em>affecte</em> la valeur 5 à <code>a</code> ; <code>a == 5</code> <em>compare</em> et renvoie <code>True</code> ou <code>False</code></div></div>
+          <div class="qopt" onclick="sel('q8',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>a == 5</code> affecte, <code>a = 5</code> compare</div></div>
+        </div>
+        <button class="qvb" onclick="val('q8')">Valider</button><div class="qfb" id="fb-q8"></div>
+      </div>
+      <div class="qb" id="q9">
+        <div class="qq"><div class="qi">?</div><div>Que renvoie <code>10 != 10</code> ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q9',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>True</code> — 10 est différent de 10</div></div>
+          <div class="qopt" onclick="sel('q9',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>False</code> — 10 n'est pas différent de 10, la condition est fausse</div></div>
+          <div class="qopt" onclick="sel('q9',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>0</code></div></div>
+        </div>
+        <button class="qvb" onclick="val('q9')">Valider</button><div class="qfb" id="fb-q9"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="exo">
+      <div class="exo-title">Exercice 6 · Booléens et print()</div>
+      <p>Complète les opérateurs de comparaison (<code>...</code>) dans ce programme sur la température.</p>
+      <div class="ew"><div class="etb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="elbl">Éditeur Python — TP2_exo6.py</div></div>
+        <textarea class="eta" id="e6" spellcheck="false">temperature = 38.5
+seuil_fievre = 37.5
+
+print("Température  :", temperature)
+print("Seuil fièvre :", seuil_fievre)
+
+# Remplace ... par le bon opérateur de comparaison
+print("A-t-on de la fièvre ?          ", temperature ... seuil_fievre)
+print("Température normale ?          ", temperature ... seuil_fievre)
+print("Exactement au seuil ?          ", temperature ... seuil_fievre)
+
+print("Type de temperature            :", type(temperature))
+print("Type de (temperature > seuil)  :", type(temperature > seuil_fievre))</textarea>
+        <div class="err"><button class="erb" id="be6" onclick="re('e6','oe6','n5')" disabled>▶ Lancer le programme</button></div>
+        <div class="eout" id="oe6"></div>
+      </div>
+      <div class="qb" id="q10">
+        <div class="qq"><div class="qi">?</div><div>Avec <code>temperature = 38.5</code> et <code>seuil_fievre = 37.5</code>, que vaut <code>temperature &gt; seuil_fievre</code> ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q10',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>True</code> — 38.5 est bien supérieur à 37.5</div></div>
+          <div class="qopt" onclick="sel('q10',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>False</code></div></div>
+          <div class="qopt" onclick="sel('q10',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>1.0</code> — Python affiche la différence</div></div>
+        </div>
+        <button class="qvb" onclick="val('q10')">Valider</button><div class="qfb" id="fb-q10"></div>
+      </div>
+      <div class="qb" id="q11">
+        <div class="qq"><div class="qi">?</div><div>Quel est le type de <code>True</code> en Python ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q11',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill ps">str</span> — c'est un mot, donc une chaîne</div></div>
+          <div class="qopt" onclick="sel('q11',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pi">int</span> — True vaut 1</div></div>
+          <div class="qopt" onclick="sel('q11',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pb">bool</span> — c'est un type à part entière, spécialisé dans les valeurs logiques</div></div>
+        </div>
+        <button class="qvb" onclick="val('q11')">Valider</button><div class="qfb" id="fb-q11"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4 — PROGRAMME COMPLET -->
+<div class="section">
+  <div class="sh open" onclick="tog(this)"><div class="sn">4</div><div class="st">Programme complet — Tout mettre ensemble</div><div class="sa">›</div></div>
+  <div class="sb open">
+    <div class="obj"><div class="obj-lbl">Objectif n°4</div><p>Écrire un programme combinant <span class="pill pi">int</span>, <span class="pill pf">float</span>, <span class="pill ps">str</span>, <span class="pill pb">bool</span>, des opérateurs, des variables et des <code>print()</code>.</p></div>
+    <p>Ce programme calcule des informations sur un produit en solde. Chaque <code>...</code> est à compléter.</p>
+
+    <div class="exo">
+      <div class="exo-title">Exercice 7 · La fiche produit</div>
+      <ul class="steps">
+        <li><span class="snum">1</span><span class="stxt">Affecte un nom (<span class="pill ps">str</span>), un prix initial (<span class="pill pf">float</span>) et un taux de réduction (<span class="pill pi">int</span>, ex. 20 pour 20%).</span></li>
+        <li><span class="snum">2</span><span class="stxt">Calcule le montant de la réduction et le prix final.</span></li>
+        <li><span class="snum">3</span><span class="stxt">Complète tous les <code>print()</code> et les deux comparaisons.</span></li>
+      </ul>
+      <div class="ew"><div class="etb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="elbl">Éditeur Python — TP2_exo7.py</div></div>
+        <textarea class="eta" id="e7" spellcheck="false"># ── Données du produit ───────────────────────
+nom_produit    = "..."      # str
+prix_initial   = ...        # float
+taux_reduction = ...        # int (ex: 20 pour 20%)
+
+# ── Calculs ──────────────────────────────────
+reduction  = (taux_reduction / 100) * ...
+prix_final = ... - ...
+
+# ── Nombre de lettres du nom ──────────────────
+nb_lettres = len(...)
+
+# ── Affichage ────────────────────────────────
+print("╔══════════════════════════╗")
+print("       FICHE PRODUIT")
+print("╚══════════════════════════╝")
+print("Produit              :", ...)
+print("Lettres dans le nom  :", ...)
+print("Prix initial         :", ..., "€")
+print("Réduction            :", ..., "%  soit", round(..., 2), "€")
+print("Prix final           :", round(..., 2), "€")
+print()
+print("── Vérifications ──────────")
+print("Prix final < 50 € ?  ", ... < 50)
+print("Réduction > 10 % ?   ", ... > 10)
+print()
+print("── Types ──────────────────")
+print("type(nom_produit)   :", type(...))
+print("type(prix_initial)  :", type(...))
+print("type(taux_reduction):", type(...))
+print("type(prix_final)    :", type(...))</textarea>
+        <div class="err"><button class="erb" id="be7" onclick="re('e7','oe7','n7')" disabled>▶ Lancer le programme</button></div>
+        <div class="eout" id="oe7"></div>
+      </div>
+      <div class="qb" id="q12">
+        <div class="qq"><div class="qi">?</div><div>Avec <code>prix_initial = 79.90</code> (<span class="pill pf">float</span>) et <code>taux_reduction = 20</code> (<span class="pill pi">int</span>), quel est le type de <code>prix_final</code> ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q12',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pi">int</span> — la soustraction de deux nombres donne un entier</div></div>
+          <div class="qopt" onclick="sel('q12',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pf">float</span> — dès qu'un float est impliqué dans un calcul, le résultat est un float</div></div>
+          <div class="qopt" onclick="sel('q12',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill ps">str</span> — car le résultat contient une virgule</div></div>
+        </div>
+        <button class="qvb" onclick="val('q12')">Valider</button><div class="qfb" id="fb-q12"></div>
+      </div>
+      <div class="qb" id="q13">
+        <div class="qq"><div class="qi">?</div><div>Parmi ces 4 types, lequel n'existe <strong>pas</strong> en Python ?</div></div>
+        <div class="qo">
+          <div class="qopt" onclick="sel('q13',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pi">int</span></div></div>
+          <div class="qopt" onclick="sel('q13',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pf">float</span></div></div>
+          <div class="qopt" onclick="sel('q13',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill" style="background:rgba(100,100,100,0.1);color:#555;border:1px solid #aaa">number</span> — ce type n'existe pas en Python</div></div>
+          <div class="qopt" onclick="sel('q13',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><span class="pill pb">bool</span></div></div>
+        </div>
+        <button class="qvb" onclick="val('q13')">Valider</button><div class="qfb" id="fb-q13"></div>
+      </div>
+      <div class="lb">
+        <div class="lq"><div class="li2">✎</div><div>Avec <code>prix_initial = 79.90</code> et <code>taux_reduction = 20</code>, quelle instruction affiche le prix final arrondi à 2 décimales ? (utilise <code>round(valeur, 2)</code>)</div></div>
+        <div class="lhint">Exemple : <code>round(3.14159, 2)</code> donne <code>3.14</code></div>
+        <input class="linp" id="lf1" type="text" placeholder="print(…)" autocomplete="off" spellcheck="false">
+        <button class="lvb" onclick="vl('lf1',['print(round(prix_final, 2))','print(round(prix_final,2))'],'lf-lf1','print(round(prix_final, 2))','<code>round(prix_final, 2)</code> arrondit le float à 2 décimales. On obtient <code>63.92</code>.')">Valider</button>
+        <div class="lfb" id="lf-lf1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BONUS -->
+<div class="section">
+  <div class="sh" onclick="tog(this)"><div class="sn" style="background:var(--vert);font-size:18px">+</div><div class="st">Pour aller plus loin <span style="font-weight:400;color:var(--texte-sec);font-size:0.9em">(bonus)</span></div><div class="sa">›</div></div>
+  <div class="sb">
+    <ul class="steps">
+      <li><span class="snum a">A</span><span class="stxt">Crée <code>phrase = "Python c'est super !"</code>. Affiche sa longueur et vérifie avec un booléen si elle dépasse 15 caractères.</span></li>
+      <li><span class="snum a">B</span><span class="stxt">Que renvoie <code>True + 1</code> ? Et <code>type(True + 1)</code> ? Essaie et explique.</span></li>
+      <li><span class="snum a">C</span><span class="stxt">Crée <code>a = 7</code> et <code>b = 3</code>. Affiche leur somme, produit, reste de la division, et si <code>a</code> est multiple de <code>b</code> (indice : <code>%</code> et <code>==</code>).</span></li>
+    </ul>
+    <div class="cw"><div class="ctb"><div class="dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div><div class="clbl">Console Python — Défis bonus</div></div>
+      <div class="cout" id="ob"><span class="hl"># Console libre.</span></div>
+      <div class="cir"><span class="cps">&gt;&gt;&gt;</span><input class="ci" id="ib" type="text" placeholder="Tape ton code ici…" autocomplete="off" spellcheck="false"><button class="ccb" onclick="clr('ob')">Effacer</button><button class="crb" id="bb" onclick="rc('ib','ob','nb')" disabled>▶ Exécuter</button></div>
+    </div>
+    <div class="qb" id="qb1">
+      <div class="qq"><div class="qi">?</div><div>Défi B : que renvoie <code>True + 1</code> en Python ?</div></div>
+      <div class="qo">
+        <div class="qopt" onclick="sel('qb1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>True1</code> — Python concatène</div></div>
+        <div class="qopt" onclick="sel('qb1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql">Une erreur — on ne peut pas additionner un bool et un int</div></div>
+        <div class="qopt" onclick="sel('qb1',this,true)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>2</code> — en Python, <code>True</code> vaut <code>1</code> et <code>False</code> vaut <code>0</code>, ils s'utilisent dans des calculs</div></div>
+        <div class="qopt" onclick="sel('qb1',this,false)"><div class="qr"><div class="dot"></div></div><div class="ql"><code>True</code> — le résultat reste booléen</div></div>
+      </div>
+      <button class="qvb" onclick="val('qb1')">Valider</button><div class="qfb" id="fb-qb1"></div>
+    </div>
+    <div class="lb">
+      <div class="lq"><div class="li2">✎</div><div>Défi C : quelle expression Python teste si <code>a</code> est un multiple de <code>b</code> ?</div></div>
+      <div class="lhint">Utilise <code>%</code> (modulo) et <code>==</code>.</div>
+      <input class="linp" id="lb1" type="text" placeholder="a ... b == ..." autocomplete="off" spellcheck="false">
+      <button class="lvb" onclick="vl('lb1',['a % b == 0','a%b==0'],'lf-lb1','a % b == 0','Si le reste de la division de <code>a</code> par <code>b</code> vaut 0, alors <code>a</code> est un multiple de <code>b</code>. Ici 7 % 3 = 1 ≠ 0, donc 7 n\'est pas un multiple de 3.')">Valider</button>
+      <div class="lfb" id="lf-lb1"></div>
+    </div>
+  </div>
+</div>
+
+<div class="score">
+  <div class="slbl">🏆 Score TP 2 :</div>
+  <div class="str"><div class="sfi" id="sfi" style="width:0%"></div></div>
+  <div class="sct" id="sct">0 / 0 validé(s)</div>
+</div>
+</main>
+<script>
+function tog(h){h.classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+
+// SCORE
+let tot=0,cor=0;
+function upScore(){const p=tot===0?0:Math.round(cor/tot*100);document.getElementById('sfi').style.width=p+'%';document.getElementById('sct').textContent=cor+' / '+tot+' validé(s)';}
+
+// QCM
+const qs={};
+function sel(id,el,ok){
+  if(qs[id]&&qs[id].locked)return;
+  document.getElementById(id).querySelectorAll('.qopt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');qs[id]={el,ok};
+}
+const FB={
+  'qr1':{ok:'Correct ! Le texte est entre guillemets, la variable sans — séparés par une virgule.',ko:'Non — sans guillemets autour de <code>prenom</code>, Python affiche la valeur de la variable. La bonne réponse est <code>print("Bonjour", prenom)</code>.'},
+  'qr2':{ok:'Exact ! Python évalue <code>a + 3</code> (soit 13) puis l\'affecte à <code>a</code>. Très courant pour incrémenter une variable.',ko:'Non — Python lit le membre droit d\'abord : 10 + 3 = 13, puis affecte 13 à <code>a</code>.'},
+  'q1':{ok:'Exact ! La présence du point décimal suffit à faire d\'un nombre un <span class="pill pf">float</span>, même si la partie décimale est 0.',ko:'Non — <code>7.0</code> est un float car il contient un point décimal. <code>7</code> sans point serait un int.'},
+  'q2':{ok:'Parfait ! En Python 3, <code>/</code> renvoie <em>toujours</em> un <span class="pill pf">float</span>. Pour un quotient entier utilise <code>//</code>.',ko:'Non — en Python 3, <code>/</code> renvoie toujours un float. <code>6 / 2</code> donne <code>3.0</code>, pas <code>3</code>.'},
+  'q3':{ok:'Correct ! <code>//</code> est la division entière : elle renvoie un <span class="pill pi">int</span> et ignore la partie décimale.',ko:'Non — seul <code>//</code> renvoie un int. <code>7 // 2</code> donne 3 (pas 3.5).'},
+  'q4':{ok:'Exact ! Même si les notes sont entières, <code>/</code> produit toujours un float. La moyenne sera donc un float.',ko:'Non — l\'opérateur <code>/</code> renvoie toujours un float en Python 3.'},
+  'q5':{ok:'Parfait ! Les guillemets transforment les chiffres en texte. Pour <span class="pill ps">str</span>, <code>+</code> concatène : <code>"3"+"5"="35"</code>. Pour <span class="pill pi">int</span>, <code>+</code> additionne : <code>3+5=8</code>.',ko:'Non — <code>"3"</code> et <code>"5"</code> sont des chaînes, <code>+</code> les colle : résultat <code>"35"</code>, pas 8.'},
+  'q6':{ok:'Exact ! <code>len()</code> compte les caractères un à un : P-y-t-h-o-n = 6.',ko:'Non — compte les lettres : P(1)y(2)t(3)h(4)o(5)n(6) = 6.'},
+  'q7':{ok:'Parfait ! Pour insérer un espace il faut le mettre explicitement : <code>prenom + " " + nom</code>.',ko:'Non — <code>prenom + nom</code> collerait sans espace. Il faut <code>prenom + " " + nom</code>.'},
+  'q8':{ok:'Exact ! C\'est la distinction fondamentale : <code>=</code> affecte, <code>==</code> compare. Confondre les deux est une erreur très fréquente !',ko:'Non — <code>a = 5</code> affecte la valeur 5 à <code>a</code>. <code>a == 5</code> compare et renvoie <code>True</code> ou <code>False</code>.'},
+  'q9':{ok:'Correct ! <code>!=</code> signifie "différent de". 10 n\'est pas différent de 10, la condition est fausse → <code>False</code>.',ko:'Non — <code>!=</code> veut dire "différent de". 10 est égal à 10, donc il n\'est pas différent → <code>False</code>.'},
+  'q10':{ok:'Exact ! 38.5 > 37.5 est vrai → <code>True</code>.',ko:'Non — 38.5 est supérieur à 37.5, donc <code>temperature > seuil_fievre</code> vaut <code>True</code>.'},
+  'q11':{ok:'Exact ! <code>True</code> et <code>False</code> sont de type <span class="pill pb">bool</span>, un type à part entière.',ko:'Non — <code>True</code> et <code>False</code> sont de type <span class="pill pb">bool</span>, même s\'ils valent 1 et 0 en interne.'},
+  'q12':{ok:'Parfait ! Dès qu\'un float est impliqué dans un calcul, le résultat est un float — c\'est la règle de "contagion" du float.',ko:'Non — quand on mélange float et int, Python produit un float. <code>prix_final</code> sera un float.'},
+  'q13':{ok:'Exact ! <code>number</code> n\'est pas un type Python. Les types numériques sont <span class="pill pi">int</span> et <span class="pill pf">float</span>.',ko:'Non — <code>number</code> n\'existe pas en Python. Les types du TP sont int, float, str et bool.'},
+  'qb1':{ok:'Bravo ! En Python, <code>True</code> vaut numériquement 1 et <code>False</code> vaut 0. Donc <code>True + 1 = 2</code>, de type <span class="pill pi">int</span>.',ko:'Non — Python traite <code>True</code> comme <code>1</code>. <code>True + 1 = 2</code>.'},
+};
+function val(id){
+  const s=qs[id];if(!s||!s.el||s.locked)return;
+  s.locked=true;tot++;
+  const bl=document.getElementById(id);
+  const fb=document.getElementById('fb-'+id);
+  bl.querySelector('.qvb').disabled=true;
+  bl.querySelectorAll('.qopt').forEach(opt=>{
+    const isThis=opt===s.el;
+    const isCor=opt.getAttribute('onclick')&&opt.getAttribute('onclick').includes(',true)');
+    if(isThis&&s.ok){opt.classList.remove('sel');opt.classList.add('ok');}
+    else if(isThis&&!s.ok){opt.classList.remove('sel');opt.classList.add('ko');}
+    else if(!isThis&&isCor){opt.classList.add('mis');}
+  });
+  const m=FB[id]||{ok:'Bonne réponse !',ko:'Mauvaise réponse.'};
+  fb.style.display='block';
+  if(s.ok){cor++;fb.className='qfb ok';fb.innerHTML='<strong>✓ Bonne réponse !</strong> '+m.ok;}
+  else{fb.className='qfb ko';fb.innerHTML='<strong>✗ Pas tout à fait.</strong> '+m.ko;}
+  upScore();
+}
+
+// CHAMP LIBRE
+function vl(inputId,accepted,fbId,canonical,expl){
+  const inp=document.getElementById(inputId);
+  const fb=document.getElementById(fbId);
+  if(fb.style.display==='block')return;
+  const v=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+  const ok=accepted.some(a=>v===a.toLowerCase().trim()||v.replace(/\s/g,'')===a.toLowerCase().replace(/\s/g,''));
+  tot++;inp.disabled=true;fb.style.display='block';
+  if(ok){cor++;inp.classList.add('ok');fb.className='lfb ok';fb.innerHTML='<strong>✓ Bonne réponse !</strong> '+expl;}
+  else{inp.classList.add('ko');fb.className='lfb ko';fb.innerHTML='<strong>✗ Pas tout à fait.</strong> La bonne réponse était : <code>'+canonical+'</code>. '+expl;}
+  upScore();
+}
+
+// PYODIDE
+let py=null;const ns={};
+async function init(){
+  const st=document.getElementById('pys');
+  try{
+    py=await loadPyodide();
+    st.textContent='✓ Python prêt — tu peux commencer !';st.classList.add('ready');
+    ['nr','n1','n3','n5','n7','nb'].forEach(k=>{ns[k]=py.globals.get('dict')();});
+    document.querySelectorAll('.crb,.erb').forEach(b=>b.disabled=false);
+    [['ir','or','nr'],['i1','o1','n1'],['i3','o3','n3'],['i5','o5','n5'],['ib','ob','nb']].forEach(([i,o,n])=>{
+      const el=document.getElementById(i);
+      if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();rc(i,o,n);}});
+    });
+  }catch(e){st.textContent='✗ Erreur : '+e.message;st.classList.add('error');}
+}
+async function rc(ii,oi,nk){
+  if(!py)return;
+  const inp=document.getElementById(ii),out=document.getElementById(oi);
+  const code=inp.value.trim();if(!code)return;
+  const cmd=document.createElement('span');cmd.className='hl';cmd.textContent='>>> '+code;out.appendChild(cmd);
+  let res='',err=false;
+  try{
+    py.runPython('import sys,io\n_b=io.StringIO()\nsys.stdout=_b');
+    const v=py.runPython(code,{globals:ns[nk]});
+    py.runPython('sys.stdout=sys.__stdout__');
+    const p=py.runPython('_b.getvalue()');
+    if(p)res+=p;
+    if(v!==undefined&&v!==null&&String(v)!=='None')res+=String(v);
+  }catch(e){try{py.runPython('sys.stdout=sys.__stdout__');}catch(_){}res=e.message.split('\n').slice(-2).join('\n');err=true;}
+  if(res.trim()){const r=document.createElement('span');r.className=err?'el':'ol';r.textContent=res.trim();out.appendChild(r);}
+  out.scrollTop=out.scrollHeight;inp.value='';
+}
+async function re(ei,oi,nk){
+  if(!py)return;
+  const ed=document.getElementById(ei),out=document.getElementById(oi);
+  out.innerHTML='';out.classList.add('v');
+  try{
+    py.runPython('import sys,io\n_b=io.StringIO()\nsys.stdout=_b');
+    py.runPython(ed.value,{globals:ns[nk]});
+    py.runPython('sys.stdout=sys.__stdout__');
+    const p=py.runPython('_b.getvalue()');
+    if(p.trim()){p.trim().split('\n').forEach(l=>{const el=document.createElement('span');el.className='ol';el.textContent=l;out.appendChild(el);});}
+    else{const el=document.createElement('span');el.className='hl';el.textContent='(programme exécuté sans affichage)';out.appendChild(el);}
+  }catch(e){
+    try{py.runPython('sys.stdout=sys.__stdout__');}catch(_){}
+    const el=document.createElement('span');el.className='el';el.textContent=e.message.split('\n').slice(-2).join('\n');out.appendChild(el);
+  }
+  out.scrollTop=out.scrollHeight;
+}
+function clr(id){document.getElementById(id).innerHTML='<span class="hl"># Console effacée.</span>';}
+init();
+</script>
+
+<a href="index.html" class="btn-retour-flottant" title="Retour au menu">🏠</a>
+<style>
+.btn-retour-flottant{position:fixed;bottom:20px;left:20px;z-index:9999;display:flex;align-items:center;justify-content:center;background:white;color:#5c67f2;text-decoration:none;font-size:1.3rem;width:48px;height:48px;border-radius:50%;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all 0.3s ease;}
+.btn-retour-flottant:hover{transform:scale(1.1);background:#5c67f2;color:white;}
+</style>
+</body>
+</html>

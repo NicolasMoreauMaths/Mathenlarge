@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les angles — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --purple: #6b3fa0;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #0c1624 0%, #162236 45%, #1c3358 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+.app-header::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%); pointer-events: none; }
+.app-header-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--red), var(--blue), var(--purple), var(--green)); }
+.app-title { font-size: 1.2em; font-weight: 700; position: relative; display: flex; align-items: center; gap: 10px; }
+.app-title::before { content: '📐'; font-size: 1.15em; }
+.app-badge { font-size: 0.7em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; position: relative; }
+
+.main { background: var(--card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 16px 16px; padding: 32px 28px; box-shadow: 0 8px 28px var(--shadow); min-height: 60vh; }
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+h1 { font-size: 1.5em; font-weight: 700; text-align: center; margin-bottom: 8px; color: var(--blue); }
+.sub { text-align: center; font-size: 0.92em; color: var(--text-light); margin-bottom: 24px; line-height: 1.6; }
+
+.btn { font-family: 'DM Sans', sans-serif; padding: 11px 26px; border-radius: 12px; font-size: 0.93em; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: none; }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin: 20px 0; }
+.mc { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 20px 16px; text-align: center; cursor: pointer; transition: all 0.25s; position: relative; min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge { position: absolute; top: 10px; right: 10px; background: var(--orange-pale); color: var(--orange); font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
+
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue), var(--purple)); border-radius: 6px; transition: width 0.4s; }
+
+.hint-wrap { text-align: center; margin: 0 0 18px; }
+.hint-btn { font-family: 'DM Sans', sans-serif; font-size: 0.82em; font-weight: 600; color: var(--gold); background: var(--gold-pale); border: 1.5px dashed var(--gold); border-radius: 20px; padding: 6px 16px; cursor: pointer; transition: all 0.2s; }
+.hint-btn:hover { background: #fdf2c5; }
+.formula-remind { background: var(--gold-pale); border: 1.5px dashed var(--gold); border-radius: 10px; padding: 10px 16px; font-size: 0.86em; color: #7a5800; margin: 10px 0 0; text-align: center; line-height: 1.7; display: none; }
+.formula-remind.show { display: block; }
+.hint-wrap:hover .formula-remind { display: block; }
+
+.q-prompt { font-size: 1.05em; font-weight: 600; margin-bottom: 6px; line-height: 1.6; text-align: center; }
+
+.answer-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+.answer-unit { font-weight: 700; font-size: 1.05em; color: var(--text-light); }
+.answer-input { font-family: 'DM Sans', sans-serif; font-size: 1.3em; font-weight: 700; width: 160px; padding: 10px 12px; text-align: center; border: 3px dashed var(--purple); border-radius: 12px; background: white; outline: none; transition: all 0.2s; color: var(--text); }
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+
+.fb { margin-top: 20px; padding: 14px 18px; border-radius: 12px; font-size: 0.93em; text-align: center; display: none; animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7; }
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+.rc { width: 140px; height: 140px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; border: 6px solid; }
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+/* ── FIGURES D'ANGLES (SVG) ── */
+.fig-wrap { display: flex; justify-content: center; margin: 6px 0 4px; }
+.fig-wrap svg { max-width: 100%; height: auto; }
+.fig-wrap svg text { font-family: 'DM Sans', sans-serif; }
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.05em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+}
+
+  /* ══ RESPONSIVE ENHANCEMENTS ══ */
+  svg{max-width:100%;height:auto;}
+  @media(max-width:480px){
+    .app-header{padding:12px 14px;}
+    .app-title{font-size:0.95em;gap:6px;}
+    .app-badge{font-size:0.6em;}
+    .main{padding:16px 12px;}
+    h1{font-size:1.1em;}
+    .sub{font-size:.84em;}
+    .btn{padding:9px 18px;font-size:.86em;min-height:40px;}
+    .mc{padding:14px 12px;min-height:100px;}
+    .mc-icon{font-size:1.6em;}
+    .mc-t{font-size:.82em;}
+    .mc-d{font-size:.72em;}
+    .ctx-card{padding:10px 12px;font-size:.86em;}
+    .formula-remind{padding:8px 10px;font-size:.8em;}
+    .q-prompt{font-size:.95em;}
+    .answer-input{width:110px;font-size:1em;padding:8px 10px;}
+    .fb{padding:10px 12px;font-size:.86em;}
+    .rc{width:110px;height:110px;}
+    .rp{font-size:1.8em;}
+    .controls{gap:8px;}
+    .ex-top{gap:4px;}
+  }
+  @media(max-width:380px){
+    body{padding:8px 4px 50px;}
+    .app-header{padding:10px 10px;}
+    .app-title{font-size:0.88em;}
+    .main{padding:12px 8px;}
+    h1{font-size:1em;}
+    .mc{min-height:80px;padding:10px 8px;}
+    .answer-input{width:95px;font-size:.92em;}
+    .btn{padding:8px 14px;font-size:.82em;}
+  }
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Les angles
+            <span class="app-badge">6e — Ch.19</span>
+        </div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Cinq exerciseurs pour maîtriser les angles : adjacents, opposés par le sommet, supplémentaires, bissectrice, et calculs combinés — exactement comme dans la leçon.</p>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+            </div>
+        </div>
+
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX  (les 5 notions clés de la leçon)
+   ========================================================== */
+const LEVELS = [
+    { id: 'adjacents',      icon: '📐', title: 'Angles adjacents',            desc: 'Additionner ou soustraire deux angles adjacents', n: 8 },
+    { id: 'oppose',         icon: '✖️', title: 'Opposés par le sommet',        desc: 'Utiliser l\'égalité des angles opposés par le sommet, ou leur supplémentaire', n: 8 },
+    { id: 'supplementaires',icon: '➕', title: 'Angles supplémentaires',       desc: 'Calculer un angle grâce à des points alignés (somme = 180°)', n: 8 },
+    { id: 'bissectrice',    icon: '🔀', title: 'Bissectrice d\'un angle',      desc: 'Utiliser le partage d\'un angle en deux angles égaux', n: 8 },
+    { id: 'combiner',       icon: '🧩', title: 'Combiner plusieurs propriétés',desc: 'Un calcul en plusieurs étapes, comme dans le bilan de la leçon', n: 8 },
+];
+
+let state = { levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false };
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[rnd(0, arr.length - 1)]; }
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/\u2212/g, '-');
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+function close(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
+function round2(x) { return Math.round(x * 100) / 100; }
+function fmt(x) {
+    const r = round2(x);
+    return r % 1 === 0 ? String(r) : String(r).replace('.', ',');
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+/* ==========================================================
+   MOTEUR GENERIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS = {};
+const CHECKERS = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex = 0;
+    state.score = 0;
+    state.total = lv.n;
+    state.questions = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked = false;
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb = document.getElementById('fb');
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        state.checked = true;
+        state.score++;
+        document.getElementById('btnCheck').style.display = 'none';
+        document.getElementById('btnNext').style.display = '';
+    } else {
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || 'Ce n\'est pas encore ça, réessaie.');
+        document.getElementById('btnNext').style.display = '';
+    }
+    renderMath(fb);
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none' && btnNext.offsetParent) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises ce thème.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+/* ==========================================================
+   COMPOSANTS VISUELS — figures d'angles en SVG
+   ========================================================== */
+function polar(cx, cy, r, ang) {
+    const rad = ang * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) };
+}
+function rayLine(cx, cy, len, ang) {
+    const p = polar(cx, cy, len, ang);
+    return `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}" stroke="#2b2724" stroke-width="2.2"/>`;
+}
+function rayDashed(cx, cy, len, ang, color) {
+    const p = polar(cx, cy, len, ang);
+    return `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}" stroke="${color}" stroke-width="2" stroke-dasharray="5,4"/>`;
+}
+function fullLine(cx, cy, len, ang) {
+    const p1 = polar(cx, cy, len, ang), p2 = polar(cx, cy, len, ang + 180);
+    return `<line x1="${p1.x.toFixed(2)}" y1="${p1.y.toFixed(2)}" x2="${p2.x.toFixed(2)}" y2="${p2.y.toFixed(2)}" stroke="#2b2724" stroke-width="2.2"/>`;
+}
+function rayLabel(cx, cy, len, ang, text, color) {
+    color = color || '#2b2724';
+    const p = polar(cx, cy, len + 16, ang);
+    const c = Math.cos(ang * Math.PI / 180);
+    let anchor = 'middle';
+    if (c > 0.35) anchor = 'start'; else if (c < -0.35) anchor = 'end';
+    return `<text x="${p.x.toFixed(2)}" y="${p.y.toFixed(2)}" font-size="16" font-weight="700" fill="${color}" text-anchor="${anchor}">${text}</text>`;
+}
+function vertexLabel(cx, cy, text) {
+    return `<text x="${cx}" y="${cy + 20}" font-size="16" font-weight="700" fill="#2b2724" text-anchor="middle">${text}</text>`;
+}
+function arcPath(cx, cy, r, a1, a2, steps) {
+    steps = steps || 20;
+    let d = '';
+    for (let i = 0; i <= steps; i++) {
+        const a = a1 + (a2 - a1) * i / steps;
+        const p = polar(cx, cy, r, a);
+        d += (i === 0 ? 'M' : 'L') + p.x.toFixed(2) + ',' + p.y.toFixed(2) + ' ';
+    }
+    return d;
+}
+function arc(cx, cy, r, a1, a2, color) {
+    return `<path d="${arcPath(cx, cy, r, a1, a2)}" fill="none" stroke="${color}" stroke-width="1.8"/>`;
+}
+function arcLabel(cx, cy, r, a1, a2, text, color) {
+    const mid = (a1 + a2) / 2;
+    const p = polar(cx, cy, r + 16, mid);
+    return `<text x="${p.x.toFixed(2)}" y="${p.y.toFixed(2)}" font-size="13" font-weight="700" fill="${color}" text-anchor="middle">${text}</text>`;
+}
+function focusAns(box) { if (box) renderMath(box); setTimeout(() => document.getElementById('ans')?.focus(), 50); }
+function answerBox() {
+    return `<div class="answer-wrap"><input type="text" class="answer-input" id="ans" placeholder="…" inputmode="decimal"><span class="answer-unit">°</span></div>`;
+}
+
+/* Notation correcte d'un angle en LaTeX : \widehat{xOy}, rendu par KaTeX */
+function ang(p1, v, p2) { return `\\(\\widehat{${p1}${v}${p2}}\\)`; }
+function angT(target) { return ang(target[0], target[1], target[2]); }
+const katexOpts = { delimiters: [{ left: '\\(', right: '\\)', display: false }, { left: '\\[', right: '\\]', display: true }], throwOnError: false };
+function renderMath(el) { if (window.renderMathInElement) renderMathInElement(el, katexOpts); }
+
+/* Bloc de rappel masqué par défaut, révélé au clic (tactile) ou au survol (souris) */
+function toggleHint(btn) {
+    const c = btn.nextElementSibling;
+    const show = c.classList.toggle('show');
+    btn.textContent = show ? '💡 Masquer le rappel' : '💡 Voir le rappel';
+}
+function hintBlock(text) {
+    return `<div class="hint-wrap">
+        <button type="button" class="hint-btn" onclick="toggleHint(this)">💡 Voir le rappel</button>
+        <div class="formula-remind">${text}</div>
+    </div>`;
+}
+
+/* ==========================================================
+   NIVEAU 1 : ANGLES ADJACENTS
+   ========================================================== */
+GENERATORS.adjacents = function () {
+    const mode = pick(['sum', 'diff']);
+    let a, b, t;
+    do { a = rnd(15, 75); b = rnd(15, 75); t = a + b; } while (t > 150 || t < 40);
+    return { mode, a, b, t };
+};
+
+RENDERERS.adjacents = function (q, box) {
+    const cx = 150, cy = 195, len = 125;
+    const angX = 165, angY = 165 - q.a, angZ = 165 - q.a - q.b;
+    let svg = `<svg viewBox="0 0 300 230" width="260" height="200" style="max-width:100%;height:auto;">`;
+    svg += rayLine(cx, cy, len, angX) + rayLine(cx, cy, len, angY) + rayLine(cx, cy, len, angZ);
+    svg += rayLabel(cx, cy, len, angX, 'x') + rayLabel(cx, cy, len, angY, 'y') + rayLabel(cx, cy, len, angZ, 'z');
+    svg += vertexLabel(cx, cy, 'O');
+    const bLabel = (q.mode === 'sum') ? fmt(q.b) + '°' : '?';
+    svg += arc(cx, cy, 42, angY, angX, '#1a6fa0') + arcLabel(cx, cy, 42, angY, angX, fmt(q.a) + '°', '#1a6fa0');
+    svg += arc(cx, cy, 62, angZ, angY, '#c0392b') + arcLabel(cx, cy, 62, angZ, angY, bLabel, '#c0392b');
+    svg += `</svg>`;
+
+    let prompt;
+    if (q.mode === 'sum') {
+        prompt = `Les angles ${ang('x','O','y')} et ${ang('y','O','z')} sont adjacents. Sachant que ${ang('x','O','y')} = <strong>${fmt(q.a)}°</strong> et ${ang('y','O','z')} = <strong>${fmt(q.b)}°</strong>, quelle est la mesure de l'angle ${ang('x','O','z')} ?`;
+    } else {
+        prompt = `Les angles ${ang('x','O','y')} et ${ang('y','O','z')} sont adjacents. L'angle total ${ang('x','O','z')} mesure <strong>${fmt(q.t)}°</strong>, et ${ang('x','O','y')} mesure <strong>${fmt(q.a)}°</strong>. Quelle est la mesure de l'angle ${ang('y','O','z')} ?`;
+    }
+
+    box.innerHTML = `
+        ${hintBlock('Deux angles adjacents ont le même sommet, un côté commun, et sont de part et d\'autre de ce côté.')}
+        <div class="q-prompt">${prompt}</div>
+        <div class="fig-wrap">${svg}</div>
+        ${answerBox()}`;
+    focusAns(box);
+};
+
+CHECKERS.adjacents = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const answer = (q.mode === 'sum') ? q.t : (q.t - q.a);
+    const ok = v !== null && close(Math.round(v), answer, 0.5);
+    inp.classList.add(ok ? 'ok' : 'err');
+    if (q.mode === 'sum') {
+        const msg = `${ang('x','O','y')} + ${ang('y','O','z')} = ${fmt(q.a)} + ${fmt(q.b)} = <strong>${fmt(answer)}°</strong>.`;
+        return ok ? { ok: true, msg } : { ok: false, msg: `Deux angles adjacents s'additionnent : ${msg}` };
+    } else {
+        const msg = `${ang('y','O','z')} = ${ang('x','O','z')} − ${ang('x','O','y')} = ${fmt(q.t)} − ${fmt(q.a)} = <strong>${fmt(answer)}°</strong>.`;
+        return ok ? { ok: true, msg } : { ok: false, msg };
+    }
+};
+
+/* ==========================================================
+   NIVEAU 2 : ANGLES OPPOSES PAR LE SOMMET
+   ========================================================== */
+GENERATORS.oppose = function () {
+    const x = pick([25, 35, 40, 50, 55, 65, 70, 75, 100, 105, 110, 115, 125, 130, 140, 150]);
+    const target = pick(['COD', 'BOC', 'AOD']);
+    return { x, target };
+};
+
+RENDERERS.oppose = function (q, box) {
+    const cx = 160, cy = 125, len = 110;
+    const angA = 100, angB = 100 - q.x, angC = angA + 180, angD = angB + 180;
+    let svg = `<svg viewBox="0 0 320 240" width="270" height="203" style="max-width:100%;height:auto;">`;
+    svg += fullLine(cx, cy, len, angA) + fullLine(cx, cy, len, angB);
+    svg += rayLabel(cx, cy, len, angA, 'A') + rayLabel(cx, cy, len, angB, 'B') + rayLabel(cx, cy, len, angC, 'C') + rayLabel(cx, cy, len, angD, 'D');
+    svg += vertexLabel(cx, cy, 'O');
+    svg += arc(cx, cy, 40, angB, angA, '#1a6fa0') + arcLabel(cx, cy, 40, angB, angA, fmt(q.x) + '°', '#1a6fa0');
+    if (q.target === 'COD') {
+        svg += arc(cx, cy, 40, angD, angC, '#c0392b') + arcLabel(cx, cy, 40, angD, angC, '?', '#c0392b');
+    } else if (q.target === 'AOD') {
+        svg += arc(cx, cy, 55, angA, angD, '#c0392b') + arcLabel(cx, cy, 55, angA, angD, '?', '#c0392b');
+    } else {
+        svg += arc(cx, cy, 55, angC - 360, angB, '#c0392b') + arcLabel(cx, cy, 55, angC - 360, angB, '?', '#c0392b');
+    }
+    svg += `</svg>`;
+
+    box.innerHTML = `
+        ${hintBlock('Deux angles opposés par le sommet ont la même mesure. Deux angles adjacents formés de part et d\'autre d\'une même droite sont supplémentaires.')}
+        <div class="q-prompt">Les droites (AC) et (BD) se coupent en O. L'angle ${ang('A','O','B')} mesure <strong>${fmt(q.x)}°</strong>. Quelle est la mesure de l'angle ${angT(q.target)} ?</div>
+        <div class="fig-wrap">${svg}</div>
+        ${answerBox()}`;
+    focusAns(box);
+};
+
+CHECKERS.oppose = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const answer = (q.target === 'COD') ? q.x : (180 - q.x);
+    const ok = v !== null && close(Math.round(v), answer, 0.5);
+    inp.classList.add(ok ? 'ok' : 'err');
+    let msg;
+    if (q.target === 'COD') {
+        msg = `${ang('A','O','B')} et ${ang('C','O','D')} sont opposés par le sommet, donc de même mesure : ${ang('C','O','D')} = <strong>${fmt(q.x)}°</strong>.`;
+    } else if (q.target === 'AOD') {
+        msg = `B, O, D alignés donc ${ang('A','O','B')} et ${ang('A','O','D')} sont adjacents et supplémentaires : ${ang('A','O','D')} = 180 − ${fmt(q.x)} = <strong>${fmt(answer)}°</strong>.`;
+    } else {
+        msg = `A, O, C alignés donc ${ang('A','O','B')} et ${ang('B','O','C')} sont adjacents et supplémentaires : ${ang('B','O','C')} = 180 − ${fmt(q.x)} = <strong>${fmt(answer)}°</strong>.`;
+    }
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 3 : ANGLES SUPPLEMENTAIRES
+   ========================================================== */
+GENERATORS.supplementaires = function () {
+    const a = rnd(20, 160);
+    return { a, b: 180 - a };
+};
+
+RENDERERS.supplementaires = function (q, box) {
+    const cx = 150, cy = 185, len = 125;
+    const angB = 180 - q.a;
+    let svg = `<svg viewBox="0 0 300 220" width="260" height="190" style="max-width:100%;height:auto;">`;
+    svg += fullLine(cx, cy, len, 0);
+    svg += rayLine(cx, cy, len, angB);
+    svg += rayLabel(cx, cy, len, 180, 'C') + rayLabel(cx, cy, len, 0, 'D') + rayLabel(cx, cy, len, angB, 'B');
+    svg += vertexLabel(cx, cy, 'A');
+    svg += arc(cx, cy, 42, angB, 180, '#1a6fa0') + arcLabel(cx, cy, 42, angB, 180, fmt(q.a) + '°', '#1a6fa0');
+    svg += arc(cx, cy, 62, 0, angB, '#c0392b') + arcLabel(cx, cy, 62, 0, angB, '?', '#c0392b');
+    svg += `</svg>`;
+
+    box.innerHTML = `
+        ${hintBlock('Deux angles supplémentaires ont une somme de mesures égale à 180°.')}
+        <div class="q-prompt">Les points C, A et D sont alignés. L'angle ${ang('C','A','B')} mesure <strong>${fmt(q.a)}°</strong>. Quelle est la mesure de l'angle ${ang('B','A','D')} ?</div>
+        <div class="fig-wrap">${svg}</div>
+        ${answerBox()}`;
+    focusAns(box);
+};
+
+CHECKERS.supplementaires = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(Math.round(v), q.b, 0.5);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const msg = `C, A, D alignés donc ${ang('C','A','B')} et ${ang('B','A','D')} sont supplémentaires : ${ang('B','A','D')} = 180 − ${fmt(q.a)} = <strong>${fmt(q.b)}°</strong>.`;
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 4 : BISSECTRICE D'UN ANGLE
+   ========================================================== */
+GENERATORS.bissectrice = function () {
+    const mode = pick(['half', 'double']);
+    const h = pick([8, 10, 12, 14, 15, 16, 18, 20, 22, 24, 25, 26, 28, 30, 32, 34, 35, 36, 38, 40, 42, 44, 45, 48, 50, 55, 60, 65, 70]);
+    const t = 2 * h;
+    return { mode, h, t };
+};
+
+RENDERERS.bissectrice = function (q, box) {
+    const cx = 150, cy = 195, len = 125;
+    const angX = 90 + q.t / 2, angY = 90 - q.t / 2, angZ = 90;
+    let svg = `<svg viewBox="0 0 300 230" width="260" height="200" style="max-width:100%;height:auto;">`;
+    svg += rayLine(cx, cy, len, angX) + rayLine(cx, cy, len, angY) + rayDashed(cx, cy, len, angZ, '#6b3fa0');
+    svg += rayLabel(cx, cy, len, angX, 'x') + rayLabel(cx, cy, len, angY, 'y') + rayLabel(cx, cy, len, angZ, 'z', '#6b3fa0');
+    svg += vertexLabel(cx, cy, 'O');
+    if (q.mode === 'half') {
+        svg += arc(cx, cy, 58, angY, angX, '#1a6fa0') + arcLabel(cx, cy, 58, angY, angX, fmt(q.t) + '°', '#1a6fa0');
+    } else {
+        svg += arc(cx, cy, 42, angZ, angX, '#1a6fa0') + arcLabel(cx, cy, 42, angZ, angX, fmt(q.h) + '°', '#1a6fa0');
+        svg += arc(cx, cy, 42, angY, angZ, '#1a6fa0') + arcLabel(cx, cy, 42, angY, angZ, fmt(q.h) + '°', '#1a6fa0');
+    }
+    svg += `</svg>`;
+
+    const prompt = q.mode === 'half'
+        ? `La demi-droite [Oz) est la bissectrice de l'angle ${ang('x','O','y')}. Sachant que ${ang('x','O','y')} mesure <strong>${fmt(q.t)}°</strong>, quelle est la mesure de l'angle ${ang('x','O','z')} ?`
+        : `La demi-droite [Oz) est la bissectrice de l'angle ${ang('x','O','y')}. Sachant que ${ang('x','O','z')} mesure <strong>${fmt(q.h)}°</strong>, quelle est la mesure de l'angle total ${ang('x','O','y')} ?`;
+
+    box.innerHTML = `
+        ${hintBlock('La bissectrice d\'un angle le partage en deux angles adjacents de même mesure.')}
+        <div class="q-prompt">${prompt}</div>
+        <div class="fig-wrap">${svg}</div>
+        ${answerBox()}`;
+    focusAns(box);
+};
+
+CHECKERS.bissectrice = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const answer = q.mode === 'half' ? q.h : q.t;
+    const ok = v !== null && close(Math.round(v), answer, 0.5);
+    inp.classList.add(ok ? 'ok' : 'err');
+    let msg;
+    if (q.mode === 'half') {
+        msg = `[Oz) est la bissectrice donc elle partage ${ang('x','O','y')} en deux angles égaux : ${ang('x','O','z')} = ${fmt(q.t)} ÷ 2 = <strong>${fmt(q.h)}°</strong>.`;
+    } else {
+        msg = `[Oz) est la bissectrice donc ${ang('x','O','y')} = 2 × ${ang('x','O','z')} = 2 × ${fmt(q.h)} = <strong>${fmt(q.t)}°</strong>.`;
+    }
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 5 : COMBINER PLUSIEURS PROPRIETES
+   (points alignés + bissectrice, comme dans le bilan de la leçon)
+   ========================================================== */
+GENERATORS.combiner = function () {
+    const t = pick([10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80]);
+    const eoh = 180 - t;
+    const goh = eoh / 2;
+    const gof = goh + t;
+    return { t, eoh, goh, gof };
+};
+
+RENDERERS.combiner = function (q, box) {
+    const cx = 150, cy = 190, len = 125;
+    const angH = q.t, angG = (180 + q.t) / 2;
+    let svg = `<svg viewBox="0 0 300 220" width="260" height="190" style="max-width:100%;height:auto;">`;
+    svg += fullLine(cx, cy, len, 0);
+    svg += rayLine(cx, cy, len, angH) + rayDashed(cx, cy, len, angG, '#6b3fa0');
+    svg += rayLabel(cx, cy, len, 180, 'E') + rayLabel(cx, cy, len, 0, 'F') + rayLabel(cx, cy, len, angH, 'H') + rayLabel(cx, cy, len, angG, 'g', '#6b3fa0');
+    svg += vertexLabel(cx, cy, 'O');
+    svg += arc(cx, cy, 42, 0, angH, '#1a6fa0') + arcLabel(cx, cy, 42, 0, angH, fmt(q.t) + '°', '#1a6fa0');
+    svg += `</svg>`;
+
+    box.innerHTML = `
+        ${hintBlock('Méthode : je repère d\'abord les points alignés (angle plat), je calcule l\'angle manquant, puis j\'utilise la bissectrice, étape par étape.')}
+        <div class="q-prompt">Les points E, O et F sont alignés. La demi-droite [Og) est la bissectrice de l'angle ${ang('E','O','H')}, et l'angle ${ang('H','O','F')} mesure <strong>${fmt(q.t)}°</strong>. Quelle est la mesure de l'angle ${ang('g','O','F')} ?</div>
+        <div class="fig-wrap">${svg}</div>
+        ${answerBox()}`;
+    focusAns(box);
+};
+
+CHECKERS.combiner = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(Math.round(v), q.gof, 0.5);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const msg = `E, O, F alignés donc ${ang('E','O','H')} = 180 − ${fmt(q.t)} = ${fmt(q.eoh)}°. [Og) est la bissectrice donc ${ang('g','O','H')} = ${fmt(q.eoh)} ÷ 2 = ${fmt(q.goh)}°. Enfin ${ang('g','O','F')} = ${ang('g','O','H')} + ${ang('H','O','F')} = ${fmt(q.goh)} + ${fmt(q.t)} = <strong>${fmt(q.gof)}°</strong>.`;
+    return { ok, msg };
+};
+</script>
+
+<a href="index.html" class="btn-retour-flottant" title="Retour au menu">🏠</a>
+<style>
+.btn-retour-flottant{position:fixed;bottom:20px;left:20px;z-index:9999;display:flex;align-items:center;justify-content:center;background:white;color:#5c67f2;text-decoration:none;font-size:1.3rem;width:48px;height:48px;border-radius:50%;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all 0.3s ease;}
+.btn-retour-flottant:hover{transform:scale(1.1);background:#5c67f2;color:white;}
+</style>
+</body>
+</html>
