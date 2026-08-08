@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fonctions affines et linéaires — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1d4ed8;
+    --blue-light: #3b82f6;
+    --blue-pale: rgba(59, 130, 246, 0.08);
+    --blue-border: rgba(59, 130, 246, 0.2);
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --purple-pale: rgba(124, 58, 237, 0.1);
+    --orange: #ea580c;
+    --orange-pale: rgba(234, 88, 12, 0.1);
+    --orange-border: rgba(234, 88, 12, 0.25);
+    --green: #16a34a;
+    --green-pale: rgba(22, 163, 74, 0.1);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --red: #dc2626;
+    --red-pale: rgba(220, 38, 38, 0.08);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app {
+    max-width: 900px;
+    width: 100%;
+}
+
+.app-header {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(29, 78, 216, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 50%);
+    pointer-events: none;
+}
+
+.app-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-title::before {
+    content: '📈';
+    font-size: 1.2em;
+}
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.6em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.95em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-blue {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+    box-shadow: 0 2px 12px rgba(29, 78, 216, 0.2);
+}
+
+.btn-blue:hover:not(:disabled) {
+    background: var(--blue-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(29, 78, 216, 0.3);
+}
+
+.btn-green {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+}
+
+.btn-green:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-light);
+    border-color: var(--border);
+}
+
+.btn-ghost:hover {
+    background: var(--bg);
+    border-color: var(--text-light);
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+/* MENU */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover {
+    border-color: var(--blue);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--shadow);
+}
+
+.mc-icon {
+    font-size: 2em;
+    margin-bottom: 8px;
+}
+
+.mc-t {
+    font-size: 0.95em;
+    color: var(--blue);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.mc-d {
+    font-size: 0.8em;
+    color: var(--text-light);
+    line-height: 1.4;
+}
+
+.mc-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--orange-pale);
+    color: var(--orange);
+    font-size: 0.7em;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+/* MEMO CARD */
+.memo-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 0 0 24px;
+}
+
+.memo-card {
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 14px;
+    text-align: center;
+    background: var(--card);
+}
+
+.memo-card.c1 { border-color: var(--blue-border); background: var(--blue-pale); }
+.memo-card.c2 { border-color: var(--purple-pale); background: var(--purple-pale); }
+.memo-card.c3 { border-color: var(--orange-border); background: var(--orange-pale); }
+
+.memo-formula {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.memo-label {
+    font-size: 0.72em;
+    color: var(--text-light);
+    font-weight: 600;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* EX HEADER */
+.ex-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ex-badge {
+    background: var(--blue-pale);
+    color: var(--blue);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+}
+
+.ex-score {
+    font-size: 0.9em;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.pbar {
+    width: 100%;
+    background: var(--border);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.pfill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    border-radius: 6px;
+    transition: width 0.4s;
+}
+
+/* EXPRESSION DISPLAY */
+.expr-wrap {
+    margin: 24px auto;
+    max-width: 650px;
+    text-align: center;
+}
+
+.expr-line {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.7em;
+    font-weight: 700;
+    text-align: center;
+    margin: 0.5rem 0;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.expr-line i { font-style: italic; }
+
+.exl-x { color: var(--blue); }
+.exl-cst { color: var(--orange); }
+.exl-struct { color: var(--purple); }
+.exl-sign { color: var(--teal); }
+.exl-exp {
+    font-size: 0.55em;
+    position: relative;
+    top: -0.85em;
+    margin-left: 1px;
+    font-weight: 700;
+}
+
+.expr-help {
+    font-size: 0.98em;
+    color: var(--text-light);
+    margin-top: 4px;
+    line-height: 1.6;
+}
+
+/* FRACTION DISPLAY */
+.frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    font-size: 0.62em;
+    line-height: 1;
+    margin: 0 2px;
+    position: relative;
+    top: -0.05em;
+}
+.frac .fnum { border-bottom: 2px solid currentColor; padding: 0 5px 3px; }
+.frac .fden { padding: 3px 5px 0; }
+
+/* IDENTITY PICKER */
+.identity-picker {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 22px 0;
+}
+
+.id-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85em;
+    font-weight: 600;
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    line-height: 1.5;
+    min-width: 160px;
+}
+
+.id-btn .id-name {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    margin-bottom: 6px;
+}
+
+.id-btn .id-formula {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.15em;
+    font-weight: 700;
+    color: var(--purple);
+}
+
+.id-btn:hover {
+    border-color: var(--purple);
+    transform: translateY(-2px);
+}
+
+.id-btn.chosen {
+    background: var(--purple);
+    border-color: var(--purple);
+}
+
+.id-btn.chosen .id-formula { color: white; }
+.id-btn.chosen .id-name { color: rgba(255,255,255,0.85); }
+
+.id-btn.ok {
+    background: var(--green-pale);
+    border-color: var(--green);
+}
+
+.id-btn.ok .id-formula { color: var(--green); }
+.id-btn.ok .id-name { color: var(--green); }
+
+.id-btn.err {
+    background: var(--red-pale);
+    border-color: var(--red);
+    animation: shake 0.3s;
+}
+
+.id-btn.err .id-formula { color: var(--red); }
+.id-btn.err .id-name { color: var(--red); }
+
+/* TERM BUILDER (a et b à identifier) */
+.term-wrap {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 22px 0;
+}
+
+.term-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.term-label {
+    font-size: 0.78em;
+    color: var(--text-light);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.term-input {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1.4em;
+    font-weight: 700;
+    width: 110px;
+    padding: 9px 8px;
+    text-align: center;
+    border: 2px dashed var(--purple);
+    border-radius: 10px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.term-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-pale);
+}
+
+.term-input.ok {
+    border-color: var(--green);
+    background: var(--green-pale);
+    color: var(--green);
+}
+
+.term-input.err {
+    border-color: var(--red);
+    background: var(--red-pale);
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+/* BUILD ROW */
+.build-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 26px auto;
+    max-width: 700px;
+}
+
+.build-cell {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1.3em;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1;
+}
+
+.build-fixed {
+    padding: 10px 6px;
+    color: var(--text);
+}
+
+.build-input {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1em;
+    font-weight: 700;
+    width: 64px;
+    padding: 9px 6px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 10px;
+    background: var(--purple-pale);
+    color: var(--purple);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.build-input:focus { box-shadow: 0 0 0 3px var(--purple-pale); border-color: var(--purple); }
+
+.build-input.ok {
+    border-color: var(--green) !important;
+    background: var(--green-pale);
+    color: var(--green) !important;
+}
+
+.build-input.err {
+    border-color: var(--red) !important;
+    background: var(--red-pale);
+    color: var(--red) !important;
+    animation: shake 0.3s;
+}
+
+/* STEP STACK */
+.step-block {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+}
+
+.step-block.locked {
+    opacity: 0.88;
+}
+
+.step-block.locked .build-input {
+    pointer-events: none;
+}
+
+.step-divider {
+    border: none;
+    border-top: 1.5px dashed var(--border);
+    margin: 4px auto 18px;
+    max-width: 500px;
+}
+
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-light);
+    text-align: center;
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.step-tag.locked-tag {
+    color: var(--green);
+}
+
+.step-tag.locked-tag::before {
+    content: '\2713  ';
+}
+
+/* GRAPH / GRID */
+.graph-center {
+    display: flex;
+    justify-content: center;
+    margin: 18px 0;
+}
+
+.repere {
+    max-width: 100%;
+    height: auto;
+    touch-action: manipulation;
+}
+
+.grid-dot {
+    fill: rgba(0,0,0,0.001);
+    stroke: none;
+    cursor: pointer;
+    transition: fill 0.15s;
+}
+.grid-dot:hover { fill: rgba(29, 78, 216, 0.22); }
+.grid-dot.chosen { fill: #1d4ed8; }
+.grid-dot.err { fill: #dc2626; }
+.grid-dot.ok, .grid-dot.fixed { fill: #16a34a; }
+
+/* FRACTION BUILDER (calcul du coefficient directeur) */
+.frac-build {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 26px auto;
+    flex-wrap: wrap;
+}
+.frac-build-label {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1.3em;
+    font-weight: 700;
+}
+.frac-build-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+.frac-build-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 4px;
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1.1em;
+    font-weight: 700;
+}
+.frac-build-bar {
+    height: 3px;
+    background: var(--text);
+    margin: 0 2px;
+}
+
+/* CALCULATRICE */
+.calc-wrap {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 6px;
+}
+.calc-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8em;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: white;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.calc-toggle:hover { border-color: var(--purple); color: var(--purple); }
+.calc-panel {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    position: absolute;
+    z-index: 10;
+    top: 44px;
+    right: 0;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 8px 24px var(--shadow);
+    width: 220px;
+}
+.calc-panel.open { display: flex; }
+.calc-tabs {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+}
+.calc-tab {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8em;
+    font-weight: 700;
+    padding: 7px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-light);
+    cursor: pointer;
+}
+.calc-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+.calc-mode {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+}
+.calc-mode.active { display: flex; }
+.calc-screen {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    text-align: right;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    box-sizing: border-box;
+}
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    width: 100%;
+}
+.calc-grid-frac {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    width: 100%;
+}
+.calc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.calc-btn:hover { background: var(--blue-pale); }
+.calc-btn.calc-op { background: var(--purple-pale); color: var(--purple); }
+.calc-btn.calc-eq { background: var(--blue); color: white; grid-column: span 2; }
+.calc-btn.calc-zero { grid-column: span 2; }
+.calc-frac-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1.4em;
+    width: 100%;
+}
+.calc-frac-field {
+    min-width: 90px;
+    text-align: center;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    background: var(--bg);
+}
+.calc-frac-field.active { border-color: var(--blue); background: var(--blue-pale); }
+.calc-frac-bar { width: 90px; height: 3px; background: var(--text); margin: 3px 0; }
+.calc-frac-result {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82em;
+    color: var(--text-light);
+    min-height: 18px;
+    text-align: center;
+}
+
+/* FEEDBACK */
+.fb {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.95em;
+    text-align: center;
+    display: none;
+    animation: fadeIn 0.3s;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.fb.ok {
+    display: block;
+    background: var(--green-pale);
+    color: var(--green);
+    border: 2px solid rgba(22, 163, 74, 0.2);
+}
+
+.fb.bad {
+    display: block;
+    background: var(--red-pale);
+    color: var(--red);
+    border: 2px solid rgba(220, 38, 38, 0.15);
+}
+
+/* RESULTS */
+.rc {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+    border: 6px solid;
+}
+
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad { border-color: var(--red); background: var(--red-pale); }
+
+.rp {
+    font-size: 2.2em;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.rm {
+    font-size: 1.1em;
+    text-align: center;
+    margin: 16px 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.1em; }
+    .main { padding: 24px 18px; }
+    h1 { font-size: 1.3em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .expr-line { font-size: 1.3em; }
+    .term-input { width: 84px; font-size: 1.1em; }
+    .id-btn { min-width: 130px; font-size: 0.78em; }
+    .memo-wrap { grid-template-columns: 1fr; }
+    .build-input { width: 52px; font-size: 0.9em; }
+}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--blue),var(--blue));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(29,78,216,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(29,78,216,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 900px tablette ── */
+@media(max-width:900px){
+  .app { padding:0 12px; }
+  .main { padding:12px; }
+}
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-header-bar { flex-wrap:wrap; gap:4px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .mc-badge, .ex-badge { font-size:0.7rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn, .choice-grid .btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .screen { font-size:0.85rem; padding:10px; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind, .formula-box { font-size:0.85rem; padding:8px; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input, .ans-input { font-size:0.9rem; }
+  .answer-wrap, .row-inputs { flex-wrap:wrap; gap:6px; }
+  .pbar { height:6px; }
+  .mode-toggle, .mode-btn { font-size:0.8rem; }
+  .menu-btn { font-size:0.8rem; }
+  .ex-top { flex-wrap:wrap; gap:4px; }
+  .ex-score { font-size:0.8rem; }
+}
+/* ── overflow helpers ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+
+@media(max-width:380px){
+  .calc-wrap, .calc-panel { padding:6px; }
+  .calc-grid, .calc-grid-frac { gap:3px; }
+  .calc-btn { font-size:0.8rem; padding:6px; min-width:32px; }
+  .calc-screen { font-size:0.9rem; padding:6px; }
+  .calc-tabs { gap:2px; }
+  .calc-tab { font-size:0.75rem; padding:4px 8px; }
+  .frac-build-row { flex-wrap:wrap; gap:4px; }
+  .term-wrap { flex-wrap:wrap; gap:4px; }
+  .identity-picker { flex-wrap:wrap; gap:4px; }
+  .id-btn { font-size:0.8rem; padding:4px 8px; }
+  .memo-wrap { gap:6px; }
+  .memo-card { padding:6px; font-size:0.82rem; }
+  .expr-wrap { overflow-x:auto; }
+  .repere { max-width:100%; overflow-x:auto; }
+  .build-row { flex-wrap:wrap; gap:4px; }
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Fonctions affines et linéaires</div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un exercice</h1>
+            <p class="sub">Entraîne-toi à reconnaître, lire et tracer les fonctions affines, linéaires et constantes.</p>
+
+            <div class="memo-wrap">
+                <div class="memo-card c1">
+                    <div class="memo-formula">f(x) = ax + b</div>
+                    <div class="memo-label">Fonction affine</div>
+                </div>
+                <div class="memo-card c2">
+                    <div class="memo-formula">f(x) = ax</div>
+                    <div class="memo-label">Fonction linéaire (b = 0)</div>
+                </div>
+                <div class="memo-card c3">
+                    <div class="memo-formula">f(x) = b</div>
+                    <div class="memo-label">Fonction constante (a = 0)</div>
+                </div>
+            </div>
+
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Niveau</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+
+            <div id="exBody"></div>
+
+            <div class="fb" id="fb"></div>
+
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc">
+                <div class="rp" id="rp">0%</div>
+            </div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer ce niveau</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIG NIVEAUX
+   ========================================================= */
+const LEVELS = [
+    { id: 'qcm',        icon: '🔍', title: 'QCM : affine, linéaire ou constante ?', desc: 'Identifie la nature d\'une fonction à partir de son expression.', n: 8 },
+    { id: 'coefs',      icon: '📐', title: 'Coefficient directeur et ordonnée à l\'origine', desc: 'Lis directement a et b dans l\'expression de f.', n: 8 },
+    { id: 'deuximages', icon: '🎯', title: 'Calculer a et b à partir de deux images', desc: 'Utilise la formule de la vitesse moyenne pour retrouver f.', n: 6 },
+    { id: 'graph',      icon: '📊', title: 'Lire un graphique', desc: 'Affine, linéaire ou constante : observe la droite tracée.', n: 8 },
+    { id: 'trace',      icon: '✏️', title: 'Tracer une droite', desc: 'Place le point de départ, puis utilise le coefficient directeur.', n: 6, badge: 'Bilan' },
+];
+
+let state = {
+    levelId: null,
+    qIndex: 0,
+    total: 0,
+    score: 0,
+    questions: [],
+    checked: false,
+};
+
+/* =========================================================
+   UTILS MATH
+   ========================================================= */
+function rnd(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function rndNonZero(min, max) {
+    let v = 0;
+    while (v === 0) v = rnd(min, max);
+    return v;
+}
+function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { [a, b] = [b, a % b]; }
+    return a || 1;
+}
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/\u00f7/g, '/');
+    s = s.replace(/\u2212/g, '-');
+    s = s.replace(/^\((-?\d+(?:\.\d+)?)\)$/, '$1');
+    if (s.includes('/')) {
+        const parts = s.split('/');
+        if (parts.length !== 2) return null;
+        const n = parseFloat(parts[0]), d = parseFloat(parts[1]);
+        if (isNaN(n) || isNaN(d) || d === 0) return null;
+        return n / d;
+    }
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+function closeEnough(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
+
+/* =========================================================
+   COLORATION DES EXPRESSIONS
+   ========================================================= */
+function exlX() { return `<span class="exl-x">x</span>`; }
+function exlCst(n) { return `<span class="exl-cst">${n}</span>`; }
+function exlSign(s) { return `<span class="exl-sign">${s}</span>`; }
+
+function fmtFracA(f) {
+    const neg = f.n < 0;
+    const absN = Math.abs(f.n);
+    let core;
+    if (f.d === 1) {
+        core = absN === 1 ? exlX() : `${exlCst(absN)}${exlX()}`;
+    } else {
+        core = `<span class="frac exl-cst"><span class="fnum">${absN}</span><span class="fden">${f.d}</span></span>${exlX()}`;
+    }
+    return neg ? `${exlSign('\u2212')}${core}` : core;
+}
+function bTermHTML(b) {
+    if (b === 0) return '';
+    return ` ${exlSign(b > 0 ? '+' : '\u2212')} ${exlCst(Math.abs(b))}`;
+}
+function numHTML(n) {
+    return n < 0 ? `${exlSign('\u2212')}${exlCst(Math.abs(n))}` : exlCst(n);
+}
+function functionLineHTML(label, aFrac, b, reversed) {
+    if (aFrac.n === 0) {
+        return `${label}(x) = ${exlCst(b)}`;
+    }
+    const aPart = fmtFracA(aFrac);
+    if (b === 0) {
+        return `${label}(x) = ${aPart}`;
+    }
+    if (reversed) {
+        const bPart = b > 0 ? exlCst(b) : `${exlSign('\u2212')}${exlCst(Math.abs(b))}`;
+        return `${label}(x) = ${bPart} ${exlSign('+')} ${aPart}`;
+    }
+    return `${label}(x) = ${aPart}${bTermHTML(b)}`;
+}
+function fracPlain(n, d) { return d === 1 ? String(n) : `${n}/${d}`; }
+
+function randFrac() {
+    if (Math.random() < 0.6) {
+        return { n: rndNonZero(-4, 4), d: 1 };
+    }
+    const d = rnd(2, 4);
+    let n = rndNonZero(-3, 3);
+    while (gcd(n, d) !== 1) n = rndNonZero(-3, 3);
+    return { n, d };
+}
+
+/* =========================================================
+   CONSTRUCTEURS DE CASES (build-row)
+   ========================================================= */
+function buildCellFixed(text) {
+    return `<span class="build-cell build-fixed">${text}</span>`;
+}
+function buildCellInput(id, width) {
+    return `<input type="text" class="build-cell build-input" id="${id}" placeholder="?"${width ? ` style="width:${width}px"` : ''}>`;
+}
+
+/* =========================================================
+   EMPILEMENT D'ETAPES
+   ========================================================= */
+function lockStep(box) {
+    const active = box.querySelector('.step-block.active');
+    if (!active) return;
+    active.classList.remove('active');
+    active.classList.add('locked');
+    const tag = active.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+    active.querySelectorAll('.build-input').forEach(el => el.disabled = true);
+    active.querySelectorAll('.grid-dot').forEach(el => el.style.pointerEvents = 'none');
+}
+
+function appendStep(box, tagText, innerHtml) {
+    if (box.querySelector('.step-block')) {
+        const divider = document.createElement('hr');
+        divider.className = 'step-divider';
+        box.appendChild(divider);
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'step-block active';
+    wrap.innerHTML = `<div class="step-tag">${tagText}</div>${innerHtml}`;
+    box.appendChild(wrap);
+    setTimeout(() => { if (wrap.scrollIntoView) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+    return wrap;
+}
+
+/* =========================================================
+   GRILLE / REPERE (SVG)
+   ========================================================= */
+const GX0 = -4, GX1 = 4, GY0 = -6, GY1 = 6, UNIT = 32, MARGIN = 36;
+const COL_BLUE = '#1d4ed8', COL_GREEN = '#16a34a', COL_PURPLE = '#7c3aed', COL_PINK = '#be185d';
+let svgCounter = 0;
+
+function pxX(x) { return MARGIN + (x - GX0) * UNIT; }
+function pxY(y) { return MARGIN + (GY1 - y) * UNIT; }
+function gridW() { return MARGIN * 2 + (GX1 - GX0) * UNIT; }
+function gridH() { return MARGIN * 2 + (GY1 - GY0) * UNIT; }
+
+function gridAxesSVG() {
+    let s = `<g stroke="#e5e7eb" stroke-width="1">`;
+    for (let x = GX0; x <= GX1; x++) s += `<line x1="${pxX(x)}" y1="${MARGIN}" x2="${pxX(x)}" y2="${gridH() - MARGIN}"/>`;
+    for (let y = GY0; y <= GY1; y++) s += `<line x1="${MARGIN}" y1="${pxY(y)}" x2="${gridW() - MARGIN}" y2="${pxY(y)}"/>`;
+    s += `</g>`;
+    s += `<line x1="${MARGIN}" y1="${pxY(0)}" x2="${gridW() - MARGIN}" y2="${pxY(0)}" stroke="#374151" stroke-width="1.8"/>`;
+    s += `<line x1="${pxX(0)}" y1="${MARGIN}" x2="${pxX(0)}" y2="${gridH() - MARGIN}" stroke="#374151" stroke-width="1.8"/>`;
+    s += `<polygon points="${gridW() - MARGIN},${pxY(0)} ${gridW() - MARGIN - 7},${pxY(0) - 4} ${gridW() - MARGIN - 7},${pxY(0) + 4}" fill="#374151"/>`;
+    s += `<polygon points="${pxX(0)},${MARGIN} ${pxX(0) - 4},${MARGIN + 7} ${pxX(0) + 4},${MARGIN + 7}" fill="#374151"/>`;
+    s += `<g font-family="Georgia,serif" font-style="italic" font-size="11" fill="#374151" text-anchor="middle">`;
+    for (let x = GX0; x <= GX1; x++) {
+        if (x === 0) continue;
+        s += `<line x1="${pxX(x)}" y1="${pxY(0) - 3}" x2="${pxX(x)}" y2="${pxY(0) + 3}" stroke="#374151"/><text x="${pxX(x)}" y="${pxY(0) + 15}">${x}</text>`;
+    }
+    s += `</g>`;
+    s += `<g font-family="Georgia,serif" font-style="italic" font-size="11" fill="#374151" text-anchor="end">`;
+    for (let y = GY0; y <= GY1; y++) {
+        if (y === 0) continue;
+        s += `<line x1="${pxX(0) - 3}" y1="${pxY(y)}" x2="${pxX(0) + 3}" y2="${pxY(y)}" stroke="#374151"/><text x="${pxX(0) - 6}" y="${pxY(y) + 3}">${y}</text>`;
+    }
+    s += `</g>`;
+    s += `<text x="${pxX(0) - 12}" y="${pxY(0) + 14}" font-family="Georgia,serif" font-style="italic" font-size="11" fill="#374151">O</text>`;
+    return s;
+}
+
+function gridSVG(clipId, lines) {
+    let s = `<svg class="repere" viewBox="0 0 ${gridW()} ${gridH()}" width="${gridW()}" height="${gridH()}" style="max-width:100%;height:auto;">`;
+    s += `<defs><clipPath id="${clipId}"><rect x="${MARGIN}" y="${MARGIN}" width="${(GX1 - GX0) * UNIT}" height="${(GY1 - GY0) * UNIT}"/></clipPath></defs>`;
+    s += gridAxesSVG();
+    lines.forEach(ln => {
+        const xA = -60, xB = 60;
+        const yA = ln.a * xA + ln.b, yB = ln.a * xB + ln.b;
+        s += `<line x1="${pxX(xA)}" y1="${pxY(yA)}" x2="${pxX(xB)}" y2="${pxY(yB)}" stroke="${ln.color || COL_BLUE}" stroke-width="3" stroke-linecap="round" clip-path="url(#${clipId})"/>`;
+    });
+    (lines.markers || []).forEach(m => {
+        s += `<circle cx="${pxX(m.x)}" cy="${pxY(m.y)}" r="6" fill="${m.color}" stroke="white" stroke-width="2"/>`;
+    });
+    s += `</svg>`;
+    return s;
+}
+
+function clickableGridSVG(gridId, markers) {
+    let s = `<svg class="repere" id="${gridId}" viewBox="0 0 ${gridW()} ${gridH()}" width="${gridW()}" height="${gridH()}" style="max-width:100%;height:auto;">`;
+    s += gridAxesSVG();
+    (markers || []).forEach(m => {
+        s += `<circle cx="${pxX(m.x)}" cy="${pxY(m.y)}" r="6" fill="${m.color}" stroke="white" stroke-width="2"/>`;
+    });
+    for (let x = GX0; x <= GX1; x++) {
+        for (let y = GY0; y <= GY1; y++) {
+            s += `<circle class="grid-dot" data-x="${x}" data-y="${y}" cx="${pxX(x)}" cy="${pxY(y)}" r="9"/>`;
+        }
+    }
+    s += `</svg>`;
+    return s;
+}
+
+function attachGridClicks(box, gridId, onPick) {
+    const svg = box.querySelector('#' + gridId);
+    if (!svg) return;
+    svg.querySelectorAll('.grid-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            if (dot.classList.contains('fixed')) return;
+            svg.querySelectorAll('.grid-dot:not(.fixed)').forEach(d => d.classList.remove('chosen', 'ok', 'err'));
+            dot.classList.add('chosen');
+            onPick(parseFloat(dot.dataset.x), parseFloat(dot.dataset.y));
+        });
+    });
+}
+
+/* =========================================================
+   DISTRIBUTION EQUILIBREE (évite les séries du même type)
+   ========================================================= */
+function shuffledCategoryQueue(n) {
+    const arr = [];
+    for (let i = 0; i < n; i++) arr.push(i % 3);
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+function shuffledBoolQueue(n) {
+    const arr = [];
+    for (let i = 0; i < n; i++) arr.push(i % 2 === 0);
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+let catQueue = [], catQueueIdx = 0;
+function nextCat() { return catQueue[catQueueIdx++]; }
+let denQueue = [], denQueueIdx = 0;
+function nextWantUnit() { return denQueue[denQueueIdx++]; }
+
+/* =========================================================
+   CALCULATRICE (niveau "deux images")
+   ========================================================= */
+function calculatorHTML() {
+    return `
+    <div class="calc-wrap">
+        <button type="button" class="calc-toggle" id="calcToggle">🧮 Calculatrice</button>
+        <div class="calc-panel" id="calcPanel">
+            <div class="calc-tabs">
+                <button type="button" class="calc-tab active" data-mode="std">123</button>
+                <button type="button" class="calc-tab" data-mode="frac">a/b</button>
+            </div>
+            <div class="calc-mode active" id="calcStd">
+                <input type="text" class="calc-screen" id="calcScreen" readonly value="0">
+                <div class="calc-grid">
+                    <button type="button" class="calc-btn calc-op" data-k="C">C</button>
+                    <button type="button" class="calc-btn calc-op" data-k="±">±</button>
+                    <button type="button" class="calc-btn calc-op" data-k="⌫">⌫</button>
+                    <button type="button" class="calc-btn calc-op" data-k="÷">÷</button>
+                    <button type="button" class="calc-btn" data-k="7">7</button>
+                    <button type="button" class="calc-btn" data-k="8">8</button>
+                    <button type="button" class="calc-btn" data-k="9">9</button>
+                    <button type="button" class="calc-btn calc-op" data-k="×">×</button>
+                    <button type="button" class="calc-btn" data-k="4">4</button>
+                    <button type="button" class="calc-btn" data-k="5">5</button>
+                    <button type="button" class="calc-btn" data-k="6">6</button>
+                    <button type="button" class="calc-btn calc-op" data-k="−">−</button>
+                    <button type="button" class="calc-btn" data-k="1">1</button>
+                    <button type="button" class="calc-btn" data-k="2">2</button>
+                    <button type="button" class="calc-btn" data-k="3">3</button>
+                    <button type="button" class="calc-btn calc-op" data-k="+">+</button>
+                    <button type="button" class="calc-btn calc-zero" data-k="0">0</button>
+                    <button type="button" class="calc-btn" data-k=",">,</button>
+                    <button type="button" class="calc-btn calc-eq" data-k="=">=</button>
+                </div>
+            </div>
+            <div class="calc-mode" id="calcFrac">
+                <div class="calc-frac-display">
+                    <div class="calc-frac-field active" data-field="num" id="calcFracNum">0</div>
+                    <div class="calc-frac-bar"></div>
+                    <div class="calc-frac-field" data-field="den" id="calcFracDen">1</div>
+                </div>
+                <div class="calc-frac-result" id="calcFracResult"></div>
+                <div class="calc-grid-frac">
+                    <button type="button" class="calc-btn calc-op" data-fk="C">C</button>
+                    <button type="button" class="calc-btn calc-op" data-fk="±">±</button>
+                    <button type="button" class="calc-btn calc-op" data-fk="↕">num/dén</button>
+                    <button type="button" class="calc-btn" data-fk="7">7</button>
+                    <button type="button" class="calc-btn" data-fk="8">8</button>
+                    <button type="button" class="calc-btn" data-fk="9">9</button>
+                    <button type="button" class="calc-btn" data-fk="4">4</button>
+                    <button type="button" class="calc-btn" data-fk="5">5</button>
+                    <button type="button" class="calc-btn" data-fk="6">6</button>
+                    <button type="button" class="calc-btn" data-fk="1">1</button>
+                    <button type="button" class="calc-btn" data-fk="2">2</button>
+                    <button type="button" class="calc-btn" data-fk="3">3</button>
+                    <button type="button" class="calc-btn calc-zero" data-fk="0">0</button>
+                    <button type="button" class="calc-btn calc-op" data-fk="⌫">⌫</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+function attachCalculator(box) {
+    const toggle = box.querySelector('#calcToggle');
+    const panel = box.querySelector('#calcPanel');
+    const screen = box.querySelector('#calcScreen');
+    toggle.addEventListener('click', () => panel.classList.toggle('open'));
+
+    // -- onglet "123" : calculatrice standard --
+    let current = '0', prev = null, op = null, overwrite = false;
+    function update() { screen.value = current; }
+    function compute() {
+        if (op === null || prev === null) return;
+        const cur = parseFloat(current.replace(',', '.'));
+        let res;
+        switch (op) {
+            case '+': res = prev + cur; break;
+            case '−': res = prev - cur; break;
+            case '×': res = prev * cur; break;
+            case '÷': res = cur === 0 ? NaN : prev / cur; break;
+        }
+        current = isFinite(res) ? String(Math.round(res * 1e8) / 1e8).replace('.', ',') : 'Erreur';
+        prev = res;
+        overwrite = true;
+    }
+    box.querySelectorAll('.calc-btn[data-k]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const k = btn.dataset.k;
+            if (k >= '0' && k <= '9') {
+                if (overwrite || current === '0') { current = k; overwrite = false; }
+                else current += k;
+            } else if (k === ',') {
+                if (overwrite) { current = '0,'; overwrite = false; }
+                else if (!current.includes(',')) current += ',';
+            } else if (k === '±') {
+                current = String(parseFloat(current.replace(',', '.')) * -1).replace('.', ',');
+            } else if (k === '⌫') {
+                current = current.length > 1 ? current.slice(0, -1) : '0';
+            } else if (k === 'C') {
+                current = '0'; prev = null; op = null; overwrite = false;
+            } else if (['+', '−', '×', '÷'].includes(k)) {
+                if (op && !overwrite) compute();
+                prev = parseFloat(current.replace(',', '.'));
+                op = k;
+                overwrite = true;
+            } else if (k === '=') {
+                compute();
+                op = null;
+            }
+            update();
+        });
+    });
+
+    // -- onglet "a/b" : fraction visible pendant la saisie --
+    const fracNumEl = box.querySelector('#calcFracNum');
+    const fracDenEl = box.querySelector('#calcFracDen');
+    const fracResultEl = box.querySelector('#calcFracResult');
+    let fracNum = '0', fracDen = '1', activeField = 'num', fracOverwrite = true;
+    function fracUpdate() {
+        fracNumEl.textContent = fracNum;
+        fracDenEl.textContent = fracDen;
+        fracNumEl.classList.toggle('active', activeField === 'num');
+        fracDenEl.classList.toggle('active', activeField === 'den');
+        const n = parseInt(fracNum, 10), d = parseInt(fracDen, 10);
+        if (!d) { fracResultEl.textContent = 'Le dénominateur doit être non nul.'; return; }
+        const g = gcd(n, d) || 1;
+        const sn = n / g, sd = d / g;
+        if (sd === 1) fracResultEl.textContent = `= ${sn}`;
+        else fracResultEl.textContent = `= ${sn}/${sd}  (≈ ${(n / d).toFixed(3).replace(/0+$/, '').replace(/,?\.$/, '').replace('.', ',')})`;
+    }
+    fracNumEl.addEventListener('click', () => { activeField = 'num'; fracOverwrite = true; fracUpdate(); });
+    fracDenEl.addEventListener('click', () => { activeField = 'den'; fracOverwrite = true; fracUpdate(); });
+    box.querySelectorAll('.calc-btn[data-fk]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const k = btn.dataset.fk;
+            let val = activeField === 'num' ? fracNum : fracDen;
+            if (k >= '0' && k <= '9') {
+                if (fracOverwrite || val === '0') { val = k; fracOverwrite = false; }
+                else val += k;
+            } else if (k === '±') {
+                val = String(parseInt(val, 10) * -1);
+            } else if (k === '⌫') {
+                val = val.length > 1 ? val.slice(0, -1) : '0';
+            } else if (k === 'C') {
+                fracNum = '0'; fracDen = '1'; activeField = 'num'; fracOverwrite = true;
+                fracUpdate(); return;
+            } else if (k === '↕') {
+                activeField = activeField === 'num' ? 'den' : 'num';
+                fracOverwrite = true;
+                fracUpdate(); return;
+            }
+            if (activeField === 'num') fracNum = val; else fracDen = val;
+            fracOverwrite = false;
+            fracUpdate();
+        });
+    });
+    fracUpdate();
+
+    // -- gestion des onglets --
+    box.querySelectorAll('.calc-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            box.querySelectorAll('.calc-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            box.querySelector('#calcStd').classList.toggle('active', tab.dataset.mode === 'std');
+            box.querySelector('#calcFrac').classList.toggle('active', tab.dataset.mode === 'frac');
+        });
+    });
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+/* =========================================================
+   MOTEUR GENERIQUE
+   ========================================================= */
+const GENERATORS = {};
+const RENDERERS = {};
+const CHECKERS = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex = 0;
+    state.score = 0;
+    state.total = lv.n;
+    state.questions = [];
+    if (levelId === 'qcm' || levelId === 'coefs' || levelId === 'graph') {
+        catQueue = shuffledCategoryQueue(lv.n);
+        catQueueIdx = 0;
+    }
+    if (levelId === 'trace') {
+        denQueue = shuffledBoolQueue(lv.n);
+        denQueueIdx = 0;
+    }
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked = false;
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    const fb = document.getElementById('fb');
+    fb.className = 'fb';
+    fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb = document.getElementById('fb');
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        if (result.advanceOnly) {
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1100);
+            return;
+        }
+        state.checked = true;
+        state.score++;
+        document.getElementById('btnCheck').style.display = 'none';
+        document.getElementById('btnNext').style.display = '';
+    } else {
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || 'Ce n\'est pas encore ça, réessaie.');
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) {
+        showResults();
+    } else {
+        renderQuestion();
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none' && btnNext.offsetParent !== null) {
+        btnNext.click();
+    } else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) {
+        btnCheck.click();
+    }
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    const rp = document.getElementById('rp');
+    const rm = document.getElementById('rm');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    rp.textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises cette notion.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    rm.textContent = msg;
+    showScreen('screen-res');
+}
+
+/* =========================================================
+   OUTIL PARTAGE : nature (affine / linéaire / constante)
+   0 = constante, 1 = linéaire, 2 = affine
+   ========================================================= */
+function natureOptionsHTML() {
+    const opts = [
+        { name: 'a = 0', formula: 'Constante' },
+        { name: 'b = 0', formula: 'Linéaire' },
+        { name: 'a ≠ 0 et b ≠ 0', formula: 'Affine' },
+    ];
+    return opts.map((o, i) => `
+        <button type="button" class="id-btn" data-idx="${i}">
+            <span class="id-name">${o.name}</span>
+            <span class="id-formula">${o.formula}</span>
+        </button>`).join('');
+}
+function attachNaturePicker(box) {
+    box._nat = { chosen: null };
+    box.querySelectorAll('.id-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll('.id-btn').forEach(b => b.classList.remove('chosen', 'ok', 'err'));
+            btn.classList.add('chosen');
+            box._nat.chosen = parseInt(btn.dataset.idx);
+        });
+    });
+}
+function checkNature(q) {
+    const box = document.getElementById('exBody');
+    const chosen = box._nat ? box._nat.chosen : null;
+    const buttons = box.querySelectorAll('.id-btn');
+    buttons.forEach(b => b.classList.remove('ok', 'err'));
+    if (chosen === null) return { ok: false, msg: 'Choisis une réponse avant de valider.' };
+    const ok = chosen === q.cat;
+    buttons[chosen].classList.add(ok ? 'ok' : 'err');
+    if (!ok) buttons[q.cat].classList.add('ok');
+    const names = ['constante', 'linéaire', 'affine'];
+    const explain = [
+        'a = 0 : l\'expression se réduit à f(x) = b, une droite horizontale.',
+        'b = 0 : l\'expression se réduit à f(x) = ax, la droite passe par l\'origine.',
+        'a ≠ 0 et b ≠ 0 : c\'est le cas général, la droite ne passe pas par l\'origine.'
+    ];
+    if (ok) return { ok: true, msg: `C'est bien une fonction ${names[q.cat]} (${explain[q.cat]})` };
+    return { ok: false, msg: `Ce n'est pas ça : c'est une fonction ${names[q.cat]} (${explain[q.cat]})` };
+}
+
+/* =========================================================
+   NIVEAU 1 : QCM — Affine, linéaire ou constante ?
+   ========================================================= */
+GENERATORS.qcm = function () {
+    const cat = nextCat();
+    let aFrac, b;
+    if (cat === 0) { aFrac = { n: 0, d: 1 }; b = rndNonZero(-8, 8); }
+    else if (cat === 1) { b = 0; aFrac = randFrac(); if (aFrac.n === 0) aFrac = { n: 1, d: 1 }; }
+    else { aFrac = randFrac(); if (aFrac.n === 0) aFrac = { n: 1, d: 1 }; b = rndNonZero(-8, 8); }
+    const reversed = b !== 0 && Math.random() < 0.3;
+    return { aFrac, b, reversed, cat };
+};
+
+RENDERERS.qcm = function (q, box) {
+    box.innerHTML = `
+        <div class="expr-wrap">
+            <div class="expr-line">${functionLineHTML('f', q.aFrac, q.b, q.reversed)}</div>
+            <div class="expr-help">Quelle est la nature de cette fonction ?</div>
+        </div>
+        <div class="identity-picker">
+            ${natureOptionsHTML()}
+        </div>
+    `;
+    attachNaturePicker(box);
+};
+
+CHECKERS.qcm = function (q) { return checkNature(q); };
+
+/* =========================================================
+   NIVEAU 2 : Coefficient directeur et ordonnée à l'origine
+   ========================================================= */
+GENERATORS.coefs = function () {
+    const cat = nextCat();
+    let aFrac, b;
+    if (cat === 0) { aFrac = { n: 0, d: 1 }; b = rndNonZero(-9, 9); }
+    else if (cat === 1) { b = 0; aFrac = randFrac(); if (aFrac.n === 0) aFrac = { n: 1, d: 1 }; }
+    else { aFrac = randFrac(); if (aFrac.n === 0) aFrac = { n: 1, d: 1 }; b = rndNonZero(-9, 9); }
+    const reversed = b !== 0 && Math.random() < 0.3;
+    return { aFrac, b, reversed };
+};
+
+RENDERERS.coefs = function (q, box) {
+    box.innerHTML = `
+        <div class="expr-wrap">
+            <div class="expr-line">${functionLineHTML('f', q.aFrac, q.b, q.reversed)}</div>
+            <div class="expr-help">Détermine le coefficient directeur et l'ordonnée à l'origine de f.</div>
+        </div>
+        <div class="term-wrap">
+            <div class="term-cell">
+                <div class="term-label">Coefficient directeur a</div>
+                <input type="text" class="term-input" id="aVal" placeholder="a">
+            </div>
+            <div class="term-cell">
+                <div class="term-label">Ordonnée à l'origine b</div>
+                <input type="text" class="term-input" id="bVal" placeholder="b">
+            </div>
+        </div>
+        <div class="expr-help">Pour un nombre non entier, tu peux écrire une fraction, par exemple 3/4.</div>
+    `;
+};
+
+CHECKERS.coefs = function (q) {
+    const aEl = document.getElementById('aVal'), bEl = document.getElementById('bVal');
+    const aWanted = q.aFrac.n / q.aFrac.d;
+    const av = normNum(aEl.value), bv = normNum(bEl.value);
+    const okA = av !== null && closeEnough(av, aWanted);
+    const okB = bv !== null && closeEnough(bv, q.b);
+    [[aEl, okA], [bEl, okB]].forEach(([el, ok]) => { el.classList.remove('ok', 'err'); el.classList.add(ok ? 'ok' : 'err'); });
+    if (okA && okB) return { ok: true, msg: `On a bien a = ${fracPlain(q.aFrac.n, q.aFrac.d)} et b = ${q.b}.` };
+    return { ok: false, msg: 'Vérifie la valeur de a (le nombre devant x) et celle de b (le terme constant, sans x).' };
+};
+
+/* =========================================================
+   NIVEAU 3 : Calculer a et b à partir de deux images
+   Exercice guidé en 3 étapes qui restent visibles :
+     1) substituer les nombres dans la formule de a
+     2) calculer la valeur de a
+     3) injecter un point pour trouver b
+   ========================================================= */
+GENERATORS.deuximages = function () {
+    const a = rndNonZero(-4, 4);
+    const b = rnd(-6, 6);
+    let x1 = rnd(-4, 4), x2 = rnd(-4, 4);
+    while (x2 === x1) x2 = rnd(-4, 4);
+    if (x1 > x2) { [x1, x2] = [x2, x1]; }
+    const y1 = a * x1 + b, y2 = a * x2 + b;
+    return { a, b, x1, y1, x2, y2 };
+};
+
+RENDERERS.deuximages = function (q, box) {
+    box.innerHTML = calculatorHTML();
+    attachCalculator(box);
+    appendStep(box, 'Étape 1 · Substitue les valeurs dans la formule', `
+        <div class="expr-wrap">
+            <div class="expr-line">f(${numHTML(q.x1)}) = ${numHTML(q.y1)} <span style="margin:0 16px;">et</span> f(${numHTML(q.x2)}) = ${numHTML(q.y2)}</div>
+            <div class="expr-help">On rappelle la formule du coefficient directeur :</div>
+            <div class="expr-line" style="margin-top:6px;">a = <span class="frac"><span class="fnum">f(x&#8322;) − f(x&#8321;)</span><span class="fden">x&#8322; − x&#8321;</span></span></div>
+        </div>
+        <div class="frac-build">
+            <div class="frac-build-label">a =</div>
+            <div class="frac-build-stack">
+                <div class="frac-build-row">( ${buildCellInput('n1', 50)} − ${buildCellInput('n2', 50)} )</div>
+                <div class="frac-build-bar"></div>
+                <div class="frac-build-row">( ${buildCellInput('d1', 50)} − ${buildCellInput('d2', 50)} )</div>
+            </div>
+        </div>
+        <div class="expr-help">Complète avec les nombres : les images (y) en haut, les antécédents (x) en bas. Tu peux t'aider de la calculatrice ci-dessus.</div>
+    `);
+};
+
+CHECKERS.deuximages = function (q) {
+    const box = document.getElementById('exBody');
+    const activeSub = box.querySelectorAll('.step-block').length - 1;
+
+    if (activeSub === 0) {
+        const n1 = document.getElementById('n1'), n2 = document.getElementById('n2');
+        const d1 = document.getElementById('d1'), d2 = document.getElementById('d2');
+        const fields = [
+            [n1, normNum(n1.value) !== null && closeEnough(normNum(n1.value), q.y2)],
+            [n2, normNum(n2.value) !== null && closeEnough(normNum(n2.value), q.y1)],
+            [d1, normNum(d1.value) !== null && closeEnough(normNum(d1.value), q.x2)],
+            [d2, normNum(d2.value) !== null && closeEnough(normNum(d2.value), q.x1)],
+        ];
+        let allOk = true;
+        fields.forEach(([el, ok]) => { el.classList.remove('ok', 'err'); el.classList.add(ok ? 'ok' : 'err'); if (!ok) allOk = false; });
+        if (!allOk) return { ok: false, msg: 'Attention à l\'ordre : le numérateur et le dénominateur doivent utiliser les points dans le même ordre.' };
+        lockStep(box);
+        appendStep(box, 'Étape 2 · Calcule la valeur de a', `
+            <div class="expr-wrap">
+                <div class="expr-line">a = <span class="frac"><span class="fnum">${numHTML(q.y2)} − ${numHTML(q.y1)}</span><span class="fden">${numHTML(q.x2)} − ${numHTML(q.x1)}</span></span></div>
+            </div>
+            <div class="term-wrap">
+                <div class="term-cell">
+                    <div class="term-label">Valeur de a</div>
+                    <input type="text" class="term-input" id="aVal" placeholder="a">
+                </div>
+            </div>
+            <div class="expr-help">L'onglet a/b de la calculatrice peut t'aider à visualiser cette fraction.</div>
+        `);
+        return { ok: true, msg: 'Bonne substitution.', advanceOnly: true };
+    }
+
+    if (activeSub === 1) {
+        const aEl = document.getElementById('aVal');
+        const av = normNum(aEl.value);
+        const ok = av !== null && closeEnough(av, q.a);
+        aEl.classList.remove('ok', 'err'); aEl.classList.add(ok ? 'ok' : 'err');
+        if (!ok) return { ok: false, msg: `Calcule (${q.y2} − ${q.y1}) puis divise par (${q.x2} − ${q.x1}).` };
+        lockStep(box);
+        appendStep(box, 'Étape 3 · Remplace x et y par les coordonnées d\'un point', `
+            <div class="expr-wrap">
+                <div class="expr-help">Pour trouver b, on prend un point de la droite, par exemple :</div>
+                <div class="expr-line">(${numHTML(q.x1)} ; ${numHTML(q.y1)})</div>
+                <div class="expr-help">et on remplace x et y par ces coordonnées dans l'équation générale :</div>
+                <div class="expr-line">y = ${numHTML(q.a)}${exlX()} ${exlSign('+')} <span class="exl-struct">b</span></div>
+            </div>
+            <div class="build-row">
+                ${buildCellInput('ySub', 60)}
+                ${buildCellFixed('=')}
+                ${numHTML(q.a)}
+                ${buildCellFixed('×')}
+                ${buildCellInput('xSub', 60)}
+                ${buildCellFixed('+')}
+                <span class="build-cell build-fixed">b</span>
+            </div>
+            <div class="expr-help">Remplace chaque blanc par la bonne valeur : l'image (y) d'abord, puis l'antécédent (x).</div>
+        `);
+        return { ok: true, msg: `a = ${q.a}.`, advanceOnly: true };
+    }
+
+    if (activeSub === 2) {
+        const yEl = document.getElementById('ySub'), xEl = document.getElementById('xSub');
+        const yv = normNum(yEl.value), xv = normNum(xEl.value);
+        const okY = yv !== null && closeEnough(yv, q.y1);
+        const okX = xv !== null && closeEnough(xv, q.x1);
+        yEl.classList.remove('ok', 'err'); yEl.classList.add(okY ? 'ok' : 'err');
+        xEl.classList.remove('ok', 'err'); xEl.classList.add(okX ? 'ok' : 'err');
+        if (!okY || !okX) return { ok: false, msg: `On utilise le point (${q.x1} ; ${q.y1}) : remplace y par ${q.y1} et x par ${q.x1}.` };
+        lockStep(box);
+        appendStep(box, 'Étape 4 · Isole b', `
+            <div class="expr-wrap">
+                <div class="expr-help">L'égalité devient :</div>
+                <div class="expr-line">${numHTML(q.y1)} = ${numHTML(q.a)} × ${numHTML(q.x1)} ${exlSign('+')} <span class="exl-struct">b</span></div>
+                <div class="expr-help">Calcule le produit, puis isole b (la calculatrice peut t'aider).</div>
+            </div>
+            <div class="term-wrap">
+                <div class="term-cell">
+                    <div class="term-label">Valeur de b</div>
+                    <input type="text" class="term-input" id="bVal" placeholder="b">
+                </div>
+            </div>
+        `);
+        return { ok: true, msg: 'Substitution correcte.', advanceOnly: true };
+    }
+
+    const bEl = document.getElementById('bVal');
+    const bv = normNum(bEl.value);
+    const ok = bv !== null && closeEnough(bv, q.b);
+    bEl.classList.remove('ok', 'err'); bEl.classList.add(ok ? 'ok' : 'err');
+    if (!ok) return { ok: false, msg: `Isole b dans ${q.y1} = ${q.a} × ${q.x1} + b.` };
+    return { ok: true, msg: `On trouve b = ${q.b}, donc f(x) = ${q.a}x${q.b >= 0 ? ' + ' + q.b : ' − ' + Math.abs(q.b)}.` };
+};
+
+/* =========================================================
+   NIVEAU 4 : Lire un graphique
+   ========================================================= */
+
+// Formate une expression de fonction en HTML lisible (sans couleurs exl-)
+function graphFuncLabel(a, b) {
+    // a peut être un entier ou une fraction {n, d}
+    let aNum, aDen;
+    if (typeof a === 'object') { aNum = a.n; aDen = a.d; }
+    else { aNum = a; aDen = 1; }
+
+    const aVal = aNum / aDen;
+
+    if (aVal === 0) {
+        // constante
+        return `f(x) = ${b}`;
+    }
+
+    // partie ax
+    let aPart;
+    if (aDen === 1) {
+        if (Math.abs(aNum) === 1) aPart = (aNum < 0 ? '−' : '') + 'x';
+        else aPart = (aNum < 0 ? '−' + Math.abs(aNum) : aNum) + 'x';
+    } else {
+        const sign = aNum < 0 ? '−' : '';
+        const absN = Math.abs(aNum);
+        aPart = `${sign}<span class="frac" style="font-size:0.7em;vertical-align:middle"><span class="fnum">${absN}</span><span class="fden">${aDen}</span></span>x`;
+    }
+
+    if (b === 0) return `f(x) = ${aPart}`;
+    const bSign = b > 0 ? ' + ' : ' − ';
+    return `f(x) = ${aPart}${bSign}${Math.abs(b)}`;
+}
+
+// Génère une fraction "piège" différente de la vraie avec un numérateur différent
+function trapFrac(trueN, trueD, otherUsed) {
+    const candidates = [];
+    // même dénominateur, numérateur différent
+    for (let n = -4; n <= 4; n++) {
+        if (n === 0) continue;
+        if (n === trueN) continue;
+        if (gcd(Math.abs(n), trueD) !== 1) continue;
+        if (otherUsed && otherUsed.n === n && otherUsed.d === trueD) continue;
+        candidates.push({ n, d: trueD });
+    }
+    // si dénominateur est 1, proposer aussi une fraction simple du même signe
+    if (trueD === 1 && Math.abs(trueN) >= 2) {
+        for (let d = 2; d <= 4; d++) {
+            const n2 = trueN;
+            if (gcd(Math.abs(n2), d) !== 1) continue;
+            const already = otherUsed && otherUsed.n === n2 && otherUsed.d === d;
+            if (!already) candidates.push({ n: n2, d });
+        }
+    }
+    if (candidates.length === 0) {
+        // fallback : même signe, valeur voisine, d=1
+        const v = trueN > 0 ? trueN + 1 : trueN - 1;
+        return { n: v, d: 1 };
+    }
+    return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+GENERATORS.graph = function () {
+    const cat = nextCat();
+    let trueA, trueB; // valeurs réelles (nombres)
+    let trueAFrac;    // fraction {n, d} pour l'affichage
+
+    if (cat === 0) {
+        // constante : a=0
+        trueAFrac = { n: 0, d: 1 };
+        trueA = 0;
+        trueB = rndNonZero(-4, 4);
+    } else if (cat === 1) {
+        // linéaire : b=0
+        trueB = 0;
+        // 60% entier, 40% fraction
+        if (Math.random() < 0.6) {
+            const n = rndNonZero(-3, 3);
+            trueAFrac = { n, d: 1 };
+        } else {
+            const d = rnd(2, 4);
+            let n = rndNonZero(-3, 3);
+            while (gcd(Math.abs(n), d) !== 1) n = rndNonZero(-3, 3);
+            trueAFrac = { n, d };
+        }
+        trueA = trueAFrac.n / trueAFrac.d;
+    } else {
+        // affine : a≠0, b≠0
+        trueB = rndNonZero(-4, 4);
+        if (Math.random() < 0.6) {
+            const n = rndNonZero(-3, 3);
+            trueAFrac = { n, d: 1 };
+        } else {
+            const d = rnd(2, 4);
+            let n = rndNonZero(-3, 3);
+            while (gcd(Math.abs(n), d) !== 1) n = rndNonZero(-3, 3);
+            trueAFrac = { n, d };
+        }
+        trueA = trueAFrac.n / trueAFrac.d;
+    }
+
+    // --- Construction des 3 propositions ---
+    // La bonne réponse est toujours l'une des trois, position aléatoire
+    const correctIdx = rnd(0, 2);
+    const options = [];
+
+    for (let i = 0; i < 3; i++) {
+        if (i === correctIdx) {
+            options.push({ aFrac: trueAFrac, b: trueB });
+            continue;
+        }
+        // Générer un distracteur plausible
+        let trapAFrac, trapB;
+        const already = options.filter(o => o).map(o => o.aFrac);
+
+        if (cat === 0) {
+            // constante : même a=0, b différent
+            trapAFrac = { n: 0, d: 1 };
+            let tb = trueB;
+            while (tb === trueB || options.some(o => o && o.aFrac.n === 0 && o.b === tb))
+                tb = rndNonZero(-4, 4);
+            trapB = tb;
+        } else if (cat === 1) {
+            // linéaire : b=0, mais a différent
+            trapB = 0;
+            const used = already.find(f => f && f.n !== 0);
+            trapAFrac = trapFrac(trueAFrac.n, trueAFrac.d, used);
+            // vérifier unicité
+            while (options.some(o => o && o.aFrac.n === trapAFrac.n && o.aFrac.d === trapAFrac.d))
+                trapAFrac = trapFrac(trueAFrac.n, trueAFrac.d, trapAFrac);
+        } else {
+            // affine : changer a ou b (alternance)
+            const changeA = (i !== correctIdx - 1) ? Math.random() < 0.5 : true;
+            if (changeA) {
+                const used = already.find(f => f && f.n !== 0);
+                trapAFrac = trapFrac(trueAFrac.n, trueAFrac.d, used);
+                while (options.some(o => o && o.aFrac.n === trapAFrac.n && o.aFrac.d === trapAFrac.d && o.b === trueB))
+                    trapAFrac = trapFrac(trueAFrac.n, trueAFrac.d, trapAFrac);
+                trapB = trueB;
+            } else {
+                trapAFrac = trueAFrac;
+                let tb = trueB;
+                while (tb === trueB || options.some(o => o && o.aFrac.n === trueAFrac.n && o.aFrac.d === trueAFrac.d && o.b === tb))
+                    tb = rndNonZero(-4, 4);
+                trapB = tb;
+            }
+        }
+        options.push({ aFrac: trapAFrac, b: trapB });
+    }
+
+    return { trueA, trueAFrac, trueB, cat, correctIdx, options };
+};
+
+RENDERERS.graph = function (q, box) {
+    svgCounter++;
+    const clipId = 'clipg' + svgCounter;
+
+    const btnHtml = q.options.map((opt, i) => {
+        const label = graphFuncLabel(opt.aFrac, opt.b);
+        return `<button type="button" class="id-btn" data-idx="${i}">
+            <span class="id-formula" style="font-family:'Times New Roman',serif;font-style:italic;">${label}</span>
+        </button>`;
+    }).join('');
+
+    box.innerHTML = `
+        <div class="expr-wrap">
+            <div class="expr-help">Voici la représentation graphique d'une fonction <i>f</i>. Quelle est son expression ?</div>
+        </div>
+        <div class="graph-center">${gridSVG(clipId, [{ a: q.trueA, b: q.trueB, color: COL_BLUE }])}</div>
+        <div class="identity-picker" id="graphPicker">
+            ${btnHtml}
+        </div>
+    `;
+
+    // Attacher le sélecteur
+    box._graphPick = { chosen: null };
+    box.querySelectorAll('#graphPicker .id-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll('#graphPicker .id-btn').forEach(b => b.classList.remove('chosen', 'ok', 'err'));
+            btn.classList.add('chosen');
+            box._graphPick.chosen = parseInt(btn.dataset.idx);
+        });
+    });
+};
+
+CHECKERS.graph = function (q) {
+    const box = document.getElementById('exBody');
+    const chosen = box._graphPick ? box._graphPick.chosen : null;
+    const buttons = box.querySelectorAll('#graphPicker .id-btn');
+    buttons.forEach(b => b.classList.remove('ok', 'err'));
+    if (chosen === null) return { ok: false, msg: 'Choisis une réponse avant de valider.' };
+    const ok = chosen === q.correctIdx;
+    buttons[chosen].classList.add(ok ? 'ok' : 'err');
+    if (!ok) buttons[q.correctIdx].classList.add('ok');
+
+    // Message d'explication
+    const opt = q.options[q.correctIdx];
+    const aVal = opt.aFrac.n / opt.aFrac.d;
+    let hint;
+    if (aVal === 0) {
+        hint = `La droite est horizontale et coupe l'axe des ordonnées en ${opt.b} : c'est bien f(x) = ${opt.b}.`;
+    } else {
+        const aDisp = opt.aFrac.d === 1 ? opt.aFrac.n : `${opt.aFrac.n}/${opt.aFrac.d}`;
+        if (opt.b === 0) {
+            hint = `La droite passe par l'origine et monte de ${aDisp} unité${Math.abs(aVal) > 1 ? 's' : ''} quand x avance de ${opt.aFrac.d}.`;
+        } else {
+            hint = `Elle coupe l'axe des ordonnées en ${opt.b} et a un coefficient directeur de ${aDisp}.`;
+        }
+    }
+
+    if (ok) return { ok: true, msg: `Exact ! ${hint}` };
+    return { ok: false, msg: `Pas tout à fait. ${hint}` };
+};
+
+/* =========================================================
+   NIVEAU 5 : Tracer une droite (validation en deux étapes)
+   Étape 1 : placer le point de départ (0 ; b)
+   Étape 2 : utiliser a = num/den pour placer un second point
+   ========================================================= */
+GENERATORS.trace = function () {
+    const wantUnit = nextWantUnit();
+    let num, den;
+    if (wantUnit) {
+        den = 1; num = rndNonZero(-3, 3);
+    } else {
+        den = rnd(2, 4);
+        do { num = rndNonZero(-3, 3); } while (gcd(num, den) !== 1);
+    }
+    const b = rnd(-3, 3);
+    return { num, den, b };
+};
+
+RENDERERS.trace = function (q, box) {
+    box.innerHTML = '';
+    box._trace = { phase: 1 };
+    appendStep(box, 'Étape 1 · Place le point de départ', `
+        <div class="expr-wrap">
+            <div class="expr-line">${functionLineHTML('f', { n: q.num, d: q.den }, q.b, false)}</div>
+            <div class="expr-help" id="traceInstr">Clique sur le point de la grille où la droite coupe l'axe des ordonnées (l'ordonnée à l'origine).</div>
+        </div>
+        <div class="graph-center">${clickableGridSVG('gridTrace', [])}</div>
+    `);
+    attachGridClicks(box, 'gridTrace', () => {});
+};
+
+CHECKERS.trace = function (q) {
+    const box = document.getElementById('exBody');
+    const svg = box.querySelector('#gridTrace');
+    const tag = box.querySelector('.step-tag');
+    const instr = box.querySelector('#traceInstr');
+
+    if (box._trace.phase === 1) {
+        const chosen = svg.querySelector('.grid-dot.chosen:not(.fixed)');
+        if (!chosen) return { ok: false, msg: 'Clique sur un point de la grille avant de valider.' };
+        const x = parseFloat(chosen.dataset.x), y = parseFloat(chosen.dataset.y);
+        const ok = x === 0 && y === q.b;
+        chosen.classList.add(ok ? 'ok' : 'err');
+        if (!ok) return { ok: false, msg: `Le point de départ est celui où x = 0. Ici b = ${q.b}, donc le point est (0 ; ${q.b}).` };
+        chosen.classList.remove('chosen', 'ok');
+        chosen.classList.add('fixed');
+        chosen.style.pointerEvents = 'none';
+        box._trace.phase = 2;
+        tag.textContent = 'Étape 2 · Place un second point de la droite';
+        instr.innerHTML = "À toi de trouver, sur cette même droite, un autre point à coordonnées entières, et de cliquer dessus. Peu importe de combien tu avances ou tu montes/descends, du moment que le point est bien sur la droite.";
+        return { ok: true, msg: 'Point de départ correctement placé.', advanceOnly: true };
+    }
+
+    const chosen = svg.querySelector('.grid-dot.chosen:not(.fixed)');
+    if (!chosen) return { ok: false, msg: 'Clique sur un second point avant de valider.' };
+    const x = parseFloat(chosen.dataset.x), y = parseFloat(chosen.dataset.y);
+    const onLine = closeEnough((y - q.b) * q.den, q.num * x);
+    const ok = onLine && x !== 0;
+    chosen.classList.add(ok ? 'ok' : 'err');
+    if (!ok) return { ok: false, msg: "Ce point n'appartient pas à la droite. Reprends l'équation de f et vérifie tes calculs." };
+    lockStep(box);
+
+    // trace la droite de confirmation sur ce même graphique
+    const svgns = 'http://www.w3.org/2000/svg';
+    svgCounter++;
+    const clipId = 'clipt' + svgCounter;
+    let defs = svg.querySelector('defs');
+    if (!defs) { defs = document.createElementNS(svgns, 'defs'); svg.insertBefore(defs, svg.firstChild); }
+    const clip = document.createElementNS(svgns, 'clipPath');
+    clip.setAttribute('id', clipId);
+    const rect = document.createElementNS(svgns, 'rect');
+    rect.setAttribute('x', MARGIN); rect.setAttribute('y', MARGIN);
+    rect.setAttribute('width', (GX1 - GX0) * UNIT); rect.setAttribute('height', (GY1 - GY0) * UNIT);
+    clip.appendChild(rect);
+    defs.appendChild(clip);
+    const a = q.num / q.den;
+    const xA = -60, xB = 60, yA = a * xA + q.b, yB = a * xB + q.b;
+    const line = document.createElementNS(svgns, 'line');
+    line.setAttribute('x1', pxX(xA)); line.setAttribute('y1', pxY(yA));
+    line.setAttribute('x2', pxX(xB)); line.setAttribute('y2', pxY(yB));
+    line.setAttribute('stroke', COL_GREEN); line.setAttribute('stroke-width', '3');
+    line.setAttribute('stroke-linecap', 'round'); line.setAttribute('clip-path', `url(#${clipId})`);
+    const firstDot = svg.querySelector('.grid-dot');
+    svg.insertBefore(line, firstDot);
+
+    tag.textContent = 'Droite tracée';
+    instr.textContent = `Bien joué ! La droite passe par (0 ; ${q.b}) et (${x} ; ${y}).`;
+    return { ok: true, msg: `La droite passe par (0 ; ${q.b}) et (${x} ; ${y}).` };
+};
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

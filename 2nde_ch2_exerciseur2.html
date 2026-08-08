@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ensembles — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+  --blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.2);
+  --orange:#ea580c;--orange-pale:rgba(234,88,12,.1);--orange-border:rgba(234,88,12,.25);
+  --green:#16a34a;--green-pale:rgba(22,163,74,.1);--green-border:rgba(22,163,74,.25);
+  --red:#dc2626;--red-pale:rgba(220,38,38,.08);--red-border:rgba(220,38,38,.25);
+  --purple:#7c3aed;--purple-pale:rgba(124,58,237,.08);--purple-border:rgba(124,58,237,.2);
+  --teal:#0891b2;--teal-pale:rgba(8,145,178,.08);--teal-border:rgba(8,145,178,.22);
+  --rose:#e11d48;--rose-pale:rgba(225,29,72,.08);--rose-border:rgba(225,29,72,.22);
+  --text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.08);
+}
+body{
+  font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent
+}
+.app{max-width:760px;width:100%}
+
+/* ── Header ── */
+.app-header{
+  background:linear-gradient(135deg,#1d4ed8 0%,#6d28d9 100%);color:#fff;
+  padding:14px 22px;border-radius:14px 14px 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 16px rgba(29,78,216,.25);position:relative;overflow:hidden
+}
+.app-header::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 50%);pointer-events:none}
+.app-title{font-size:1.1em;font-weight:700;position:relative;display:flex;align-items:center;gap:8px}
+.hdr-menu{
+  background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82em;font-weight:600;
+  cursor:pointer;transition:all .2s;position:relative;display:none
+}
+.hdr-menu:hover{background:rgba(255,255,255,.35)}
+
+/* ── Main card ── */
+.main{
+  background:var(--card);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 14px 14px;padding:28px 24px;
+  box-shadow:0 8px 28px var(--shadow);min-height:52vh
+}
+.screen{display:none;animation:fadeIn .3s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── Typography ── */
+h1{font-size:1.45em;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:.92em;color:var(--text-light);margin-bottom:20px;line-height:1.5}
+
+/* ── Buttons ── */
+.btn{
+  font-family:'DM Sans',sans-serif;padding:11px 24px;border-radius:10px;
+  font-size:.92em;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid;
+  -webkit-tap-highlight-color:transparent;min-height:44px;touch-action:manipulation;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px
+}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(29,78,216,.15)}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+/* ── Menu grid ── */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.mc{
+  background:var(--card);border:2px solid var(--border);border-radius:12px;
+  padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;
+  position:relative;min-height:100px;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;justify-content:center
+}
+.mc:hover{transform:translateY(-3px);box-shadow:0 8px 20px var(--shadow)}
+.mc-icon{font-size:1.6em;margin-bottom:4px}
+.mc-t{font-size:.93em;font-weight:700;margin-bottom:2px}
+.mc-d{font-size:.78em;color:var(--text-light)}
+
+/* ── Exercise top bar ── */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.ex-badge{padding:5px 14px;border-radius:20px;font-size:.85em;font-weight:700;color:#fff}
+.ex-score{font-size:.88em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:16px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:4px;transition:width .4s}
+
+/* ── Question boxes ── */
+.seq-box{
+  background:var(--purple-pale);border:2px solid var(--purple-border);
+  border-radius:12px;padding:20px;margin-bottom:14px;text-align:center
+}
+.seq-box .katex{font-size:1.4em!important}
+.seq-label{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:10px}
+
+.cond-box{
+  background:var(--teal-pale);border:2px solid var(--teal-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.cond-rule{
+  background:#fff;border:2px solid var(--teal-border);border-radius:8px;
+  padding:12px 16px;font-family:'Kalam',cursive;
+  font-size:1.04em;font-weight:700;color:var(--text);text-align:center;line-height:1.55
+}
+
+.intrus-box{
+  background:var(--rose-pale);border:2px solid var(--rose-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.intrus-label{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--rose);margin-bottom:12px;text-align:center}
+.intrus-items-display{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:4px}
+
+.defi-box{
+  background:var(--purple-pale);border:2px solid var(--purple-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.defi-label{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:8px;text-align:center}
+.defi-text{font-family:'Kalam',cursive;font-size:1.05em;font-weight:700;line-height:1.65;text-align:center}
+
+/* ── Union / intersection sets display ── */
+.setop-box{
+  background:var(--orange-pale);border:2px solid var(--orange-border);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px
+}
+.setop-row{display:flex;align-items:center;gap:10px;margin:9px 0;flex-wrap:wrap}
+.setop-tag{
+  font-family:'Kalam',cursive;font-weight:700;font-size:1.15em;color:var(--orange);
+  flex-shrink:0;min-width:28px
+}
+.setop-chips{display:flex;flex-wrap:wrap;gap:6px}
+.setop-chip{
+  background:#fff;border:2px solid var(--orange-border);border-radius:8px;
+  padding:6px 13px;font-family:'Kalam',cursive;font-weight:700;font-size:.98em;color:var(--text)
+}
+
+/* ── MCQ ── */
+.q-prompt{font-size:.97em;text-align:center;margin:12px 0 6px;font-weight:600;color:var(--text)}
+.mcq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.mcq-grid.cols1{grid-template-columns:1fr}
+.mcq-opt{
+  background:#fff;border:2px solid var(--border);border-radius:10px;
+  padding:12px 14px;cursor:pointer;transition:all .2s;
+  font-family:'Kalam',cursive;font-size:1em;font-weight:700;
+  text-align:center;line-height:1.45;min-height:52px;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent
+}
+.mcq-opt:hover:not(.disabled){border-color:var(--blue);background:var(--blue-pale);transform:translateY(-1px)}
+.mcq-opt .katex{font-size:1.35em}
+.mcq-opt.correct,.show-correct{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.mcq-opt.correct{animation:bounceIn .3s}
+.mcq-opt.wrong{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important;animation:shake .35s}
+.mcq-opt.disabled{cursor:not-allowed;pointer-events:none;opacity:.7}
+/* intrus clickable items */
+.intrus-click{
+  cursor:pointer;transition:all .2s;
+  background:#fff;border:2px solid var(--rose-border);border-radius:8px;
+  padding:9px 16px;font-family:'Kalam',cursive;font-size:1.05em;font-weight:700;color:var(--text)
+}
+.intrus-click:hover:not(.disabled){border-color:var(--rose);background:var(--rose-pale);transform:translateY(-2px)}
+.intrus-click.correct{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important;animation:bounceIn .3s}
+.intrus-click.wrong{border-color:var(--red)!important;background:var(--red-pale)!important;color:var(--red)!important;animation:shake .35s}
+.intrus-click.show-correct{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.intrus-click.disabled{cursor:not-allowed;pointer-events:none;opacity:.7}
+
+/* ── Suite input ── */
+.seq-input-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0;flex-wrap:wrap}
+.seq-input{
+  font-family:'Kalam',cursive;font-size:1.3em;font-weight:700;
+  width:140px;text-align:center;border:2px dashed var(--purple-border);
+  border-radius:10px;background:#fff;padding:8px;outline:none;
+  color:var(--text);min-height:48px;touch-action:manipulation;transition:all .2s
+}
+.seq-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-pale)}
+.seq-input.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.seq-input.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s}
+.seq-input-label{font-family:'Kalam',cursive;font-size:1.1em;font-weight:700;color:var(--text-light)}
+.hint-pill{
+  display:inline-block;background:rgba(124,58,237,.08);border:1px solid var(--purple-border);
+  border-radius:20px;padding:4px 12px;font-size:.8em;color:var(--purple);font-weight:600;
+  margin:4px auto 10px;text-align:center
+}
+
+/* ── Feedback ── */
+.fb{
+  margin-top:14px;padding:12px 16px;border-radius:10px;font-size:.92em;
+  text-align:center;display:none;animation:fadeIn .25s;font-weight:600;line-height:1.6
+}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid var(--green-border)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid var(--red-border)}
+
+/* ── Results ── */
+.rc{
+  width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:16px auto;border:5px solid
+}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:var(--orange);background:var(--orange-pale)}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2em;font-weight:700;line-height:1}
+.rm{font-size:1.05em;text-align:center;margin:14px 0;line-height:1.5}
+
+/* ── Intro KaTeX ── */
+.intro-formula{text-align:center;margin:20px 0;opacity:.7}
+.intro-formula .katex{font-size:1.5em!important;color:var(--purple)}
+
+/* ── Animations ── */
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes bounceIn{0%{transform:scale(.94)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  body{padding:16px 8px 60px}
+  .app-header{padding:12px 18px}
+  .main{padding:24px 18px}
+  h1{font-size:1.35em}
+  .menu-grid{grid-template-columns:1fr;gap:10px}
+  .mcq-grid{grid-template-columns:1fr}
+  .btn{padding:10px 22px;font-size:.9em}
+}
+@media(max-width:600px){
+  body{padding:14px 6px 60px}
+  .main{padding:20px 14px}
+  h1{font-size:1.25em}
+  .sub{font-size:.88em}
+  .menu-grid{max-width:340px;margin:16px auto}
+  .seq-box .katex{font-size:1.15em!important}
+  .cond-rule,.defi-text{font-size:.98em}
+  .mcq-opt{font-size:.95em;padding:10px 12px;min-height:46px}
+  .seq-input{width:120px;font-size:1.15em}
+}
+@media(max-width:480px){
+  .main{padding:18px 12px}
+  h1{font-size:1.15em}
+  .mcq-opt{font-size:.9em;min-height:42px}
+  .intrus-click{font-size:.95em;padding:8px 12px}
+}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--blue),var(--blue));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(29,78,216,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(29,78,216,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:8px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .btn, .btn-blue, .btn-ghost { font-size:0.82rem; padding:6px 10px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .mcq-grid { gap:6px; }
+  .mcq-opt { font-size:0.85rem; padding:8px; }
+  .q-prompt { font-size:0.9rem; }
+  .screen { font-size:0.85rem; padding:8px; }
+  .seq-box, .setop-box, .intrus-box, .cond-box, .defi-box { padding:8px; font-size:0.85rem; }
+  .seq-input-row { flex-wrap:wrap; gap:4px; }
+  .seq-input { font-size:0.85rem; max-width:100%; }
+  .setop-chips { flex-wrap:wrap; gap:4px; }
+  .setop-chip { font-size:0.8rem; padding:4px 8px; }
+  .intrus-items-display { flex-wrap:wrap; gap:4px; }
+  .intrus-click { font-size:0.82rem; padding:4px 8px; }
+  .intro-formula { font-size:0.85rem; overflow-x:auto; }
+  .hint-pill { font-size:0.8rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .menu-btn { font-size:0.8rem; }
+  .ex-top { flex-wrap:wrap; gap:4px; }
+  .pbar { height:6px; }
+}
+/* ── overflow helpers ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+.mc, .screen, .q-prompt { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+  <span class="app-title">🔢 Ensembles</span>
+  <button class="hdr-menu" id="menuBtn" onclick="goMenu()">☰ Menu</button>
+</div>
+<div class="main">
+
+  <!-- ══ INTRO ══ -->
+  <div class="screen active" id="S_intro">
+    <h1>Ensembles</h1>
+    <p class="sub">Ensembles de nombres, intervalles, union, intersection, quantificateurs…<br>Maîtrise le vocabulaire des ensembles de seconde&nbsp;!</p>
+    <div class="intro-formula" id="introK"></div>
+    <div class="controls">
+      <button class="btn btn-blue" onclick="show('S_menu');$('menuBtn').style.display='block'">C'est parti&nbsp;→</button>
+    </div>
+  </div>
+
+  <!-- ══ MENU ══ -->
+  <div class="screen" id="S_menu">
+    <h1>Choisis ton exercice</h1>
+    <p class="sub">6 types d'exercices sur la notion d'ensemble</p>
+    <div class="menu-grid">
+      <div class="mc" onclick="go(0)" style="border-color:rgba(29,78,216,.3)">
+        <div class="mc-icon">🔢</div>
+        <div class="mc-t" style="color:var(--blue)">Ensembles de nombres</div>
+        <div class="mc-d">Trouve le plus petit ensemble</div>
+      </div>
+      <div class="mc" onclick="go(1)" style="border-color:rgba(124,58,237,.3)">
+        <div class="mc-icon">📏</div>
+        <div class="mc-t" style="color:var(--purple)">Intervalles</div>
+        <div class="mc-d">Écris l'intervalle correspondant</div>
+      </div>
+      <div class="mc" onclick="go(2)" style="border-color:rgba(234,88,12,.3)">
+        <div class="mc-icon">🧩</div>
+        <div class="mc-t" style="color:var(--orange)">Union & intersection</div>
+        <div class="mc-d">∪, ∩ et complémentaire</div>
+      </div>
+      <div class="mc" onclick="go(3)" style="border-color:rgba(8,145,178,.3)">
+        <div class="mc-icon">💬</div>
+        <div class="mc-t" style="color:var(--teal)">Quantificateurs</div>
+        <div class="mc-d">« Pour tout… » ou « Il existe… »</div>
+      </div>
+      <div class="mc" onclick="go(4)" style="border-color:rgba(225,29,72,.3)">
+        <div class="mc-icon">🎯</div>
+        <div class="mc-t" style="color:var(--rose)">L'intrus</div>
+        <div class="mc-d">Trouve ce qui ne va pas</div>
+      </div>
+      <div class="mc" onclick="go(5)" style="border-color:rgba(124,58,237,.3)">
+        <div class="mc-icon">💡</div>
+        <div class="mc-t" style="color:var(--purple)">Défis logiques</div>
+        <div class="mc-d">Vrai/faux et pièges subtils</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ EXERCISE ══ -->
+  <div class="screen" id="S_ex">
+    <div class="ex-top">
+      <div class="ex-badge" id="badge">—</div>
+      <div class="ex-score" id="scLbl">0 / 0</div>
+    </div>
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <div id="zone"></div>
+    <div class="fb" id="fb"></div>
+    <div class="controls" style="margin-top:14px">
+      <button class="btn btn-blue" id="nxt" style="display:none" onclick="nxtQ()">Suivant&nbsp;→</button>
+      <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+    </div>
+  </div>
+
+  <!-- ══ RESULTS ══ -->
+  <div class="screen" id="S_res">
+    <h1>Résultats</h1>
+    <div class="rc" id="rCirc">
+      <div class="rp" id="rPct">0%</div>
+      <div style="font-size:.75em;color:var(--text-light);margin-top:2px">de réussite</div>
+    </div>
+    <div class="rm" id="rMsg"></div>
+    <div class="controls">
+      <button class="btn btn-blue" onclick="replayCat()">🔁 Rejouer</button>
+      <button class="btn btn-ghost" onclick="goMenu()">← Menu</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   UTILITIES
+══════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const rv=arr=>arr[Math.floor(Math.random()*arr.length)];
+function sh(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function tex(el,latex,dm=false){try{katex.render(latex,typeof el==='string'?$(el):el,{throwOnError:false,displayMode:dm})}catch(e){}}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function goMenu(){show('S_menu');$('menuBtn').style.display='block'}
+
+/* ══════════════════════════════════
+   STATE
+══════════════════════════════════ */
+let cat=-1,qs=[],qi=0,sc=0;
+const CATNAMES=['Ensembles de nombres','Intervalles','Union & intersection','Quantificateurs','L\'intrus','Défis logiques'];
+const CATCOLORS=['#1d4ed8','#7c3aed','#ea580c','#0891b2','#e11d48','#7c3aed'];
+const OPT5=['ℕ','ℤ','D','ℚ','ℝ'];
+
+/* ══════════════════════════════════
+   QUESTION BANKS
+══════════════════════════════════ */
+
+/* ─── ENSEMBLES DE NOMBRES ───
+   On affiche un seul nombre et on demande le plus petit
+   ensemble (parmi ℕ⊂ℤ⊂D⊂ℚ⊂ℝ) auquel il appartient. */
+const bankNombres=[
+  {latex:'7',options:OPT5,answer:0,
+    expl:'7 est un entier positif&nbsp;: c\'est un entier naturel. Le plus petit ensemble est donc ℕ.'},
+  {latex:'0',options:OPT5,answer:0,
+    expl:'0 est positif ou nul&nbsp;: c\'est un entier naturel. Le plus petit ensemble est ℕ.'},
+  {latex:'42',options:OPT5,answer:0,
+    expl:'42 est un entier positif&nbsp;: c\'est un entier naturel, donc ℕ.'},
+  {latex:'-3',options:OPT5,answer:1,
+    expl:'−3 est négatif&nbsp;: il n\'appartient pas à ℕ. C\'est un entier relatif&nbsp;: le plus petit ensemble est ℤ.'},
+  {latex:'-12',options:OPT5,answer:1,
+    expl:'−12 est un entier négatif&nbsp;: il n\'est pas dans ℕ mais appartient à ℤ.'},
+  {latex:'-100',options:OPT5,answer:1,
+    expl:'−100 est négatif&nbsp;: le plus petit ensemble qui le contient est ℤ.'},
+  {latex:'1,5',options:OPT5,answer:2,
+    expl:'1,5 a une écriture décimale finie mais n\'est pas un entier&nbsp;: le plus petit ensemble est D.'},
+  {latex:'-0,25',options:OPT5,answer:2,
+    expl:'−0,25 a une écriture décimale finie&nbsp;: c\'est un nombre décimal (D), pas un entier.'},
+  {latex:'3,75',options:OPT5,answer:2,
+    expl:'3,75 s\'écrit avec un nombre fini de chiffres après la virgule&nbsp;: c\'est un décimal, donc D.'},
+  {latex:'\\dfrac{1}{3}',options:OPT5,answer:3,
+    expl:'1/3 = 0,333… a une écriture décimale infinie&nbsp;: ce n\'est pas un décimal. Mais c\'est une fraction, donc un rationnel&nbsp;: ℚ.'},
+  {latex:'\\dfrac{2}{3}',options:OPT5,answer:3,
+    expl:'2/3 = 0,666… ne s\'arrête jamais&nbsp;: pas un décimal, mais bien un rationnel (ℚ).'},
+  {latex:'-\\dfrac{1}{7}',options:OPT5,answer:3,
+    expl:'1/7 a une écriture décimale infinie et non périodique simple&nbsp;: ce n\'est pas un décimal, mais c\'est une fraction&nbsp;: ℚ.'},
+  {latex:'\\dfrac{5}{6}',options:OPT5,answer:3,
+    expl:'5/6 = 0,8333… ne se termine pas&nbsp;: pas un décimal, mais un rationnel (ℚ).'},
+  {latex:'\\sqrt{2}',options:OPT5,answer:4,
+    expl:'√2 ne peut pas s\'écrire comme une fraction&nbsp;: c\'est un nombre irrationnel. Le plus petit ensemble qui le contient est ℝ.'},
+  {latex:'\\pi',options:OPT5,answer:4,
+    expl:'π est un nombre irrationnel (il n\'appartient pas à ℚ). Le plus petit ensemble est ℝ.'},
+  {latex:'\\sqrt{3}',options:OPT5,answer:4,
+    expl:'√3 est irrationnel&nbsp;: il n\'appartient qu\'à ℝ parmi nos ensembles.'},
+  {latex:'-\\sqrt{7}',options:OPT5,answer:4,
+    expl:'√7 est irrationnel, et son opposé aussi&nbsp;: −√7 appartient seulement à ℝ.'},
+  {latex:'1\\,000\\,000',options:OPT5,answer:0,
+    expl:'1 000 000 est un entier positif&nbsp;: c\'est un entier naturel, donc ℕ.'},
+  {latex:'15',options:OPT5,answer:0,
+    expl:'15 est un entier positif&nbsp;: c\'est un entier naturel, donc ℕ.'},
+  {latex:'-1',options:OPT5,answer:1,
+    expl:'−1 est négatif&nbsp;: il n\'est pas dans ℕ, mais c\'est un entier relatif&nbsp;: ℤ.'},
+  {latex:'999',options:OPT5,answer:0,
+    expl:'999 est un entier positif&nbsp;: c\'est un entier naturel, donc ℕ.'},
+  {latex:'-50',options:OPT5,answer:1,
+    expl:'−50 est négatif&nbsp;: le plus petit ensemble qui le contient est ℤ.'},
+  {latex:'0,1',options:OPT5,answer:2,
+    expl:'0,1 a une écriture décimale finie mais n\'est pas un entier&nbsp;: le plus petit ensemble est D.'},
+  {latex:'12,5',options:OPT5,answer:2,
+    expl:'12,5 s\'écrit avec un nombre fini de chiffres après la virgule&nbsp;: c\'est un décimal, donc D.'},
+  {latex:'-7,2',options:OPT5,answer:2,
+    expl:'−7,2 a une écriture décimale finie&nbsp;: c\'est un nombre décimal (D), pas un entier.'},
+  {latex:'\\dfrac{1}{9}',options:OPT5,answer:3,
+    expl:'1/9 = 0,111… a une écriture décimale infinie&nbsp;: pas un décimal, mais une fraction, donc ℚ.'},
+  {latex:'\\dfrac{7}{11}',options:OPT5,answer:3,
+    expl:'7/11 a une écriture décimale infinie&nbsp;: pas un décimal, mais bien un rationnel (ℚ).'},
+  {latex:'\\dfrac{1}{6}',options:OPT5,answer:3,
+    expl:'1/6 = 0,1666… ne s\'arrête jamais&nbsp;: pas un décimal, mais un rationnel (ℚ).'},
+  {latex:'\\sqrt{16}',options:OPT5,answer:0,
+    expl:'Attention&nbsp;: √16 = 4, qui est un entier naturel&nbsp;! Toutes les racines carrées ne sont pas irrationnelles.'},
+  {latex:'\\sqrt{10}',options:OPT5,answer:4,
+    expl:'√10 ne peut pas s\'écrire comme une fraction&nbsp;: c\'est un nombre irrationnel, donc ℝ.'},
+  {latex:'-\\sqrt{2}',options:OPT5,answer:4,
+    expl:'√2 est irrationnel, et son opposé aussi&nbsp;: −√2 appartient seulement à ℝ.'}
+];
+
+/* ─── INTERVALLES ─── */
+const bankIntervalles=[
+  {
+    latex:'-2 \\le x < 5',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[-2;5[',hint:'Crochet fermé du côté "≤", ouvert du côté "<".',
+    expl:'−2 est inclus (≤) donc crochet fermé&nbsp;; 5 est exclu (<) donc crochet ouvert. Intervalle&nbsp;: [-2;5[.'
+  },
+  {
+    latex:'0 < x \\le 10',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']0;10]',hint:'Ouvert en 0 (strict), fermé en 10 (≤).',
+    expl:'0 est exclu → crochet ouvert&nbsp;; 10 est inclus → crochet fermé. Intervalle&nbsp;: ]0;10].'
+  },
+  {
+    latex:'-4 < x < -1',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-4;-1[',hint:'Les deux inégalités sont strictes.',
+    expl:'Les deux bornes sont strictes (< des deux côtés) donc les deux crochets sont ouverts&nbsp;: ]-4;-1[.'
+  },
+  {
+    latex:'x \\le 6',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-∞;6]',hint:'Utilise le bouton ∞ pour insérer l\'infini, toujours avec un crochet ouvert.',
+    expl:'x≤6 signifie que x peut être n\'importe quel réel jusqu\'à 6 inclus&nbsp;: ]−∞;6]. L\'infini est toujours "ouvert".'
+  },
+  {
+    latex:'x > 3',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']3;+∞[',hint:'Utilise le bouton ∞ pour insérer le symbole.',
+    expl:'x>3 correspond aux réels strictement supérieurs à 3&nbsp;: ]3;+∞[.'
+  },
+  {
+    latex:'x \\ge -7',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[-7;+∞[',
+    expl:'x≥−7&nbsp;: −7 est inclus donc crochet fermé, et on va jusqu\'à +∞ (toujours ouvert)&nbsp;: [-7;+∞[.'
+  },
+  {
+    latex:'x < 0',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-∞;0[',
+    expl:'x<0&nbsp;: tous les réels strictement négatifs&nbsp;: ]−∞;0[.'
+  },
+  {
+    latex:'-10 \\le x < -3',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[-10;-3[',
+    expl:'−10 inclus (≤), −3 exclu (<)&nbsp;: [-10;-3[.'
+  },
+  {
+    latex:'2,5 < x \\le 7,5',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']2,5;7,5]',hint:'N\'oublie pas la virgule décimale.',
+    expl:'2,5 exclu (strict), 7,5 inclus (≤)&nbsp;: ]2,5;7,5].'
+  },
+  {
+    latex:'0 \\le x \\le 100',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[0;100]',
+    expl:'Les deux bornes sont incluses (≤ des deux côtés)&nbsp;: [0;100].'
+  },
+  {
+    latex:'x \\in \\mathbb{R}',
+    question:'Quel intervalle représente l\'ensemble ℝ tout entier&nbsp;?',
+    answer:']-∞;+∞[',hint:'Les deux bornes sont infinies&nbsp;: utilise le bouton ∞ deux fois.',
+    expl:'ℝ correspond à l\'intervalle ]−∞;+∞[, qui contient tous les nombres réels.'
+  },
+  {
+    latex:'-1 < x \\le 4',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-1;4]',
+    expl:'−1 exclu (strict <), 4 inclus (≤)&nbsp;: ]-1;4].'
+  },
+  {
+    latex:'x \\le -20',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-∞;-20]',
+    expl:'Tous les réels inférieurs ou égaux à −20&nbsp;: ]−∞;-20].'
+  },
+  {
+    latex:'-6 \\le x < 0',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[-6;0[',
+    expl:'−6 inclus, 0 exclu&nbsp;: [-6;0[.'
+  },
+  {
+    latex:'x > -100',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-100;+∞[',
+    expl:'Tous les réels strictement supérieurs à −100&nbsp;: ]-100;+∞[.'
+  },
+  {
+    latex:'1 \\le x < 2',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[1;2[',
+    expl:'1 inclus (≤), 2 exclu (<)&nbsp;: [1;2[.'
+  },
+  {
+    latex:'x \\ge 2',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[2;+∞[',
+    expl:'2 est inclus (≥) et on va jusqu\'à +∞&nbsp;: [2;+∞[.'
+  },
+  {
+    latex:'x < 10',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-∞;10[',
+    expl:'10 est exclu (<)&nbsp;: ]-∞;10[.'
+  },
+  {
+    latex:'-8 < x \\le -2',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-8;-2]',
+    expl:'−8 exclu (strict), −2 inclus (≤)&nbsp;: ]-8;-2].'
+  },
+  {
+    latex:'0 \\le x < 1',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[0;1[',
+    expl:'0 inclus (≤), 1 exclu (<)&nbsp;: [0;1[.'
+  },
+  {
+    latex:'x \\le 0',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']-∞;0]',
+    expl:'0 est inclus (≤)&nbsp;: ]-∞;0].'
+  },
+  {
+    latex:'5 < x < 9',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']5;9[',
+    expl:'Les deux bornes sont strictes&nbsp;: ]5;9[.'
+  },
+  {
+    latex:'-3 \\le x \\le 3',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[-3;3]',
+    expl:'Les deux bornes sont incluses (≤ des deux côtés)&nbsp;: [-3;3].'
+  },
+  {
+    latex:'x > 0',
+    question:'Écris l\'intervalle correspondant.',
+    answer:']0;+∞[',
+    expl:'0 est exclu (strict >) et on va jusqu\'à +∞&nbsp;: ]0;+∞[.'
+  },
+  {
+    latex:'1,2 \\le x < 3,8',
+    question:'Écris l\'intervalle correspondant.',
+    answer:'[1,2;3,8[',hint:'N\'oublie pas les virgules décimales.',
+    expl:'1,2 inclus (≤), 3,8 exclu (<)&nbsp;: [1,2;3,8[.'
+  }
+];
+
+/* ─── UNION & INTERSECTION ───
+   Progression : petits ensembles simples → disjoints →
+   inclusion (absorption) → ensemble vide → intervalles → complémentaire. */
+const bankOperations=[
+  {aItems:['1','2','3'],bItems:['2','3','4'],
+    question:'Que vaut A∩B&nbsp;?',
+    options:['{2;3}','{1;4}','∅','{1;2;3;4}'],answer:0,
+    expl:'A∩B contient les éléments communs à A et B&nbsp;: 2 et 3 apparaissent dans les deux ensembles.'},
+  {aItems:['1','2','3'],bItems:['2','3','4'],
+    question:'Avec les mêmes ensembles, que vaut A∪B&nbsp;?',
+    options:['{1;2;3;4}','{2;3}','{1;4}','{1;2;3}'],answer:0,
+    expl:'A∪B regroupe tous les éléments présents dans A ou dans B, sans répéter les doublons&nbsp;: {1;2;3;4}.'},
+  {aItems:['1','2','3'],bItems:['4','5','6'],
+    question:'Que vaut A∩B&nbsp;?',
+    options:['∅','{1;2;3;4;5;6}','{1;2;3}','{4;5;6}'],answer:0,
+    expl:'A et B n\'ont aucun élément en commun&nbsp;: ce sont des ensembles disjoints. A∩B=∅.'},
+  {aItems:['0','2','4','6','8'],bItems:['1','3','5','7','9'],
+    question:'A regroupe les chiffres pairs, B les chiffres impairs. Que vaut A∪B&nbsp;?',
+    options:['{0;1;2;3;4;5;6;7;8;9}','∅','{0;2;4;6;8}','{1;3;5;7;9}'],answer:0,
+    expl:'A et B, réunis, recouvrent tous les chiffres de 0 à 9.'},
+  {aItems:['0','2','4','6','8'],bItems:['1','3','5','7','9'],
+    question:'Avec les mêmes ensembles, que vaut A∩B&nbsp;?',
+    options:['∅','{0;1}','A tout entier','B tout entier'],answer:0,
+    expl:'Aucun chiffre n\'est à la fois pair et impair&nbsp;: A et B sont disjoints, donc A∩B=∅.'},
+  {aItems:['2','4','6'],bItems:['1','2','3','4','5','6','7'],
+    question:'Tous les éléments de A sont aussi dans B (A⊂B). Que vaut A∩B&nbsp;?',
+    options:['A, c\'est-à-dire {2;4;6}','B tout entier','∅','{1;3;5;7}'],answer:0,
+    expl:'Quand A⊂B (tout élément de A est dans B), l\'intersection A∩B est simplement A tout entier.'},
+  {aItems:['2','4','6'],bItems:['1','2','3','4','5','6','7'],
+    question:'Avec les mêmes ensembles (A⊂B), que vaut A∪B&nbsp;?',
+    options:['B, c\'est-à-dire {1;2;3;4;5;6;7}','A tout entier','∅','{1;3;5;7}'],answer:0,
+    expl:'Quand A⊂B, tous les éléments de A sont déjà dans B&nbsp;: A∪B ne rajoute rien, donc A∪B=B.'},
+  {aItems:['1','2','3'],bItems:[],
+    question:'B est l\'ensemble vide. Que vaut A∩B&nbsp;?',
+    options:['∅','A, c\'est-à-dire {1;2;3}','On ne peut pas savoir','Cela dépend de A'],answer:0,
+    expl:'L\'ensemble vide ne contient aucun élément&nbsp;: il ne peut donc y avoir aucun élément commun avec A. A∩B=∅, toujours.'},
+  {aItems:['1','2','3'],bItems:[],
+    question:'Avec les mêmes ensembles, que vaut A∪B&nbsp;?',
+    options:['A, c\'est-à-dire {1;2;3}','∅','On ne peut pas savoir','Cela dépend de A'],answer:0,
+    expl:'Ajouter l\'ensemble vide (aucun élément) à A ne change rien&nbsp;: A∪B=A.'},
+  {aInterval:'[1;5]',bInterval:'[3;8]',
+    question:'Que vaut A∩B (sous forme d\'intervalle)&nbsp;?',
+    options:['[3;5]','[1;8]','[1;3]','[5;8]'],answer:0,
+    expl:'A∩B contient les réels appartenant aux deux intervalles à la fois&nbsp;: entre 3 (début de B) et 5 (fin de A).'},
+  {aInterval:'[1;5]',bInterval:'[3;8]',
+    question:'Avec les mêmes intervalles, que vaut A∪B&nbsp;?',
+    options:['[1;8]','[3;5]','[1;3]','[5;8]'],answer:0,
+    expl:'Les deux intervalles se chevauchent&nbsp;: réunis, ils forment un seul intervalle continu [1;8].'},
+  {aInterval:'[-2;3[',bInterval:'[0;6]',
+    question:'Que vaut A∩B&nbsp;?',
+    options:['[0;3[','[-2;6]','[-2;0[','[3;6]'],answer:0,
+    expl:'On garde ce qui est commun aux deux intervalles&nbsp;: à partir de 0 (début de B) jusqu\'à 3 exclu (fin de A).'},
+  {aInterval:'[-2;3[',bInterval:'[0;6]',
+    question:'Avec les mêmes intervalles, que vaut A∪B&nbsp;?',
+    options:['[-2;6]','[0;3[','[-2;0[','[3;6]'],answer:0,
+    expl:'Les deux intervalles se chevauchent et se rejoignent en un seul intervalle [-2;6].'},
+  {aInterval:']-\\infty;2]',
+    question:'Quel est le complémentaire de A dans ℝ&nbsp;?',
+    options:[']2;+∞[','[2;+∞[','[-∞;2[','ℝ tout entier'],answer:0,
+    expl:'Le complémentaire regroupe tout ce qui n\'est pas dans A. Comme 2 appartient à A, il est exclu du complémentaire&nbsp;: ]2;+∞[.'},
+  {aInterval:']3;7[',
+    question:'Quel est le complémentaire de A dans ℝ&nbsp;?',
+    options:[']-∞;3]∪[7;+∞[','[3;7]',']-∞;3[∪]7;+∞[','ℝ tout entier'],answer:0,
+    expl:'A exclut 3 et 7&nbsp;: son complémentaire doit donc les inclure. Complémentaire&nbsp;: ]-∞;3]∪[7;+∞[.'},
+  {aInterval:']-\\infty;0[',bInterval:']0;+\\infty[',
+    question:'Que vaut A∩B&nbsp;?',
+    options:['∅','{0}','ℝ','[0;0]'],answer:0,
+    expl:'A ne contient que les négatifs stricts, B que les positifs stricts. Ils ne partagent aucun élément (même pas 0, exclu des deux)&nbsp;: A∩B=∅.'},
+  {aInterval:']-\\infty;0[',bInterval:']0;+\\infty[',
+    question:'Avec les mêmes intervalles, que vaut A∪B&nbsp;?',
+    options:['ℝ privé de 0','ℝ tout entier','{0}','∅'],answer:0,
+    expl:'A∪B regroupe tous les réels sauf 0, puisque 0 n\'appartient ni à A ni à B.'},
+  {aItems:['1','3','5','7'],bItems:['2','4','6','8'],
+    question:'Que vaut A∩B&nbsp;?',
+    options:['∅','{1;2}','A tout entier','{1;2;3;4;5;6;7;8}'],answer:0,
+    expl:'A regroupe des impairs, B des pairs&nbsp;: aucun élément commun. A∩B=∅.'},
+  {aItems:['1','3','5','7'],bItems:['2','4','6','8'],
+    question:'Avec les mêmes ensembles, que vaut A∪B&nbsp;?',
+    options:['{1;2;3;4;5;6;7;8}','∅','A','B'],answer:0,
+    expl:'A∪B regroupe tous les éléments de A et de B&nbsp;: {1;2;3;4;5;6;7;8}.'},
+  {aItems:['1','2','3','4','5'],bItems:['3','4','5'],
+    question:'Ici, B⊂A (tous les éléments de B sont dans A). Que vaut A∩B&nbsp;?',
+    options:['B, soit {3;4;5}','A, soit {1;2;3;4;5}','∅','{1;2}'],answer:0,
+    expl:'Quand B⊂A, l\'intersection A∩B est simplement B tout entier.'},
+  {aItems:['1','2','3','4','5'],bItems:['3','4','5'],
+    question:'Avec les mêmes ensembles (B⊂A), que vaut A∪B&nbsp;?',
+    options:['A, soit {1;2;3;4;5}','B, soit {3;4;5}','∅','{1;2}'],answer:0,
+    expl:'Quand B⊂A, tous les éléments de B sont déjà dans A&nbsp;: A∪B=A.'},
+  {aInterval:'[2;9]',bInterval:'[5;5]',
+    question:'B est réduit au seul point 5. Que vaut A∩B&nbsp;?',
+    options:['{5}','[2;9]','∅','[5;9]'],answer:0,
+    expl:'Le point 5 appartient bien à A=[2;9] et à B={5}&nbsp;: leur intersection est {5}.'},
+  {aInterval:']0;+\\infty[',bInterval:']-\\infty;10]',
+    question:'Que vaut A∩B&nbsp;?',
+    options:[']0;10]',']-∞;+∞[','∅','[0;10]'],answer:0,
+    expl:'On garde ce qui est commun aux deux demi-droites&nbsp;: entre 0 (exclu) et 10 (inclus).'},
+  {aInterval:']0;+\\infty[',bInterval:']-\\infty;10]',
+    question:'Avec les mêmes intervalles, que vaut A∪B&nbsp;?',
+    options:['ℝ tout entier',']0;10]','∅','[0;10]'],answer:0,
+    expl:'Les deux demi-droites se chevauchent largement et recouvrent, à elles deux, tout ℝ.'},
+  {aInterval:'[1;4]',
+    question:'Quel est le complémentaire de A dans ℝ&nbsp;?',
+    options:[']-∞;1[∪]4;+∞[','[1;4]',']-∞;1]∪[4;+∞[','ℝ'],answer:0,
+    expl:'A=[1;4] est fermé aux deux bornes (1 et 4 inclus)&nbsp;: son complémentaire les exclut donc tous les deux.'},
+  {aItems:['a','b','c'],bItems:['b','c','d'],
+    question:'Que vaut A∩B&nbsp;?',
+    options:['{b;c}','{a;d}','∅','{a;b;c;d}'],answer:0,
+    expl:'Les éléments communs à A et B sont b et c&nbsp;: A∩B={b;c}. Les ensembles ne contiennent pas que des nombres&nbsp;!'},
+  {aItems:['a','b','c'],bItems:['b','c','d'],
+    question:'Avec les mêmes ensembles, que vaut A∪B&nbsp;?',
+    options:['{a;b;c;d}','{b;c}','∅','{a;d}'],answer:0,
+    expl:'A∪B regroupe tous les éléments de A et de B, sans répéter les doublons&nbsp;: {a;b;c;d}.'}
+];
+
+/* ─── QUANTIFICATEURS (en français, sans symboles) ─── */
+const bankQuantificateurs=[
+  {statement:'"Pour tout nombre réel, son carré est positif ou nul."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: le carré d\'un nombre est toujours positif ou nul','Fausse','Vraie seulement pour les nombres positifs','On ne peut pas savoir'],
+    answer:0,
+    expl:'Quel que soit le nombre choisi (positif, négatif ou nul), son carré est toujours positif ou nul. La phrase est vraie pour tous les nombres.'},
+  {statement:'"Il existe un nombre dont le carré vaut 9."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: 3 (ou −3) convient','Fausse&nbsp;: aucun nombre ne vérifie cela','On ne peut pas savoir','Vraie seulement si le nombre est positif'],
+    answer:0,
+    expl:'Il suffit de trouver UN exemple qui fonctionne. 3²=9 (et aussi (−3)²=9), donc la phrase est vraie.'},
+  {statement:'"Il existe un nombre dont le carré est négatif."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Fausse&nbsp;: aucun carré n\'est négatif','Vraie, par exemple −2','Vraie pour les nombres négatifs','On ne peut pas savoir'],
+    answer:0,
+    expl:'Le carré d\'un nombre, positif ou négatif, n\'est jamais négatif. Cette phrase est donc fausse&nbsp;: il n\'existe aucun exemple qui marche.'},
+  {statement:'Quatre phrases&nbsp;: 1) "Il existe un entier pair." 2) "Tout entier naturel est positif ou nul." 3) "Tout carré est positif ou nul." 4) "Pour tout nombre x, sa distance à 0 est positive ou nulle."',
+    question:'Laquelle de ces phrases commence par "il existe" plutôt que par "pour tout"&nbsp;?',
+    options:['La phrase 1','La phrase 2','La phrase 3','La phrase 4'],
+    answer:0,
+    expl:'"Il existe un entier pair" annonce qu\'un seul exemple suffit (2 par exemple). Les trois autres commencent par "tout" ou "pour tout" et concernent TOUS les éléments.'},
+  {statement:'"Pour tout entier naturel n, n+1 est aussi un entier naturel."',
+    question:'Pour être sûr que cette phrase est vraie, que doit-on faire&nbsp;?',
+    options:['Vérifier que c\'est vrai pour TOUS les entiers naturels, pas seulement un exemple','Trouver un seul exemple qui marche','Trouver un contre-exemple','Rien, la phrase est fausse d\'office'],
+    answer:0,
+    expl:'Une phrase "pour tout" doit être vérifiée pour chaque élément possible, et pas seulement pour un exemple particulier.'},
+  {statement:'"Il existe un entier naturel n tel que n soit égal à son carré."',
+    question:'Pour montrer que cette phrase est vraie, que suffit-il de faire&nbsp;?',
+    options:['Trouver UN entier qui convient (par exemple 0 ou 1)','Vérifier que tous les entiers conviennent','Trouver un contre-exemple','Rien, la phrase est fausse d\'office'],
+    answer:0,
+    expl:'Une phrase "il existe" est vraie dès qu\'on trouve un seul exemple qui fonctionne. Ici, 0 (car 0=0²) ou 1 (car 1=1²) conviennent.'},
+  {statement:'"Pour tout entier naturel n, n au carré est strictement supérieur à n."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Fausse&nbsp;: pour n=0, 0²=0 n\'est pas supérieur à 0','Vraie, toujours','On ne peut pas savoir','Vraie seulement pour n négatif'],
+    answer:0,
+    expl:'Un seul contre-exemple suffit à rendre fausse une phrase "pour tout". Ici n=0 ne vérifie pas la propriété&nbsp;: 0²=0, qui n\'est pas strictement supérieur à 0.'},
+  {statement:'"Tous les élèves de la classe ont plus de 15 ans."',
+    question:'Quelle est la bonne façon de contredire cette phrase&nbsp;?',
+    options:['Il existe au moins un élève de la classe qui n\'a pas plus de 15 ans','Aucun élève de la classe n\'a plus de 15 ans','Tous les élèves de la classe ont 15 ans ou moins','Il existe un élève qui a exactement 15 ans'],
+    answer:0,
+    expl:'Pour contredire une phrase "tous" (pour tout), il suffit de montrer qu\'il en existe au moins un qui ne vérifie pas la propriété. Un seul contre-exemple suffit.'},
+  {statement:'"Il existe un nombre pair dans cette liste de nombres."',
+    question:'Quelle est la bonne façon de contredire cette phrase&nbsp;?',
+    options:['Aucun nombre de la liste n\'est pair (tous sont impairs)','Tous les nombres de la liste sont pairs','Il existe un nombre impair dans la liste','On ne peut pas contredire cette phrase'],
+    answer:0,
+    expl:'Pour contredire une phrase "il existe", il faut montrer qu\'aucun élément ne vérifie la propriété&nbsp;: ici, que tous les nombres sont impairs.'},
+  {statement:'Léa affirme&nbsp;: "Pour tout nombre, ce nombre est inférieur au nombre suivant (obtenu en ajoutant 1)."',
+    question:'A-t-elle raison&nbsp;?',
+    options:['Oui&nbsp;: ajouter 1 à un nombre le rend toujours strictement plus grand','Non, ce n\'est pas toujours vrai','Seulement pour les nombres positifs','On ne peut pas savoir'],
+    answer:0,
+    expl:'Quel que soit le nombre choisi, lui ajouter 1 donne toujours un nombre strictement plus grand. La phrase est donc vraie pour tous les nombres.'},
+  {statement:'"Il existe un multiple de 7 compris entre 40 et 50."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: 42 est bien compris entre 40 et 50','Fausse, aucun multiple de 7 n\'est dans cet intervalle','On ne peut pas savoir','Vraie seulement si on compte 49'],
+    answer:0,
+    expl:'42 est un multiple de 7 (7×6=42) et il est bien compris entre 40 et 50. Un seul exemple suffit à valider la phrase.'},
+  {statement:'"Pour tout triangle, la somme de ses trois angles vaut 180°."',
+    question:'Cette phrase concerne-t-elle un seul triangle ou tous les triangles&nbsp;?',
+    options:['Tous les triangles, sans exception','Un seul triangle particulier','Aucun triangle en particulier','Seulement les triangles rectangles'],
+    answer:0,
+    expl:'"Pour tout" signifie que la propriété doit être vraie pour absolument tous les cas possibles, ici tous les triangles.'},
+  {statement:'"Tout nombre impair est un nombre premier."',
+    question:'Pour montrer que cette phrase est fausse, que suffit-il de faire&nbsp;?',
+    options:['Trouver un nombre impair qui n\'est pas premier, par exemple 9 (=3×3)','Vérifier tous les nombres impairs un par un','Trouver un nombre premier qui n\'est pas impair','Rien, la phrase est vraie'],
+    answer:0,
+    expl:'9 est impair mais pas premier (9=3×3)&nbsp;: ce seul contre-exemple suffit à montrer que la phrase est fausse.'},
+  {statement:'"Il existe un rectangle qui est aussi un carré."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: un carré a bien 4 angles droits, comme un rectangle','Fausse&nbsp;: un carré n\'est jamais un rectangle','On ne peut pas savoir','Vraie seulement pour les grands carrés'],
+    answer:0,
+    expl:'Un carré a 4 angles droits, comme un rectangle&nbsp;: c\'est donc un rectangle particulier. Un seul exemple suffit à valider la phrase "il existe".'},
+  {statement:'"Il existe un nombre entier strictement compris entre 5 et 6."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Fausse&nbsp;: il n\'y a aucun entier entre 5 et 6','Vraie, par exemple 5,5','Vraie, il y en a plusieurs','On ne peut pas savoir'],
+    answer:0,
+    expl:'Entre deux entiers consécutifs comme 5 et 6, il n\'existe aucun autre entier. La phrase est donc fausse (5,5 existe, mais ce n\'est pas un entier).'},
+  {statement:'"Pour tout nombre entier naturel n, le double de n est un nombre pair."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: multiplier un entier par 2 donne toujours un nombre pair','Fausse','Vraie seulement pour n pair','On ne peut pas savoir'],
+    answer:0,
+    expl:'Quel que soit l\'entier n choisi, 2×n est toujours pair, par définition même d\'un nombre pair.'},
+  {statement:'"Il existe un jour de la semaine dont le nom commence par la lettre D."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: dimanche commence par D','Fausse','On ne peut pas savoir','Vraie seulement le week-end'],
+    answer:0,
+    expl:'Il suffit d\'un seul exemple qui fonctionne&nbsp;: "dimanche" commence bien par la lettre D.'},
+  {statement:'"Pour tout entier naturel n, n est pair ou impair."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: tout entier est soit pair, soit impair, jamais les deux à la fois','Fausse','Vraie seulement pour n<10','On ne peut pas savoir'],
+    answer:0,
+    expl:'C\'est une propriété universelle des entiers&nbsp;: chaque entier naturel est soit pair, soit impair.'},
+  {statement:'"Il existe un nombre entier naturel dont le double est égal à 15."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Fausse&nbsp;: 15 est impair, ce n\'est le double d\'aucun entier','Vraie, avec n=7,5','Vraie, avec n=30','On ne peut pas savoir'],
+    answer:0,
+    expl:'Pour que 2n=15, il faudrait n=7,5, qui n\'est pas un entier naturel. Aucun entier ne convient&nbsp;: la phrase est fausse.'},
+  {statement:'"Pour tout nombre réel x strictement positif, son opposé −x est strictement négatif."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie, toujours','Fausse','Vraie seulement pour les entiers','On ne peut pas savoir'],
+    answer:0,
+    expl:'Quel que soit le réel positif choisi, son opposé est toujours négatif. C\'est vrai pour tous les réels strictement positifs.'},
+  {statement:'"Il existe un mois de l\'année qui compte 31 jours."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: janvier (et plusieurs autres mois) comptent 31 jours','Fausse&nbsp;: aucun mois n\'a 31 jours','On ne peut pas savoir','Vraie seulement en février'],
+    answer:0,
+    expl:'Il suffit d\'un exemple qui marche&nbsp;: janvier a bien 31 jours (comme mars, mai, juillet...).'},
+  {statement:'"Pour tout mois de l\'année, il compte 31 jours."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Fausse&nbsp;: février n\'a que 28 ou 29 jours (contre-exemple)','Vraie','On ne peut pas savoir','Vraie seulement les années bissextiles'],
+    answer:0,
+    expl:'Un seul contre-exemple suffit à rendre fausse une phrase "pour tout"&nbsp;: février n\'a jamais 31 jours.'},
+  {statement:'"Il existe un nombre réel égal à son propre carré."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: 0 et 1 vérifient cette propriété (0²=0 et 1²=1)','Fausse','Vraie seulement pour 0','Vraie seulement pour 1'],
+    answer:0,
+    expl:'0²=0 et 1²=1&nbsp;: ces deux nombres sont égaux à leur propre carré. Un seul exemple suffirait à valider la phrase "il existe".'},
+  {statement:'"Pour tout nombre réel x, x au carré est différent de x."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Fausse&nbsp;: pour x=0 (et aussi x=1), x²=x, ce sont des contre-exemples','Vraie','Vraie sauf pour les nombres négatifs','On ne peut pas savoir'],
+    answer:0,
+    expl:'0 et 1 vérifient x²=x&nbsp;: ce sont deux contre-exemples qui rendent la phrase "pour tout" fausse.'},
+  {statement:'"Pour tout triangle rectangle, le carré de l\'hypoténuse est égal à la somme des carrés des deux autres côtés."',
+    question:'Cette phrase est-elle vraie&nbsp;?',
+    options:['Vraie&nbsp;: c\'est le théorème de Pythagore, valable pour tout triangle rectangle','Fausse','Vraie seulement pour certains triangles rectangles','On ne peut pas savoir'],
+    answer:0,
+    expl:'Le théorème de Pythagore est une propriété universelle&nbsp;: elle est valable pour absolument tous les triangles rectangles.'}
+];
+
+/* ─── INTRUS ─── */
+const bankIntrus=[
+  {label:'Quel nombre n\'est PAS un entier naturel&nbsp;?',
+    items:['5','0','−3','12'],answer:2,
+    expl:'−3 est négatif&nbsp;: les entiers naturels sont toujours ≥0. 5, 0 et 12 sont bien des entiers naturels.'},
+  {label:'Lequel de ces nombres n\'est PAS rationnel&nbsp;?',
+    items:['1/2','0,75','√2','3'],answer:2,
+    expl:'√2 est irrationnel (il ne peut pas s\'écrire comme une fraction). 1/2, 0,75 et 3 sont tous des rationnels.'},
+  {label:'Laquelle de ces écritures ne désigne PAS un intervalle&nbsp;?',
+    items:['[2;5]',']-∞;3[','{1;2;3}','[0;+∞['],answer:2,
+    expl:'{1;2;3} est un ensemble décrit en extension (une liste d\'éléments), pas un intervalle de ℝ.'},
+  {label:'Quel ensemble ne contient PAS le nombre −5&nbsp;?',
+    items:['ℤ','ℚ','ℝ','ℕ'],answer:3,
+    expl:'ℕ ne contient que les entiers positifs ou nuls. −5 appartient bien à ℤ, ℚ et ℝ, mais pas à ℕ.'},
+  {label:'Lequel de ces nombres est un décimal (écriture décimale finie)&nbsp;?',
+    items:['1/3','0,25','2/3','1/7'],answer:1,
+    expl:'0,25 a une écriture décimale finie&nbsp;: il appartient à D. 1/3, 2/3 et 1/7 ont tous une écriture décimale infinie.'},
+  {label:'Lequel de ces intervalles NE contient PAS le nombre 3&nbsp;?',
+    items:['[3;5]',']3;5[',']0;10[','[1;3]'],answer:1,
+    expl:']3;5[ exclut strictement sa borne 3 (crochet ouvert). Les trois autres intervalles contiennent bien le nombre 3.'},
+  {label:'Laquelle de ces phrases est FAUSSE&nbsp;?',
+    items:['ℕ⊂ℤ','ℤ⊂D','D⊂ℚ','ℚ⊂ℕ'],answer:3,
+    expl:'C\'est l\'inverse&nbsp;: ℕ⊂ℚ, pas ℚ⊂ℕ (ℚ contient des nombres non entiers comme 1/2, qui ne sont pas dans ℕ).'},
+  {label:'Lequel de ces nombres n\'appartient PAS à l\'intervalle [-2;3[&nbsp;?',
+    items:['−2','0','3','2,9'],answer:2,
+    expl:'3 est exclu de [-2;3[ car la borne droite est ouverte (crochet inversé). −2 est inclus, 0 et 2,9 sont bien dans l\'intervalle.'},
+  {label:'Lequel de ces nombres appartient à ℤ mais PAS à ℕ&nbsp;?',
+    items:['−9','15','0','7'],answer:0,
+    expl:'−9 est un entier relatif négatif&nbsp;: il appartient à ℤ mais pas à ℕ. Les trois autres sont dans ℕ (et donc aussi dans ℤ).'},
+  {label:'Lequel de ces nombres appartient à D mais PAS à ℤ&nbsp;?',
+    items:['0,5','7','−3','10'],answer:0,
+    expl:'0,5 est décimal mais pas entier. 7, −3 et 10 sont tous des entiers relatifs (donc aussi dans D, mais la question porte sur ce qui n\'est pas dans ℤ).'},
+  {label:'Laquelle de ces bornes désigne un intervalle NON borné (infini)&nbsp;?',
+    items:['[2;7]',']-∞;5]','[0;10[',']1;9['],answer:1,
+    expl:']-∞;5] s\'étend à l\'infini vers la gauche&nbsp;: c\'est un intervalle non borné. Les trois autres sont bornés.'},
+  {label:'Parmi ces nombres, lequel est irrationnel&nbsp;?',
+    items:['3,5','2/7','π','−4'],answer:2,
+    expl:'π est irrationnel&nbsp;: il n\'appartient pas à ℚ. 3,5, 2/7 et −4 sont tous des rationnels.'},
+  {label:'Laquelle de ces égalités est FAUSSE&nbsp;?',
+    items:['A∪∅=A','A∩∅=∅','A∪A=A','A∩A=∅'],answer:3,
+    expl:'A∩A=A (et non ∅)&nbsp;: l\'intersection d\'un ensemble avec lui-même redonne cet ensemble. Les trois autres égalités sont vraies.'},
+  {label:'Laquelle de ces phrases utilise "il existe" et non "pour tout"&nbsp;?',
+    items:['Tout entier naturel est positif ou nul.','Pour tout réel, son carré est positif ou nul.','Il existe un nombre pair supérieur à 100.','Pour tout entier, son double est pair.'],answer:2,
+    expl:'"Il existe un nombre pair supérieur à 100" utilise "il existe"&nbsp;: un seul exemple suffit. Les trois autres utilisent "tout"/"pour tout".'},
+  {label:'Quel nombre est un entier relatif négatif&nbsp;?',
+    items:['5','−8','0','20'],answer:1,
+    expl:'−8 est négatif&nbsp;: c\'est un entier relatif négatif. Les trois autres sont des entiers naturels (positifs ou nuls).'},
+  {label:'Lequel de ces nombres a une écriture décimale infinie&nbsp;?',
+    items:['0,5','1/4','1/3','7'],answer:2,
+    expl:'1/3 = 0,333… ne s\'arrête jamais. 0,5 et 1/4=0,25 ont une écriture finie, et 7 est un entier.'},
+  {label:'Lequel de ces intervalles contient le nombre 0&nbsp;?',
+    items:[']-∞;0[','[1;5]',']0;10[','[-3;0]'],answer:3,
+    expl:'[-3;0] est fermé en 0, donc 0 y appartient. Les trois autres excluent 0&nbsp;: le premier l\'exclut (ouvert), le deuxième ne l\'atteint pas, le troisième l\'exclut aussi (ouvert).'},
+  {label:'Quel est l\'ensemble le plus grand parmi ceux-ci&nbsp;?',
+    items:['ℕ','ℤ','ℚ','ℝ'],answer:3,
+    expl:'ℝ est le plus grand&nbsp;: il contient tous les autres (ℕ⊂ℤ⊂ℚ⊂ℝ).'},
+  {label:'Laquelle de ces phrases décrit correctement l\'ensemble vide&nbsp;?',
+    items:['Un ensemble qui ne contient aucun élément','Un ensemble qui contient uniquement le nombre 0','Un ensemble infini','Un ensemble avec un seul élément'],answer:0,
+    expl:'L\'ensemble vide, noté ∅, est par définition l\'ensemble qui ne contient aucun élément (même pas 0).'},
+  {label:'Lequel de ces nombres appartient à ℚ mais PAS à ℤ&nbsp;?',
+    items:['1/2','5','−3','100'],answer:0,
+    expl:'1/2 est un rationnel non entier&nbsp;: il appartient à ℚ mais pas à ℤ. Les trois autres sont des entiers relatifs.'},
+  {label:'Laquelle de ces écritures décrit un intervalle fermé aux DEUX bornes&nbsp;?',
+    items:[']2;5[','[2;5]','[2;5[',']2;5]'],answer:1,
+    expl:'[2;5] a des crochets fermés des deux côtés&nbsp;: 2 et 5 sont tous les deux inclus.'},
+  {label:'Lequel de ces énoncés utilise "pour tout" et non "il existe"&nbsp;?',
+    items:['Il existe un nombre pair.','Pour tout entier, son carré est positif.','Il existe une solution à cette équation.','Il existe un triangle équilatéral.'],answer:1,
+    expl:'"Pour tout entier, son carré est positif" concerne TOUS les entiers. Les trois autres commencent par "il existe".'}
+];
+
+/* ─── DÉFIS LOGIQUES ─── */
+const bankDefis=[
+  {text:'<strong>Vrai ou faux&nbsp;:</strong> l\'ensemble vide ∅ est inclus dans tout ensemble A (∅⊂A).',
+    options:['Vrai','Faux','Vrai seulement si A est vide','Cela dépend de A'],answer:0,
+    expl:'Par définition de l\'inclusion, ∅ est un sous-ensemble de tout ensemble, y compris de lui-même.'},
+  {text:'<strong>Vrai ou faux&nbsp;:</strong> si A⊂B et B⊂A, alors A=B.',
+    options:['Vrai','Faux','Vrai seulement pour les intervalles','On ne peut jamais comparer deux ensembles ainsi'],answer:0,
+    expl:'Si A⊂B et B⊂A, alors A et B ont exactement les mêmes éléments&nbsp;: ils sont donc égaux.'},
+  {text:'Existe-t-il un nombre appartenant à ℤ mais N\'appartenant PAS à D&nbsp;?',
+    options:['Non, car ℤ⊂D&nbsp;: tout entier relatif est décimal','Oui, par exemple −5','Oui, tous les entiers négatifs','On ne peut pas savoir'],answer:0,
+    expl:'Tout entier relatif possède une écriture décimale finie (ex&nbsp;: −5 = −5,0). Donc ℤ⊂D, sans exception.'},
+  {text:'A = {1;2;3} et B = {2;3;4}. A n\'est pas inclus dans B, mais A∩B n\'est pas vide. Que vaut A∩B&nbsp;?',
+    options:['{2;3}','{1;4}','∅','{1;2;3;4}'],answer:0,
+    expl:'A∩B contient les éléments communs&nbsp;: 2 et 3 apparaissent dans les deux ensembles.'},
+  {text:'<strong>Vrai ou faux&nbsp;:</strong> deux ensembles disjoints (A∩B=∅) sont forcément égaux.',
+    options:['Faux&nbsp;: disjoints signifie au contraire qu\'ils n\'ont rien en commun','Vrai','Vrai seulement si A=∅','Cela dépend des éléments'],answer:0,
+    expl:'Disjoints = aucun élément commun. Deux ensembles disjoints non vides sont au contraire très différents (ex&nbsp;: {1;2} et {3;4}).'},
+  {text:'On sait que x∈]2;5[. Peut-on avoir <strong>x=5</strong>&nbsp;?',
+    options:['Non, 5 est exclu (crochet ouvert)','Oui','On ne peut pas savoir','Oui, si x est un entier'],answer:0,
+    expl:'L\'intervalle ]2;5[ a des crochets ouverts aux deux bornes&nbsp;: ni 2 ni 5 n\'appartiennent à cet intervalle.'},
+  {text:'A=[0;10] et B=[10;20]. Les deux intervalles semblent seulement "se toucher". Que vaut A∩B&nbsp;?',
+    options:['{10}','∅','[0;20]','[0;10['],answer:0,
+    expl:'Les deux intervalles fermés se rencontrent exactement au point 10 (inclus dans les deux)&nbsp;: A∩B={10}.'},
+  {text:'On a établi que E⊂F. Peut-on en déduire que <strong>F⊂E</strong>&nbsp;?',
+    options:['Non, pas nécessairement (l\'inclusion n\'est pas symétrique)','Oui, toujours','Oui, si E est fini','Cela dépend du nombre d\'éléments'],answer:0,
+    expl:'E⊂F signifie que E est "contenu" dans F, mais F peut avoir des éléments en plus. L\'inclusion n\'est pas automatiquement réciproque (sauf si E=F).'},
+  {text:'A=]-∞;3[ et B=[3;+∞[. Que peut-on dire de A et B&nbsp;?',
+    options:['A et B sont disjoints et leur union donne ℝ tout entier','A et B se chevauchent en 3','A∩B={3}','A∪B n\'est pas ℝ'],answer:0,
+    expl:'A exclut 3, B l\'inclut&nbsp;: ils sont disjoints (A∩B=∅) et couvrent à eux deux tout ℝ (A∪B=ℝ).'},
+  {text:'A = {2;4;6;8} et B = {1;2;3;4;5;6;7;8;9}. On a A⊂B. Que vaut A∪B&nbsp;?',
+    options:['B','A','∅','{1;3;5;7;9}'],answer:0,
+    expl:'Quand A⊂B, tous les éléments de A sont déjà dans B. Donc A∪B ne rajoute rien&nbsp;: A∪B=B.'},
+  {text:'<strong>Vrai ou faux&nbsp;:</strong> l\'intervalle [5;5] est un ensemble vide.',
+    options:['Faux&nbsp;: [5;5] contient exactement le nombre 5, ce n\'est pas vide','Vrai, un intervalle réduit à un point est toujours vide','Vrai','Cela dépend du contexte'],answer:0,
+    expl:'[5;5] regroupe les réels x tels que 5≤x≤5, ce qui n\'admet qu\'une seule solution&nbsp;: x=5. L\'intervalle contient donc UN élément.'},
+  {text:'On cherche à contredire&nbsp;: "Tous les élèves de la classe ont plus de 15 ans." Laquelle de ces phrases fait cela correctement&nbsp;?',
+    options:['Il existe au moins un élève de la classe qui n\'a pas plus de 15 ans','Aucun élève de la classe n\'a plus de 15 ans','Tous les élèves de la classe ont 15 ans ou moins','Il existe un élève qui a exactement 15 ans'],answer:0,
+    expl:'Contredire une phrase "tous" (pour tout) demande de montrer qu\'il existe au moins un contre-exemple.'},
+  {text:'A={1;2;3;4;5} et B={3;4;5;6;7}. B a 5 éléments dont 3 sont communs avec A (3, 4 et 5). Combien d\'éléments appartiennent à B mais PAS à A&nbsp;?',
+    options:['2','3','4','5'],answer:0,
+    expl:'B contient 3, 4, 5, 6, 7. Parmi eux, 3, 4 et 5 sont communs avec A. Il reste donc 6 et 7, soit 2 éléments propres à B.'},
+  {text:'Si A={1;2} et B={1;2;3}, a-t-on <strong>A⊂B</strong>&nbsp;?',
+    options:['Oui, tous les éléments de A sont dans B','Non','On ne peut pas savoir','Seulement si A=B'],answer:0,
+    expl:'1 et 2 (les deux éléments de A) appartiennent bien à B&nbsp;: A⊂B est donc vrai.'},
+  {text:'<strong>Vrai ou faux&nbsp;:</strong> un ensemble est toujours inclus dans lui-même (A⊂A).',
+    options:['Vrai, tout ensemble est inclus dans lui-même','Faux','Vrai seulement si A=∅','Cela dépend de A'],answer:0,
+    expl:'Tout élément de A appartient bien à A&nbsp;: par définition, A⊂A est toujours vrai, quel que soit A.'},
+  {text:'A=]0;5] et B=]0;5[. Quelle est la différence entre A et B&nbsp;?',
+    options:['A contient 5, B ne le contient pas','B contient 5, A ne le contient pas','Ils sont identiques','A ne contient aucun nombre entier'],answer:0,
+    expl:'A est fermé en 5 (crochet fermé) donc 5∈A, alors que B est ouvert en 5 (crochet ouvert) donc 5∉B.'},
+  {text:'On sait que x appartient à ℕ. Peut-on affirmer que <strong>x appartient aussi à ℝ</strong>&nbsp;?',
+    options:['Oui, car ℕ⊂ℝ','Non','On ne peut pas savoir','Seulement si x=0'],answer:0,
+    expl:'Grâce à la chaîne d\'inclusions ℕ⊂ℤ⊂D⊂ℚ⊂ℝ, tout entier naturel est aussi un nombre réel.'},
+  {text:'A=[2;6] et B=[2;6] (les deux mêmes intervalles). Que vaut A∩B et A∪B&nbsp;?',
+    options:['A∩B=A∪B=[2;6]&nbsp;: les deux ensembles sont identiques','A∩B=∅','A∪B=∅','On ne peut pas savoir'],answer:0,
+    expl:'Quand A=B, l\'intersection et l\'union redonnent simplement ce même ensemble&nbsp;: [2;6].'},
+  {text:'<strong>Vrai ou faux&nbsp;:</strong> si un nombre n\'appartient pas à ℚ, alors il appartient forcément à ℝ.',
+    options:['Vrai&nbsp;: un nombre irrationnel est un réel non rationnel','Faux','Vrai seulement pour les nombres positifs','On ne peut pas savoir'],answer:0,
+    expl:'Un nombre irrationnel (qui n\'est pas dans ℚ) appartient tout de même à ℝ&nbsp;: ℝ regroupe rationnels ET irrationnels.'},
+  {text:'A={2;4;6} et B={1;3;5}. Que peut-on dire de A et B&nbsp;?',
+    options:['Ils sont disjoints&nbsp;: A∩B=∅','A⊂B','B⊂A','A=B'],answer:0,
+    expl:'A ne contient que des pairs, B que des impairs&nbsp;: aucun élément commun, donc A∩B=∅.'},
+  {text:'On cherche à contredire&nbsp;: "Il existe un nombre négatif dans cette liste&nbsp;: {2;5;8;10}." Quelle affirmation le fait correctement&nbsp;?',
+    options:['Tous les nombres de la liste sont positifs (aucun n\'est négatif)','Il existe un nombre positif dans la liste','Aucun nombre de la liste n\'est positif','On ne peut pas contredire cette phrase'],answer:0,
+    expl:'Contredire une phrase "il existe" demande de montrer qu\'AUCUN élément ne vérifie la propriété&nbsp;: ici, que tous sont positifs.'}
+];
+
+const BANKS=[bankNombres,bankIntervalles,bankOperations,bankQuantificateurs,bankIntrus,bankDefis];
+
+/* ══════════════════════════════════
+   RENDERING
+══════════════════════════════════ */
+function renderQ(q){
+  const Z=$('zone');
+  $('fb').className='fb';
+  $('nxt').style.display='none';
+  Z.innerHTML='';
+  if(cat===0)renderNombre(q,Z);
+  else if(cat===1)renderSuite(q,Z);
+  else if(cat===2)renderOperations(q,Z);
+  else if(cat===3)renderQuantif(q,Z);
+  else if(cat===4)renderIntrus(q,Z);
+  else renderDefi(q,Z);
+}
+
+const SYM2LATEX={'ℕ':'\\mathbb{N}','ℤ':'\\mathbb{Z}','D':'\\mathbb{D}','ℚ':'\\mathbb{Q}','ℝ':'\\mathbb{R}'};
+
+function renderNombre(q,Z){
+  let h='<div class="seq-box"><div class="seq-label">Nombre</div><div id="numLatex"></div></div>';
+  h+='<p class="q-prompt">Quel est le plus petit ensemble contenant ce nombre&nbsp;?</p>';
+  h+='<div class="mcq-grid">';
+  q.options.forEach((opt,i)=>{
+    h+=`<div class="mcq-opt" id="opt${i}" onclick="chooseMCQ(${i})"><span id="optSym${i}"></span></div>`;
+  });
+  h+='</div>';
+  Z.innerHTML=h;
+  const el=$('numLatex');
+  if(el)tex(el,q.latex,true);
+  q.options.forEach((opt,i)=>{
+    const kEl=$('optSym'+i);
+    if(!kEl)return;
+    const latex=SYM2LATEX[opt];
+    if(latex)tex(kEl,latex,false);
+    else kEl.textContent=opt;
+  });
+  setupMCQ(q);
+}
+
+function renderSuite(q,Z){
+  let h='<div class="seq-box">';
+  h+=`<div class="seq-label">Intervalle</div>`;
+  h+=`<div id="seqLatex"></div>`;
+  h+='</div>';
+  h+=`<p class="q-prompt">${q.question}</p>`;
+  if(q.hint)h+=`<p style="text-align:center"><span class="hint-pill">💡 ${q.hint}</span></p>`;
+  h+=`<div class="seq-input-row">
+    <span class="seq-input-label">Réponse&nbsp;:</span>
+    <input class="seq-input" id="seqAns" placeholder="[a;b[" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    <button type="button" class="btn btn-ghost" style="padding:8px 16px;font-size:.95em;min-height:44px" onclick="insertInf()" title="Insérer le symbole infini">∞</button>
+  </div>`;
+  h+=`<div class="controls"><button class="btn btn-blue" id="seqBtn" onclick="checkSuite()">Valider ✓</button></div>`;
+  Z.innerHTML=h;
+  const el=$('seqLatex');
+  if(el)tex(el,q.latex,true);
+  const inp=$('seqAns');
+  if(inp){
+    setTimeout(()=>inp.focus(),80);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkSuite()});
+  }
+}
+
+function renderSetRow(tag,items,interval){
+  let h=`<div class="setop-row"><span class="setop-tag">${tag}&nbsp;=</span><div class="setop-chips">`;
+  if(interval){
+    h+=`<span class="setop-chip" id="int_${tag}"></span>`;
+  } else if(items){
+    if(items.length===0){h+=`<span class="setop-chip">∅</span>`;}
+    else items.forEach(it=>{h+=`<span class="setop-chip">${it}</span>`;});
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function renderOperations(q,Z){
+  let h='<div class="setop-box">';
+  h+=renderSetRow('A',q.aItems,q.aInterval);
+  if(q.bItems||q.bInterval)h+=renderSetRow('B',q.bItems,q.bInterval);
+  h+='</div>';
+  h+=`<p class="q-prompt">${q.question}</p>`;
+  h+=renderMCQGrid(q.options,4);
+  Z.innerHTML=h;
+  if(q.aInterval){const el=$('int_A');if(el)tex(el,q.aInterval,false);}
+  if(q.bInterval){const el=$('int_B');if(el)tex(el,q.bInterval,false);}
+  setupMCQ(q);
+}
+
+function renderQuantif(q,Z){
+  let h='<div class="cond-box"><div class="cond-rule">💬 '+q.statement+'</div></div>';
+  h+=`<p class="q-prompt">${q.question}</p>`;
+  h+=renderMCQGrid(q.options,4);
+  Z.innerHTML=h;
+  setupMCQ(q);
+}
+
+function renderIntrus(q,Z){
+  let h='<div class="intrus-box">';
+  h+=`<div class="intrus-label">🎯 ${q.label}</div>`;
+  h+='<div class="intrus-items-display" id="intrusItems">';
+  q.items.forEach((it,i)=>{
+    h+=`<span class="intrus-click" id="opt${i}" onclick="chooseMCQ(${i})">${it}</span>`;
+  });
+  h+='</div></div>';
+  h+=`<p class="q-prompt">Clique sur l\'intrus&nbsp;!</p>`;
+  Z.innerHTML=h;
+}
+
+function renderDefi(q,Z){
+  let h='<div class="defi-box">';
+  h+=`<div class="defi-label">💡 Défi logique</div>`;
+  h+=`<div class="defi-text">${q.text}</div>`;
+  h+='</div>';
+  h+=`<p class="q-prompt">Quelle est la bonne réponse&nbsp;?</p>`;
+  h+=renderMCQGrid(q.options,4);
+  Z.innerHTML=h;
+  setupMCQ(q);
+}
+
+function renderMCQGrid(options,cols){
+  const colClass=options.length<=2?'cols1':'';
+  let h=`<div class="mcq-grid ${colClass}">`;
+  options.forEach((opt,i)=>{
+    h+=`<div class="mcq-opt" id="opt${i}" onclick="chooseMCQ(${i})">${opt}</div>`;
+  });
+  h+='</div>';
+  return h;
+}
+
+function setupMCQ(q){
+  // Add Enter key support for MCQ (focuses first option)
+  // We rely on click; keep it simple for accessibility
+}
+
+/* ══════════════════════════════════
+   INTERACTION
+══════════════════════════════════ */
+function chooseMCQ(idx){
+  const q=qs[qi];
+  // Disable all
+  const numOpts=q.options?q.options.length:q.items.length;
+  for(let i=0;i<numOpts;i++){
+    const el=$('opt'+i);
+    if(el){el.classList.add('disabled');el.onclick=null;}
+  }
+  const sel=$('opt'+idx);
+  const cor=$('opt'+q.answer);
+  if(idx===q.answer){
+    if(sel)sel.classList.add('correct');
+    sc++;
+    showFb(true,'✅ Correct&nbsp;! '+q.expl);
+  } else {
+    if(sel)sel.classList.add('wrong');
+    if(cor)cor.classList.add('show-correct');
+    showFb(false,'❌ Incorrect. '+q.expl);
+  }
+  $('nxt').style.display='';
+}
+
+/* Normalise une réponse d'intervalle pour la comparaison :
+   espaces supprimés, majuscules, accents retirés,
+   variantes de l'infini ("infini", "inf", "∞") unifiées. */
+function normAns(s){
+  return s.trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,'')
+    .replace(/INFINI/g,'INF')
+    .replace(/∞/g,'INF');
+}
+
+function insertInf(){
+  const inp=$('seqAns');
+  if(!inp||inp.disabled)return;
+  const start=(inp.selectionStart!=null)?inp.selectionStart:inp.value.length;
+  const end=(inp.selectionEnd!=null)?inp.selectionEnd:inp.value.length;
+  const val=inp.value;
+  inp.value=val.slice(0,start)+'∞'+val.slice(end);
+  inp.focus();
+  const pos=start+1;
+  if(inp.setSelectionRange)inp.setSelectionRange(pos,pos);
+}
+
+function checkSuite(){
+  const q=qs[qi];
+  const inp=$('seqAns');
+  if(!inp||$('seqBtn').disabled)return;
+  inp.classList.remove('ok','err');
+  const val=normAns(inp.value);
+  const exp=normAns(q.answer);
+  if(val===exp){
+    inp.classList.add('ok');
+    $('seqBtn').disabled=true;
+    sc++;
+    showFb(true,'✅ Correct&nbsp;! '+q.expl);
+    $('nxt').style.display='';
+  } else {
+    q._att=(q._att||0)+1;
+    if(q._att>=2){
+      inp.value=q.answer;inp.classList.add('ok');
+      $('seqBtn').disabled=true;
+      showFb(false,'❌ La bonne réponse était&nbsp;: <strong>'+q.answer+'</strong>. '+q.expl);
+      $('nxt').style.display='';
+    } else {
+      inp.classList.add('err');
+      setTimeout(()=>{inp.classList.remove('err');inp.value='';inp.focus()},600);
+    }
+  }
+}
+
+function showFb(ok,msg){
+  const fb=$('fb');
+  fb.className=ok?'fb ok':'fb bad';
+  fb.innerHTML=msg;
+}
+
+/* ══════════════════════════════════
+   FLOW
+══════════════════════════════════ */
+function go(c){
+  cat=c;sc=0;qi=0;
+  qs=sh([...BANKS[c]]).slice(0,8);
+  $('badge').textContent=CATNAMES[c];
+  $('badge').style.background=CATCOLORS[c];
+  $('menuBtn').style.display='block';
+  show('S_ex');
+  loadQ();
+}
+
+/* Mélange les options (ou les items pour l'intrus) d'une question
+   et met à jour l'indice de la bonne réponse en conséquence.
+   On NE mélange PAS la catégorie 0 (ensembles de nombres) :
+   l'ordre ℕ,ℤ,D,ℚ,ℝ y est volontairement fixe et pédagogique. */
+function shuffleMCQ(q){
+  if(cat===0)return;
+  if(Array.isArray(q.options)){
+    const idx=sh(q.options.map((_,i)=>i));
+    q.options=idx.map(i=>q.options[i]);
+    q.answer=idx.indexOf(q.answer);
+  } else if(Array.isArray(q.items)){
+    const idx=sh(q.items.map((_,i)=>i));
+    q.items=idx.map(i=>q.items[i]);
+    q.answer=idx.indexOf(q.answer);
+  }
+}
+
+function loadQ(){
+  const q=qs[qi];
+  q._att=0;
+  shuffleMCQ(q);
+  $('scLbl').textContent=`${sc} / ${qi}`;
+  $('pfill').style.width=(qi/qs.length*100)+'%';
+  $('fb').className='fb';
+  $('nxt').style.display='none';
+  $('zone').innerHTML='';
+  renderQ(q);
+}
+
+function nxtQ(){
+  qi++;
+  if(qi>=qs.length)showResults();
+  else loadQ();
+}
+
+function showResults(){
+  const tot=qs.length,pct=tot>0?Math.round(sc/tot*100):0;
+  const tier=pct>=80?'good':pct>=50?'mid':'bad';
+  $('rCirc').className='rc '+tier;
+  $('rPct').textContent=pct+'%';
+  $('rPct').style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+  $('rMsg').innerHTML=pct===100?'🎉 Parfait&nbsp;! Tu maîtrises parfaitement cette notion d\'ensemble&nbsp;!':
+    pct>=80?'🌟 Très bien&nbsp;! Les ensembles n\'ont plus de secret pour toi&nbsp;!':
+    pct>=60?'👍 Pas mal&nbsp;! Encore quelques efforts et tu y seras&nbsp;!':
+    '💪 Continue à t\'entraîner, les ensembles ça se travaille&nbsp;!';
+  show('S_res');
+}
+
+function replayCat(){go(cat)}
+
+/* ══════════════════════════════════
+   INIT
+══════════════════════════════════ */
+(function(){
+  const el=$('introK');
+  if(el)tex(el,'\\mathbb{N}\\subset\\mathbb{Z}\\subset\\mathbb{D}\\subset\\mathbb{Q}\\subset\\mathbb{R}',true);
+})();
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

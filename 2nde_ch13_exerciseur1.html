@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistiques — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 920px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #0c1624 0%, #162236 45%, #1c3358 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--blue), var(--purple), var(--green));
+}
+.app-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.app-title::before { content: '📊'; font-size: 1.15em; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue), var(--purple)); border-radius: 6px; transition: width 0.4s; }
+
+/* ── CONTEXT CARD ── */
+.ctx-card {
+    background: linear-gradient(135deg, #f5f9ff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-size: 0.93em;
+    line-height: 1.7;
+}
+.ctx-card .ctx-label {
+    font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); margin-bottom: 6px; display: block;
+}
+
+/* ── FORMULA REMINDER ── */
+.formula-remind {
+    background: var(--gold-pale);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.84em;
+    color: #7a5800;
+    margin: 0 0 16px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+/* ── STEP / INPUT ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+.answer-unit {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text-light);
+}
+.answer-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+.answer-input.wide { width: 220px; }
+.answer-input.narrow { width: 100px; }
+
+.row-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 14px 0;
+}
+.row-label { font-size: 0.88em; font-weight: 600; color: var(--text-light); }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 500px; }
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-light);
+    text-align: center; width: 100%; margin-bottom: 8px;
+}
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── DATA TABLE ── */
+.data-tbl {
+    width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.93em;
+}
+.data-tbl th {
+    padding: 8px 10px; background: var(--blue); color: #fff;
+    text-align: center; font-weight: 700; font-size: 0.8em;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.data-tbl td {
+    padding: 7px 10px; border: 1px solid var(--border);
+    text-align: center; background: #fff;
+}
+.data-tbl tr:nth-child(even) td { background: #fafaf8; }
+.data-tbl .lbl { text-align: left; font-weight: 600; color: var(--text-light); }
+
+/* ── SERIE DISPLAY (balls) ── */
+.serie-display {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 14px 0;
+    padding: 14px;
+    background: #f8faff;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+}
+.ball {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    font-weight: 700; font-size: 0.88rem;
+    border: 2px solid;
+    transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+    user-select: none;
+}
+.ball.unsorted { background: #f0f0f0; border-color: #ccc; color: var(--text); }
+.ball.sorted   { background: #dbeafe; border-color: var(--blue); color: var(--blue); }
+.ball.median   { background: var(--red); border-color: var(--red); color: #fff; transform: scale(1.15); box-shadow: 0 0 0 4px rgba(192,57,43,0.2); }
+.ball.q1       { background: var(--green); border-color: var(--green); color: #fff; }
+.ball.q3       { background: var(--purple); border-color: var(--purple); color: #fff; }
+.ball.central  { background: var(--orange); border-color: var(--orange); color: #fff; transform: scale(1.12); }
+
+/* ── BOXPLOT ── */
+.boxplot-area {
+    background: #f8faff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin: 16px 0;
+    overflow-x: auto;
+}
+.boxplot-title { font-size: 0.78em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-light); margin-bottom: 10px; }
+
+/* ── FEEDBACK ── */
+.fb {
+    margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.93em; text-align: center; display: none;
+    animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7;
+}
+.fb.ok  { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 20px auto; border: 6px solid;
+}
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+/* ── CALCULATOR ── */
+.calc-wrap {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+    max-width: 300px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.calc-display {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-family: 'DM Sans', monospace;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #7dd3fc;
+    text-align: right;
+    min-height: 52px;
+    word-break: break-all;
+}
+.calc-expr {
+    font-size: 0.55em;
+    color: #475569;
+    text-align: right;
+    min-height: 18px;
+    margin-bottom: 4px;
+    font-family: 'DM Sans', monospace;
+}
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+}
+.calc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    padding: 11px 6px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 44px;
+}
+.calc-btn:active { transform: scale(0.93); }
+.calc-num   { background: #334155; color: #f1f5f9; }
+.calc-num:hover { background: #475569; }
+.calc-op    { background: #1a6fa0; color: #fff; }
+.calc-op:hover { background: #2d8dc7; }
+.calc-eq    { background: #1b7a40; color: #fff; }
+.calc-eq:hover { filter: brightness(1.1); }
+.calc-clear { background: #7f1d1d; color: #fecaca; }
+.calc-clear:hover { background: #991b1b; }
+.calc-back  { background: #4c1d95; color: #ddd6fe; }
+.calc-back:hover { background: #5b21b6; }
+.calc-zero  { grid-column: span 2; }
+.calc-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em; font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+.calc-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+.calc-container { display: none; }
+.calc-container.visible { display: block; }
+
+/* ── INTERP SCENARIO (sous-menu 6) ── */
+.interp-card {
+    background: linear-gradient(135deg, #f8faff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+}
+.interp-stat {
+    display: flex; gap: 16px; flex-wrap: wrap; margin: 14px 0;
+}
+.interp-stat-box {
+    flex: 1; min-width: 110px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.interp-stat-label { font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-light); margin-bottom: 4px; }
+.interp-stat-val { font-size: 1.4em; font-weight: 700; }
+.choice-grid { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+.choice-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em; font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 140px; text-align: center;
+}
+.choice-btn:hover { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok  { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title  { font-size: 1.05em; }
+    .main       { padding: 22px 16px; }
+    h1          { font-size: 1.25em; }
+    .menu-grid  { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+    .ball { width: 34px; height: 34px; font-size: 0.8rem; }
+}
+
+/* ── DRAG-TO-SORT ── */
+.sort-areas { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+.sort-label { font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-light); margin-bottom: 4px; }
+.sort-source {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    min-height: 58px; padding: 10px;
+    border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8faff;
+}
+.sort-target {
+    display: flex; gap: 4px; flex-wrap: nowrap; align-items: center;
+    min-height: 62px; padding: 10px 12px;
+    border: 2.5px dashed var(--blue-border); border-radius: 12px;
+    background: var(--blue-pale); transition: border-color 0.2s, background 0.2s;
+    position: relative; overflow-x: auto;
+}
+.sort-target.drag-active { border-color: var(--blue); background: #e0eeff; }
+.sort-target.validated { border-color: var(--green); background: var(--green-pale); }
+.sort-target-placeholder {
+    font-size: 0.8em; color: #94a3b8; font-style: italic;
+    pointer-events: none; white-space: nowrap;
+}
+/* ghost ball shown while dragging */
+.sort-ghost {
+    position: fixed; pointer-events: none; z-index: 9999;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    font-weight: 700; font-size: 0.92rem;
+    background: var(--blue); border: 3px solid #0c4a7a; color: #fff;
+    opacity: 0.88; transform: scale(1.18);
+    box-shadow: 0 6px 20px rgba(26,111,160,0.4);
+    transition: none;
+}
+/* drop-indicator line between target balls */
+.sort-drop-indicator {
+    width: 4px; min-width: 4px; height: 40px; border-radius: 3px;
+    background: var(--red); flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.2);
+    animation: pulseInd 0.6s infinite alternate;
+}
+@keyframes pulseInd { from { opacity: 0.6; } to { opacity: 1; } }
+.sort-ball {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; min-width: 42px; border-radius: 50%;
+    font-weight: 700; font-size: 0.92rem;
+    border: 2.5px solid; user-select: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    flex-shrink: 0;
+}
+.sort-ball.source-ball {
+    background: #fff; border-color: #94a3b8; color: var(--text); cursor: grab;
+}
+.sort-ball.source-ball:hover { border-color: var(--blue); color: var(--blue); transform: scale(1.08); }
+.sort-ball.source-ball.dragging-src { opacity: 0.28; cursor: grabbing; }
+.sort-ball.source-ball.used { opacity: 0.22; cursor: default; pointer-events: none; }
+.sort-ball.target-ball { background: #dbeafe; border-color: var(--blue); color: var(--blue); cursor: grab; }
+.sort-ball.target-ball:hover { filter: brightness(0.95); }
+.sort-ball.target-ball.dragging-src { opacity: 0.28; cursor: grabbing; }
+.sort-ball.target-ball.sorted-ok { cursor: default; pointer-events: none; }
+.sort-hint { font-size: 0.78em; color: var(--text-light); text-align: center; margin: 4px 0 6px; }
+
+/* ── SELECT-MEDIAN BALLS ── */
+.sel-zone {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin: 10px 0; padding: 10px;
+}
+.sel-ball {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; border-radius: 50%;
+    font-weight: 700; font-size: 0.92rem;
+    background: #dbeafe; border: 2.5px solid var(--blue); color: var(--blue);
+    cursor: pointer; user-select: none; transition: all 0.18s;
+}
+.sel-ball:hover   { transform: scale(1.1); border-color: var(--purple); color: var(--purple); }
+.sel-ball.picked  { background: var(--red); border-color: var(--red); color: #fff; transform: scale(1.12); box-shadow: 0 0 0 4px rgba(192,57,43,0.18); }
+.sel-ball.picked-q1 { background: var(--green); border-color: var(--green); color: #fff; transform: scale(1.1); box-shadow: 0 0 0 4px rgba(27,122,64,0.15); }
+.sel-ball.picked-q3 { background: var(--purple); border-color: var(--purple); color: #fff; transform: scale(1.1); box-shadow: 0 0 0 4px rgba(107,63,160,0.15); }
+.sel-ball.locked-ok  { cursor: default; }
+.sel-info { font-size: 0.82em; color: var(--text-light); text-align: center; margin: 4px 0; line-height: 1.5; }
+.sel-avg-row {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin: 10px 0; flex-wrap: wrap;
+}
+
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--blue),var(--blue));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,111,160,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(26,111,160,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 900px tablette ── */
+@media(max-width:900px){
+  .app { padding:0 12px; }
+  .main { padding:12px; }
+}
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-header-bar { flex-wrap:wrap; gap:4px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .mc-badge, .ex-badge { font-size:0.7rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn, .choice-grid .btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .screen { font-size:0.85rem; padding:10px; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind, .formula-box { font-size:0.85rem; padding:8px; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input, .ans-input { font-size:0.9rem; }
+  .answer-wrap, .row-inputs { flex-wrap:wrap; gap:6px; }
+  .pbar { height:6px; }
+  .mode-toggle, .mode-btn { font-size:0.8rem; }
+  .menu-btn { font-size:0.8rem; }
+  .ex-top { flex-wrap:wrap; gap:4px; }
+  .ex-score { font-size:0.8rem; }
+}
+/* ── overflow helpers ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="app-title">Statistiques descriptives — Exerciseur</div>
+    <div class="app-header-bar"></div>
+  </div>
+  <div class="main">
+
+    <!-- MENU -->
+    <div id="screen-menu" class="screen active">
+      <h1>Choisis un thème</h1>
+      <p class="sub">Six exerciseurs guidés pour maîtriser les statistiques. La calculatrice est disponible dans chaque thème.</p>
+      <div class="menu-grid" id="menuGrid"></div>
+    </div>
+
+    <!-- EXERCISE -->
+    <div id="screen-ex" class="screen">
+      <div class="ex-top">
+        <span class="ex-badge" id="exBadge">Thème</span>
+        <span class="ex-score" id="exScore">Question 1/8</span>
+      </div>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+      <div id="exBody"></div>
+      <div class="fb" id="fb"></div>
+      <div class="controls">
+        <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+        <button class="btn btn-blue"  id="btnCheck">Vérifier</button>
+        <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="screen-res" class="screen">
+      <h1>Résultats</h1>
+      <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+      <p class="rm" id="rm"></p>
+      <div class="controls">
+        <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+        <button class="btn btn-blue"  id="btnRetry">Recommencer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   NIVEAUX
+   ========================================================== */
+const LEVELS = [
+  { id: 'moy_simple',   icon: '➕', title: 'Moyenne simple',            desc: 'Calculer la moyenne d\'une série de valeurs en 2 étapes', n: 8 },
+  { id: 'moy_pond',     icon: '⚖️', title: 'Moyenne pondérée',          desc: 'Calculer la moyenne à partir d\'un tableau effectifs/valeurs', n: 8, badge: '🖩 Calc.' },
+  { id: 'mediane',      icon: '✂️', title: 'Médiane',                   desc: 'Trier, compter, et trouver la valeur qui coupe la série en deux', n: 8 },
+  { id: 'etendue',      icon: '↔️', title: 'Étendue',                   desc: 'Calculer l\'écart entre le maximum et le minimum', n: 8 },
+  { id: 'quartiles',    icon: '📦', title: 'Quartiles & boîte à moustaches', desc: 'Trouver Q1, Q3, EIQ et lire la boîte à moustaches', n: 7, badge: '🖩 Calc.' },
+  { id: 'ecart_type',   icon: '🌤️', title: 'Interprétation de l\'écart-type', desc: 'Lire un écart-type donné et caractériser la série', n: 8 },
+];
+
+let state = { levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false, attempts: 0 };
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[rnd(0, arr.length - 1)]; }
+
+function normNum(str) {
+    if (!str && str !== 0) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+function close(a, b, eps = 0.05) { return Math.abs(a - b) < eps; }
+
+function round2(x) { return Math.round(x * 100) / 100; }
+function round4(x) { return Math.round(x * 10000) / 10000; }
+
+function frFmt(x) {
+    const r = round2(x);
+    return String(r).replace('.', ',');
+}
+
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+/* quartile selon la méthode de la leçon :
+   rang = n/4 → si entier : moyenne rang et rang+1 ; sinon : ceil(rang) */
+function quartileQ1(sorted) {
+    const n = sorted.length;
+    const r = n / 4;
+    if (Number.isInteger(r)) return (sorted[r - 1] + sorted[r]) / 2;
+    return sorted[Math.ceil(r) - 1];
+}
+function quartileQ3(sorted) {
+    const n = sorted.length;
+    const r = 3 * n / 4;
+    if (Number.isInteger(r)) return (sorted[r - 1] + sorted[r]) / 2;
+    return sorted[Math.ceil(r) - 1];
+}
+function mediane(sorted) {
+    const n = sorted.length;
+    if (n % 2 === 1) return sorted[Math.floor(n / 2)];
+    return (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    var grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(function(lv) {
+        var el = document.createElement('div');
+        el.className = 'mc';
+        var badgeHTML = lv.badge ? '<div class="mc-badge">' + lv.badge + '</div>' : '';
+        el.innerHTML = badgeHTML
+            + '<div class="mc-icon">' + lv.icon + '</div>'
+            + '<div class="mc-t">' + lv.title + '</div>'
+            + '<div class="mc-d">' + lv.desc + '</div>';
+        el.addEventListener('click', (function(id){ return function(){ startLevel(id); }; })(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+/* ==========================================================
+   MOTEUR GENERIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS  = {};
+const CHECKERS   = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex  = 0;
+    state.score   = 0;
+    state.total   = lv.n;
+    state.questions = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked  = false;
+    state.attempts = 0;
+    const lv = LEVELS.find(l => l.id === state.levelId);
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb = document.getElementById('fb');
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        if (result.advanceOnly) {
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1400);
+            document.getElementById('btnNext').style.display = 'none';
+            return;
+        }
+        state.checked = true;
+        state.score++;
+        document.getElementById('btnCheck').style.display = 'none';
+        document.getElementById('btnNext').style.display = '';
+    } else {
+        state.attempts = (state.attempts || 0) + 1;
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || 'Ce n\'est pas tout à fait ça — réessaie !');
+        document.getElementById('btnNext').style.display = '';
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (!document.getElementById('screen-ex').classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none' && btnNext.offsetParent && state.checked) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `🎉 Excellent ! ${state.score}/${state.total} réussies. Tu maîtrises ce thème !`;
+    else if (pct >= 50) msg = `👍 ${state.score}/${state.total} réussies. C'est en bonne voie, continue !`;
+    else msg = `💪 ${state.score}/${state.total} réussies. Relis la méthode de la leçon et recommence !`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+/* ==========================================================
+   CALCULATRICE
+   ========================================================== */
+function calcHTML(id) {
+    return `
+    <button class="calc-toggle" id="calc-toggle-${id}" onclick="toggleCalc('${id}')">🔢 Afficher la calculatrice</button>
+    <div class="calc-container" id="calc-${id}">
+        <div class="calc-wrap">
+            <div class="calc-display" id="calc-disp-${id}">
+                <div class="calc-expr" id="calc-expr-${id}"></div>
+                <div id="calc-val-${id}">0</div>
+            </div>
+            <div class="calc-grid">
+                <button class="calc-btn calc-clear" onclick="cCalc('${id}','C')">C</button>
+                <button class="calc-btn calc-back"  onclick="cCalc('${id}','⌫')">⌫</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','(')">( )</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','/')">÷</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','7')">7</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','8')">8</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','9')">9</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','×')">×</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','4')">4</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','5')">5</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','6')">6</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','-')">−</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','1')">1</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','2')">2</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','3')">3</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','+')">+</button>
+                <button class="calc-btn calc-num calc-zero" onclick="cCalc('${id}','0')">0</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}',',')">.</button>
+                <button class="calc-btn calc-eq"    onclick="cCalc('${id}','=')">＝</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+const calcState = {};
+function toggleCalc(id) {
+    const c = document.getElementById('calc-' + id);
+    const btn = document.getElementById('calc-toggle-' + id);
+    const visible = c.classList.toggle('visible');
+    btn.textContent = visible ? '🔢 Masquer la calculatrice' : '🔢 Afficher la calculatrice';
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+}
+function cCalc(id, key) {
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+    const s = calcState[id];
+    const disp = document.getElementById('calc-val-' + id);
+    const exprEl = document.getElementById('calc-expr-' + id);
+    if (key === 'C') { s.expr = ''; s.result = '0'; s.fresh = true; }
+    else if (key === '⌫') {
+        if (s.fresh) { s.expr = ''; s.result = '0'; s.fresh = false; return; }
+        s.expr = s.expr.slice(0, -1);
+        if (!s.expr) s.result = '0';
+    } else if (key === '=') {
+        try {
+            let e = s.expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,/g, '.');
+            const v = Function('"use strict"; return (' + e + ')')();
+            s.result = isFinite(v) ? String(round4(v)).replace('.', ',') : 'Erreur';
+            exprEl.textContent = s.expr + ' =';
+            s.expr = s.result.replace(',', '.');
+            s.fresh = true;
+        } catch { s.result = 'Erreur'; }
+    } else if (['+', '-', '×', '÷', '/'].includes(key)) {
+        if (s.fresh) s.fresh = false;
+        s.expr += key; s.result = s.expr;
+    } else if (key === '( )') {
+        // toggle paren intelligently
+        const opens = (s.expr.match(/\(/g) || []).length;
+        const closes = (s.expr.match(/\)/g) || []).length;
+        if (s.fresh) { s.expr = key = '('; s.fresh = false; }
+        else { s.expr += opens > closes ? ')' : '('; }
+        s.result = s.expr;
+    } else {
+        if (s.fresh) { s.expr = key; s.fresh = false; }
+        else s.expr += key;
+        s.result = s.expr;
+    }
+    disp.textContent = s.result;
+    if (!s.fresh) exprEl.textContent = s.expr;
+}
+
+/* ==========================================================
+   HELPER : lockStep
+   ========================================================== */
+function lockStep(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('locked');
+    el.querySelectorAll('.answer-input').forEach(inp => {
+        inp.classList.remove('err');
+        inp.classList.add('ok');
+    });
+    const tag = el.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+}
+
+/* ==========================================================
+   SERIE VISUELLE
+   ========================================================== */
+function serieHTML(vals, classes) {
+    return vals.map((v, i) => `<div class="ball ${classes ? (classes[i] || 'unsorted') : 'unsorted'}">${v}</div>`).join('');
+}
+
+/* ==========================================================
+   NIVEAU 1 : MOYENNE SIMPLE
+   ========================================================== */
+const CONTEXTES_MOY = [
+    vals => `Un élève a obtenu ces notes lors des derniers contrôles : <strong>${vals.join(' · ')}</strong>.<br>Calcule sa <strong>moyenne</strong>.`,
+    vals => `Les températures relevées cette semaine (en °C) : <strong>${vals.join(' · ')}</strong>.<br>Quelle est la <strong>température moyenne</strong> ?`,
+    vals => `Temps de trajet (en minutes) sur ${vals.length} jours : <strong>${vals.join(' · ')}</strong>.<br>Calcule le <strong>temps moyen</strong>.`,
+    vals => `Scores obtenus à un jeu vidéo : <strong>${vals.join(' · ')}</strong>.<br>Quel est le <strong>score moyen</strong> ?`,
+    vals => `Hauteurs de plantes (en cm) : <strong>${vals.join(' · ')}</strong>.<br>Calcule la <strong>hauteur moyenne</strong>.`,
+];
+
+GENERATORS.moy_simple = function () {
+    const n = rnd(4, 7);
+    const vals = Array.from({ length: n }, () => rnd(4, 18));
+    const somme = vals.reduce((a, b) => a + b, 0);
+    const moy = round2(somme / n);
+    const ctx = pick(CONTEXTES_MOY)(vals);
+    return { vals, n, somme, moy, ctx };
+};
+
+RENDERERS.moy_simple = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">
+            📌 Méthode en 2 étapes :<br>
+            <strong>① Additionner</strong> toutes les valeurs &nbsp;·&nbsp; <strong>② Diviser</strong> par le nombre de valeurs
+        </div>
+        <div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx}</div>
+        <div class="step-block" id="step0">
+            <div class="step-tag">Étape 1 · Calcule la somme des ${q.n} valeurs</div>
+            <div class="row-inputs">
+                <span class="row-label">Somme =</span>
+                <input type="text" class="answer-input narrow" id="s0" placeholder="…" inputmode="decimal">
+            </div>
+        </div>
+        ${calcHTML('ms')}
+    `;
+    setTimeout(() => document.getElementById('s0')?.focus(), 60);
+};
+
+CHECKERS.moy_simple = function (q) {
+    const box = document.getElementById('exBody');
+    const done = box.querySelectorAll('.step-block.locked').length;
+
+    if (done === 0) {
+        const inp = document.getElementById('s0');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        if (v !== null && close(v, q.somme, 0.01)) {
+            inp.classList.add('ok');
+            lockStep('step0');
+            // ajouter étape 2
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            const calc = box.querySelector('.calc-toggle');
+            box.insertBefore(hr, calc);
+            const d = document.createElement('div'); d.className = 'step-block'; d.id = 'step1';
+            d.innerHTML = `
+                <div class="step-tag">Étape 2 · Divise la somme par ${q.n}</div>
+                <div class="row-inputs">
+                    <span class="row-label">${q.somme} ÷ ${q.n} =</span>
+                    <input type="text" class="answer-input narrow" id="s1" placeholder="…" inputmode="decimal">
+                </div>`;
+            box.insertBefore(d, calc);
+            setTimeout(() => document.getElementById('s1')?.focus(), 60);
+            return { ok: true, msg: `Somme = <strong>${q.somme}</strong>. Maintenant divise par ${q.n} !`, advanceOnly: true };
+        }
+        inp.classList.add('err');
+        return { ok: false, msg: 'Additionne bien chacune des ' + q.n + ' valeurs une par une.' };
+    }
+
+    const inp = document.getElementById('s1');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    if (v !== null && close(v, q.moy, 0.06)) {
+        inp.classList.add('ok');
+        return { ok: true, msg: `${q.somme} ÷ ${q.n} = <strong>${frFmt(q.moy)}</strong>. C'est la moyenne ! 🎉` };
+    }
+    inp.classList.add('err');
+    return { ok: false, msg: 'Divise la somme par ' + q.n + ' — utilise la calculatrice si besoin !' };
+};
+
+/* ==========================================================
+   NIVEAU 2 : MOYENNE PONDÉRÉE
+   ========================================================== */
+const CONTEXTES_POND = [
+    (vals, effs) => `Notes et effectifs d'une classe (${effs.reduce((a,b)=>a+b,0)} élèves) :`,
+    (vals, effs) => `Un sondage a recueilli les résultats suivants (${effs.reduce((a,b)=>a+b,0)} personnes interrogées) :`,
+    (vals, effs) => `Durées d'écran (h) et nombre d'élèves (total : ${effs.reduce((a,b)=>a+b,0)}) :`,
+];
+
+GENERATORS.moy_pond = function () {
+    const nVals = rnd(3, 5);
+    // générer des valeurs distinctes entre 4 et 18
+    const all = [];
+    for (let v = 4; v <= 18; v++) all.push(v);
+    const vals = shuffle(all).slice(0, nVals).sort((a, b) => a - b);
+    const effs = vals.map(() => rnd(2, 8));
+    const N = effs.reduce((a, b) => a + b, 0);
+    const produits = vals.map((v, i) => v * effs[i]);
+    const somme = produits.reduce((a, b) => a + b, 0);
+    const moy = round2(somme / N);
+    const ctx = pick(CONTEXTES_POND)(vals, effs);
+    return { vals, effs, N, produits, somme, moy, ctx };
+};
+
+RENDERERS.moy_pond = function (q, box) {
+    const thVals = q.vals.map(v => `<th>${v}</th>`).join('');
+    const tdEffs = q.effs.map(e => `<td>${e}</td>`).join('');
+    box.innerHTML = `
+        <div class="formula-remind">
+            📌 Moyenne pondérée :<br>
+            <strong>① Calculer chaque produit</strong> valeur × effectif<br>
+            <strong>② Additionner</strong> tous les produits<br>
+            <strong>③ Diviser</strong> par l'effectif total (${q.N})
+        </div>
+        <div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx}</div>
+        <table class="data-tbl" style="margin-bottom:16px;">
+            <tr><th class="lbl">Valeur</th>${thVals}</tr>
+            <tr><td class="lbl">Effectif</td>${tdEffs}</tr>
+        </table>
+        <div class="step-block" id="step0">
+            <div class="step-tag">Étape 1 · Calcule la somme de tous les (valeur × effectif)</div>
+            <p style="font-size:0.85em;color:var(--text-light);text-align:center;margin-bottom:10px;">
+                ${q.vals.map((v,i) => `(${v}×${q.effs[i]})`).join(' + ')} = ?
+            </p>
+            <div class="row-inputs">
+                <span class="row-label">Somme pondérée =</span>
+                <input type="text" class="answer-input narrow" id="sp0" placeholder="…" inputmode="decimal">
+            </div>
+        </div>
+        ${calcHTML('mp')}
+    `;
+    setTimeout(() => document.getElementById('sp0')?.focus(), 60);
+};
+
+CHECKERS.moy_pond = function (q) {
+    const box = document.getElementById('exBody');
+    const done = box.querySelectorAll('.step-block.locked').length;
+
+    if (done === 0) {
+        const inp = document.getElementById('sp0');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        if (v !== null && close(v, q.somme, 0.01)) {
+            inp.classList.add('ok');
+            lockStep('step0');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            const calc = box.querySelector('.calc-toggle');
+            box.insertBefore(hr, calc);
+            const d = document.createElement('div'); d.className = 'step-block'; d.id = 'step1';
+            d.innerHTML = `
+                <div class="step-tag">Étape 2 · Divise par l'effectif total (${q.N})</div>
+                <div class="row-inputs">
+                    <span class="row-label">${q.somme} ÷ ${q.N} =</span>
+                    <input type="text" class="answer-input narrow" id="sp1" placeholder="…" inputmode="decimal">
+                </div>`;
+            box.insertBefore(d, calc);
+            setTimeout(() => document.getElementById('sp1')?.focus(), 60);
+            const detail = q.produits.map((p, i) => `(${q.vals[i]}×${q.effs[i]}) = ${p}`).join(' · ');
+            return { ok: true, msg: `${detail} → somme = <strong>${q.somme}</strong>. Maintenant divise par ${q.N} !`, advanceOnly: true };
+        }
+        inp.classList.add('err');
+        const detail = q.vals.map((v, i) => `${v}×${q.effs[i]}=${q.produits[i]}`).join(' · ');
+        return { ok: false, msg: `Calcule chaque produit : ${detail}. Somme = <strong>${q.somme}</strong>.` };
+    }
+
+    const inp = document.getElementById('sp1');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    if (v !== null && close(v, q.moy, 0.06)) {
+        inp.classList.add('ok');
+        return { ok: true, msg: `${q.somme} ÷ ${q.N} = <strong>${frFmt(q.moy)}</strong>. C'est la moyenne pondérée ! 🎉` };
+    }
+    inp.classList.add('err');
+        return { ok: false, msg: 'Divise la somme pondérée par l\'effectif total (' + q.N + ') — utilise la calculatrice !' };
+};
+
+/* ==========================================================
+   NIVEAU 3 : MÉDIANE  (tri drag-and-drop + sélection valeur centrale)
+   ========================================================== */
+const CONTEXTES_MED = [
+    vals => `Un élève a obtenu ces notes : <strong>${vals.join(' · ')}</strong>.<br>Calcule la <strong>médiane</strong>.`,
+    vals => `Températures (°C) sur plusieurs jours : <strong>${vals.join(' · ')}</strong>.<br>Quelle est la <strong>médiane</strong> ?`,
+    vals => `Résultats d'un saut en longueur (cm) : <strong>${vals.join(' · ')}</strong>.<br>Trouve la <strong>médiane</strong>.`,
+    vals => `Messages envoyés par jour : <strong>${vals.join(' · ')}</strong>.<br>Calcule la <strong>médiane</strong>.`,
+    vals => `Âges (en ans) : <strong>${vals.join(' · ')}</strong>.<br>Quelle est la <strong>médiane</strong> des âges ?`,
+];
+
+GENERATORS.mediane = function () {
+    const n = rnd(5, 9);
+    var raw = Array.from({ length: n }, () => rnd(3, 20));
+    // ensure unique values for cleaner drag UX
+    var seen = {};
+    var vals = [];
+    raw.forEach(function(v){ if(!seen[v]){ seen[v]=true; vals.push(v); } });
+    while(vals.length < n) { var v=rnd(3,20); if(!seen[v]){seen[v]=true;vals.push(v);} }
+    vals = vals.slice(0,n);
+    const sorted = [...vals].sort((a, b) => a - b);
+    const me = mediane(sorted);
+    const isEven = n % 2 === 0;
+    const midLow  = isEven ? n / 2 - 1 : Math.floor(n / 2);
+    const midHigh = isEven ? n / 2     : Math.floor(n / 2);
+    const ctx = pick(CONTEXTES_MED)(vals);
+    return { vals, sorted, n, me, isEven, midLow, midHigh, ctx };
+};
+
+/* ── DRAG-TO-SORT ── */
+function makeSortZone(containerId, vals, onSorted) {
+    var srcEl  = document.getElementById(containerId + '-src');
+    var tgtEl  = document.getElementById(containerId + '-tgt');
+    var placed = [];   // valeurs dans la zone triée, dans l'ordre
+    var locked = false;
+    var ghost  = null;
+
+    /* ── ghost flottant ── */
+    function showGhost(v, x, y) {
+        if (!ghost) {
+            ghost = document.createElement('div');
+            ghost.className = 'sort-ghost';
+            document.body.appendChild(ghost);
+        }
+        ghost.textContent = v;
+        ghost.style.left = (x - 22) + 'px';
+        ghost.style.top  = (y - 22) + 'px';
+    }
+    function hideGhost() { if (ghost) { ghost.remove(); ghost = null; } }
+
+    /* ── calcule l'index d'insertion en fonction de la position X du curseur ──
+       On lit les rectangles des boules .target-ball actuellement dans le DOM.
+       On ignore la boule dont data-own="1" (celle qu'on est en train de déplacer). */
+    function insertionIndex(clientX) {
+        var balls = Array.from(tgtEl.querySelectorAll('.sort-ball.target-ball:not([data-own])'));
+        for (var i = 0; i < balls.length; i++) {
+            var r   = balls[i].getBoundingClientRect();
+            var mid = r.left + r.width / 2;
+            if (clientX < mid) return i;
+        }
+        return balls.length;
+    }
+
+    /* ── rendu de la zone source ── */
+    function renderSrc() {
+        srcEl.innerHTML = '';
+        vals.forEach(function(v) {
+            var used = placed.indexOf(v) !== -1;
+            var b = document.createElement('div');
+            b.className = 'sort-ball source-ball' + (used ? ' used' : '');
+            b.textContent = v;
+            if (!used && !locked) startDrag(b, v, true);
+            srcEl.appendChild(b);
+        });
+    }
+
+    /* ── rendu de la zone cible (sans indicateur — état stable) ── */
+    function renderTgt() {
+        tgtEl.innerHTML = '';
+        if (placed.length === 0) {
+            var ph = document.createElement('span');
+            ph.className = 'sort-target-placeholder';
+            ph.textContent = 'Glisse les nombres ici dans l\'ordre croissant ↓';
+            tgtEl.appendChild(ph);
+            return;
+        }
+        placed.forEach(function(v, i) {
+            var b = makeTgtBall(v, i);
+            tgtEl.appendChild(b);
+        });
+    }
+
+    /* ── rendu de la zone cible AVEC indicateur d'insertion ──
+       preview : tableau des valeurs à afficher (exclu la boule draggée si elle vient de la cible)
+       insertAt : index dans preview où mettre l'indicateur */
+    function renderTgtWithIndicator(preview, insertAt) {
+        tgtEl.innerHTML = '';
+        preview.forEach(function(v, i) {
+            if (i === insertAt) tgtEl.appendChild(makeIndicator());
+            var b = makeTgtBall(v, -1);   // -1 = pas d'events pendant le drag
+            tgtEl.appendChild(b);
+        });
+        if (insertAt === preview.length) tgtEl.appendChild(makeIndicator());
+        if (preview.length === 0 && insertAt === 0) tgtEl.appendChild(makeIndicator());
+    }
+
+    function makeIndicator() {
+        var d = document.createElement('div');
+        d.className = 'sort-drop-indicator';
+        return d;
+    }
+
+    function makeTgtBall(v, idx) {
+        var b = document.createElement('div');
+        b.className = 'sort-ball target-ball' + (locked ? ' sorted-ok' : '');
+        b.textContent = v;
+        if (!locked && idx >= 0) {
+            startDrag(b, v, false);
+            /* double-clic / double-tap → retirer */
+            var lastTap = 0;
+            b.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                if (locked) return;
+                placed.splice(placed.indexOf(v), 1);
+                tgtEl.classList.remove('validated');
+                renderSrc(); renderTgt();
+            });
+            b.addEventListener('touchend', function() {
+                var now = Date.now();
+                if (now - lastTap < 300) {
+                    if (locked) return;
+                    placed.splice(placed.indexOf(v), 1);
+                    tgtEl.classList.remove('validated');
+                    renderSrc(); renderTgt();
+                }
+                lastTap = now;
+            });
+        }
+        return b;
+    }
+
+    /* ── attacher le drag à une boule ── */
+    function startDrag(el, v, fromSrc) {
+        /* ── MOUSE ── */
+        el.addEventListener('mousedown', function(e) {
+            if (locked) return;
+            e.preventDefault();
+            el.classList.add('dragging-src');
+
+            /* snapshot de placed sans v si on vient de la cible */
+            var ownIdx   = fromSrc ? -1 : placed.indexOf(v);
+            var preview  = fromSrc ? placed.slice() : placed.filter(function(x){ return x !== v; });
+            var lastIdx  = null;
+
+            showGhost(v, e.clientX, e.clientY);
+            tgtEl.classList.add('drag-active');
+
+            function onMove(e2) {
+                showGhost(v, e2.clientX, e2.clientY);
+                var under = document.elementFromPoint(e2.clientX, e2.clientY);
+                var inTgt = tgtEl === under || tgtEl.contains(under);
+                if (inTgt) {
+                    /* marque la boule fantôme pour qu'elle soit ignorée dans insertionIndex */
+                    tgtEl.querySelectorAll('[data-own]').forEach(function(x){ x.removeAttribute('data-own'); });
+                    /* recalcule l'index en masquant temporairement la boule source */
+                    var idx = insertionIndex(e2.clientX);
+                    if (idx !== lastIdx) {
+                        lastIdx = idx;
+                        renderTgtWithIndicator(preview, idx);
+                    }
+                } else {
+                    if (lastIdx !== null) { lastIdx = null; renderTgt(); }
+                }
+            }
+
+            function onUp(e2) {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                el.classList.remove('dragging-src');
+                hideGhost();
+                tgtEl.classList.remove('drag-active');
+
+                var under = document.elementFromPoint(e2.clientX, e2.clientY);
+                var inTgt = tgtEl === under || tgtEl.contains(under);
+                if (inTgt && lastIdx !== null) {
+                    if (!fromSrc) placed.splice(ownIdx, 1);
+                    var realIdx = (!fromSrc && ownIdx < lastIdx) ? lastIdx - 1 : lastIdx;
+                    if (!fromSrc && ownIdx < lastIdx) realIdx = lastIdx - 1;
+                    else realIdx = lastIdx;
+                    placed.splice(realIdx, 0, v);
+                    checkSorted();
+                }
+                renderSrc(); renderTgt();
+            }
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+
+        /* ── TOUCH ── */
+        var touchState = null;
+        el.addEventListener('touchstart', function(e) {
+            if (locked) return;
+            var t = e.touches[0];
+            var ownIdx  = fromSrc ? -1 : placed.indexOf(v);
+            var preview = fromSrc ? placed.slice() : placed.filter(function(x){ return x !== v; });
+            touchState = { ownIdx: ownIdx, preview: preview, lastIdx: null };
+            el.classList.add('dragging-src');
+            showGhost(v, t.clientX, t.clientY);
+            tgtEl.classList.add('drag-active');
+        }, { passive: true });
+
+        el.addEventListener('touchmove', function(e) {
+            if (!touchState) return;
+            e.preventDefault();
+            var t = e.touches[0];
+            showGhost(v, t.clientX, t.clientY);
+            var under = document.elementFromPoint(t.clientX, t.clientY);
+            var inTgt = tgtEl === under || tgtEl.contains(under);
+            if (inTgt) {
+                var idx = insertionIndex(t.clientX);
+                if (idx !== touchState.lastIdx) {
+                    touchState.lastIdx = idx;
+                    renderTgtWithIndicator(touchState.preview, idx);
+                }
+            } else {
+                if (touchState.lastIdx !== null) { touchState.lastIdx = null; renderTgt(); }
+            }
+        }, { passive: false });
+
+        el.addEventListener('touchend', function(e) {
+            if (!touchState) return;
+            el.classList.remove('dragging-src');
+            hideGhost();
+            tgtEl.classList.remove('drag-active');
+            var ts = touchState; touchState = null;
+
+            var t = e.changedTouches[0];
+            var under = document.elementFromPoint(t.clientX, t.clientY);
+            var inTgt = tgtEl === under || tgtEl.contains(under);
+            if (inTgt && ts.lastIdx !== null) {
+                if (!fromSrc) placed.splice(ts.ownIdx, 1);
+                var realIdx = (!fromSrc && ts.ownIdx < ts.lastIdx) ? ts.lastIdx - 1 : ts.lastIdx;
+                placed.splice(realIdx, 0, v);
+                checkSorted();
+            }
+            renderSrc(); renderTgt();
+        }, { passive: true });
+    }
+
+    /* ── vérifie si la zone est triée ── */
+    function checkSorted() {
+        if (placed.length < vals.length) return;
+        var ok = placed.every(function(v, i){ return i === 0 || v >= placed[i-1]; });
+        if (ok) {
+            locked = true;
+            tgtEl.classList.add('validated');
+            if (onSorted) onSorted(placed);
+        }
+    }
+
+    renderSrc();
+    renderTgt();
+}
+
+/* ── helper: build select-balls zone for median/Q1/Q3 ── */
+/* mode: 'median' | 'q1' | 'q3'
+   maxPick: 1 or 2
+   onPick(selected_values_array) called each time selection changes */
+function makeSelZone(containerId, sorted, mode, maxPick, onPick) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = '';
+    var pickedClass = mode === 'q1' ? 'picked-q1' : mode === 'q3' ? 'picked-q3' : 'picked';
+    var selected = [];
+
+    sorted.forEach(function(v, i) {
+        var b = document.createElement('div');
+        b.className = 'sel-ball';
+        b.textContent = v;
+        b.dataset.idx = i;
+        b.addEventListener('click', function() {
+            if (b.classList.contains('locked-ok')) return;
+            var already = selected.indexOf(i);
+            if (already !== -1) {
+                // deselect
+                selected.splice(already, 1);
+                b.classList.remove(pickedClass);
+            } else {
+                if (selected.length >= maxPick) {
+                    // deselect oldest
+                    var old = selected.shift();
+                    var oldEl = container.querySelector('[data-idx="' + old + '"]');
+                    if (oldEl) oldEl.classList.remove(pickedClass);
+                }
+                selected.push(i);
+                b.classList.add(pickedClass);
+            }
+            if (onPick) onPick(selected.map(function(idx){ return sorted[idx]; }));
+        });
+        container.appendChild(b);
+    });
+}
+
+RENDERERS.mediane = function (q, box) {
+    box.innerHTML =
+        '<div class="formula-remind">' +
+            '📌 Méthode :<br>' +
+            '<strong>① Trier</strong> du plus petit au plus grand<br>' +
+            '<strong>② Repérer</strong> la ou les valeurs centrales<br>' +
+            '<strong>③ Lire</strong> la valeur (ou calculer la moyenne des 2 du milieu)' +
+        '</div>' +
+        '<div class="ctx-card"><span class="ctx-label">📝 Situation</span>' + q.ctx + '</div>' +
+        '<div class="step-block" id="step0">' +
+            '<div class="step-tag">Étape 1 · Trie les nombres du plus petit au plus grand</div>' +
+            '<p class="sort-hint">👇 Maintiens et glisse un nombre vers la zone bleue · Glisse entre deux boules pour insérer · Double-clic pour retirer</p>' +
+            '<div class="sort-areas">' +
+                '<div><div class="sort-label">Nombres à trier</div><div id="sort-me-src" class="sort-source"></div></div>' +
+                '<div><div class="sort-label">Série triée ↓</div><div id="sort-me-tgt" class="sort-target"></div></div>' +
+            '</div>' +
+            '<p id="sort-feedback-me" class="sort-hint" style="min-height:18px;"></p>' +
+        '</div>';
+
+    makeSortZone('sort-me', shuffle(q.vals), function(order) {
+        var fb = document.getElementById('sort-feedback-me');
+        fb.innerHTML = '<span style="color:var(--green);font-weight:700;">✓ Bien trié !</span>';
+    });
+};
+
+CHECKERS.mediane = function (q) {
+    var box = document.getElementById('exBody');
+    var done = box.querySelectorAll('.step-block.locked').length;
+
+    /* ── étape 0 : vérifier le tri ── */
+    if (done === 0) {
+        var tgtBalls = Array.from(document.querySelectorAll('#sort-me-tgt .sort-ball'));
+        var order = tgtBalls.map(function(b){ return parseFloat(b.textContent); });
+        if (order.length < q.n) {
+            return { ok: false, msg: 'Place tous les nombres dans la zone bleue dans le bon ordre.' };
+        }
+        var isSorted = order.every(function(v,i){ return i===0 || v >= order[i-1]; });
+        if (!isSorted) {
+            return { ok: false, msg: 'L\'ordre n\'est pas croissant. Retire les boules mal placées et recommence.' };
+        }
+        lockStep('step0');
+
+        var hr = document.createElement('hr'); hr.className = 'step-divider'; box.appendChild(hr);
+        var d = document.createElement('div'); d.className = 'step-block'; d.id = 'step1';
+        var hint = q.isEven
+            ? 'Il y a <strong>' + q.n + '</strong> valeurs (nombre <strong>pair</strong>) → clique sur les <strong>2 valeurs centrales</strong>.'
+            : 'Il y a <strong>' + q.n + '</strong> valeurs (nombre <strong>impair</strong>) → clique sur la <strong>valeur centrale</strong>.';
+        d.innerHTML =
+            '<div class="step-tag">Étape 2 · Clique sur la ou les valeur(s) centrale(s)</div>' +
+            '<p class="sel-info">' + hint + '</p>' +
+            '<div id="sel-zone-me" class="sel-zone"></div>' +
+            '<p id="sel-info-me" class="sel-info" style="min-height:18px;color:var(--purple)"></p>';
+        box.appendChild(d);
+
+        var maxPick = q.isEven ? 2 : 1;
+        makeSelZone('sel-zone-me', q.sorted, 'median', maxPick, function(vals) {
+            var info = document.getElementById('sel-info-me');
+            info.textContent = vals.length + '/' + maxPick + ' valeur(s) sélectionnée(s)';
+        });
+
+        return { ok: true, msg: 'Série triée ✓. Maintenant clique sur la valeur centrale dans la ligne bleue !', advanceOnly: true };
+    }
+
+    /* ── étape 1 : vérifier la sélection + calcul si pair ── */
+    if (done === 1) {
+        var balls1 = Array.from(document.querySelectorAll('#sel-zone-me .sel-ball.picked'));
+        var picked = balls1.map(function(b){ return parseFloat(b.textContent); }).sort(function(a,b){return a-b;});
+        var maxPick1 = q.isEven ? 2 : 1;
+
+        if (picked.length < maxPick1) {
+            return { ok: false, msg: 'Sélectionne ' + (q.isEven ? 'les 2 valeurs centrales' : 'la valeur centrale') + ' en cliquant dessus.' };
+        }
+
+        var correctPick = q.isEven
+            ? (picked.length === 2 && picked[0] === q.sorted[q.midLow] && picked[1] === q.sorted[q.midHigh])
+            : (picked.length === 1 && picked[0] === q.sorted[q.midLow]);
+
+        if (!correctPick) {
+            return { ok: false, msg: q.isEven
+                ? 'Ce ne sont pas les 2 valeurs centrales. Recompte les valeurs et repère celles du milieu.'
+                : 'Ce n\'est pas la valeur centrale. Recompte les valeurs et repère celle du milieu.' };
+        }
+
+        // Lock balls
+        document.querySelectorAll('#sel-zone-me .sel-ball').forEach(function(b){
+            b.classList.add('locked-ok');
+        });
+        lockStep('step1');
+
+        if (!q.isEven) {
+            // Impair : médiane directe
+            return { ok: true, msg: 'La valeur centrale est <strong>' + q.me + '</strong>. Médiane = <strong>' + frFmt(q.me) + '</strong> ! 🎉' };
+        }
+
+        // Pair : demander la moyenne
+        var hr2 = document.createElement('hr'); hr2.className = 'step-divider'; box.appendChild(hr2);
+        var d2 = document.createElement('div'); d2.className = 'step-block'; d2.id = 'step2';
+        d2.innerHTML =
+            '<div class="step-tag">Étape 3 · Calcule la moyenne des 2 valeurs centrales</div>' +
+            '<div class="row-inputs">' +
+                '<span class="row-label">(' + q.sorted[q.midLow] + ' + ' + q.sorted[q.midHigh] + ') ÷ 2 =</span>' +
+                '<input type="text" class="answer-input narrow" id="me-avg" placeholder="…" inputmode="decimal">' +
+            '</div>';
+        box.appendChild(d2);
+        setTimeout(function(){ var el=document.getElementById('me-avg'); if(el) el.focus(); }, 60);
+        return { ok: true, msg: 'Bonnes valeurs centrales (' + q.sorted[q.midLow] + ' et ' + q.sorted[q.midHigh] + ') ! Calcule leur moyenne.', advanceOnly: true };
+    }
+
+    /* ── étape 2 (pair) : vérifier la moyenne ── */
+    var inp = document.getElementById('me-avg');
+    var v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    if (v !== null && close(v, q.me, 0.06)) {
+        inp.classList.add('ok');
+        return { ok: true, msg: '(' + q.sorted[q.midLow] + ' + ' + q.sorted[q.midHigh] + ') ÷ 2 = <strong>' + frFmt(q.me) + '</strong>. Médiane = <strong>' + frFmt(q.me) + '</strong> ! 🎉' };
+    }
+    inp.classList.add('err');
+    return { ok: false, msg: 'Calcule (' + q.sorted[q.midLow] + ' + ' + q.sorted[q.midHigh] + ') ÷ 2 = <strong>' + frFmt(q.me) + '</strong>.' };
+};
+
+/* ==========================================================
+   NIVEAU 4 : ÉTENDUE
+   ========================================================== */
+const CONTEXTES_ET = [
+    vals => `Notes d'élèves : <strong>${vals.join(' · ')}</strong>.<br>Calcule l'<strong>étendue</strong> de cette série.`,
+    vals => `Températures (°C) cette semaine : <strong>${vals.join(' · ')}</strong>.<br>Quelle est l'<strong>étendue</strong> des températures ?`,
+    vals => `Vitesses (km/h) observées : <strong>${vals.join(' · ')}</strong>.<br>Calcule l'<strong>étendue</strong>.`,
+    vals => `Points marqués lors de matchs : <strong>${vals.join(' · ')}</strong>.<br>Quelle est l'<strong>étendue</strong> des scores ?`,
+    vals => `Tailles (cm) mesurées : <strong>${vals.join(' · ')}</strong>.<br>Calcule l'<strong>étendue</strong>.`,
+];
+
+GENERATORS.etendue = function () {
+    const n = rnd(5, 8);
+    const vals = Array.from({ length: n }, () => rnd(3, 20));
+    const mn = Math.min(...vals);
+    const mx = Math.max(...vals);
+    const et = mx - mn;
+    const ctx = pick(CONTEXTES_ET)(vals);
+    return { vals, mn, mx, et, ctx };
+};
+
+RENDERERS.etendue = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">
+            📌 Formule :<br>
+            <strong>Étendue = Valeur max − Valeur min</strong><br>
+            <em style="font-size:0.9em;">Pense à bien repérer le maximum et le minimum dans la série !</em>
+        </div>
+        <div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx}</div>
+        <div class="step-block" id="step0">
+            <div class="step-tag">Étape 1 · Repère le minimum et le maximum</div>
+            <div class="row-inputs">
+                <span class="row-label">Min =</span>
+                <input type="text" class="answer-input" style="width:80px" id="mn0" placeholder="…" inputmode="decimal">
+                <span class="row-label" style="margin-left:12px;">Max =</span>
+                <input type="text" class="answer-input" style="width:80px" id="mx0" placeholder="…" inputmode="decimal">
+            </div>
+        </div>
+    `;
+    setTimeout(() => document.getElementById('mn0')?.focus(), 60);
+};
+
+CHECKERS.etendue = function (q) {
+    const box = document.getElementById('exBody');
+    const done = box.querySelectorAll('.step-block.locked').length;
+
+    if (done === 0) {
+        const imn = document.getElementById('mn0'), imx = document.getElementById('mx0');
+        const vmn = normNum(imn.value), vmx = normNum(imx.value);
+        [imn, imx].forEach(i => i.classList.remove('ok', 'err'));
+        const okMn = vmn !== null && close(vmn, q.mn, 0.01);
+        const okMx = vmx !== null && close(vmx, q.mx, 0.01);
+        imn.classList.add(okMn ? 'ok' : 'err');
+        imx.classList.add(okMx ? 'ok' : 'err');
+        if (okMn && okMx) {
+            lockStep('step0');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.appendChild(hr);
+            const d = document.createElement('div'); d.className = 'step-block'; d.id = 'step1';
+            d.innerHTML = `
+                <div class="step-tag">Étape 2 · Calcule max − min</div>
+                <div class="row-inputs">
+                    <span class="row-label">${q.mx} − ${q.mn} =</span>
+                    <input type="text" class="answer-input narrow" id="et0" placeholder="…" inputmode="decimal">
+                </div>`;
+            box.appendChild(d);
+            setTimeout(() => document.getElementById('et0')?.focus(), 60);
+            return { ok: true, msg: `Min = <strong>${q.mn}</strong>, Max = <strong>${q.mx}</strong>. Maintenant calcule la différence !`, advanceOnly: true };
+        }
+        return { ok: false, msg: 'Repère bien la plus petite et la plus grande valeur dans la liste.' };
+    }
+
+    const inp = document.getElementById('et0');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    if (v !== null && close(v, q.et, 0.01)) {
+        inp.classList.add('ok');
+        return { ok: true, msg: `${q.mx} − ${q.mn} = <strong>${q.et}</strong>. L'étendue est <strong>${q.et}</strong> ! 🎉` };
+    }
+    inp.classList.add('err');
+            return { ok: false, msg: 'Soustraction : max − min. Repose le calcul !' };
+};
+
+/* ==========================================================
+   NIVEAU 5 : QUARTILES + BOÎTE À MOUSTACHES
+   (drag-to-sort + sélection interactive Q1/Me/Q3)
+   ========================================================== */
+const CONTEXTES_Q = [
+    vals => 'Notes de ' + vals.length + ' élèves : <strong>' + vals.join(' · ') + '</strong>.',
+    vals => "Durées d'écran (h) de " + vals.length + " personnes : <strong>" + vals.join(' · ') + "</strong>.",
+    vals => "Résultats d'une épreuve (" + vals.length + " valeurs) : <strong>" + vals.join(' · ') + "</strong>.",
+    vals => 'Temps de trajet (min) sur ' + vals.length + ' jours : <strong>' + vals.join(' · ') + '</strong>.',
+];
+
+GENERATORS.quartiles = function () {
+    var n = pick([8, 9, 10, 11, 12]);
+    // unique values
+    var seen = {}, vals = [];
+    while(vals.length < n){ var v=rnd(3,20); if(!seen[v]){seen[v]=true;vals.push(v);} }
+    vals.sort(function(a,b){return a-b;});
+    var mn = vals[0], mx = vals[n - 1];
+    var me = mediane(vals);
+    var q1 = quartileQ1(vals);
+    var q3 = quartileQ3(vals);
+    var eiq = round2(q3 - q1);
+    // pre-compute rank info
+    var rq1 = n / 4, rq3 = 3 * n / 4;
+    var q1IsInt = Number.isInteger(rq1);
+    var q3IsInt = Number.isInteger(rq3);
+    // indices (0-based) of values used for Q1 / Q3
+    var q1Idx = q1IsInt ? [rq1-1, rq1] : [Math.ceil(rq1)-1];
+    var q3Idx = q3IsInt ? [rq3-1, rq3] : [Math.ceil(rq3)-1];
+    // median indices
+    var isEvenMe = n % 2 === 0;
+    var meLow  = isEvenMe ? n/2-1 : Math.floor(n/2);
+    var meHigh = isEvenMe ? n/2   : Math.floor(n/2);
+    var shuffled = shuffle([...vals]);
+    var ctx = pick(CONTEXTES_Q)(vals);
+    return { vals, shuffled, n, mn, mx, me, q1, q3, eiq,
+             rq1, rq3, q1IsInt, q3IsInt, q1Idx, q3Idx,
+             isEvenMe, meLow, meHigh, ctx };
+};
+
+function drawBoxplot(mn, q1, me, q3, mx) {
+    const W = 560, H = 110, axY = 80, pad = 50;
+    const range = mx - mn || 1;
+    const toX = v => pad + ((v - mn) / range) * (W - 2 * pad);
+    const xMn = toX(mn), xQ1 = toX(q1), xMe = toX(me), xQ3 = toX(q3), xMx = toX(mx);
+    // tick labels
+    const labels = [
+        { x: xMn, v: mn, c: '#1a6fa0' },
+        { x: xQ1, v: `Q1=${frFmt(q1)}`, c: '#1b7a40' },
+        { x: xMe, v: `Me=${frFmt(me)}`, c: '#c0392b' },
+        { x: xQ3, v: `Q3=${frFmt(q3)}`, c: '#6b3fa0' },
+        { x: xMx, v: mx, c: '#b85c0b' },
+    ];
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;font-family:'DM Sans',sans-serif;">
+  <!-- axe -->
+  <line x1="${pad}" y1="${axY}" x2="${W - pad}" y2="${axY}" stroke="#8a8380" stroke-width="1.5"/>
+  <!-- moustaches -->
+  <line x1="${xMn}" y1="${axY}" x2="${xQ1}" y2="${axY}" stroke="#1a6fa0" stroke-width="2.5"/>
+  <line x1="${xQ3}" y1="${axY}" x2="${xMx}" y2="${axY}" stroke="#b85c0b" stroke-width="2.5"/>
+  <!-- barres min/max -->
+  <line x1="${xMn}" y1="${axY - 14}" x2="${xMn}" y2="${axY + 14}" stroke="#1a6fa0" stroke-width="2.5"/>
+  <line x1="${xMx}" y1="${axY - 14}" x2="${xMx}" y2="${axY + 14}" stroke="#b85c0b" stroke-width="2.5"/>
+  <!-- boite -->
+  <rect x="${xQ1}" y="${axY - 20}" width="${xQ3 - xQ1}" height="40" fill="#f0f4ff" stroke="#6b3fa0" stroke-width="2.5" rx="3"/>
+  <!-- médiane -->
+  <line x1="${xMe}" y1="${axY - 20}" x2="${xMe}" y2="${axY + 20}" stroke="#c0392b" stroke-width="3.5"/>
+  <!-- labels -->
+  ${labels.map(l => `<text x="${l.x}" y="${axY - 28}" text-anchor="middle" font-size="11" font-weight="700" fill="${l.c}">${l.v}</text>`).join('\n  ')}
+</svg>`;
+}
+
+RENDERERS.quartiles = function (q, box) {
+    box.innerHTML =
+        '<div class="formula-remind">' +
+            '📌 Rappel méthode :<br>' +
+            'Q1 → rang = n÷4 : valeur au rang k (méthode française) ; si non entier → rang arrondi au-dessus.<br>' +
+            'Q3 → même principe avec rang = 3n÷4.' +
+        '</div>' +
+        '<div class="ctx-card"><span class="ctx-label">📝 Situation</span>' + q.ctx + '</div>' +
+        '<div class="step-block" id="step0">' +
+            '<div class="step-tag">Étape 1 · Trie les nombres du plus petit au plus grand</div>' +
+            '<p class="sort-hint">👇 Maintiens et glisse un nombre vers la zone bleue · Glisse entre deux boules pour insérer · Double-clic pour retirer</p>' +
+            '<div class="sort-areas">' +
+                '<div><div class="sort-label">Nombres à trier</div><div id="sort-qt-src" class="sort-source"></div></div>' +
+                '<div><div class="sort-label">Série triée ↓</div><div id="sort-qt-tgt" class="sort-target"></div></div>' +
+            '</div>' +
+            '<p id="sort-feedback-qt" class="sort-hint" style="min-height:18px;"></p>' +
+        '</div>' +
+        calcHTML('qt');
+
+    makeSortZone('sort-qt', q.shuffled, function(order) {
+        var fb = document.getElementById('sort-feedback-qt');
+        fb.innerHTML = '<span style="color:var(--green);font-weight:700;">✓ Bien trié !</span>';
+    });
+};
+
+/* helper: add a selection step for Q1 or Q3 */
+function addQSelStep(q, box, calc, stepId, mode) {
+    var hr = document.createElement('hr'); hr.className = 'step-divider';
+    box.insertBefore(hr, calc);
+    var d = document.createElement('div'); d.className = 'step-block'; d.id = stepId;
+
+    var isQ1 = (mode === 'q1');
+    var pct   = isQ1 ? 25 : 75;
+    var label = isQ1 ? 'Q1 (1er quartile)' : 'Q3 (3ème quartile)';
+    var rk    = isQ1 ? q.rq1 : q.rq3;
+    var isInt = isQ1 ? q.q1IsInt : q.q3IsInt;
+    var maxP  = isInt ? 2 : 1;
+
+    d.innerHTML =
+        '<div class="step-tag">Sélectionne ' + (isQ1 ? 'le premier quartile Q1' : 'le troisième quartile Q3') + '</div>' +
+        '<div id="sel-zone-' + mode + '" class="sel-zone"></div>' +
+        '<p id="sel-info-' + mode + '" class="sel-info" style="min-height:18px;color:var(--purple)"></p>';
+
+    box.insertBefore(d, calc);
+
+    makeSelZone('sel-zone-' + mode, q.vals, mode, maxP, function(vals) {
+        var info = document.getElementById('sel-info-' + mode);
+        if (vals.length > 0) {
+            info.innerHTML = 'Sélection : <strong>' + vals.join('</strong> et <strong>') + '</strong>';
+        } else { info.textContent = ''; }
+    });
+}
+
+/* helper: add avg-input step for Q1 or Q3 when 2 values needed */
+function addQAvgStep(q, box, calc, stepId, mode) {
+    var hr = document.createElement('hr'); hr.className = 'step-divider';
+    box.insertBefore(hr, calc);
+    var d = document.createElement('div'); d.className = 'step-block'; d.id = stepId;
+    var isQ1 = (mode === 'q1');
+    var idxArr = isQ1 ? q.q1Idx : q.q3Idx;
+    var v0 = q.vals[idxArr[0]], v1 = q.vals[idxArr[1]];
+    var label = isQ1 ? 'Q1' : 'Q3';
+    d.innerHTML =
+        '<div class="step-tag">Calcule la moyenne des 2 valeurs sélectionnées → ' + label + '</div>' +
+        '<div class="row-inputs">' +
+            '<span class="row-label">(' + v0 + ' + ' + v1 + ') ÷ 2 =</span>' +
+            '<input type="text" class="answer-input narrow" id="avg-' + mode + '" placeholder="…" inputmode="decimal">' +
+        '</div>';
+    box.insertBefore(d, calc);
+    setTimeout(function(){ var el=document.getElementById('avg-'+mode); if(el) el.focus(); }, 60);
+}
+
+CHECKERS.quartiles = function (q) {
+    var box  = document.getElementById('exBody');
+    var done = box.querySelectorAll('.step-block.locked').length;
+    var calc = box.querySelector('.calc-toggle');
+
+    /* ── 0: tri ── */
+    if (done === 0) {
+        var tgtBalls = Array.from(document.querySelectorAll('#sort-qt-tgt .sort-ball'));
+        var order = tgtBalls.map(function(b){ return parseFloat(b.textContent); });
+        if (order.length < q.n) {
+            return { ok: false, msg: 'Place tous les nombres dans la zone bleue dans le bon ordre.' };
+        }
+        if (!order.every(function(v,i){ return i===0||v>=order[i-1]; })) {
+            return { ok: false, msg: 'L\'ordre n\'est pas croissant. Retire les boules mal placées et recommence.' };
+        }
+        lockStep('step0');
+
+        /* Étape 1a : sélection médiane */
+        var hr = document.createElement('hr'); hr.className = 'step-divider'; box.insertBefore(hr, calc);
+        var d = document.createElement('div'); d.className = 'step-block'; d.id = 'step1';
+        var hint = q.isEvenMe
+            ? 'Il y a <strong>' + q.n + '</strong> valeurs (nombre <strong>pair</strong>) → clique sur les <strong>2 valeurs centrales</strong>.'
+            : 'Il y a <strong>' + q.n + '</strong> valeurs (nombre <strong>impair</strong>) → clique sur la <strong>valeur centrale</strong>.';
+        d.innerHTML =
+            '<div class="step-tag">Étape 1 · Trouve la médiane — clique sur la ou les valeur(s) centrale(s)</div>' +
+            '<p class="sel-info">' + hint + '</p>' +
+            '<div id="sel-zone-me" class="sel-zone"></div>' +
+            '<p id="sel-info-me" class="sel-info" style="min-height:18px;color:var(--purple)"></p>';
+        box.insertBefore(d, calc);
+        makeSelZone('sel-zone-me', q.vals, 'median', q.isEvenMe ? 2 : 1, function(vals) {
+            var info = document.getElementById('sel-info-me');
+            info.innerHTML = vals.length ? 'Sélection : <strong>' + vals.join('</strong> et <strong>') + '</strong>' : '';
+        });
+        return { ok: true, msg: 'Série triée ✓. Maintenant identifie la médiane en cliquant sur la/les valeur(s) centrale(s) !', advanceOnly: true };
+    }
+
+    /* ── 1: vérif sélection médiane ── */
+    if (done === 1) {
+        var maxPMe = q.isEvenMe ? 2 : 1;
+        var balls1 = Array.from(document.querySelectorAll('#sel-zone-me .sel-ball.picked'));
+        var picked1 = balls1.map(function(b){ return parseFloat(b.textContent); }).sort(function(a,b){return a-b;});
+        if (picked1.length < maxPMe) {
+            return { ok: false, msg: "Sélectionne " + (q.isEvenMe ? "les 2 valeurs centrales" : "la valeur centrale") + "." };
+        }
+        var okMe = q.isEvenMe
+            ? (picked1[0] === q.vals[q.meLow] && picked1[1] === q.vals[q.meHigh])
+            : (picked1[0] === q.vals[q.meLow]);
+        if (!okMe) {
+            return { ok: false, msg: 'Ce ne sont pas les bonnes valeurs centrales. Recompte bien les valeurs et repère celles du milieu.' };
+        }
+        document.querySelectorAll('#sel-zone-me .sel-ball').forEach(function(b){ b.classList.add('locked-ok'); });
+        lockStep('step1');
+
+        if (!q.isEvenMe) {
+            /* médiane directe — afficher résultat puis passer à Q1 */
+            var hr2 = document.createElement('hr'); hr2.className = 'step-divider'; box.insertBefore(hr2, calc);
+            var inf = document.createElement('p');
+            inf.className = 'sel-info';
+            inf.style.color = 'var(--green)'; inf.style.fontWeight = '700';
+            inf.innerHTML = 'Médiane = <strong>' + frFmt(q.me) + '</strong> ✓';
+            box.insertBefore(inf, calc);
+            /* Étape 2a: question rang Q1 */
+            var hr3 = document.createElement('hr'); hr3.className = 'step-divider'; box.insertBefore(hr3, calc);
+            var d2 = document.createElement('div'); d2.className = 'step-block'; d2.id = 'step2';
+            d2.innerHTML =
+                '<div class="step-tag">Étape 2 · Premier quartile Q1 — Combien font 25 % de ' + q.n + ' valeurs ?</div>' +
+                '<p class="sel-info">Rappel : Q1 correspond au rang n ÷ 4 dans la série triée.</p>' +
+                '<div class="row-inputs">' +
+                    '<span class="row-label">25 % de ' + q.n + ' =</span>' +
+                    '<input type="text" class="answer-input narrow" id="rk-q1" placeholder="…" inputmode="decimal">' +
+                '</div>';
+            box.insertBefore(d2, calc);
+            setTimeout(function(){ var el=document.getElementById('rk-q1'); if(el) el.focus(); }, 60);
+            return { ok: true, msg: 'Médiane = <strong>' + frFmt(q.me) + '</strong> ✓. Passons au premier quartile Q1 !', advanceOnly: true };
+        } else {
+            /* médiane par moyenne → demander le calcul */
+            var hr2b = document.createElement('hr'); hr2b.className = 'step-divider'; box.insertBefore(hr2b, calc);
+            var d2b = document.createElement('div'); d2b.className = 'step-block'; d2b.id = 'step2';
+            d2b.innerHTML =
+                '<div class="step-tag">Calcule la moyenne des 2 valeurs centrales → Médiane</div>' +
+                '<div class="row-inputs">' +
+                    '<span class="row-label">(' + q.vals[q.meLow] + ' + ' + q.vals[q.meHigh] + ') ÷ 2 =</span>' +
+                    '<input type="text" class="answer-input narrow" id="me-avg-qt" placeholder="…" inputmode="decimal">' +
+                '</div>';
+            box.insertBefore(d2b, calc);
+            setTimeout(function(){ var el=document.getElementById('me-avg-qt'); if(el) el.focus(); }, 60);
+            return { ok: true, msg: 'Bonnes valeurs centrales ! Calcule leur moyenne pour obtenir la médiane.', advanceOnly: true };
+        }
+    }
+
+    /* ── 2: médiane pair → vérif avg ── */
+    if (done === 2 && q.isEvenMe && document.getElementById('me-avg-qt')) {
+        var inp2 = document.getElementById('me-avg-qt');
+        var v2 = normNum(inp2.value);
+        inp2.classList.remove('ok','err');
+        if (v2 === null || !close(v2, q.me, 0.06)) {
+            inp2.classList.add('err');
+            return { ok: false, msg: '(' + q.vals[q.meLow] + ' + ' + q.vals[q.meHigh] + ') ÷ 2 = <strong>' + frFmt(q.me) + '</strong>.' };
+        }
+        inp2.classList.add('ok');
+        lockStep('step2');
+        /* afficher médiane puis passer à Q1 */
+        var inf2 = document.createElement('p');
+        inf2.className = 'sel-info'; inf2.style.color='var(--green)'; inf2.style.fontWeight='700';
+        inf2.innerHTML = 'Médiane = <strong>' + frFmt(q.me) + '</strong> ✓';
+        box.insertBefore(inf2, calc);
+
+        var hr4 = document.createElement('hr'); hr4.className = 'step-divider'; box.insertBefore(hr4, calc);
+        var d3 = document.createElement('div'); d3.className = 'step-block'; d3.id = 'step3';
+        d3.innerHTML =
+            '<div class="step-tag">Étape 2 · Premier quartile Q1 — Combien font 25 % de ' + q.n + ' valeurs ?</div>' +
+                '<p class="sel-info">Rappel : Q1 correspond au rang n ÷ 4 dans la série triée.</p>' +
+            '<div class="row-inputs">' +
+                '<span class="row-label">25 % de ' + q.n + ' =</span>' +
+                '<input type="text" class="answer-input narrow" id="rk-q1" placeholder="…" inputmode="decimal">' +
+            '</div>';
+        box.insertBefore(d3, calc);
+        setTimeout(function(){ var el=document.getElementById('rk-q1'); if(el) el.focus(); }, 60);
+        return { ok: true, msg: 'Médiane = <strong>' + frFmt(q.me) + '</strong> ✓. Passons au premier quartile Q1 !', advanceOnly: true };
+    }
+
+    /* ── rang Q1 ── */
+    if (document.getElementById('rk-q1') && !document.getElementById('sel-zone-q1')) {
+        var inp3 = document.getElementById('rk-q1');
+        var v3 = normNum(inp3.value);
+        inp3.classList.remove('ok','err');
+        if (v3 === null || !close(v3, q.rq1, 0.01)) {
+            inp3.classList.add('err');
+            return { ok: false, msg: 'Calcule n ÷ 4 avec n = ' + q.n + '. Attention : le résultat peut être décimal !' };
+        }
+        inp3.classList.add('ok');
+        var parentStep3 = inp3.closest('.step-block');
+        if (parentStep3) {
+            parentStep3.querySelectorAll('input').forEach(function(i){ i.classList.add('ok'); });
+            lockStep(parentStep3.id);
+        }
+        addQSelStep(q, box, calc, 'step-q1-sel', 'q1');
+        return { ok: true, msg: 'Bon calcul ✓. Maintenant sélectionne la valeur correspondante dans la série.', advanceOnly: true };
+    }
+
+    /* ── sélection Q1 ── */
+    if (document.getElementById('sel-zone-q1') && !document.getElementById('rk-q3')) {
+        var ballsQ1 = Array.from(document.querySelectorAll('#sel-zone-q1 .sel-ball.picked-q1'));
+        var pickQ1  = ballsQ1.map(function(b){ return parseFloat(b.textContent); });
+        if (pickQ1.length < 1) {
+            return { ok: false, msg: 'Clique sur la valeur correspondant au rang n÷4.' };
+        }
+        var correctQ1 = (pickQ1.length === 1 && pickQ1[0] === q.vals[q.q1Idx[0]]);
+        if (!correctQ1) {
+            return { ok: false, msg: 'Ce n\'est pas la bonne valeur. Retrouve le bon rang et sélectionne la valeur correspondante.' };
+        }
+        document.querySelectorAll('#sel-zone-q1 .sel-ball').forEach(function(b){ b.classList.add('locked-ok'); });
+        lockStep('step-q1-sel');
+        var infQ1 = document.createElement('p');
+        infQ1.className = 'sel-info'; infQ1.style.color = 'var(--green)'; infQ1.style.fontWeight = '700';
+        infQ1.innerHTML = 'Q1 = <strong>' + frFmt(q.q1) + '</strong> ✓';
+        box.insertBefore(infQ1, calc);
+        addRkQ3Step(q, box, calc);
+        return { ok: true, msg: 'Q1 = <strong>' + frFmt(q.q1) + '</strong> ✓. Passons au troisième quartile Q3 !', advanceOnly: true };
+    }
+
+    /* ── rang Q3 ── */
+    if (document.getElementById('rk-q3') && !document.getElementById('sel-zone-q3')) {
+        var inpQ3r = document.getElementById('rk-q3');
+        var vQ3r = normNum(inpQ3r.value);
+        inpQ3r.classList.remove('ok','err');
+        if (vQ3r === null || !close(vQ3r, q.rq3, 0.01)) {
+            inpQ3r.classList.add('err');
+            return { ok: false, msg: 'Calcule 3×n ÷ 4 avec n = ' + q.n + '. Attention : le résultat peut être décimal !' };
+        }
+        inpQ3r.classList.add('ok');
+        var parentStepQ3r = inpQ3r.closest('.step-block');
+        if (parentStepQ3r) { lockStep(parentStepQ3r.id); }
+        addQSelStep(q, box, calc, 'step-q3-sel', 'q3');
+        return { ok: true, msg: 'Bon calcul ✓. Maintenant sélectionne la valeur correspondante dans la série.', advanceOnly: true };
+    }
+
+    /* ── sélection Q3 ── */
+    if (document.getElementById('sel-zone-q3') && !document.getElementById('q_eiq')) {
+        var ballsQ3 = Array.from(document.querySelectorAll('#sel-zone-q3 .sel-ball.picked-q3'));
+        var pickQ3  = ballsQ3.map(function(b){ return parseFloat(b.textContent); });
+        if (pickQ3.length < 1) {
+            return { ok: false, msg: 'Clique sur la valeur correspondant au rang 3n÷4.' };
+        }
+        var correctQ3 = (pickQ3.length === 1 && pickQ3[0] === q.vals[q.q3Idx[0]]);
+        if (!correctQ3) {
+            return { ok: false, msg: 'Ce n\'est pas la bonne valeur. Retrouve le bon rang et sélectionne la valeur correspondante.' };
+        }
+        document.querySelectorAll('#sel-zone-q3 .sel-ball').forEach(function(b){ b.classList.add('locked-ok'); });
+        lockStep('step-q3-sel');
+        var infQ3 = document.createElement('p');
+        infQ3.className = 'sel-info'; infQ3.style.color = 'var(--purple)'; infQ3.style.fontWeight = '700';
+        infQ3.innerHTML = 'Q3 = <strong>' + frFmt(q.q3) + '</strong> ✓';
+        box.insertBefore(infQ3, calc);
+        addEiqStep(q, box, calc);
+        return { ok: true, msg: 'Q3 = <strong>' + frFmt(q.q3) + '</strong> ✓. Dernière étape : l\'écart interquartile !', advanceOnly: true };
+    }
+
+    /* ── EIQ ── */
+    if (document.getElementById('q_eiq')) {
+        var inpEiq = document.getElementById('q_eiq');
+        var vEiq = normNum(inpEiq.value);
+        inpEiq.classList.remove('ok','err');
+        if (vEiq === null || !close(vEiq, q.eiq, 0.06)) {
+            inpEiq.classList.add('err');
+            return { ok: false, msg: 'EIQ = Q3 − Q1 = ' + frFmt(q.q3) + ' − ' + frFmt(q.q1) + ' = <strong>' + frFmt(q.eiq) + '</strong>.' };
+        }
+        inpEiq.classList.add('ok');
+        lockStep('step-eiq');
+        var bpDiv = document.createElement('div');
+        bpDiv.className = 'boxplot-area';
+        bpDiv.innerHTML =
+            '<div class="boxplot-title">📦 Boîte à moustaches</div>' +
+            drawBoxplot(q.mn, q.q1, q.me, q.q3, q.mx) +
+            '<p style="font-size:0.82em;color:var(--text-light);text-align:center;margin-top:8px;">' +
+                'Min=' + q.mn + ' · Q1=' + frFmt(q.q1) + ' · Me=' + frFmt(q.me) + ' · Q3=' + frFmt(q.q3) + ' · Max=' + q.mx + '<br>' +
+                'La boîte (en violet) contient les 50 % centraux de la série.' +
+            '</p>';
+        box.insertBefore(bpDiv, calc);
+        return { ok: true, msg: 'EIQ = ' + frFmt(q.q3) + ' − ' + frFmt(q.q1) + ' = <strong>' + frFmt(q.eiq) + '</strong>. Voici la boîte à moustaches ! 🎉' };
+    }
+
+    return { ok: false, msg: 'Complète l\'étape en cours.' };
+};
+
+function addRkQ3Step(q, box, calc) {
+    var hr = document.createElement('hr'); hr.className = 'step-divider'; box.insertBefore(hr, calc);
+    var d = document.createElement('div'); d.className = 'step-block'; d.id = 'step-rk-q3';
+    d.innerHTML =
+        '<div class="step-tag">Étape 3 · Troisième quartile Q3 — Combien font 75 % de ' + q.n + ' valeurs ?</div>' +
+                '<p class="sel-info">Rappel : Q3 correspond au rang 3n ÷ 4 dans la série triée.</p>' +
+        '<div class="row-inputs">' +
+            '<span class="row-label">75 % de ' + q.n + ' =</span>' +
+            '<input type="text" class="answer-input narrow" id="rk-q3" placeholder="…" inputmode="decimal">' +
+        '</div>';
+    box.insertBefore(d, calc);
+    setTimeout(function(){ var el=document.getElementById('rk-q3'); if(el) el.focus(); }, 60);
+}
+
+function addEiqStep(q, box, calc) {
+    var hr = document.createElement('hr'); hr.className = 'step-divider'; box.insertBefore(hr, calc);
+    var d = document.createElement('div'); d.className = 'step-block'; d.id = 'step-eiq';
+    d.innerHTML =
+        '<div class="step-tag">Étape 4 · Écart interquartile = Q3 − Q1</div>' +
+        '<div class="row-inputs">' +
+            '<span class="row-label">' + frFmt(q.q3) + ' − ' + frFmt(q.q1) + ' =</span>' +
+            '<input type="text" class="answer-input narrow" id="q_eiq" placeholder="…" inputmode="decimal">' +
+        '</div>';
+    box.insertBefore(d, calc);
+    setTimeout(function(){ var el=document.getElementById('q_eiq'); if(el) el.focus(); }, 60);
+}
+
+/* ==========================================================
+   NIVEAU 6 : INTERPRÉTATION ÉCART-TYPE
+   ========================================================== */
+const SCENARIOS_ET = [
+    () => {
+        const moy = rnd(9, 13), et1 = round2(rnd(1, 4) * 0.5), et2 = round2(rnd(8, 16) * 0.5);
+        return {
+            titre: 'Deux classes, même contrôle',
+            ctx: `Deux classes ont passé le même contrôle de maths.<br>
+                  <strong>Classe A</strong> : moyenne = ${moy}/20, écart-type ≈ ${frFmt(et1)}<br>
+                  <strong>Classe B</strong> : moyenne = ${moy}/20, écart-type ≈ ${frFmt(et2)}`,
+            question: 'Quelle classe est la plus <strong>homogène</strong> ?',
+            choices: ['Classe A', 'Classe B', 'Elles sont pareilles'],
+            good: 0, // Classe A a le plus petit écart-type
+            expl: `L'écart-type de la Classe A (${frFmt(et1)}) est plus petit → ses élèves sont plus proches de la moyenne. C'est la classe la plus homogène.`
+        };
+    },
+    () => {
+        const et = round2(rnd(1, 3) * 0.5);
+        return {
+            titre: 'Interprétation météo',
+            ctx: `Résultats d'un groupe : moyenne = 11/20, écart-type ≈ ${frFmt(et)}.`,
+            question: 'Comment qualifier la dispersion des résultats ?',
+            choices: ['Très homogène (☀️)', 'Très hétérogène (⛈️)', 'Impossible à dire'],
+            good: 0,
+            expl: `Un écart-type de ${frFmt(et)} est faible : les notes sont serrées autour de la moyenne. La classe est très homogène (météo ensoleillée ☀️).`
+        };
+    },
+    () => {
+        const et = round2(rnd(5, 8) * 0.5);
+        return {
+            titre: 'Interprétation météo',
+            ctx: `Résultats d'un groupe : moyenne = 11/20, écart-type ≈ ${frFmt(et)}.`,
+            question: 'Comment qualifier la dispersion des résultats ?',
+            choices: ['Très homogène (☀️)', 'Très hétérogène (⛈️)', 'Impossible à dire'],
+            good: 1,
+            expl: `Un écart-type de ${frFmt(et)} est élevé : les notes sont très éparpillées autour de la moyenne. La classe est hétérogène (orage ⛈️).`
+        };
+    },
+    () => {
+        const et1 = round2(rnd(3, 6) * 0.5), et2 = round2(rnd(1, 3) * 0.5);
+        const moy = rnd(8, 14);
+        return {
+            titre: 'Deux usines',
+            ctx: `Deux usines produisent des pièces. Les durées de vie (en heures) ont :<br>
+                  <strong>Usine A</strong> : moyenne = ${moy * 10} h, écart-type ≈ ${et1 * 10}<br>
+                  <strong>Usine B</strong> : moyenne = ${moy * 10} h, écart-type ≈ ${et2 * 10}`,
+            question: 'Quelle usine produit des pièces dont la qualité est la plus <strong>régulière</strong> ?',
+            choices: ['Usine A', 'Usine B', 'Identique'],
+            good: 1,
+            expl: `L'usine B a un écart-type de ${et2 * 10}, plus petit que celui de l'usine A (${et1 * 10}). Ses pièces sont plus uniformes → meilleure régularité.`
+        };
+    },
+    () => {
+        const et = round2(rnd(4, 7) * 0.5);
+        return {
+            titre: 'Salaires dans une entreprise',
+            ctx: `Salaires dans une entreprise : moyenne = 2 400 €, écart-type ≈ ${et * 100} €.`,
+            question: 'Que peut-on dire de la distribution des salaires ?',
+            choices: [
+                'Tous les salaires sont proches de 2 400 €',
+                "Les salaires sont très variés (certains bien au-dessus, d'autres bien en dessous)",
+                'L\'écart-type ne dit rien sur les salaires'
+            ],
+            good: 1,
+            expl: `Un écart-type de ${et * 100} € est élevé par rapport à la moyenne. Cela signifie que les salaires sont très dispersés autour de 2 400 €.`
+        };
+    },
+    () => {
+        return {
+            titre: 'Lecture d\'un écart-type nul',
+            ctx: `Dans une classe, toutes les notes sont <strong>11/20</strong>. L'écart-type est exactement <strong>0</strong>.`,
+            question: 'Que signifie un écart-type égal à 0 ?',
+            choices: [
+                'La moyenne n\'a pas pu être calculée',
+                'Toutes les valeurs sont identiques (aucune dispersion)',
+                'La série est symétrique'
+            ],
+            good: 1,
+            expl: `Écart-type = 0 signifie qu'il n'y a aucune dispersion : toutes les valeurs sont exactement égales à la moyenne.`
+        };
+    },
+    () => {
+        const et1 = 0.8, et2 = 6.2;
+        return {
+            titre: 'Comparer deux séries',
+            ctx: `<strong>Série 1</strong> : écart-type ≈ ${et1} · <strong>Série 2</strong> : écart-type ≈ ${et2}`,
+            question: 'Quelle série est la plus dispersée autour de sa moyenne ?',
+            choices: ['Série 1', 'Série 2', 'On ne peut pas savoir'],
+            good: 1,
+            expl: `L'écart-type de la Série 2 (${et2}) est bien plus grand que celui de la Série 1 (${et1}). La Série 2 est donc plus dispersée.`
+        };
+    },
+    () => {
+        const et = round2(rnd(2, 4) * 0.5);
+        return {
+            titre: 'Conseil du professeur',
+            ctx: `Notes d'un DS : moyenne = 10/20, écart-type ≈ ${frFmt(et)}.<br>
+                  Le professeur dit : "La classe est très homogène, le cours a été bien compris par tous."`,
+            question: 'Le professeur a-t-il raison de dire ça ?',
+            choices: [
+                'Oui, un petit écart-type confirme l\'homogénéité',
+                'Non, un petit écart-type veut dire que tout le monde est mauvais',
+                'Non, l\'écart-type ne dit rien sur la compréhension'
+            ],
+            good: 0,
+            expl: `Un écart-type de ${frFmt(et)} est faible → les notes sont groupées autour de la moyenne → la classe est effectivement homogène. Le professeur a raison !`
+        };
+    },
+];
+
+GENERATORS.ecart_type = function () {
+    return pick(SCENARIOS_ET)();
+};
+
+RENDERERS.ecart_type = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">
+            📌 Rappel : l'<strong>écart-type</strong> mesure la dispersion autour de la moyenne.<br>
+            ☀️ Petit écart-type → valeurs serrées → série <strong>homogène</strong><br>
+            ⛈️ Grand écart-type → valeurs étalées → série <strong>hétérogène</strong><br>
+            <em style="font-size:0.9em;">En Seconde, on lit un écart-type donné — pas de calcul à la main.</em>
+        </div>
+        <div class="ctx-card">
+            <span class="ctx-label">📝 ${q.titre}</span>
+            ${q.ctx}
+        </div>
+        <p class="q-prompt">${q.question}</p>
+        <div class="choice-grid" id="choiceGrid">
+            ${q.choices.map((c, i) => `<button class="choice-btn" data-idx="${i}" onclick="pickChoice(this, ${i})">${c}</button>`).join('')}
+        </div>
+    `;
+};
+
+function pickChoice(btn, idx) {
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+    btn.classList.add('chosen');
+    btn.dataset.selected = idx;
+}
+
+CHECKERS.ecart_type = function (q) {
+    const chosen = document.querySelector('.choice-btn.chosen');
+    if (!chosen) return { ok: false, msg: 'Clique sur une réponse pour valider.' };
+    const idx = parseInt(chosen.dataset.idx);
+    if (idx === q.good) {
+        chosen.classList.remove('chosen'); chosen.classList.add('ok');
+        return { ok: true, msg: q.expl };
+    }
+    chosen.classList.remove('chosen'); chosen.classList.add('err');
+    // Montrer la bonne réponse
+    const btns = document.querySelectorAll('.choice-btn');
+    btns[q.good].classList.add('ok');
+    return { ok: false, msg: `Pas tout à fait. ${q.expl}` };
+};
+
+/* ==========================================================
+   INIT
+   ========================================================== */
+buildMenu();
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

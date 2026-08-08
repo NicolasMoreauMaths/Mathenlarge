@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probabilités — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-light: #8b5fc8;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --orange-border: rgba(184, 92, 11, 0.25);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #0c1624 0%, #162236 45%, #1c3358 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--blue), var(--purple), var(--green));
+}
+
+.app-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-title::before { content: '🎲'; font-size: 1.15em; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue), var(--purple)); border-radius: 6px; transition: width 0.4s; }
+
+/* ── CONTEXT CARD ── */
+.ctx-card {
+    background: linear-gradient(135deg, #f5f9ff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.93em;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.ctx-card .ctx-label {
+    font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); margin-bottom: 6px; display: block;
+}
+
+/* ── FORMULA REMINDER ── */
+.formula-remind {
+    background: var(--gold-pale);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.84em;
+    color: #7a5800;
+    margin: 0 0 18px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+/* ── QUESTION BLOCK ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ── INPUT FIELD ── */
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.answer-unit {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text-light);
+}
+
+.answer-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+
+.answer-input.wide { width: 260px; }
+.answer-input.narrow { width: 110px; }
+
+/* ── MULTI-INPUT ROW ── */
+.row-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.row-label {
+    font-size: 0.85em; font-weight: 600; color: var(--text-light);
+}
+
+/* ── CHOICE BUTTONS ── */
+.choice-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.choice-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.choice-btn:hover { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── CALCULATOR ── */
+.calc-wrap {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+    max-width: 320px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.calc-display {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-family: 'DM Sans', monospace;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #7dd3fc;
+    text-align: right;
+    min-height: 52px;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+.calc-expr {
+    font-size: 0.55em;
+    color: #475569;
+    text-align: right;
+    min-height: 18px;
+    margin-bottom: 4px;
+    font-family: 'DM Sans', monospace;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.calc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05em;
+    font-weight: 600;
+    padding: 12px 0;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #334155;
+    color: #e2e8f0;
+}
+.calc-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+.calc-btn:active { transform: translateY(0); }
+.calc-num { background: #334155; }
+.calc-op { background: #475569; color: #7dd3fc; }
+.calc-eq { background: var(--blue); color: #fff; grid-column: span 2; }
+.calc-clear, .calc-back, .calc-pct { background: #64748b; font-size: 0.9em; }
+.calc-zero { grid-column: span 1; }
+
+.calc-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+.calc-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+.calc-container { display: none; }
+.calc-container.visible { display: block; animation: fadeIn 0.25s ease; }
+
+/* ── SCENE TOGGLE (schéma / Venn) ── */
+.scene-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+.scene-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+.scene-container { display: none; margin-bottom: 18px; }
+.scene-container.visible { display: block; animation: fadeIn 0.25s ease; }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+.step-block.locked .choice-btn { pointer-events: none; }
+
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 500px; }
+
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-light);
+    text-align: center; width: 100%; margin-bottom: 8px;
+}
+
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── TABLEAU À DOUBLE ENTRÉE ── */
+.data-table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.95em; }
+.data-table th { background: var(--blue-pale); color: var(--blue); font-weight: 700; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 0.8rem; border: 1px solid var(--blue-border); text-align: center; }
+.data-table td { padding: 0.6rem 0.8rem; border: 1px solid var(--border); background: #fff; text-align: center; vertical-align: middle; }
+.data-table tr:nth-child(even) td { background: #fafaf8; }
+.data-table .row-label { background: var(--blue-pale); color: var(--blue); font-weight: 700; text-align: left; }
+
+/* ── FEEDBACK ── */
+.fb {
+    margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.93em; text-align: center; display: none;
+    animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7;
+}
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 20px auto; border: 6px solid;
+}
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.05em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+    .answer-input.wide { width: 200px; }
+    .data-table { font-size: 0.82em; }
+    .data-table th, .data-table td { padding: 0.4rem 0.3rem; }
+}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--blue),var(--blue));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,111,160,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(26,111,160,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 900px tablette ── */
+@media(max-width:900px){
+  .app { padding:0 12px; }
+  .main { padding:12px; }
+}
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-header-bar { flex-wrap:wrap; gap:4px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .mc-badge, .ex-badge { font-size:0.7rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn, .choice-grid .btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .screen { font-size:0.85rem; padding:10px; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind, .formula-box { font-size:0.85rem; padding:8px; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input, .ans-input { font-size:0.9rem; }
+  .answer-wrap, .row-inputs { flex-wrap:wrap; gap:6px; }
+  .pbar { height:6px; }
+  .mode-toggle, .mode-btn { font-size:0.8rem; }
+  .menu-btn { font-size:0.8rem; }
+  .ex-top { flex-wrap:wrap; gap:4px; }
+  .ex-score { font-size:0.8rem; }
+}
+/* ── overflow helpers ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Probabilités — Exerciseur interactif</div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Six exerciseurs pour maîtriser le vocabulaire des probabilités de Seconde. Pose tes calculs toi-même : l'exerciseur te guide, mais ne calcule jamais à ta place !</p>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-ghost" id="btnHint">💡 Indice</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-ghost" id="btnDownload">📄 Télécharger le bilan</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX
+   ========================================================== */
+const LEVELS = [
+    { id: 'univers',           icon: 'Ω',  title: 'Écrire un univers',                              desc: 'À partir d\'une consigne, note toutes les issues possibles',        n: 8 },
+    { id: 'type_evt',          icon: '🏷️', title: 'Types d\'évènements',                             desc: 'Impossible, certain, élémentaire ou composé ?',                     n: 8 },
+    { id: 'proba_contraire',   icon: '➗', title: 'Probabilité et évènement contraire',              desc: 'Calculer P(A) puis P(Ā)',                                           n: 8, badge: 'Calculatrice' },
+    { id: 'union_inter',       icon: '∪',  title: 'Unions et intersections',                         desc: 'Calculer P(A∩B) et P(A∪B), avec diagramme de Venn',                n: 8, badge: 'Calculatrice' },
+    { id: 'tableau',           icon: '▦',  title: 'Tableau à double entrée',                         desc: 'Compléter un tableau puis calculer une probabilité',               n: 6, badge: 'Calculatrice' },
+    { id: 'arbre',             icon: '🌳', title: 'Arbre de probabilité',                            desc: 'Compléter un arbre puis calculer une probabilité',                 n: 6, badge: 'Calculatrice' },
+];
+
+let state = {
+    levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false,
+    log: [],
+};
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function rndItem(arr) { return arr[rnd(0, arr.length - 1)]; }
+
+function sampleK(arr, k) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = rnd(0, i);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, k);
+}
+
+function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+function lcm(a, b) { return (a * b) / gcd(a, b); }
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/\u2212/g, '-').replace(/÷/g, '/');
+    if (s.includes('/')) {
+        const [n, d] = s.split('/').map(Number);
+        if (isNaN(n) || isNaN(d) || d === 0) return null;
+        return n / d;
+    }
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+function close(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
+
+function closeRel(a, b, eps = 1e-4) {
+    if (Math.abs(b) < 1e-10) return Math.abs(a) < eps;
+    return Math.abs((a - b) / b) < eps;
+}
+
+function round2(x) { return Math.round(x * 100) / 100; }
+function round4(x) { return Math.round(x * 10000) / 10000; }
+
+function fmt(x) {
+    const r = round2(x);
+    const s = r === 0 ? 0 : r;
+    return (s % 1 === 0 ? String(s) : String(s).replace('.', ','));
+}
+
+/* Normalise une liste d'issues saisie en texte libre en un tableau de tokens comparables */
+function normSet(str) {
+    if (!str) return [];
+    let s = String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    s = s.replace(/[{}Ω=]/gi, '');
+    const parts = s.split(/[;,\s]+/).map(t => t.trim()).filter(Boolean);
+    return parts.map(t => {
+        if (/^-?\d+([.,]\d+)?$/.test(t)) {
+            return String(Number(t.replace(',', '.')));
+        }
+        return t.toUpperCase();
+    });
+}
+
+function setsEqual(a, b) {
+    if (a.length !== b.length) return false;
+    const sa = new Set(a), sb = new Set(b);
+    if (sa.size !== sb.size) return false;
+    for (const x of sa) if (!sb.has(x)) return false;
+    return true;
+}
+
+/* Vérifie la réponse d'un élève qui doit écrire un évènement en extension,
+   en acceptant les synonymes usuels de l'ensemble vide. */
+const EMPTY_SYNONYMS = ['VIDE', 'AUCUNE', 'AUCUN', 'RIEN', 'NULL', 'NUL', 'IMPOSSIBLE'];
+function checkExtensionAnswer(raw, expectedArr) {
+    const trimmed = (raw || '').trim();
+    if (expectedArr.length === 0) {
+        if (trimmed === '') return false;
+        const upper = trimmed.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]/g, '');
+        if (EMPTY_SYNONYMS.includes(upper)) return true;
+        return normSet(raw).length === 0;
+    }
+    return setsEqual(normSet(raw), expectedArr);
+}
+
+function isPrime(v) {
+    v = Number(v);
+    if (!Number.isInteger(v) || v < 2) return false;
+    for (let i = 2; i * i <= v; i++) if (v % i === 0) return false;
+    return true;
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+function renderKatex(el) {
+    if (window.renderMathInElement) {
+        renderMathInElement(el || document.body, {
+            delimiters: [
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false
+        });
+    }
+}
+
+/* ==========================================================
+   MOTEUR GENERIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS = {};
+const CHECKERS = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex = 0;
+    state.score = 0;
+    state.total = lv.n;
+    state.questions = [];
+    state.log = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    document.getElementById('btnHint').style.display = '';
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked = false;
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    body._choice = null;
+    body._tableLocked = false;
+    body._finalAnswer = null;
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+    renderKatex(body);
+}
+
+/* ── INDICE ── */
+function getHint(levelId, q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    switch (levelId) {
+        case 'univers':
+            return stepsDone === 0
+                ? "Liste toutes les issues possibles, séparées par des points-virgules, sans en oublier ni en répéter aucune."
+                : "Compte le nombre d'éléments que tu as listés dans l'univers.";
+        case 'type_evt':
+            return "Compte le nombre d'issues de l'évènement B : 0 issue → impossible, toutes les issues → certain, 1 seule issue → élémentaire, plusieurs (mais pas toutes) → composé.";
+        case 'proba_contraire':
+            return stepsDone === 0
+                ? "Compte le nombre d'issues de A, puis divise par le nombre total d'issues de Ω."
+                : "Utilise la formule P(Ā) = 1 − P(A).";
+        case 'union_inter':
+            if (stepsDone === 0) return "Compte les multiples demandés entre 1 et le nombre total, puis divise par ce nombre total.";
+            if (stepsDone === 1) return "Même méthode que pour P(A), mais avec l'autre multiple.";
+            if (stepsDone === 2) return "Cherche les nombres qui apparaissent à la fois dans la liste de A et dans celle de B.";
+            return "Utilise la formule P(A∪B) = P(A) + P(B) − P(A∩B).";
+        case 'tableau':
+            return !box._tableLocked
+                ? "Utilise les totaux déjà connus : une case manquante s'obtient souvent par soustraction (total − valeur connue), un total de colonne par addition des deux cases de la colonne."
+                : "Divise l'effectif correspondant à la question par l'effectif total du tableau (en bas à droite).";
+        case 'arbre':
+            if (stepsDone === 0) return "Chaque chemin se lit de la racine jusqu'à l'extrémité : note Pile (P) ou Face (F) à chaque étape, dans l'ordre indiqué par les colonnes.";
+            if (stepsDone === 1) return "Relis la liste des issues que tu as écrites à l'étape précédente et compte celles qui correspondent à l'évènement E.";
+            return "Comme tous les chemins sont équiprobables ici, P(E) = (nombre de chemins favorables) ÷ (nombre total de chemins).";
+        default: return "";
+    }
+}
+
+document.getElementById('btnHint').addEventListener('click', () => {
+    const q = state.questions[state.qIndex];
+    const text = getHint(state.levelId, q);
+    if (!text) return;
+    const box = document.getElementById('exBody');
+    let hintBox = document.getElementById('hintBox');
+    if (!hintBox) {
+        hintBox = document.createElement('div');
+        hintBox.id = 'hintBox';
+        hintBox.className = 'formula-remind';
+        hintBox.style.background = 'var(--blue-pale)';
+        hintBox.style.borderColor = 'var(--blue)';
+        hintBox.style.borderStyle = 'solid';
+        hintBox.style.color = 'var(--blue)';
+        box.insertBefore(hintBox, box.firstChild);
+    }
+    hintBox.innerHTML = '💡 ' + text;
+    renderKatex(hintBox);
+});
+
+/* ── JOURNAL DE SESSION (trace écrite téléchargeable) ── */
+function logCurrentQuestion(finalOk) {
+    const lv = LEVELS.find(l => l.id === state.levelId);
+    const body = document.getElementById('exBody');
+    const promptEls = body.querySelectorAll('.ctx-card, .q-prompt');
+    const promptText = Array.from(promptEls).map(el => el.textContent.trim()).filter(Boolean).join(' — ');
+    const fb = document.getElementById('fb');
+    const correctionText = fb.textContent.replace(/^[✓✗]\s*/, '').trim();
+    state.log.push({
+        level: lv.title,
+        qNumber: state.qIndex + 1,
+        correct: finalOk,
+        prompt: promptText,
+        correction: correctionText
+    });
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb = document.getElementById('fb');
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        renderKatex(fb);
+        if (result.advanceOnly) {
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1600);
+            document.getElementById('btnNext').style.display = 'none';
+            return;
+        }
+        state.checked = true;
+        state.score++;
+        document.getElementById('btnCheck').style.display = 'none';
+        document.getElementById('btnNext').style.display = '';
+    } else {
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || 'Ce n\'est pas encore ça, réessaie.');
+        renderKatex(fb);
+        document.getElementById('btnNext').style.display = '';
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    logCurrentQuestion(state.checked);
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (state.checked && btnNext.style.display !== 'none' && btnNext.offsetParent) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises cette méthode.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+/* ── TRACE ÉCRITE TÉLÉCHARGEABLE ── */
+function buildBilanHTML() {
+    const lv = LEVELS.find(l => l.id === state.levelId);
+    const pct = Math.round(state.score / state.total * 100);
+    const rows = state.log.map(item => `
+        <div style="margin-bottom:18px;padding:14px 16px;border-radius:10px;border:1.5px solid ${item.correct ? '#1b7a40' : '#c0392b'};background:${item.correct ? '#f0f9f2' : '#fdf1f0'};">
+            <div style="font-weight:700;font-size:0.85em;color:${item.correct ? '#1b7a40' : '#c0392b'};margin-bottom:6px;">
+                Question ${item.qNumber} — ${item.correct ? '✓ Réussie' : '✗ Non réussie'}
+            </div>
+            <div style="font-size:0.92em;margin-bottom:8px;color:#1e293b;">${item.prompt}</div>
+            <div style="font-size:0.92em;color:#334155;"><strong>Corrigé :</strong> ${item.correction}</div>
+        </div>`).join('');
+    return `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>Bilan — ${lv.title}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"><\/script>
+<style>body{font-family:'DM Sans',Arial,sans-serif;max-width:700px;margin:30px auto;padding:0 16px;color:#1e293b;}
+h1{color:#1a6fa0;} .score{font-size:1.1em;font-weight:700;margin-bottom:24px;}</style>
+</head><body>
+<h1>Bilan — ${lv.title}</h1>
+<div class="score">Score : ${state.score}/${state.total} (${pct}%)</div>
+${rows}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  renderMathInElement(document.body, { delimiters: [
+    {left:'\\\\(', right:'\\\\)', display:false},
+    {left:'\\\\[', right:'\\\\]', display:true}
+  ], throwOnError:false });
+});
+<\/script>
+</body></html>`;
+}
+
+document.getElementById('btnDownload').addEventListener('click', () => {
+    const html = buildBilanHTML();
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bilan-${state.levelId || 'probabilites'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
+
+/* ==========================================================
+   CALCULATRICE INTÉGRÉE
+   ========================================================== */
+function calcHTML(id) {
+    return `
+    <button class="calc-toggle" id="calc-toggle-${id}" onclick="toggleCalc('${id}')">🔢 Afficher la calculatrice</button>
+    <div class="calc-container" id="calc-${id}">
+        <div class="calc-wrap">
+            <div class="calc-display" id="calc-disp-${id}">
+                <div class="calc-expr" id="calc-expr-${id}"></div>
+                <div id="calc-val-${id}">0</div>
+            </div>
+            <div class="calc-grid">
+                <button class="calc-btn calc-clear" onclick="cCalc('${id}','C')">C</button>
+                <button class="calc-btn calc-back"  onclick="cCalc('${id}','⌫')">⌫</button>
+                <button class="calc-btn calc-pct"   onclick="cCalc('${id}','%')">%</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','/')">÷</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','7')">7</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','8')">8</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','9')">9</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','×')">×</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','4')">4</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','5')">5</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','6')">6</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','-')">−</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','1')">1</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','2')">2</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','3')">3</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','+')">+</button>
+                <button class="calc-btn calc-num calc-zero" onclick="cCalc('${id}','0')">0</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}',',')">.</button>
+                <button class="calc-btn calc-eq"    onclick="cCalc('${id}','=')">＝</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+const calcState = {};
+
+function toggleCalc(id) {
+    const c = document.getElementById('calc-' + id);
+    const btn = document.getElementById('calc-toggle-' + id);
+    const visible = c.classList.toggle('visible');
+    btn.textContent = visible ? '🔢 Masquer la calculatrice' : '🔢 Afficher la calculatrice';
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+}
+
+function cCalc(id, key) {
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+    const s = calcState[id];
+    const disp = document.getElementById('calc-val-' + id);
+    const exprEl = document.getElementById('calc-expr-' + id);
+
+    if (key === 'C') { s.expr = ''; s.result = '0'; s.fresh = true; }
+    else if (key === '⌫') {
+        if (s.fresh) { s.expr = ''; s.result = '0'; s.fresh = false; return; }
+        s.expr = s.expr.slice(0, -1);
+        if (!s.expr) { s.result = '0'; }
+    }
+    else if (key === '=') {
+        try {
+            let e = s.expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,/g, '.');
+            e = e.replace(/(\d+(?:\.\d+)?)\s*%/g, '($1/100)');
+            const v = Function('"use strict"; return (' + e + ')')();
+            s.result = isFinite(v) ? String(round4(v)).replace('.', ',') : 'Erreur';
+            exprEl.textContent = s.expr + ' =';
+            s.expr = s.result.replace(',', '.');
+            s.fresh = true;
+        } catch { s.result = 'Erreur'; }
+    }
+    else if (['+', '-', '×', '÷'].includes(key)) {
+        if (s.fresh) { s.fresh = false; }
+        s.expr += key;
+        s.result = s.expr;
+    }
+    else if (key === '%') {
+        s.expr += '%';
+        s.result = s.expr;
+    }
+    else {
+        if (s.fresh) { s.expr = key; s.fresh = false; }
+        else s.expr += key;
+        s.result = s.expr;
+    }
+    disp.textContent = s.result;
+    if (!s.fresh) exprEl.textContent = s.expr;
+}
+
+/* ==========================================================
+   OUTILS COMMUNS (étapes verrouillées, choix)
+   ========================================================== */
+function lockStepSimple(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('locked');
+    const tag = el.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+    el.querySelectorAll('input').forEach(i => i.disabled = true);
+}
+
+function insertStepBlock(html, id) {
+    const box = document.getElementById('exBody');
+    const calcToggle = box.querySelector('.calc-toggle');
+    const hr = document.createElement('hr'); hr.className = 'step-divider';
+    box.insertBefore(hr, calcToggle);
+    const div = document.createElement('div');
+    div.className = 'step-block active';
+    div.id = id;
+    div.innerHTML = html;
+    box.insertBefore(div, calcToggle);
+    renderKatex(div);
+    return div;
+}
+
+function wireChoiceGrid(containerSelector) {
+    const box = document.getElementById('exBody');
+    box.querySelectorAll(containerSelector + ' .choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll(containerSelector + ' .choice-btn').forEach(b => b.classList.remove('chosen'));
+            btn.classList.add('chosen');
+            box._choice = btn.dataset.val;
+        });
+    });
+    box._choice = null;
+}
+
+/* ==========================================================
+   GÉNÉRATION DE CONTEXTES ALÉATOIRES (expériences aléatoires)
+   ========================================================== */
+const COLOR_POOL = ['Rouge', 'Bleu', 'Vert', 'Jaune', 'Orange', 'Violet', 'Rose', 'Noir'];
+const WORDS_DISTINCT = ['MATHS', 'VOILE', 'PRISE', 'CLE', 'DRAP', 'FILM', 'GENOU', 'PLAT', 'TIGRE', 'MONDE'];
+
+function genContext() {
+    const type = rndItem(['de', 'piece1', 'piece2', 'roue', 'urne_num', 'urne_lettres']);
+    if (type === 'de') {
+        const n = rndItem([4, 6, 8, 10, 12, 20]);
+        const issues = []; for (let i = 1; i <= n; i++) issues.push(String(i));
+        return {
+            type, issues,
+            desc: `On lance un dé (bien équilibré) à ${n} faces, numérotées de 1 à ${n}, et on note le numéro obtenu.`,
+            fake: String(n + 1),
+            fullProp: `un numéro compris entre 1 et ${n}`,
+            elemProp: x => `obtenir le numéro ${x}`,
+            impProp: fake => `obtenir le numéro ${fake}`
+        };
+    }
+    if (type === 'piece1') {
+        return {
+            type, issues: ['P', 'F'],
+            desc: "On lance une pièce de monnaie (bien équilibrée) et on note la face obtenue (Pile ou Face).",
+            fake: 'PP',
+            fullProp: 'Pile ou Face',
+            elemProp: x => `obtenir ${x === 'P' ? 'Pile' : 'Face'}`,
+            impProp: () => 'obtenir à la fois Pile et Face en un seul lancer'
+        };
+    }
+    if (type === 'piece2') {
+        return {
+            type, issues: ['PP', 'PF', 'FP', 'FF'],
+            desc: "On lance une pièce de monnaie (bien équilibrée) deux fois de suite et on note la suite des résultats obtenus.",
+            fake: 'PPP',
+            fullProp: 'une suite de deux résultats parmi Pile et Face',
+            elemProp: x => `obtenir la suite ${x}`,
+            impProp: fake => `obtenir la suite ${fake}`
+        };
+    }
+    if (type === 'roue') {
+        const k = rnd(3, 5);
+        const colors = sampleK(COLOR_POOL, k);
+        const fake = rndItem(COLOR_POOL.filter(c => !colors.includes(c)));
+        return {
+            type, issues: colors,
+            desc: `Une roue de loterie est partagée en ${k} secteurs de même taille, colorés en ${colors.join(', ')}. On fait tourner la roue et on note la couleur indiquée par la flèche.`,
+            fake,
+            fullProp: 'une des couleurs présentes sur la roue',
+            elemProp: x => `obtenir la couleur ${x}`,
+            impProp: fake => `obtenir la couleur ${fake}`
+        };
+    }
+    if (type === 'urne_num') {
+        const n = rndItem([5, 7, 9, 11]);
+        const issues = []; for (let i = 1; i <= n; i++) issues.push(String(i));
+        return {
+            type, issues,
+            desc: `Une urne contient ${n} boules indiscernables au toucher, numérotées de 1 à ${n}. On tire une boule au hasard et on note son numéro.`,
+            fake: String(n + 1),
+            fullProp: `un numéro compris entre 1 et ${n}`,
+            elemProp: x => `obtenir le numéro ${x}`,
+            impProp: fake => `obtenir le numéro ${fake}`
+        };
+    }
+    // urne_lettres
+    const word = rndItem(WORDS_DISTINCT);
+    const issues = word.split('');
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !issues.includes(l));
+    const fake = rndItem(alphabet);
+    return {
+        type, issues,
+        desc: `Une urne contient des boules indiscernables au toucher, portant chacune une lettre du mot « ${word} » (une lettre par boule). On tire une boule au hasard et on note la lettre obtenue.`,
+        fake,
+        fullProp: `une lettre du mot « ${word} »`,
+        elemProp: x => `obtenir la lettre ${x}`,
+        impProp: fake => `obtenir la lettre ${fake}`
+    };
+}
+
+/* ==========================================================
+   ÉVÈNEMENTS DÉCRITS PAR UNE PHRASE (propriété mathématique)
+   ========================================================== */
+function numericPropertyPool(n) {
+    const pool = [];
+    pool.push({ desc: 'obtenir un nombre pair', test: x => Number(x) % 2 === 0 });
+    pool.push({ desc: 'obtenir un nombre impair', test: x => Number(x) % 2 === 1 });
+    [2, 3, 4, 5].forEach(k => { if (k < n) pool.push({ desc: `obtenir un multiple de ${k}`, test: x => Number(x) % k === 0 }); });
+    pool.push({ desc: 'obtenir un nombre premier', test: x => isPrime(x) });
+    const thresh = rnd(2, n - 1);
+    pool.push({ desc: `obtenir un nombre strictement supérieur à ${thresh}`, test: x => Number(x) > thresh });
+    const thresh2 = rnd(2, n - 1);
+    pool.push({ desc: `obtenir un nombre inférieur ou égal à ${thresh2}`, test: x => Number(x) <= thresh2 });
+    pool.push({ desc: `obtenir un diviseur de ${n}`, test: x => n % Number(x) === 0 });
+    const single = rnd(1, n);
+    pool.push({ desc: `obtenir le numéro ${single}`, test: x => Number(x) === single });
+    pool.push({ desc: `obtenir un numéro compris entre 1 et ${n}`, test: () => true });
+    pool.push({ desc: `obtenir le numéro ${n + 1}`, test: () => false });
+    return pool;
+}
+
+function eventPool(ctx) {
+    const n = ctx.issues.length;
+    if (ctx.type === 'de' || ctx.type === 'urne_num') return numericPropertyPool(n);
+    if (ctx.type === 'piece1') {
+        return [
+            { desc: 'obtenir Pile', test: x => x === 'P' },
+            { desc: 'obtenir Face', test: x => x === 'F' },
+            { desc: 'obtenir Pile ou Face', test: () => true },
+            { desc: 'obtenir Trèfle', test: () => false },
+        ];
+    }
+    if (ctx.type === 'piece2') {
+        return [
+            { desc: 'obtenir exactement un Pile', test: x => x.split('').filter(c => c === 'P').length === 1 },
+            { desc: 'obtenir au moins un Pile', test: x => x.includes('P') },
+            { desc: 'obtenir Pile aux deux lancers', test: x => x === 'PP' },
+            { desc: 'obtenir Face aux deux lancers', test: x => x === 'FF' },
+            { desc: 'obtenir Pile puis Face, dans cet ordre', test: x => x === 'PF' },
+            { desc: 'obtenir un résultat identique aux deux lancers', test: x => x[0] === x[1] },
+            { desc: 'obtenir des résultats différents aux deux lancers', test: x => x[0] !== x[1] },
+            { desc: "obtenir trois Piles d'affilée", test: () => false },
+            { desc: 'obtenir Pile ou Face à chacun des deux lancers', test: () => true },
+        ];
+    }
+    if (ctx.type === 'roue') {
+        const chaudes = ['Rouge', 'Orange', 'Jaune'], froides = ['Bleu', 'Vert', 'Violet'];
+        const pool = [
+            { desc: 'obtenir une couleur chaude (Rouge, Orange ou Jaune)', test: x => chaudes.includes(x) },
+            { desc: 'obtenir une couleur froide (Bleu, Vert ou Violet)', test: x => froides.includes(x) },
+            { desc: 'obtenir une des couleurs de la roue', test: () => true },
+            { desc: `obtenir la couleur ${ctx.fake}`, test: () => false },
+        ];
+        ctx.issues.forEach(c => pool.push({ desc: `obtenir la couleur ${c}`, test: x => x === c }));
+        return pool;
+    }
+    // urne_lettres
+    const voyelles = ['A', 'E', 'I', 'O', 'U', 'Y'];
+    const pool = [
+        { desc: 'obtenir une voyelle', test: x => voyelles.includes(x) },
+        { desc: 'obtenir une consonne', test: x => !voyelles.includes(x) },
+        { desc: 'obtenir une lettre du mot', test: () => true },
+        { desc: 'obtenir la lettre Z', test: () => false },
+    ];
+    ctx.issues.forEach(l => pool.push({ desc: `obtenir la lettre ${l}`, test: x => x === l }));
+    return pool;
+}
+
+function genPropertyEvent(ctx) {
+    const pool = eventPool(ctx);
+    const chosen = rndItem(pool);
+    const extension = ctx.issues.filter(x => chosen.test(x));
+    return { desc: chosen.desc, extension };
+}
+
+/* ==========================================================
+   DIAGRAMME DE VENN (indication, niveau union_inter)
+   ========================================================== */
+function vennBlock() {
+    return `
+        <button type="button" class="scene-toggle" id="venn-btn" onclick="toggleVenn()">📐 Afficher le diagramme de Venn</button>
+        <div class="scene-container" id="venn-container">
+            <svg viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;display:block;margin:0 auto;background:#fff;border-radius:12px;border:1.5px solid #e2e8f0;">
+                <rect x="10" y="10" width="400" height="240" rx="14" fill="#faf8f5" stroke="#e0dbd4" stroke-width="1.5"/>
+                <text x="26" y="34" font-family="DM Sans, sans-serif" font-size="16" font-weight="700" fill="#5c5652">Ω</text>
+                <circle cx="165" cy="140" r="90" fill="#1a6fa0" fill-opacity="0.28" stroke="#1a6fa0" stroke-width="2.5"/>
+                <circle cx="255" cy="140" r="90" fill="#1b7a40" fill-opacity="0.28" stroke="#1b7a40" stroke-width="2.5"/>
+                <text x="120" y="145" text-anchor="middle" dominant-baseline="middle" font-family="DM Sans, sans-serif" font-size="22" font-weight="800" fill="#1a6fa0">A</text>
+                <text x="300" y="145" text-anchor="middle" dominant-baseline="middle" font-family="DM Sans, sans-serif" font-size="22" font-weight="800" fill="#1b7a40">B</text>
+                <text x="210" y="144" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="13" font-weight="700" fill="#2b2724">A∩B</text>
+            </svg>
+            <p style="text-align:center;font-size:0.82em;color:var(--text-light);margin-top:6px;">La zone commune aux deux « patates » représente A∩B. Toute la surface coloriée représente A∪B.</p>
+        </div>`;
+}
+function toggleVenn() {
+    const el = document.getElementById('venn-container');
+    const btn = document.getElementById('venn-btn');
+    const visible = el.classList.toggle('visible');
+    btn.textContent = visible ? '📐 Masquer le diagramme de Venn' : '📐 Afficher le diagramme de Venn';
+}
+
+/* ==========================================================
+   ARBRE DES POSSIBLES (layout réel, niveau arbre)
+   ========================================================== */
+
+/* Calcule la géométrie de l'arbre (positions en pixels virtuels) :
+   allLevels[0] = [yRacine], allLevels[levels] = [yFeuille1, yFeuille2, ...] */
+function computeTreeLayout(levels) {
+    const W = levels === 2 ? 480 : 560;
+    const H = levels === 2 ? 300 : 320;
+    const rootX = 30, leafX = levels === 2 ? 390 : 460;
+    const xs = [];
+    for (let l = 0; l <= levels; l++) xs.push(rootX + (leafX - rootX) * (l / levels));
+    const count = Math.pow(2, levels);
+    const leafYs = [];
+    for (let i = 0; i < count; i++) leafYs.push((i + 1) * (H / (count + 1)));
+    let currentYs = leafYs.slice();
+    const allLevelsRev = [currentYs];
+    for (let l = levels; l > 0; l--) {
+        const parentYs = [];
+        for (let i = 0; i < currentYs.length; i += 2) parentYs.push((currentYs[i] + currentYs[i + 1]) / 2);
+        allLevelsRev.push(parentYs);
+        currentYs = parentYs;
+    }
+    const allLevels = allLevelsRev.slice().reverse();
+    return { W, H, xs, allLevels };
+}
+
+/* Construit l'arbre complet : branches + points + champs de saisie intégrés
+   directement dans le SVG (via foreignObject) au bout de chaque branche,
+   pour garantir un alignement pixel-parfait quelle que soit la taille d'affichage. */
+function renderTreeSVGFromLayout(layout, levels) {
+    const { W, H, xs, allLevels } = layout;
+    const boxW = 66, boxH = 32;
+    let svg = `<svg viewBox="0 0 ${W + boxW + 12} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;width:100%;height:auto;display:block;">`;
+    for (let l = 0; l < levels; l++) {
+        const label = l === 0 ? '1er lancer' : (l + 1) + 'ᵉ lancer';
+        svg += `<text x="${xs[l + 1] - 46}" y="16" font-family="DM Sans,sans-serif" font-size="12" font-weight="700" fill="#8a8380">${label}</text>`;
+    }
+    for (let l = 0; l < levels; l++) {
+        const parents = allLevels[l], children = allLevels[l + 1];
+        parents.forEach((py, i) => {
+            const cLeft = children[2 * i], cRight = children[2 * i + 1];
+            svg += `<line x1="${xs[l]}" y1="${py}" x2="${xs[l + 1]}" y2="${cLeft}" stroke="#1a6fa0" stroke-width="2"/>`;
+            svg += `<line x1="${xs[l]}" y1="${py}" x2="${xs[l + 1]}" y2="${cRight}" stroke="#1b7a40" stroke-width="2"/>`;
+            const midX = (xs[l] + xs[l + 1]) / 2;
+            svg += `<text x="${midX}" y="${(py + cLeft) / 2 - 6}" font-family="DM Sans,sans-serif" font-size="11" fill="#1a6fa0" font-weight="700" text-anchor="middle">Pile</text>`;
+            svg += `<text x="${midX}" y="${(py + cRight) / 2 + 14}" font-family="DM Sans,sans-serif" font-size="11" fill="#1b7a40" font-weight="700" text-anchor="middle">Face</text>`;
+        });
+    }
+    for (let l = 0; l < levels; l++) {
+        allLevels[l].forEach(y => {
+            svg += `<circle cx="${xs[l]}" cy="${y}" r="4" fill="${l === 0 ? '#2b2724' : '#64748b'}"/>`;
+        });
+    }
+    // Feuilles : petit point + champ de saisie intégré au SVG (foreignObject), aligné pixel-parfait
+    const leafX = xs[levels];
+    allLevels[levels].forEach((y, i) => {
+        svg += `<circle cx="${leafX}" cy="${y}" r="4" fill="#64748b"/>`;
+        const fx = leafX + 10;
+        const fy = y - boxH / 2;
+        svg += `<foreignObject x="${fx}" y="${fy}" width="${boxW}" height="${boxH}">`;
+        svg += `<input xmlns="http://www.w3.org/1999/xhtml" type="text" class="answer-input tree-leaf-input" id="leaf${i}" placeholder="…" autocomplete="off" style="box-sizing:border-box;width:${boxW}px;height:${boxH}px;font-family:'DM Sans',sans-serif;font-size:13px;padding:2px;">`;
+        svg += `</foreignObject>`;
+    });
+    svg += `</svg>`;
+    return svg;
+}
+
+/* ==========================================================
+   NIVEAU 1 : ÉCRIRE UN UNIVERS À PARTIR D'UNE CONSIGNE
+   ========================================================== */
+GENERATORS.univers = function () {
+    return genContext();
+};
+
+RENDERERS.univers = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : l'univers \\(\\Omega\\) est l'ensemble de <strong>toutes les issues possibles</strong> de l'expérience aléatoire.</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Expérience aléatoire</span>${q.desc}</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Écris l'univers Ω en extension</div>
+            <div class="q-prompt" style="font-size:0.88em;">Sépare chaque issue par un point-virgule. Exemple de syntaxe : 1;2;3</div>
+            <div class="answer-wrap"><input type="text" class="answer-input wide" id="uni" placeholder="Ω = { … }"></div>
+        </div>`;
+    setTimeout(() => document.getElementById('uni')?.focus(), 50);
+};
+
+CHECKERS.univers = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const omegaTxt = `\\(\\Omega = \\{${q.issues.join('\\,;\\,')}\\}\\)`;
+    if (stepsDone === 0) {
+        const inp = document.getElementById('uni');
+        const given = normSet(inp.value);
+        const expected = q.issues.map(x => normSet(x)[0]);
+        inp.classList.remove('ok', 'err');
+        const ok = setsEqual(given, expected);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · Nombre d'issues</div>
+                <div class="q-prompt">Combien l'univers Ω contient-il d'issues au total ?</div>
+                <div class="answer-wrap"><input type="text" class="answer-input narrow" id="card" inputmode="numeric" placeholder="…"></div>`, 'step1');
+            setTimeout(() => document.getElementById('card')?.focus(), 50);
+            return { ok: true, msg: `${omegaTxt}. Indique maintenant son nombre d'issues.`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Vérifie que tu as listé <strong>toutes</strong> les issues, sans doublon ni oubli. Rappel : ${omegaTxt}` };
+    }
+    const inp = document.getElementById('card');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(v, q.issues.length, 0.001);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const msg = `${omegaTxt} contient <strong>${q.issues.length} issues</strong>.`;
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 2 : TYPES D'ÉVÈNEMENTS
+   ========================================================== */
+GENERATORS.type_evt = function () {
+    const ctx = genContext();
+    const ev = genPropertyEvent(ctx);
+    const n = ctx.issues.length;
+    let category;
+    if (ev.extension.length === 0) category = 'impossible';
+    else if (ev.extension.length === n) category = 'certain';
+    else if (ev.extension.length === 1) category = 'elementaire';
+    else category = 'compose';
+    return { ctx, desc: ev.desc, extension: ev.extension, category };
+};
+
+RENDERERS.type_evt = function (q, box) {
+    const omegaTxt = `\\(\\Omega = \\{${q.ctx.issues.join('\\,;\\,')}\\}\\)`;
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : pour déterminer la nature d'un évènement, commence par chercher <strong>quelles issues le réalisent</strong> (écris-le en extension), puis compte-les.</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Expérience aléatoire</span>${q.ctx.desc}<br>${omegaTxt}</div>
+        <div class="q-prompt">Soit B l'évènement : « ${q.desc} ».</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Écris B en extension</div>
+            <div class="q-prompt" style="font-size:0.85em;">Cherche toutes les issues de Ω qui vérifient cette propriété (si aucune ne convient, écris « vide »).</div>
+            <div class="answer-wrap"><input type="text" class="answer-input wide" id="bext" placeholder="B = { … }"></div>
+        </div>`;
+    setTimeout(() => document.getElementById('bext')?.focus(), 50);
+};
+
+CHECKERS.type_evt = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const expected = q.extension.map(x => normSet(x)[0]);
+    const BTxt = q.extension.length ? `\\(B = \\{${q.extension.join('\\,;\\,')}\\}\\)` : `\\(B = \\emptyset\\)`;
+    if (stepsDone === 0) {
+        const inp = document.getElementById('bext');
+        inp.classList.remove('ok', 'err');
+        const ok = checkExtensionAnswer(inp.value, expected);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · Quelle est la nature de B ?</div>
+                <div class="choice-grid" id="choiceType">
+                    <button class="choice-btn" data-val="impossible">Impossible</button>
+                    <button class="choice-btn" data-val="certain">Certain</button>
+                    <button class="choice-btn" data-val="elementaire">Élémentaire</button>
+                    <button class="choice-btn" data-val="compose">Composé</button>
+                </div>`, 'step1');
+            wireChoiceGrid('#choiceType');
+            return { ok: true, msg: `${BTxt}. Quelle est la nature de cet évènement ?`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Cherche parmi les issues de Ω lesquelles vérifient la propriété. Rappel : ${BTxt}` };
+    }
+    const chosen = box._choice;
+    const correctVal = q.category;
+    box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+    if (!chosen) return { ok: false, msg: 'Clique sur une des quatre propositions.' };
+    box.querySelectorAll('.choice-btn').forEach(b => {
+        if (b.dataset.val === correctVal) b.classList.add('ok');
+        else if (b.classList.contains('chosen')) b.classList.add('err');
+    });
+    const ok = chosen === correctVal;
+    let explanation;
+    if (q.category === 'impossible') explanation = `${BTxt}, donc <strong>B est impossible</strong>.`;
+    else if (q.category === 'certain') explanation = `${BTxt} contient toutes les issues de Ω, donc <strong>B est certain</strong>.`;
+    else if (q.category === 'elementaire') explanation = `${BTxt} ne contient qu'une seule issue, donc <strong>B est élémentaire</strong>.`;
+    else explanation = `${BTxt} contient ${q.extension.length} issues (plus d'une, mais pas toutes), donc <strong>B est composé</strong>.`;
+    return { ok, msg: explanation };
+};
+
+/* ==========================================================
+   NIVEAU 3 : PROBABILITÉ D'UN ÉVÈNEMENT ET DE SON CONTRAIRE
+   ========================================================== */
+GENERATORS.proba_contraire = function () {
+    const ctx = genContext();
+    let ev = genPropertyEvent(ctx);
+    let tries = 0;
+    while ((ev.extension.length === 0 || ev.extension.length === ctx.issues.length) && tries < 8) {
+        ev = genPropertyEvent(ctx);
+        tries++;
+    }
+    const k = ev.extension.length;
+    const n = ctx.issues.length;
+    return { ctx, desc: ev.desc, extension: ev.extension, k, n };
+};
+
+RENDERERS.proba_contraire = function (q, box) {
+    const omegaTxt = `\\(\\Omega = \\{${q.ctx.issues.join('\\,;\\,')}\\}\\)`;
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : commence par chercher les issues qui réalisent l'évènement, puis utilise \\(P(A) = \\dfrac{\\text{nombre d'issues de } A}{\\text{nombre d'issues de } \\Omega}\\) et \\(P(\\overline{A}) = 1-P(A)\\).</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Expérience aléatoire (équiprobable)</span>${q.ctx.desc}<br>${omegaTxt}</div>
+        <div class="q-prompt">Soit A l'évènement : « ${q.desc} ».</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Écris A en extension</div>
+            <div class="q-prompt" style="font-size:0.85em;">Cherche toutes les issues de Ω qui vérifient cette propriété.</div>
+            <div class="answer-wrap"><input type="text" class="answer-input wide" id="aext" placeholder="A = { … }"></div>
+        </div>
+        ${calcHTML('pc')}`;
+    setTimeout(() => document.getElementById('aext')?.focus(), 50);
+};
+
+CHECKERS.proba_contraire = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const expected = q.extension.map(x => normSet(x)[0]);
+    const ATxt = q.extension.length ? `\\(A = \\{${q.extension.join('\\,;\\,')}\\}\\)` : `\\(A = \\emptyset\\)`;
+    const pA = q.k / q.n;
+    if (stepsDone === 0) {
+        const inp = document.getElementById('aext');
+        inp.classList.remove('ok', 'err');
+        const ok = checkExtensionAnswer(inp.value, expected);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · Calcule P(A)</div>
+                <div class="answer-wrap"><input type="text" class="answer-input" id="pa" placeholder="P(A) = …" inputmode="decimal"></div>`, 'step1');
+            setTimeout(() => document.getElementById('pa')?.focus(), 50);
+            return { ok: true, msg: `${ATxt}. Calcule maintenant P(A).`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Cherche parmi les issues de Ω lesquelles vérifient la propriété. Rappel : ${ATxt}` };
+    }
+    if (stepsDone === 1) {
+        const inp = document.getElementById('pa');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && closeRel(v, pA, 0.01);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step1');
+            insertStepBlock(`
+                <div class="step-tag">Étape 3 · En déduire P(Ā)</div>
+                <div class="answer-wrap"><input type="text" class="answer-input" id="pbara" placeholder="P(Ā) = …" inputmode="decimal"></div>`, 'step2');
+            setTimeout(() => document.getElementById('pbara')?.focus(), 50);
+            return { ok: true, msg: `\\(P(A) = \\dfrac{${q.k}}{${q.n}} = ${fmt(pA)}\\). Utilise maintenant la formule de l'évènement contraire.`, advanceOnly: true };
+        }
+        return { ok: false, msg: `On compte le nombre d'issues de A (soit ${q.k}) sur le nombre total d'issues (soit ${q.n}) : \\(P(A)=\\dfrac{${q.k}}{${q.n}}\\)` };
+    }
+    const inp = document.getElementById('pbara');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const expected2 = 1 - pA;
+    const ok = v !== null && closeRel(v, expected2, 0.01);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const msg = `\\(P(\\overline{A}) = 1 - P(A) = 1 - ${fmt(pA)} = ${fmt(expected2)}\\)`;
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 4 : UNIONS ET INTERSECTIONS
+   ========================================================== */
+GENERATORS.union_inter = function () {
+    let n = rndItem([6, 8, 9, 10, 12]);
+    const divisorsPool = [2, 3, 4, 5].filter(d => d < n);
+    let p, qd, L, guard = 0;
+    do {
+        [p, qd] = sampleK(divisorsPool, 2);
+        L = lcm(p, qd);
+        guard++;
+    } while (L > n && guard < 30);
+    if (L > n) { p = 2; qd = 3; L = 6; if (n < 6) n = 6; }
+    const A = [], B = [], I = [];
+    for (let i = 1; i <= n; i++) {
+        const inA = i % p === 0, inB = i % qd === 0;
+        if (inA) A.push(i);
+        if (inB) B.push(i);
+        if (inA && inB) I.push(i);
+    }
+    const a = A.length, b = B.length, inter = I.length, uni = a + b - inter;
+    return { n, p, q: qd, A, B, I, a, b, inter, uni, L };
+};
+
+RENDERERS.union_inter = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : \\(P(A \\cup B) = P(A)+P(B)-P(A \\cap B)\\)</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Données</span>On tire un nombre au hasard parmi les entiers de 1 à ${q.n} (équiprobabilité). Soit A : « obtenir un multiple de ${q.p} » et B : « obtenir un multiple de ${q.q} ».</div>
+        ${vennBlock()}
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Calcule P(A)</div>
+            <div class="answer-wrap"><input type="text" class="answer-input" id="pA" placeholder="P(A) = …" inputmode="decimal"></div>
+        </div>
+        ${calcHTML('ui')}`;
+    setTimeout(() => document.getElementById('pA')?.focus(), 50);
+};
+
+CHECKERS.union_inter = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const pA = q.a / q.n, pB = q.b / q.n, pI = q.inter / q.n, pU = q.uni / q.n;
+    if (stepsDone === 0) {
+        const inp = document.getElementById('pA'); const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && closeRel(v, pA, 0.01);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step0');
+            insertStepBlock(`<div class="step-tag">Étape 2 · Calcule P(B)</div><div class="answer-wrap"><input type="text" class="answer-input" id="pB" placeholder="P(B) = …" inputmode="decimal"></div>`, 'step1');
+            setTimeout(() => document.getElementById('pB')?.focus(), 50);
+            return { ok: true, msg: `Les multiples de ${q.p} entre 1 et ${q.n} sont ${q.A.join(', ')} : \\(P(A)=\\dfrac{${q.a}}{${q.n}}\\)`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Compte les multiples de ${q.p} entre 1 et ${q.n} : ${q.A.join(', ')}. \\(P(A)=\\dfrac{${q.a}}{${q.n}}\\)` };
+    }
+    if (stepsDone === 1) {
+        const inp = document.getElementById('pB'); const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && closeRel(v, pB, 0.01);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step1');
+            insertStepBlock(`<div class="step-tag">Étape 3 · Calcule P(A∩B)</div><div class="q-prompt" style="font-size:0.85em;">Cherche d'abord les nombres qui sont à la fois multiples de ${q.p} et de ${q.q}, puis calcule la probabilité P(A∩B).</div><div class="answer-wrap"><input type="text" class="answer-input" id="pI" placeholder="P(A∩B) = …" inputmode="decimal"></div>`, 'step2');
+            setTimeout(() => document.getElementById('pI')?.focus(), 50);
+            return { ok: true, msg: `Les multiples de ${q.q} entre 1 et ${q.n} sont ${q.B.join(', ')} : \\(P(B)=\\dfrac{${q.b}}{${q.n}}\\)`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Compte les multiples de ${q.q} entre 1 et ${q.n} : ${q.B.join(', ')}. \\(P(B)=\\dfrac{${q.b}}{${q.n}}\\)` };
+    }
+    if (stepsDone === 2) {
+        const inp = document.getElementById('pI'); const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && closeRel(v, pI, 0.01);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step2');
+            insertStepBlock(`<div class="step-tag">Étape 4 · En déduire P(A∪B)</div><div class="answer-wrap"><input type="text" class="answer-input" id="pU" placeholder="P(A∪B) = …" inputmode="decimal"></div>`, 'step3');
+            setTimeout(() => document.getElementById('pU')?.focus(), 50);
+            return { ok: true, msg: `A∩B contient les multiples de ${q.L} : ${q.I.length ? q.I.join(', ') : 'aucun'} — \\(P(A\\cap B)=\\dfrac{${q.inter}}{${q.n}}\\). Utilise maintenant la formule de la réunion !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Cherche les nombres communs à la liste de A et à celle de B : ${q.I.length ? q.I.join(', ') : 'aucun'}. \\(P(A\\cap B)=\\dfrac{${q.inter}}{${q.n}}\\)` };
+    }
+    const inp = document.getElementById('pU'); const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && closeRel(v, pU, 0.01);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const msg = `\\(P(A\\cup B)=P(A)+P(B)-P(A\\cap B)=${fmt(pA)}+${fmt(pB)}-${fmt(pI)}=${fmt(pU)}\\)`;
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 5 : TABLEAU À DOUBLE ENTRÉE
+   ========================================================== */
+const CONTEXTS_TABLE = [
+    { rowLabel: 'Filles', rowLabel2: 'Garçons', colLabel: 'Sport', colLabel2: 'Non Sport', subject: "élèves d'une classe" },
+    { rowLabel: 'Filles', rowLabel2: 'Garçons', colLabel: 'Anglais', colLabel2: 'Espagnol', subject: "élèves d'un lycée (LV1)" },
+    { rowLabel: 'Moins de 18 ans', rowLabel2: '18 ans ou plus', colLabel: 'Permis obtenu', colLabel2: 'Permis non obtenu', subject: "personnes interrogées" },
+    { rowLabel: 'Fumeurs', rowLabel2: 'Non-fumeurs', colLabel: 'Sportif', colLabel2: 'Non sportif', subject: "personnes interrogées" }
+];
+
+GENERATORS.tableau = function () {
+    const ctxDef = rndItem(CONTEXTS_TABLE);
+    const rowTotal1 = rnd(15, 40);
+    const rowTotal2 = rnd(15, 40);
+    const cell11 = rnd(Math.max(1, Math.floor(rowTotal1 * 0.2)), Math.floor(rowTotal1 * 0.85));
+    const cell21 = rnd(Math.max(1, Math.floor(rowTotal2 * 0.2)), Math.floor(rowTotal2 * 0.85));
+    const cell12 = rowTotal1 - cell11;
+    const cell22 = rowTotal2 - cell21;
+    const colTotal1 = cell11 + cell21;
+    const colTotal2 = cell12 + cell22;
+    const grandTotal = rowTotal1 + rowTotal2;
+    const qType = rndItem(['row1', 'col1', 'inter', 'row2']);
+    return { ctxDef, rowTotal1, rowTotal2, cell11, cell21, cell12, cell22, colTotal1, colTotal2, grandTotal, qType };
+};
+
+RENDERERS.tableau = function (q, box) {
+    const c = q.ctxDef;
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : dans un tableau à double entrée, chaque case manquante s'obtient par addition ou soustraction des totaux déjà connus (ligne, colonne).</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Contexte</span>On interroge un groupe de ${c.subject}. Complète le tableau à double entrée ci-dessous (remplace chaque case vide par le bon nombre).</div>
+        <table class="data-table" id="tbl">
+            <tr><th></th><th>${c.colLabel}</th><th>${c.colLabel2}</th><th>Total</th></tr>
+            <tr><td class="row-label">${c.rowLabel}</td><td>${q.cell11}</td><td><input type="text" class="answer-input narrow" id="c12" style="width:72px;font-size:1em;padding:6px;"></td><td>${q.rowTotal1}</td></tr>
+            <tr><td class="row-label">${c.rowLabel2}</td><td>${q.cell21}</td><td><input type="text" class="answer-input narrow" id="c22" style="width:72px;font-size:1em;padding:6px;"></td><td>${q.rowTotal2}</td></tr>
+            <tr><td class="row-label">Total</td><td><input type="text" class="answer-input narrow" id="ct1" style="width:72px;font-size:1em;padding:6px;"></td><td><input type="text" class="answer-input narrow" id="ct2" style="width:72px;font-size:1em;padding:6px;"></td><td><input type="text" class="answer-input narrow" id="gt" style="width:72px;font-size:1em;padding:6px;"></td></tr>
+        </table>
+        ${calcHTML('tab')}`;
+    setTimeout(() => document.getElementById('c12')?.focus(), 50);
+};
+
+CHECKERS.tableau = function (q) {
+    const box = document.getElementById('exBody');
+    if (!box._tableLocked) {
+        const ids = ['c12', 'c22', 'ct1', 'ct2', 'gt'];
+        const expected = { c12: q.cell12, c22: q.cell22, ct1: q.colTotal1, ct2: q.colTotal2, gt: q.grandTotal };
+        let allOk = true;
+        ids.forEach(id => {
+            const inp = document.getElementById(id);
+            const v = normNum(inp.value);
+            inp.classList.remove('ok', 'err');
+            const ok = v !== null && close(v, expected[id], 0.01);
+            inp.classList.add(ok ? 'ok' : 'err');
+            if (!ok) allOk = false;
+        });
+        if (allOk) {
+            box._tableLocked = true;
+            document.getElementById('tbl').querySelectorAll('input').forEach(i => i.disabled = true);
+            const c = q.ctxDef;
+            let qText, correctVal;
+            if (q.qType === 'row1') { qText = `On choisit une personne au hasard dans ce groupe. Calcule la probabilité que ce soit « ${c.rowLabel} ».`; correctVal = q.rowTotal1 / q.grandTotal; }
+            else if (q.qType === 'row2') { qText = `On choisit une personne au hasard dans ce groupe. Calcule la probabilité que ce soit « ${c.rowLabel2} ».`; correctVal = q.rowTotal2 / q.grandTotal; }
+            else if (q.qType === 'col1') { qText = `On choisit une personne au hasard dans ce groupe. Calcule la probabilité qu'elle soit dans la catégorie « ${c.colLabel} ».`; correctVal = q.colTotal1 / q.grandTotal; }
+            else { qText = `On choisit une personne au hasard dans ce groupe. Calcule la probabilité qu'elle soit à la fois « ${c.rowLabel} » et « ${c.colLabel} ».`; correctVal = q.cell11 / q.grandTotal; }
+            box._finalAnswer = correctVal;
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · Calculer une probabilité</div>
+                <div class="q-prompt">${qText}</div>
+                <div class="answer-wrap"><input type="text" class="answer-input" id="finalP" inputmode="decimal"></div>`, 'step1');
+            setTimeout(() => document.getElementById('finalP')?.focus(), 50);
+            return { ok: true, msg: 'Le tableau est complet, bien joué ! Passe à la question suivante.', advanceOnly: true };
+        }
+        return { ok: false, msg: 'Certaines cases sont encore incorrectes. Utilise les totaux déjà connus (par addition ou soustraction) pour les recalculer.' };
+    }
+    const inp = document.getElementById('finalP');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && closeRel(v, box._finalAnswer, 0.01);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const msg = `On divise l'effectif correspondant par l'effectif total (${q.grandTotal}) : \\(P = ${fmt(box._finalAnswer)}\\)`;
+    return { ok, msg };
+};
+
+/* ==========================================================
+   NIVEAU 6 : ARBRE DE PROBABILITÉ
+   ========================================================== */
+GENERATORS.arbre = function () {
+    const levels = Math.random() < 0.7 ? 2 : 3;
+    const total = Math.pow(2, levels);
+    const paths = [];
+    for (let i = 0; i < total; i++) {
+        const bits = i.toString(2).padStart(levels, '0');
+        paths.push(bits.split('').map(b => (b === '0' ? 'P' : 'F')));
+    }
+    let opts;
+    if (levels === 2) {
+        opts = [
+            { key: 'exactly1P', label: "obtenir exactement un Pile (sur les deux lancers)", pred: seq => seq.filter(x => x === 'P').length === 1 },
+            { key: 'atLeast1P', label: "obtenir au moins un Pile", pred: seq => seq.includes('P') },
+            { key: 'allP', label: "obtenir Pile aux deux lancers", pred: seq => seq.every(x => x === 'P') },
+            { key: 'allF', label: "n'obtenir que des Face", pred: seq => seq.every(x => x === 'F') },
+        ];
+    } else {
+        opts = [
+            { key: 'exactly2P', label: "obtenir exactement deux Piles (sur les trois lancers)", pred: seq => seq.filter(x => x === 'P').length === 2 },
+            { key: 'atLeast1P', label: "obtenir au moins un Pile", pred: seq => seq.includes('P') },
+            { key: 'allP', label: "obtenir Pile aux trois lancers", pred: seq => seq.every(x => x === 'P') },
+            { key: 'atLeast2F', label: "obtenir au moins deux Face", pred: seq => seq.filter(x => x === 'F').length >= 2 },
+        ];
+    }
+    const chosen = rndItem(opts);
+    const favorable = paths.filter(chosen.pred).length;
+    return { levels, total, paths, eventLabel: chosen.label, favorable };
+};
+
+RENDERERS.arbre = function (q, box) {
+    const layout = computeTreeLayout(q.levels);
+    const svg = renderTreeSVGFromLayout(layout, q.levels);
+    box.innerHTML = `
+        <div class="formula-remind">Rappel : dans un arbre, chaque chemin depuis la racine jusqu'à une extrémité correspond à une issue. Ici, tous les chemins sont équiprobables (pièce équilibrée).</div>
+        <div class="ctx-card"><span class="ctx-label">📝 Expérience</span>On lance une pièce de monnaie bien équilibrée ${q.levels} fois de suite.</div>
+        <div class="q-prompt" style="font-size:0.88em;">Complète l'arbre : écris, au bout de chaque branche, l'issue correspondante (par exemple « PF »).</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Complète les issues de l'arbre</div>
+            <div class="tree-wrap" style="width:100%;max-width:${q.levels === 2 ? 540 : 600}px;margin:0 auto 20px;background:#fff;border-radius:12px;border:1.5px solid #e2e8f0;padding:8px;">
+                ${svg}
+            </div>
+        </div>
+        ${calcHTML('arb')}`;
+    setTimeout(() => document.getElementById('leaf0')?.focus(), 50);
+};
+
+CHECKERS.arbre = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    if (stepsDone === 0) {
+        let allOk = true;
+        for (let i = 0; i < q.total; i++) {
+            const inp = document.getElementById('leaf' + i);
+            const val = (inp.value || '').toUpperCase().replace(/[^PF]/g, '');
+            const expected = q.paths[i].join('');
+            inp.classList.remove('ok', 'err');
+            const ok = val === expected;
+            inp.classList.add(ok ? 'ok' : 'err');
+            if (!ok) allOk = false;
+        }
+        if (allOk) {
+            lockStepSimple('step0');
+            insertStepBlock(`
+                <div class="step-tag">Étape 2 · Dénombrer l'évènement</div>
+                <div class="q-prompt">Soit E l'évènement : « ${q.eventLabel} ». Combien de chemins (issues) réalisent E ?</div>
+                <div class="answer-wrap"><input type="text" class="answer-input narrow" id="favCount" inputmode="numeric"></div>`, 'step1');
+            setTimeout(() => document.getElementById('favCount')?.focus(), 50);
+            return { ok: true, msg: "Bravo, l'arbre est complet !", advanceOnly: true };
+        }
+        return { ok: false, msg: 'Relis chaque chemin de l\'arbre (Pile ou Face à chaque étape) et écris la suite obtenue, par exemple « PF ».' };
+    }
+    if (stepsDone === 1) {
+        const inp = document.getElementById('favCount');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && close(v, q.favorable, 0.001);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStepSimple('step1');
+            insertStepBlock(`
+                <div class="step-tag">Étape 3 · Calcule P(E)</div>
+                <div class="answer-wrap"><input type="text" class="answer-input" id="pE" inputmode="decimal"></div>`, 'step2');
+            setTimeout(() => document.getElementById('pE')?.focus(), 50);
+            return { ok: true, msg: `Il y a bien ${q.favorable} chemin(s) favorable(s) sur ${q.total} au total. Calcule maintenant la probabilité.`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Relis la liste des issues que tu as écrites et compte celles qui vérifient « ${q.eventLabel} ».` };
+    }
+    const inp = document.getElementById('pE');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const expected = q.favorable / q.total;
+    const ok = v !== null && closeRel(v, expected, 0.01);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const msg = `Tous les chemins étant équiprobables : \\(P(E) = \\dfrac{${q.favorable}}{${q.total}} = ${fmt(expected)}\\)`;
+    return { ok, msg };
+};
+
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

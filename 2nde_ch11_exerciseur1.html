@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableaux de signes &amp; de variations — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-light: #8b5fc8;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --orange-border: rgba(184, 92, 11, 0.25);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #0c1624 0%, #162236 45%, #1c3358 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--blue), var(--purple), var(--green));
+}
+
+.app-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-title::before { content: '📈'; font-size: 1.15em; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+.mc-progress {
+    margin-top: 10px; font-size: 0.72em; font-weight: 700; color: var(--green);
+    background: var(--green-pale); padding: 3px 10px; border-radius: 10px;
+}
+
+/* ── ACCESSIBILITÉ CLAVIER : focus visible ── */
+.mc:focus-visible,
+.choice-btn:focus-visible,
+.mini-btn:focus-visible,
+.iv-btn:focus-visible,
+.btn:focus-visible,
+.answer-input:focus-visible {
+    outline: 3px solid var(--blue-light);
+    outline-offset: 2px;
+}
+
+/* ── HINT BOX ── */
+.hint-box {
+    background: var(--blue-pale);
+    border: 1.5px dashed var(--blue);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.88em;
+    color: var(--blue);
+    margin: 14px 0;
+    text-align: center;
+    line-height: 1.7;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, var(--red), var(--blue), var(--purple)); border-radius: 6px; transition: width 0.4s; }
+
+/* ── CONTEXT CARD ── */
+.ctx-card {
+    background: linear-gradient(135deg, #f5f9ff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.93em;
+    line-height: 1.7;
+}
+
+.ctx-card .ctx-label {
+    font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); margin-bottom: 6px; display: block;
+}
+
+/* ── FORMULA REMINDER ── */
+.formula-remind {
+    background: var(--gold-pale);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.84em;
+    color: #7a5800;
+    margin: 0 0 18px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+/* ── QUESTION BLOCK ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ── INPUT FIELD ── */
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.answer-unit {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text-light);
+}
+
+.answer-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+
+.answer-input.wide { width: 220px; }
+.answer-input.narrow { width: 90px; }
+
+/* ── MULTI-INPUT ROW ── */
+.row-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.row-label {
+    font-size: 0.85em; font-weight: 600; color: var(--text-light);
+}
+
+/* ── CHOICE BUTTONS ── */
+.choice-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.choice-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.choice-btn:hover:not(:disabled) { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 560px; }
+
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-light);
+    text-align: center; width: 100%; margin-bottom: 8px;
+}
+
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── FEEDBACK ── */
+.fb {
+    margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.93em; text-align: center; display: none;
+    animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7;
+}
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 20px auto; border: 6px solid;
+}
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+/* ── GRAPH ── */
+.graph-wrap { display: flex; justify-content: center; margin: 6px 0 22px; }
+.graph-svg { width: 100%; max-width: 520px; height: auto; background: #fbfdff; border: 1px solid var(--border); border-radius: 12px; }
+
+/* ── INTERVAL CHOICE ROW ── */
+.interval-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 18px 0; }
+.interval-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.interval-lbl { font-size: 0.8em; font-weight: 700; color: var(--text-light); }
+.mini-choice { display: flex; gap: 6px; }
+.mini-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1em;
+    font-weight: 800;
+    width: 48px; height: 42px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.mini-btn:hover:not(:disabled) { border-color: var(--blue); transform: translateY(-2px); }
+.mini-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+.mini-btn.chosen { background: var(--purple); border-color: var(--purple); color: #fff; }
+.mini-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.mini-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── VARIATIONS / SIGNS TABLE ── */
+.vtable, .stable { display: flex; justify-content: center; margin: 16px auto; overflow-x: auto; padding-bottom: 4px; }
+.tbl { border-collapse: collapse; }
+.tbl td { padding: 8px 16px; text-align: center; font-weight: 700; font-size: 0.95em; border-top: 2.5px solid var(--text); border-bottom: 2.5px solid var(--text); white-space: nowrap; }
+.tbl .lbl-col { border: none !important; text-align: right; padding-right: 14px; color: var(--text-light); font-size: 0.82em; font-weight: 600; }
+.tbl .extremum-col { border-left: 3px double var(--purple); border-right: 3px double var(--purple); }
+.tbl .gap-col { font-size: 1.15em; color: var(--blue); }
+.tbl .arrow-cell { color: var(--blue); }
+.tbl input.answer-input { width: 62px; padding: 5px 6px; font-size: 0.95em; }
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.05em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+    .tbl td { padding: 7px 10px; font-size: 0.85em; }
+}
+/* -- Floating menu button -- */
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--blue),var(--blue));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,111,160,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(26,111,160,0.5);}
+
+/* ══ RESPONSIVE ENHANCEMENTS ══ */
+/* ── 900px tablette ── */
+@media(max-width:900px){
+  .app { padding:0 12px; }
+  .main { padding:12px; }
+}
+/* ── 380px petit écran ── */
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-header-bar { flex-wrap:wrap; gap:4px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .mc-badge, .ex-badge { font-size:0.7rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn, .choice-grid .btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .screen { font-size:0.85rem; padding:10px; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind, .formula-box { font-size:0.85rem; padding:8px; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input, .ans-input { font-size:0.9rem; }
+  .answer-wrap, .row-inputs { flex-wrap:wrap; gap:6px; }
+  .pbar { height:6px; }
+  .mode-toggle, .mode-btn { font-size:0.8rem; }
+  .menu-btn { font-size:0.8rem; }
+  .ex-top { flex-wrap:wrap; gap:4px; }
+  .ex-score { font-size:0.8rem; }
+}
+/* ── overflow helpers ── */
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+
+@media(max-width:380px){
+  .graph-wrap { overflow-x:auto; }
+  .tbl, .vtable { font-size:0.75rem; overflow-x:auto; display:block; }
+  .interval-row { flex-wrap:wrap; gap:4px; }
+  .arrow-cell { min-width:40px; }
+  .extremum-col, .gap-col, .lbl-col { font-size:0.75rem; }
+  .mini-choice { font-size:0.75rem; padding:3px 6px; }
+  .hint-box { font-size:0.82rem; padding:8px; }
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Fonctions — Tableaux de signes &amp; de variations</div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Cinq exerciseurs pour apprendre à lire une courbe, construire un tableau et l'utiliser.</p>
+            <div class="menu-grid" id="menuGrid"></div>
+            <div id="resetProgressWrap" style="text-align:center; margin-top:8px; display:none;">
+                <button class="btn btn-ghost" id="btnResetProgress" style="font-size:0.78em; padding:8px 16px;">Réinitialiser ma progression</button>
+            </div>
+        </div>
+
+        <!-- DIFFICULTÉ -->
+        <div id="screen-diff" class="screen">
+            <h1>Choisis un niveau de difficulté</h1>
+            <p class="sub">Tu pourras toujours changer de niveau en recommençant l'exercice.</p>
+            <div class="choice-grid" id="diffChoices" style="margin-top:26px;">
+                <button type="button" class="choice-btn" data-diff="facile">🟢 Facile</button>
+                <button type="button" class="choice-btn" data-diff="standard">🔵 Standard</button>
+                <button type="button" class="choice-btn" data-diff="avance">🔴 Avancé</button>
+            </div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnDiffBack">← Retour</button>
+            </div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="hint-box" id="hintBox" style="display:none;"></div>
+            <div class="fb" id="fb" aria-live="polite"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-ghost" id="btnHint">💡 Indice</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX
+   ========================================================== */
+const LEVELS = [
+    { id: 'var_courbe',    icon: '🏔️',  title: 'Lire une courbe → tableau de variations', desc: 'Construis le tableau de variations à partir d\'une courbe', n: 6 },
+    { id: 'var_tableau',   icon: '📈',  title: 'Lire un tableau de variations',            desc: 'Sens, maximum, minimum à partir d\'un tableau donné', n: 6 },
+    { id: 'signe_courbe',  icon: '🌊',  title: 'Lire une courbe → tableau de signes',      desc: 'Détermine le signe de f(x) sur chaque intervalle', n: 6 },
+    { id: 'signe_tableau', icon: '➕➖', title: 'Résoudre une inéquation',                  desc: 'Utilise un tableau de signes pour résoudre f(x) > 0 ou < 0', n: 6 },
+    { id: 'vrai_faux',     icon: '🧠',  title: 'Vrai ou faux : les pièges classiques',      desc: 'Teste ta compréhension des définitions et pièges à éviter', n: 8, noDifficulty: true },
+    { id: 'mixte',         icon: '🎯',  title: 'Bilan mixte : signes & variations',        desc: 'Un peu de tout, pour un vrai bilan de fin de chapitre', n: 8, badge: 'Bilan' },
+];
+
+let state = { levelId: null, difficulty: 'standard', pendingLevel: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false };
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/\u2212/g, '-');
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+function close(a, b, eps = 0.5) { return Math.abs(a - b) < eps; }
+
+function fmt(x) {
+    return x % 1 === 0 ? String(x) : String(x).replace('.', ',');
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    const progress = loadProgress();
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', lv.title);
+        const p = progress[lv.id];
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+            ${p ? `<div class="mc-progress">Meilleur : ${p.best}% · ${p.attempts} essai${p.attempts > 1 ? 's' : ''}</div>` : ''}
+        `;
+        const activate = () => {
+            if (lv.noDifficulty) { state.difficulty = 'standard'; startLevel(lv.id); }
+            else { state.pendingLevel = lv.id; showScreen('screen-diff'); }
+        };
+        el.addEventListener('click', activate);
+        el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+        });
+        grid.appendChild(el);
+    });
+    const resetWrap = document.getElementById('resetProgressWrap');
+    if (resetWrap) resetWrap.style.display = Object.keys(progress).length ? 'block' : 'none';
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+document.getElementById('btnDiffBack').addEventListener('click', () => showScreen('screen-menu'));
+document.querySelectorAll('#diffChoices .choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        state.difficulty = btn.dataset.diff;
+        startLevel(state.pendingLevel);
+    });
+});
+
+/* ==========================================================
+   PROGRESSION (localStorage) — fonctionne car ce fichier est
+   ouvert directement dans le navigateur de l'élève.
+   ========================================================== */
+const PROGRESS_KEY = 'signes_variations_progress_v1';
+function loadProgress() {
+    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveProgress(levelId, pct) {
+    try {
+        const data = loadProgress();
+        const cur = data[levelId] || { attempts: 0, best: 0 };
+        cur.attempts++;
+        cur.best = Math.max(cur.best, pct);
+        cur.last = pct;
+        cur.date = new Date().toISOString();
+        data[levelId] = cur;
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+    } catch (e) { /* stockage indisponible : on continue sans sauvegarder */ }
+}
+function resetProgress() {
+    try { localStorage.removeItem(PROGRESS_KEY); } catch (e) {}
+    buildMenu();
+}
+const btnResetProgress = document.getElementById('btnResetProgress');
+if (btnResetProgress) btnResetProgress.addEventListener('click', () => {
+    if (confirm('Effacer ta progression enregistrée sur cet ordinateur ?')) resetProgress();
+});
+
+buildMenu();
+
+/* KaTeX auto-render — relancé après chaque rendu de question */
+function renderKatex(el) {
+    if (window.renderMathInElement) {
+        renderMathInElement(el || document.body, {
+            delimiters: [
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false
+        });
+    }
+}
+
+/* Helpers LaTeX */
+function L(tex) { return '\\(' + tex + '\\)'; }
+function texNum(n) { return String(n); }
+function texInterval(a, b, closedLeft, closedRight) {
+    const lb = closedLeft ? '[' : ']';
+    const rb = closedRight ? ']' : '[';
+    return `${lb}${texNum(a)}\\,;\\,${texNum(b)}${rb}`;
+}
+function opTex(op) { return op === '≥' ? '\\geq' : op === '≤' ? '\\leq' : op; }
+
+/* ==========================================================
+   ACCESSIBILITÉ CLAVIER : navigation aux flèches dans les
+   groupes de boutons (mini-choice, choice-grid, iv-btn)
+   ========================================================== */
+function enableArrowNav(root) {
+    root.querySelectorAll('.mini-choice, .choice-grid').forEach(group => {
+        const list = Array.from(group.querySelectorAll('button'));
+        list.forEach((btn, idx) => {
+            btn.addEventListener('keydown', (e) => {
+                if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(e.key)) return;
+                e.preventDefault();
+                const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+                const next = (idx + dir + list.length) % list.length;
+                list[next].focus();
+            });
+        });
+    });
+    // Cases à remplir : les flèches Haut/Bas passent au champ suivant/précédent
+    // (Gauche/Droite restent libres pour déplacer le curseur dans le texte).
+    root.querySelectorAll('.step-block').forEach(stepBlock => {
+        const inputs = Array.from(stepBlock.querySelectorAll('input.answer-input'));
+        inputs.forEach((inp, idx) => {
+            inp.addEventListener('keydown', (e) => {
+                if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+                e.preventDefault();
+                const dir = e.key === 'ArrowDown' ? 1 : -1;
+                const next = (idx + dir + inputs.length) % inputs.length;
+                inputs[next].focus();
+                inputs[next].select();
+            });
+        });
+    });
+}
+
+/* ==========================================================
+   DIFFICULTÉ : nombre de points / de zéros selon le niveau
+   ========================================================== */
+function segCountForDifficulty(diff) {
+    if (diff === 'facile') return 2;
+    if (diff === 'avance') return 4;
+    return 3;
+}
+function kPoolForDifficulty(diff) {
+    if (diff === 'facile') return [1, 1, 2];
+    if (diff === 'avance') return [2, 3, 3];
+    return [1, 2, 2, 3];
+}
+
+/* ==========================================================
+   MOTEUR GENERIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS = {};
+const CHECKERS = {};
+const HINTS = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex = 0;
+    state.score = 0;
+    state.total = lv.n;
+    state.questions = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId](state.difficulty));
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked = false;
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    const hintBox = document.getElementById('hintBox');
+    hintBox.style.display = 'none'; hintBox.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+    enableArrowNav(body);
+}
+
+document.getElementById('btnHint').addEventListener('click', () => {
+    const q = state.questions[state.qIndex];
+    const hintFn = HINTS[state.levelId];
+    if (!hintFn) return;
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const hintBox = document.getElementById('hintBox');
+    hintBox.style.display = 'block';
+    hintBox.innerHTML = '💡 ' + hintFn(q, stepsDone);
+    renderKatex(hintBox);
+});
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb = document.getElementById('fb');
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        renderKatex(fb);
+        if (result.advanceOnly) {
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1400);
+            document.getElementById('btnNext').style.display = 'none';
+            enableArrowNav(document.getElementById('exBody'));
+            return;
+        }
+        state.checked = true;
+        state.score++;
+        document.getElementById('btnCheck').style.display = 'none';
+        document.getElementById('btnNext').style.display = '';
+    } else {
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || 'Ce n\'est pas encore ça, réessaie.');
+        renderKatex(fb);
+        document.getElementById('btnNext').style.display = '';
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none' && btnNext.offsetParent) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    saveProgress(state.levelId, pct);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises ce thème.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+function lockStepSimple(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('locked');
+    const tag = el.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+    el.querySelectorAll('input').forEach(i => i.disabled = true);
+}
+
+function attachMiniChoiceHandlers(root) {
+    root.querySelectorAll('.mini-choice').forEach(group => {
+        group.querySelectorAll('.mini-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                group.querySelectorAll('.mini-btn').forEach(b => b.classList.remove('chosen'));
+                btn.classList.add('chosen');
+            });
+        });
+    });
+}
+
+/* ==========================================================
+   GRAPHIQUE SVG
+   ========================================================== */
+function makeGraphSVG(pathPoints, markPoints) {
+    markPoints = markPoints || pathPoints;
+    const w = 560, h = 300, padL = 26, padR = 22, padT = 22, padB = 30;
+    const allX = pathPoints.map(p => p.x), allY = pathPoints.map(p => p.y);
+    const xmin = Math.min(...allX) - 0.6, xmax = Math.max(...allX) + 0.6;
+    const ymin = Math.min(...allY, -0.5) - 0.8, ymax = Math.max(...allY, 0.5) + 0.8;
+    const toX = x => padL + (x - xmin) / (xmax - xmin) * (w - padL - padR);
+    const toY = y => h - padB - (y - ymin) / (ymax - ymin) * (h - padT - padB);
+    const axisX0 = toX(0), axisY0 = toY(0);
+    const yLabelInside = axisX0 < padL + 26; // axe proche du bord gauche → labels à droite de l'axe
+    let grid = '';
+    for (let gx = Math.ceil(xmin); gx <= Math.floor(xmax); gx++) {
+        grid += `<line x1="${toX(gx)}" y1="${padT}" x2="${toX(gx)}" y2="${h - padB}" stroke="#d5dce6" stroke-width="1"/>`;
+        if (gx !== 0) grid += `<text x="${toX(gx)}" y="${axisY0 + 16}" font-size="11" text-anchor="middle" fill="#64748b">${gx}</text>`;
+    }
+    for (let gy = Math.ceil(ymin); gy <= Math.floor(ymax); gy++) {
+        grid += `<line x1="${padL}" y1="${toY(gy)}" x2="${w - padR}" y2="${toY(gy)}" stroke="#d5dce6" stroke-width="1"/>`;
+        if (gy !== 0) {
+            const tx = yLabelInside ? axisX0 + 8 : axisX0 - 8;
+            const anchor = yLabelInside ? 'start' : 'end';
+            grid += `<text x="${tx}" y="${toY(gy) + 4}" font-size="11" text-anchor="${anchor}" fill="#64748b">${gy}</text>`;
+        }
+    }
+    const axes = `<line x1="${padL}" y1="${axisY0}" x2="${w - padR}" y2="${axisY0}" stroke="#1e293b" stroke-width="1.6"/>
+        <line x1="${axisX0}" y1="${padT}" x2="${axisX0}" y2="${h - padB}" stroke="#1e293b" stroke-width="1.6"/>
+        <text x="${w - padR - 4}" y="${axisY0 - 6}" font-size="12" fill="#1e293b" text-anchor="end">x</text>
+        <text x="${axisX0 + (yLabelInside ? 18 : 6)}" y="${padT + 10}" font-size="12" fill="#1e293b">y</text>
+        <text x="${axisX0 - 7}" y="${axisY0 + 15}" font-size="10" fill="#94a3b8" text-anchor="end">O</text>`;
+    let d = 'M ' + pathPoints.map(p => `${toX(p.x).toFixed(1)},${toY(p.y).toFixed(1)}`).join(' L ');
+    const curve = `<path d="${d}" fill="none" stroke="#1a6fa0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const dots = markPoints.map(p => `<circle cx="${toX(p.x)}" cy="${toY(p.y)}" r="5" fill="#6b3fa0" stroke="#fff" stroke-width="1.5"/>`).join('');
+    return `<svg viewBox="0 0 ${w} ${h}" class="graph-svg" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">${grid}${axes}${curve}${dots}</svg>`;
+}
+
+/* ==========================================================
+   TABLEAUX HTML
+   ========================================================== */
+function varTableHTML(points) {
+    let xRow = `<td class="lbl-col">${L('x')}</td>`;
+    let yRow = `<td class="lbl-col">${L('f(x)')}</td>`;
+    for (let i = 0; i < points.length; i++) {
+        const interior = i > 0 && i < points.length - 1;
+        xRow += `<td class="pt-col${interior ? ' extremum-col' : ''}">${L(texNum(points[i].x))}</td>`;
+        yRow += `<td class="pt-col${interior ? ' extremum-col' : ''}">${L(texNum(points[i].y))}</td>`;
+        if (i < points.length - 1) {
+            xRow += `<td class="gap-col"></td>`;
+            const up = points[i + 1].y > points[i].y;
+            yRow += `<td class="gap-col arrow-cell">${up ? '↗' : '↘'}</td>`;
+        }
+    }
+    return `<div class="vtable"><table class="tbl"><tr>${xRow}</tr><tr>${yRow}</tr></table></div>`;
+}
+
+function signTableHTML(a, zeros, b, signs, opts) {
+    opts = opts || {};
+    const xs = [a, ...zeros, b];
+    let xRow = `<td class="lbl-col">${L('x')}</td>`;
+    let sRow = '<td class="lbl-col">signe</td>';
+    for (let i = 0; i < xs.length; i++) {
+        xRow += `<td class="pt-col">${L(texNum(xs[i]))}</td>`;
+        const isBound = (i === 0 || i === xs.length - 1);
+        sRow += `<td class="pt-col">${isBound ? '' : L('0')}</td>`;
+        if (i < xs.length - 1) {
+            xRow += `<td class="gap-col"></td>`;
+            const gi = i;
+            if (opts.editable) {
+                sRow += `<td class="gap-col"><div class="mini-choice" data-group="${gi}">
+                    <button type="button" class="mini-btn" data-val="plus">+</button>
+                    <button type="button" class="mini-btn" data-val="minus">−</button>
+                </div></td>`;
+            } else {
+                sRow += `<td class="gap-col">${L(signs[gi] > 0 ? '+' : '-')}</td>`;
+            }
+        }
+    }
+    return `<div class="stable"><table class="tbl"><tr>${xRow}</tr><tr>${sRow}</tr></table></div>`;
+}
+
+/* ==========================================================
+   GÉNÉRATION DE DONNÉES
+   ========================================================== */
+function genVarPoints(nSeg) {
+    nSeg = nSeg || 3;
+    let xs, ys, ok = false;
+    while (!ok) {
+        xs = [rnd(-4, -2)];
+        for (let i = 0; i < nSeg; i++) xs.push(xs[xs.length - 1] + rnd(2, 3));
+        ys = [rnd(-2, 2)];
+        let dir = Math.random() < 0.5 ? 1 : -1;
+        for (let i = 0; i < nSeg; i++) { ys.push(ys[ys.length - 1] + dir * rnd(2, 4)); dir *= -1; }
+        ok = new Set(ys).size === xs.length && ys.every(v => v >= -8 && v <= 9);
+    }
+    return xs.map((x, i) => ({ x, y: ys[i] }));
+}
+
+function genSignData(diff) {
+    const kPool = kPoolForDifficulty(diff);
+    const k = kPool[rnd(0, kPool.length - 1)];
+    let x = rnd(-4, -2);
+    const zeros = [];
+    for (let i = 0; i < k; i++) { x += rnd(2, 3); zeros.push(x); }
+    const a = zeros[0] - rnd(2, 3);
+    const b = zeros[k - 1] + rnd(2, 3);
+    const s0 = Math.random() < 0.5 ? 1 : -1;
+    const signs = [];
+    let s = s0;
+    for (let i = 0; i < k + 1; i++) { signs.push(s); s = -s; }
+    return { a, b, zeros, signs, k };
+}
+
+function buildSignPoints(a, zeros, b, signs) {
+    const xsAll = [a, ...zeros, b];
+    const pts = [{ x: xsAll[0], y: signs[0] * (rnd(10, 25) / 10) }];
+    for (let i = 0; i < signs.length; i++) {
+        const left = xsAll[i], right = xsAll[i + 1];
+        const mid = (left + right) / 2;
+        const s = signs[i];
+        const peak = s * (rnd(15, 35) / 10);
+        pts.push({ x: mid, y: peak });
+        const endY = (i === signs.length - 1) ? s * (rnd(10, 25) / 10) : 0;
+        pts.push({ x: right, y: endY });
+    }
+    return pts;
+}
+
+/* ==========================================================
+   NIVEAU 1 : LIRE UNE COURBE → TABLEAU DE VARIATIONS
+   ========================================================== */
+GENERATORS.var_courbe = function (diff) {
+    return { points: genVarPoints(segCountForDifficulty(diff)) };
+};
+
+RENDERERS.var_courbe = function (q, box) {
+    const pts = q.points;
+    const n = pts.length - 1;
+    box.innerHTML = `
+        <div class="formula-remind">On lit la courbe de gauche à droite : elle monte (↗, croissante) ou elle descend (↘, décroissante).</div>
+        <div class="graph-wrap">${makeGraphSVG(pts, pts)}</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Sens de variation sur chaque intervalle</div>
+            <div class="interval-row">
+                ${Array.from({ length: n }, (_, i) => i).map(i => `
+                    <div class="interval-item">
+                        <span class="interval-lbl">${L(texInterval(pts[i].x, pts[i + 1].x, true, true))}</span>
+                        <div class="mini-choice" data-group="${i}">
+                            <button type="button" class="mini-btn" data-val="up">↗</button>
+                            <button type="button" class="mini-btn" data-val="down">↘</button>
+                        </div>
+                    </div>`).join('')}
+            </div>
+        </div>`;
+    attachMiniChoiceHandlers(box);
+    renderKatex(box);
+};
+
+HINTS.var_courbe = function (q, stepsDone) {
+    if (stepsDone === 0) return "Regarde chaque morceau de la courbe, pris à part entre deux points marqués : est-ce qu'elle monte ou qu'elle descend quand on avance vers la droite ?";
+    return "Pour chaque point marqué, suis la ligne pointillée horizontale du quadrillage qui passe exactement par ce point, jusqu'à l'axe des ordonnées : c'est la valeur de f(x) à cet endroit.";
+};
+
+CHECKERS.var_courbe = function (q) {
+    const box = document.getElementById('exBody');
+    const pts = q.points;
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    if (stepsDone === 0) {
+        const groups = box.querySelectorAll('#step0 .mini-choice');
+        let allOk = true;
+        groups.forEach(g => {
+            const gi = +g.dataset.group;
+            const expected = pts[gi + 1].y > pts[gi].y ? 'up' : 'down';
+            const chosenBtn = g.querySelector('.mini-btn.chosen');
+            g.querySelectorAll('.mini-btn').forEach(b => b.classList.remove('ok', 'err'));
+            if (chosenBtn && chosenBtn.dataset.val === expected) chosenBtn.classList.add('ok');
+            else { allOk = false; if (chosenBtn) chosenBtn.classList.add('err'); }
+        });
+        if (!allOk) {
+            if ([...groups].every(g => !g.querySelector('.mini-btn.chosen'))) return { ok: false, msg: 'Choisis un sens pour chaque intervalle.' };
+            return { ok: false, msg: `Regarde bien : entre deux points, la courbe monte (↗) si ${L('f(x)')} augmente, descend (↘) si ${L('f(x)')} diminue.` };
+        }
+        groups.forEach(g => g.querySelectorAll('.mini-btn').forEach(b => b.disabled = true));
+        lockStepSimple('step0');
+        const hr = document.createElement('hr'); hr.className = 'step-divider';
+        box.appendChild(hr);
+        const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+        div.innerHTML = `
+            <div class="step-tag">Étape 2 · Valeurs de f(x) lues sur le graphique</div>
+            <div class="row-inputs">
+                ${pts.map((p, i) => `<span class="row-label">${L('f(' + texNum(p.x) + ')=')}</span><input type="text" class="answer-input narrow" id="fy${i}" placeholder="…" inputmode="decimal">`).join('')}
+            </div>`;
+        box.appendChild(div);
+        renderKatex(box);
+        enableArrowNav(box);
+        setTimeout(() => document.getElementById('fy0')?.focus(), 50);
+        return { ok: true, msg: `Bien vu, le sens de variation est correct. Lis maintenant les valeurs exactes sur la grille.`, advanceOnly: true };
+    }
+
+    let allOk = true;
+    const parts = [];
+    pts.forEach((p, i) => {
+        const inp = document.getElementById('fy' + i);
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && close(v, p.y, 0.5);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (!ok) allOk = false;
+        parts.push(L(`f(${texNum(p.x)})=${texNum(p.y)}`));
+    });
+    if (allOk) return { ok: true, msg: `Exact ! Tableau complet : ${parts.join(', ')}.` };
+    return { ok: false, msg: `Lis la hauteur exacte de la courbe à chaque point clé, sur les lignes de la grille. Valeurs attendues : ${parts.join(', ')}.` };
+};
+
+/* ==========================================================
+   NIVEAU 2 : LIRE UN TABLEAU DE VARIATIONS
+   ========================================================== */
+GENERATORS.var_tableau = function (diff) {
+    const points = genVarPoints(segCountForDifficulty(diff));
+    const qi = rnd(0, points.length - 2);
+    const sensUp = points[qi + 1].y > points[qi].y;
+    let maxIdx = 0, minIdx = 0;
+    points.forEach((p, i) => { if (p.y > points[maxIdx].y) maxIdx = i; if (p.y < points[minIdx].y) minIdx = i; });
+    return { points, qi, sensUp, maxIdx, minIdx };
+};
+
+RENDERERS.var_tableau = function (q, box) {
+    box.innerHTML = `
+        <div class="formula-remind">Ce tableau donne le sens de variation de f. Lis-le pour répondre aux questions.</div>
+        ${varTableHTML(q.points)}
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Sens de variation</div>
+            <div class="q-prompt">Sur ${L(texInterval(q.points[q.qi].x, q.points[q.qi + 1].x, true, true))}, la fonction est :</div>
+            <div class="choice-grid" id="choiceSens">
+                <button type="button" class="choice-btn" data-val="croissante">↗ Croissante</button>
+                <button type="button" class="choice-btn" data-val="decroissante">↘ Décroissante</button>
+            </div>
+        </div>`;
+    box.querySelectorAll('#choiceSens .choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll('#choiceSens .choice-btn').forEach(b => b.classList.remove('chosen'));
+            btn.classList.add('chosen');
+        });
+    });
+    renderKatex(box);
+};
+
+CHECKERS.var_tableau = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    if (stepsDone === 0) {
+        const chosen = box.querySelector('#choiceSens .choice-btn.chosen');
+        const expected = q.sensUp ? 'croissante' : 'decroissante';
+        box.querySelectorAll('#choiceSens .choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+        const ok = chosen && chosen.dataset.val === expected;
+        if (chosen) chosen.classList.add(ok ? 'ok' : 'err');
+        if (!ok) {
+            if (!chosen) return { ok: false, msg: 'Choisis une réponse.' };
+            return { ok: false, msg: `${L('f(' + texNum(q.points[q.qi].x) + ')=' + texNum(q.points[q.qi].y))} et ${L('f(' + texNum(q.points[q.qi + 1].x) + ')=' + texNum(q.points[q.qi + 1].y))}. La fonction est donc <strong>${q.sensUp ? 'croissante' : 'décroissante'}</strong>.` };
+        }
+        box.querySelectorAll('#choiceSens .choice-btn').forEach(b => b.disabled = true);
+        lockStepSimple('step0');
+        const hr = document.createElement('hr'); hr.className = 'step-divider';
+        box.appendChild(hr);
+        const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+        div.innerHTML = `
+            <div class="step-tag">Étape 2 · Maximum et minimum</div>
+            <div class="row-inputs">
+                <span class="row-label">Maximum ${L('=')}</span>
+                <input type="text" class="answer-input narrow" id="maxv" placeholder="…" inputmode="decimal">
+                <span class="row-label" style="margin-left:16px;">atteint en ${L('x=')}</span>
+                <input type="text" class="answer-input narrow" id="maxx" placeholder="…" inputmode="decimal">
+            </div>
+            <div class="row-inputs" style="margin-top:10px;">
+                <span class="row-label">Minimum ${L('=')}</span>
+                <input type="text" class="answer-input narrow" id="minv" placeholder="…" inputmode="decimal">
+                <span class="row-label" style="margin-left:16px;">atteint en ${L('x=')}</span>
+                <input type="text" class="answer-input narrow" id="minx" placeholder="…" inputmode="decimal">
+            </div>`;
+        box.appendChild(div);
+        renderKatex(box);
+        enableArrowNav(box);
+        setTimeout(() => document.getElementById('maxv')?.focus(), 50);
+        return { ok: true, msg: `Bien vu, c'est ${q.sensUp ? 'croissante' : 'décroissante'}. Cherche maintenant le maximum et le minimum dans le tableau.`, advanceOnly: true };
+    }
+
+    const maxP = q.points[q.maxIdx], minP = q.points[q.minIdx];
+    const iv = id => normNum(document.getElementById(id).value);
+    const vmaxv = iv('maxv'), vmaxx = iv('maxx'), vminv = iv('minv'), vminx = iv('minx');
+    const okMaxV = vmaxv !== null && close(vmaxv, maxP.y, 0.5);
+    const okMaxX = vmaxx !== null && close(vmaxx, maxP.x, 0.5);
+    const okMinV = vminv !== null && close(vminv, minP.y, 0.5);
+    const okMinX = vminx !== null && close(vminx, minP.x, 0.5);
+    [['maxv', okMaxV], ['maxx', okMaxX], ['minv', okMinV], ['minx', okMinX]].forEach(([id, ok]) => {
+        const el = document.getElementById(id); el.classList.remove('ok', 'err'); el.classList.add(ok ? 'ok' : 'err');
+    });
+    if (okMaxV && okMaxX && okMinV && okMinX) {
+        return { ok: true, msg: `Le maximum vaut ${L(texNum(maxP.y))}, atteint en ${L('x=' + texNum(maxP.x))}. Le minimum vaut ${L(texNum(minP.y))}, atteint en ${L('x=' + texNum(minP.x))}.` };
+    }
+    return { ok: false, msg: `Regarde la ligne ${L('f(x)')} : le maximum est <strong>${L(texNum(maxP.y))}</strong> (en ${L('x=' + texNum(maxP.x))}), le minimum est <strong>${L(texNum(minP.y))}</strong> (en ${L('x=' + texNum(minP.x))}).` };
+};
+
+HINTS.var_tableau = function (q, stepsDone) {
+    if (stepsDone === 0) return `Compare ${L('f(' + texNum(q.points[q.qi].x) + ')')} et ${L('f(' + texNum(q.points[q.qi + 1].x) + ')')} : lequel est le plus grand ?`;
+    return "Parcours toute la ligne f(x) du tableau, pas seulement les deux bouts : le maximum est la plus grande valeur, le minimum la plus petite, où qu'ils se trouvent.";
+};
+
+/* ==========================================================
+   NIVEAU 3 : LIRE UNE COURBE → TABLEAU DE SIGNES
+   ========================================================== */
+GENERATORS.signe_courbe = function (diff) {
+    const d = genSignData(diff);
+    const pts = buildSignPoints(d.a, d.zeros, d.b, d.signs);
+    return { ...d, pts };
+};
+
+RENDERERS.signe_courbe = function (q, box) {
+    const xs = [q.a, ...q.zeros, q.b];
+    const marks = q.zeros.map(z => ({ x: z, y: 0 }));
+    box.innerHTML = `
+        <div class="formula-remind">Au-dessus de l'axe → signe + &nbsp;|&nbsp; en dessous → signe − &nbsp;|&nbsp; sur l'axe → 0</div>
+        <div class="graph-wrap">${makeGraphSVG(q.pts, marks)}</div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape · Signe de f(x) sur chaque intervalle</div>
+            <div class="interval-row">
+                ${q.signs.map((s, i) => `
+                    <div class="interval-item">
+                        <span class="interval-lbl">${L(texInterval(xs[i], xs[i + 1], false, false))}</span>
+                        <div class="mini-choice" data-group="${i}">
+                            <button type="button" class="mini-btn" data-val="plus">+</button>
+                            <button type="button" class="mini-btn" data-val="minus">−</button>
+                        </div>
+                    </div>`).join('')}
+            </div>
+        </div>`;
+    attachMiniChoiceHandlers(box);
+    renderKatex(box);
+};
+
+CHECKERS.signe_courbe = function (q) {
+    const box = document.getElementById('exBody');
+    const groups = box.querySelectorAll('.mini-choice');
+    let allOk = true;
+    groups.forEach(g => {
+        const gi = +g.dataset.group;
+        const expected = q.signs[gi] > 0 ? 'plus' : 'minus';
+        const chosenBtn = g.querySelector('.mini-btn.chosen');
+        g.querySelectorAll('.mini-btn').forEach(b => b.classList.remove('ok', 'err'));
+        if (chosenBtn && chosenBtn.dataset.val === expected) chosenBtn.classList.add('ok');
+        else { allOk = false; if (chosenBtn) chosenBtn.classList.add('err'); }
+    });
+    if (allOk) {
+        const xs = [q.a, ...q.zeros, q.b];
+        const summary = q.signs.map((s, i) => L(texInterval(xs[i], xs[i + 1], false, false) + '\\,:\\,' + (s > 0 ? '+' : '-'))).join(' &nbsp;·&nbsp; ');
+        return { ok: true, msg: `Bien vu ! ${summary}` };
+    }
+    if ([...groups].every(g => !g.querySelector('.mini-btn.chosen'))) return { ok: false, msg: 'Choisis un signe pour chaque intervalle.' };
+    return { ok: false, msg: `Rappelle-toi : le signe change à chaque zéro. Vérifie chaque intervalle par rapport à la courbe (au-dessus = +, en dessous = −).` };
+};
+
+HINTS.signe_courbe = function () {
+    return "Une portion de courbe entièrement au-dessus de l'axe est positive (+), une portion entièrement en dessous est négative (−). Le signe change à chaque fois que la courbe croise l'axe.";
+};
+
+/* ==========================================================
+   NIVEAU 4 : RÉSOUDRE UNE INÉQUATION AVEC UN TABLEAU
+   ========================================================== */
+GENERATORS.signe_tableau = function (diff) {
+    const d = genSignData(diff);
+    const opPool = ['>', '<', '≥', '≤'];
+    const op = opPool[rnd(0, opPool.length - 1)];
+    return { ...d, op };
+};
+
+RENDERERS.signe_tableau = function (q, box) {
+    const xs = [q.a, ...q.zeros, q.b];
+    box.innerHTML = `
+        <div class="formula-remind">Une fonction ne change de signe qu'en s'annulant. Utilise le tableau pour résoudre l'inéquation.</div>
+        ${signTableHTML(q.a, q.zeros, q.b, q.signs, { editable: false })}
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Résoudre l'inéquation</div>
+            <div class="q-prompt">Résous ${L('k(x)' + opTex(q.op) + '0')} : sélectionne <strong>tous les intervalles</strong> qui font partie de la solution.</div>
+            <div class="interval-row" id="ivChoices">
+                ${q.signs.map((s, i) => `<button type="button" class="choice-btn iv-btn" data-idx="${i}">${L(texInterval(xs[i], xs[i + 1], false, false))}</button>`).join('')}
+            </div>
+        </div>`;
+    box.querySelectorAll('.iv-btn').forEach(btn => {
+        btn.addEventListener('click', () => btn.classList.toggle('chosen'));
+    });
+    renderKatex(box);
+};
+
+HINTS.signe_tableau = function (q, stepsDone) {
+    if (stepsDone === 0) return `Un intervalle appartient à la solution s'il a le signe demandé par ${L('k(x)' + opTex(q.op) + '0')} : le signe se lit directement dans le tableau.`;
+    return "Les zéros sont les valeurs de x en face desquelles le tableau affiche 0. Une inégalité large (≥ ou ≤) inclut ces valeurs dans la solution ; une inégalité stricte (> ou <) les exclut.";
+};
+
+CHECKERS.signe_tableau = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+    const isLarge = (q.op === '≥' || q.op === '≤');
+    const wantsPositive = (q.op === '>' || q.op === '≥');
+
+    if (stepsDone === 0) {
+        const btns = box.querySelectorAll('.iv-btn');
+        let allOk = true;
+        btns.forEach(btn => {
+            const i = +btn.dataset.idx;
+            const shouldInclude = wantsPositive ? q.signs[i] > 0 : q.signs[i] < 0;
+            const isChosen = btn.classList.contains('chosen');
+            btn.classList.remove('ok', 'err');
+            if (shouldInclude === isChosen) { btn.classList.add('ok'); }
+            else { allOk = false; btn.classList.add('err'); }
+        });
+        if (!allOk) return { ok: false, msg: `Sélectionne exactement les intervalles où le signe de k correspond à ${L('k(x)' + opTex(q.op) + '0')}.` };
+        btns.forEach(b => b.disabled = true);
+        lockStepSimple('step0');
+        const hr = document.createElement('hr'); hr.className = 'step-divider';
+        box.appendChild(hr);
+        const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+        div.innerHTML = `
+            <div class="step-tag">Étape 2 · Les zéros de k</div>
+            <div class="q-prompt">Donne les valeurs de ${L('x')} qui annulent ${L('k')} (une par case, dans l'ordre que tu veux) :</div>
+            <div class="row-inputs">
+                ${q.zeros.map((z, i) => `<span class="row-label">${L('x=')}</span><input type="text" class="answer-input narrow" id="z${i}" placeholder="…" inputmode="decimal">`).join('')}
+            </div>
+            <div class="q-prompt" style="margin-top:22px;">Comme l'inégalité est ${L('k(x)' + opTex(q.op) + '0')}, les zéros font-ils partie de l'ensemble solution ?</div>
+            <div class="choice-grid" id="zIncl">
+                <button type="button" class="choice-btn" data-val="oui">Oui</button>
+                <button type="button" class="choice-btn" data-val="non">Non</button>
+            </div>`;
+        box.appendChild(div);
+        box.querySelectorAll('#zIncl .choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                box.querySelectorAll('#zIncl .choice-btn').forEach(b => b.classList.remove('chosen'));
+                btn.classList.add('chosen');
+            });
+        });
+        enableArrowNav(box);
+        renderKatex(box);
+        setTimeout(() => document.getElementById('z0')?.focus(), 50);
+        return { ok: true, msg: `Exact, c'est la bonne sélection d'intervalles ! Indique maintenant les zéros de k.`, advanceOnly: true };
+    }
+
+    let allOk = true;
+    const used = new Array(q.zeros.length).fill(false);
+    q.zeros.forEach((z, i) => {
+        const inp = document.getElementById('z' + i);
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        let matched = false;
+        for (let j = 0; j < q.zeros.length; j++) {
+            if (!used[j] && v !== null && close(v, q.zeros[j], 0.5)) { used[j] = true; matched = true; break; }
+        }
+        inp.classList.add(matched ? 'ok' : 'err');
+        if (!matched) allOk = false;
+    });
+
+    const zInclChosen = box.querySelector('#zIncl .choice-btn.chosen');
+    box.querySelectorAll('#zIncl .choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+    const zInclOk = !!zInclChosen && ((zInclChosen.dataset.val === 'oui') === isLarge);
+    if (zInclChosen) zInclChosen.classList.add(zInclOk ? 'ok' : 'err');
+    if (!zInclOk) allOk = false;
+
+    const inclText = isLarge ? 'en font partie' : "n'en font pas partie";
+    if (allOk) {
+        return { ok: true, msg: `Les zéros de ${L('k')} sont ${q.zeros.map(z => L(texNum(z))).join(', ')}. Comme l'inégalité est ${L('k(x)' + opTex(q.op) + '0')}, ils ${inclText} de l'ensemble solution.` };
+    }
+    return { ok: false, msg: `Les zéros de ${L('k')} sont les valeurs où la courbe croise l'axe : ${q.zeros.map(z => L(texNum(z))).join(', ')}. Avec ${L('k(x)' + opTex(q.op) + '0')}, ils ${inclText} de la solution.` };
+};
+
+/* ==========================================================
+   NIVEAU 5 : VRAI OU FAUX — LES PIÈGES CLASSIQUES
+   ========================================================== */
+const VF_BANK = [
+    { stmt: "Un maximum local d'une fonction est toujours une valeur positive.", isTrue: false, explain: "Faux : un maximum peut être négatif si toute la courbe reste sous l'axe à cet endroit. Variations et signe sont deux notions indépendantes." },
+    { stmt: "Une fonction peut être croissante et négative sur un même intervalle.", isTrue: true, explain: "Vrai : la courbe peut monter tout en restant sous l'axe des abscisses, par exemple en remontant vers 0 sans l'atteindre." },
+    { stmt: "L'abscisse d'un maximum est la même chose que la valeur du maximum.", isTrue: false, explain: "Faux : l'abscisse x indique où se trouve le sommet, la valeur f(x) indique sa hauteur. Ce sont deux nombres différents." },
+    { stmt: "Une fonction ne peut changer de signe qu'en s'annulant.", isTrue: true, explain: "Vrai : entre deux zéros consécutifs, la courbe reste entièrement au-dessus ou entièrement en dessous de l'axe." },
+    { stmt: "Si \\(f(x_0) = 0\\), alors \\(x_0\\) est forcément un extremum de f.", isTrue: false, explain: "Faux : un zéro est un point où la courbe croise l'axe, ce n'est pas forcément un sommet ou un creux de la courbe." },
+    { stmt: "Dans un tableau de signes, les cellules situées aux bornes du domaine restent toujours vides.", isTrue: true, explain: "Vrai : on ne remplit une cellule que pour un zéro (0) ou un intervalle (+ / −) ; les bornes du domaine ne reçoivent jamais de signe." },
+    { stmt: "Si la courbe touche l'axe des abscisses sans le traverser, la fonction change quand même de signe en ce point.", isTrue: false, explain: "Faux : si la courbe est tangente à l'axe sans le traverser, il y a bien un zéro, mais le signe reste le même de part et d'autre." },
+    { stmt: "Une fonction décroissante a une courbe qui descend quand on la lit de gauche à droite.", isTrue: true, explain: "Vrai : c'est la définition même de la décroissance — quand x augmente, f(x) diminue." },
+];
+
+let vfQueue = [];
+GENERATORS.vrai_faux = function () {
+    if (vfQueue.length === 0) vfQueue = [...VF_BANK].sort(() => Math.random() - 0.5);
+    return vfQueue.pop();
+};
+
+RENDERERS.vrai_faux = function (q, box) {
+    box.innerHTML = `
+        <div class="ctx-card"><span class="ctx-label">🧠 Affirmation</span>${q.stmt}</div>
+        <div class="choice-grid" id="choiceVF">
+            <button type="button" class="choice-btn" data-val="true">✔ Vrai</button>
+            <button type="button" class="choice-btn" data-val="false">✘ Faux</button>
+        </div>`;
+    box.querySelectorAll('#choiceVF .choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll('#choiceVF .choice-btn').forEach(b => b.classList.remove('chosen'));
+            btn.classList.add('chosen');
+        });
+    });
+    renderKatex(box);
+};
+
+CHECKERS.vrai_faux = function (q) {
+    const box = document.getElementById('exBody');
+    const chosen = box.querySelector('#choiceVF .choice-btn.chosen');
+    box.querySelectorAll('#choiceVF .choice-btn').forEach(b => b.classList.remove('ok', 'err'));
+    if (!chosen) return { ok: false, msg: 'Choisis Vrai ou Faux.' };
+    const val = chosen.dataset.val === 'true';
+    const ok = val === q.isTrue;
+    chosen.classList.add(ok ? 'ok' : 'err');
+    if (!ok) {
+        const correctBtn = [...box.querySelectorAll('#choiceVF .choice-btn')].find(b => (b.dataset.val === 'true') === q.isTrue);
+        if (correctBtn) correctBtn.classList.add('ok');
+    }
+    return { ok, msg: `${q.isTrue ? 'Vrai.' : 'Faux.'} ${q.explain}` };
+};
+
+HINTS.vrai_faux = function () {
+    return "Essaie de trouver un contre-exemple concret (une courbe, une valeur) : si tu en trouves un, l'affirmation est fausse.";
+};
+
+/* ==========================================================
+   NIVEAU 6 : BILAN MIXTE — dispatcher vers les niveaux 1 à 4
+   ========================================================== */
+const MIXTE_POOL = ['var_courbe', 'var_tableau', 'signe_courbe', 'signe_tableau'];
+
+GENERATORS.mixte = function (diff) {
+    const subType = MIXTE_POOL[rnd(0, MIXTE_POOL.length - 1)];
+    const q = GENERATORS[subType](diff);
+    q.subType = subType;
+    return q;
+};
+
+RENDERERS.mixte = function (q, box) {
+    RENDERERS[q.subType](q, box);
+};
+
+CHECKERS.mixte = function (q) {
+    return CHECKERS[q.subType](q);
+};
+
+HINTS.mixte = function (q, stepsDone) {
+    return HINTS[q.subType] ? HINTS[q.subType](q, stepsDone) : "Relis attentivement la courbe ou le tableau donné, et repère ce qui est déjà connu avant de répondre.";
+};
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>
