@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Droites graduées — Exerciseur interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,500&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-light: #8b5fc8;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --orange-border: rgba(184, 92, 11, 0.25);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #0c1624 0%, #162236 45%, #1c3358 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #1b7a40, #1a6fa0, #6b3fa0, #c0392b);
+}
+
+.app-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Playfair Display', serif;
+}
+
+.app-title::before { content: '📏'; font-size: 1.1em; font-family: sans-serif; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+    font-family: 'Playfair Display', serif;
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, #1b7a40, #1a6fa0, #6b3fa0); border-radius: 6px; transition: width 0.4s; }
+
+/* ── RAPPEL (hint pliable) ── */
+.hint-wrap { margin: 0 0 18px; text-align: center; }
+.hint-btn {
+    background: none; border: 1.5px dashed var(--gold); border-radius: 10px;
+    color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 0.84em;
+    font-weight: 600; cursor: pointer; padding: 7px 18px;
+    transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+}
+.hint-btn:hover { background: var(--gold-pale); }
+.hint-body {
+    display: none; margin-top: 8px;
+    background: var(--gold-pale); border: 1.5px dashed var(--gold);
+    border-radius: 10px; padding: 10px 16px; font-size: 0.84em;
+    color: #7a5800; line-height: 1.7;
+}
+.hint-body.open { display: block; animation: fadeIn 0.2s; }
+
+/* ── QUESTION BLOCK ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ── NUMBER LINE ── */
+.numline-wrap {
+    margin: 12px 0;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 10px 6px;
+    overflow-x: auto;
+}
+.numline-wrap svg { width: 100%; height: auto; display: block; min-width: 280px; }
+
+/* ── INPUT ── */
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.answer-unit {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text-light);
+}
+
+.answer-input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2em;
+    font-weight: 600;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+
+.answer-input.narrow { width: 110px; }
+.answer-input.wide { width: 220px; }
+
+/* ── CHOICE BUTTONS ── */
+.choice-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.choice-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1em;
+    font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 110px;
+    text-align: center;
+}
+
+.choice-btn:hover { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 500px; }
+
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-light);
+    text-align: center; width: 100%; margin-bottom: 8px;
+}
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── FEEDBACK ── */
+.fb {
+    margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.93em; text-align: center; display: none;
+    animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7;
+}
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 20px auto; border: 6px solid;
+}
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; font-family: 'Playfair Display', serif; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+/* ── ROW INPUTS ── */
+.row-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 14px 0;
+}
+.row-label { font-size: 0.9em; font-weight: 600; color: var(--text-light); font-family: 'JetBrains Mono', monospace; }
+
+/* ── SORT AREA (drag to rank) ── */
+.sort-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 16px 0;
+    min-height: 60px;
+    padding: 10px;
+    background: var(--blue-pale);
+    border: 2px dashed var(--blue-border);
+    border-radius: 12px;
+}
+.sort-chip {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 1.05em;
+    cursor: grab;
+    transition: all 0.2s;
+    user-select: none;
+}
+.sort-chip:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
+.sort-chip.dragging { opacity: 0.5; border-color: var(--purple); }
+.sort-chip.ok { border-color: var(--green); color: var(--green); background: var(--green-pale); }
+.sort-chip.err { border-color: var(--red); color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+
+.sort-label { font-size: 0.78em; color: var(--text-light); text-align: center; margin-bottom: 4px; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1em; }
+    .choice-btn { min-width: 80px; padding: 10px 14px; font-size: 0.9em; }
+}
+
+  /* ══ RESPONSIVE ENHANCEMENTS ══ */
+  svg{max-width:100%;height:auto;}
+  @media(max-width:480px){
+    .app-header{padding:12px 14px;}
+    .app-title{font-size:0.92em;gap:6px;}
+    .app-badge{font-size:0.6em;}
+    .main{padding:16px 12px;}
+    h1{font-size:1.1em;}
+    .sub{font-size:.84em;}
+    .btn{padding:9px 16px;font-size:.86em;min-height:40px;}
+    .mc{padding:14px 12px;min-height:100px;}
+    .mc-icon{font-size:1.6em;}
+    .mc-t{font-size:.82em;}
+    .mc-d{font-size:.72em;}
+    .ctx-card{padding:10px 12px;font-size:.86em;}
+    .formula-remind{padding:8px 10px;font-size:.8em;}
+    .q-prompt{font-size:.95em;}
+    .answer-input{width:110px;font-size:1em;padding:8px 10px;}
+    .fb{padding:10px 12px;font-size:.86em;}
+    .rc{width:110px;height:110px;}
+    .rp{font-size:1.8em;}
+    .controls{gap:8px;}
+    .choice-btn{min-width:60px;padding:8px 10px;font-size:.82em;}
+  }
+  @media(max-width:380px){
+    body{padding:8px 4px 50px;}
+    .app-header{padding:10px 10px;}
+    .app-title{font-size:0.85em;}
+    .main{padding:12px 8px;}
+    h1{font-size:1em;}
+    .mc{min-height:80px;padding:10px 8px;}
+    .answer-input{width:95px;font-size:.9em;}
+    .btn{padding:7px 12px;font-size:.8em;}
+  }
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Droites graduées &amp; Nombres décimaux</div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Quatre exerciseurs pour maîtriser la droite graduée, la comparaison, l'encadrement et l'intercalation des nombres décimaux.</p>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0/0</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX
+   ========================================================== */
+const LEVELS = [
+    { id: 'abscisse',   icon: '📍', title: 'Lire une abscisse',          desc: 'Identifier la valeur d\'un point sur une demi-droite graduée', n: 10 },
+    { id: 'comparer',   icon: '⚖️', title: 'Comparer deux nombres',       desc: 'Placer le bon symbole < ou > entre deux décimaux', n: 10 },
+    { id: 'ranger',     icon: '🔢', title: 'Ranger dans l\'ordre',        desc: 'Trier une liste de nombres décimaux par glisser-déposer', n: 8 },
+    { id: 'encadrer',   icon: '📐', title: 'Encadrer et intercaler',      desc: 'Trouver les bornes d\'un encadrement et intercaler un nombre', n: 10 },
+];
+
+let state = { levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false };
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+function fmtFr(x) {
+    // Affiche avec virgule française, sans trailing zeros inutiles
+    return String(x).replace('.', ',');
+}
+
+function close(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
+
+function round1(x) { return Math.round(x * 10) / 10; }
+function round2(x) { return Math.round(x * 100) / 100; }
+function round3(x) { return Math.round(x * 1000) / 1000; }
+
+/* ── HINT : génère un bloc d'indice pliable ── */
+let hintOpen = false;
+function hint(text) {
+    return `<div class="hint-wrap">
+        <button class="hint-btn" onclick="toggleHint(this)">💡 Indice</button>
+        <div class="hint-body">${text}</div>
+    </div>`;
+}
+function toggleHint(btn) {
+    const body = btn.nextElementSibling;
+    body.classList.toggle('open');
+    btn.textContent = body.classList.contains('open') ? '💡 Masquer l\'indice' : '💡 Indice';
+}
+
+/* Génère un nombre décimal aléatoire de 1 à 3 décimales */
+function randDec(min, max, decimals) {
+    const factor = Math.pow(10, decimals);
+    const val = (rnd(min * factor, max * factor)) / factor;
+    return parseFloat(val.toFixed(decimals));
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+/* ==========================================================
+   LEVEL ENGINE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS  = {};
+const CHECKERS   = {};
+
+function startLevel(id) {
+    const lv = LEVELS.find(l => l.id === id);
+    state = { levelId: id, qIndex: 0, total: lv.n, score: 0, questions: [], checked: false };
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[id]());
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const lv = LEVELS.find(l => l.id === state.levelId);
+    const q = state.questions[state.qIndex];
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = `${(state.qIndex / state.total) * 100}%`;
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = 'inline-flex';
+    document.getElementById('btnNext').style.display = 'none';
+    state.checked = false;
+    const box = document.getElementById('exBody');
+    box.innerHTML = '';
+    RENDERERS[state.levelId](q, box);
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    if (!result) return; // advanceOnly already handled
+
+    const fb = document.getElementById('fb');
+    if (result.advanceOnly) {
+        // correct first step, don't count as checked
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + result.msg;
+        return;
+    }
+
+    state.checked = true;
+    fb.className = result.ok ? 'fb ok' : 'fb bad';
+    fb.innerHTML = (result.ok ? '✓ ' : '✗ ') + result.msg;
+    if (result.ok) state.score++;
+
+    document.getElementById('btnCheck').style.display = 'none';
+    document.getElementById('btnNext').style.display = 'inline-flex';
+    document.getElementById('btnNext').textContent =
+        state.qIndex + 1 < state.total ? 'Suivant →' : 'Voir les résultats';
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+function showResults() {
+    const pct = Math.round((state.score / state.total) * 100);
+    const rp = document.getElementById('rp');
+    const rm = document.getElementById('rm');
+    const rc = document.getElementById('rc');
+    rp.textContent = `${state.score}/${state.total}`;
+    rc.className = 'rc ' + (pct >= 70 ? 'good' : pct >= 40 ? 'mid' : 'bad');
+    if (pct >= 70) rm.textContent = '🎉 Excellent ! Tu maîtrises bien ce thème.';
+    else if (pct >= 40) rm.textContent = '💪 Pas mal ! Quelques points à retravailler.';
+    else rm.textContent = '📖 Reprends la leçon, tu y arriveras !';
+    showScreen('screen-res');
+}
+
+/* ==========================================================
+   HELPER : Dessine une demi-droite graduée SVG
+   Params :
+     left, right : valeurs aux extrémités (nombres)
+     divisions   : nombre de petites graduations entre left et right
+     points      : [{val, label, color, above}]  — points à afficher
+     question    : si true, on montre un point avec "?" sans label
+   ========================================================== */
+function drawNumLine({ left, right, divisions = 10, points = [], questionDot = null, width = 600, height = 110 }) {
+    const x0 = 50, x1 = width - 25;
+    const mid = height / 2;
+    const range = right - left;
+    const step = (x1 - x0) / divisions;
+
+    function toX(val) { return x0 + ((val - left) / range) * (x1 - x0); }
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">`;
+    // Axe
+    svg += `<line x1="${x0}" y1="${mid}" x2="${x1+10}" y2="${mid}" stroke="#2b2724" stroke-width="2"/>`;
+    // Flèche
+    svg += `<polygon points="${x1+18},${mid} ${x1+6},${mid-6} ${x1+6},${mid+6}" fill="#2b2724"/>`;
+
+    // Petites graduations
+    for (let i = 1; i < divisions; i++) {
+        const x = x0 + i * step;
+        const isMid = (i === divisions / 2);
+        const h = isMid ? 8 : 5;
+        svg += `<line x1="${x.toFixed(1)}" y1="${mid-h}" x2="${x.toFixed(1)}" y2="${mid+h}" stroke="${isMid ? '#555' : '#8a8380'}" stroke-width="${isMid ? 1.8 : 1.2}"/>`;
+    }
+    // Grandes bornes
+    const xL = x0, xR = toX(right);
+    svg += `<line x1="${xL}" y1="${mid-9}" x2="${xL}" y2="${mid+9}" stroke="#2b2724" stroke-width="2.2"/>`;
+    svg += `<text x="${xL}" y="${mid+26}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="600" font-size="13" fill="#2b2724">${fmtFr(left)}</text>`;
+    if (toX(right) < x1 + 5) {
+        svg += `<line x1="${xR.toFixed(1)}" y1="${mid-9}" x2="${xR.toFixed(1)}" y2="${mid+9}" stroke="#2b2724" stroke-width="2.2"/>`;
+        svg += `<text x="${xR.toFixed(1)}" y="${mid+26}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="600" font-size="13" fill="#2b2724">${fmtFr(right)}</text>`;
+    }
+    // Points nommés
+    points.forEach(p => {
+        const cx = toX(p.val);
+        const col = p.color || '#1a6fa0';
+        svg += `<circle cx="${cx.toFixed(1)}" cy="${mid}" r="6" fill="${col}" stroke="#fff" stroke-width="1.5"/>`;
+        const labelY = p.above ? mid - 14 : mid + 34;
+        svg += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="middle" font-family="Playfair Display,serif" font-weight="700" font-size="14" fill="${col}">${p.label}</text>`;
+    });
+
+    // Point "question"
+    if (questionDot !== null) {
+        const cx = toX(questionDot);
+        svg += `<circle cx="${cx.toFixed(1)}" cy="${mid}" r="7" fill="#6b3fa0" stroke="#fff" stroke-width="2"/>`;
+        svg += `<text x="${cx.toFixed(1)}" y="${mid-16}" text-anchor="middle" font-family="Playfair Display,serif" font-weight="800" font-size="15" fill="#6b3fa0">?</text>`;
+    }
+
+    svg += `</svg>`;
+    return svg;
+}
+
+/* ==========================================================
+   NIVEAU 1 : LIRE UNE ABSCISSE
+   ========================================================== */
+GENERATORS.abscisse = function () {
+    // ctx : 0=unité, 1=dixième, 2=centième, 3=millième
+    const ctx = rnd(0, 3);
+    let left, right, val, divisions;
+
+    if (ctx === 0) {
+        // Unité : axe de N à N+divisions, point entier
+        divisions = rnd(2, 10) * 2; // 4, 6, 8, 10, 12, 16, 20 — toujours pair
+        left = rnd(0, 20);
+        right = left + divisions;
+        val = rnd(left + 1, right - 1);
+    } else if (ctx === 1) {
+        // Dixième
+        divisions = 10;
+        left = rnd(0, 15);
+        right = left + 1;
+        val = parseFloat((left + rnd(1, 9) / 10).toFixed(1));
+    } else if (ctx === 2) {
+        // Centième
+        divisions = 10;
+        left = parseFloat((rnd(0, 50) / 10).toFixed(1));
+        right = parseFloat((left + 0.1).toFixed(1));
+        val = parseFloat((left + rnd(1, 9) / 100).toFixed(2));
+    } else {
+        // Millième
+        divisions = 10;
+        left = parseFloat((rnd(0, 100) / 100).toFixed(2));
+        right = parseFloat((left + 0.01).toFixed(2));
+        val = parseFloat((left + rnd(1, 9) / 1000).toFixed(3));
+    }
+    return { left, right, val, divisions, ctx };
+};
+
+RENDERERS.abscisse = function (q, box) {
+    const svg = drawNumLine({
+        left: q.left, right: q.right,
+        divisions: q.divisions,
+        questionDot: q.val
+    });
+    const precisionLabels = ['unité', 'dixième', 'centième', 'millième'];
+    const precision = precisionLabels[q.ctx];
+    const stepStr = q.ctx === 0
+        ? `chaque petite graduation vaut <strong>1</strong>`
+        : `chaque petite graduation vaut <strong>${fmtFr(parseFloat(((q.right - q.left) / q.divisions).toFixed(10)))}</strong>`;
+    box.innerHTML = `
+        ${hint(`L'axe va de <strong>${fmtFr(q.left)}</strong> à <strong>${fmtFr(q.right)}</strong> en <strong>${q.divisions} graduations égales</strong>, donc ${stepStr}. Compte les petites divisions depuis la borne gauche.`)}
+        <p class="q-prompt">Quelle est l'<strong>abscisse</strong> du point violet <span style="color:#6b3fa0;font-size:1.1em">●</span> ?<br><small style="font-weight:400;color:var(--text-light)">(donne ta réponse à l'${precision} près)</small></p>
+        <div class="numline-wrap">${svg}</div>
+        <div class="answer-wrap">
+            <span class="row-label">Abscisse =</span>
+            <input type="text" class="answer-input" id="inp" placeholder="…" inputmode="decimal" autocomplete="off">
+        </div>`;
+    setTimeout(() => document.getElementById('inp')?.focus(), 50);
+};
+
+CHECKERS.abscisse = function (q) {
+    const inp = document.getElementById('inp');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(v, q.val, 1e-9);
+    inp.classList.add(ok ? 'ok' : 'err');
+    if (ok) return { ok: true, msg: `Le point violet est à <strong>${fmtFr(q.val)}</strong>.` };
+    return { ok: false, msg: `La bonne réponse était <strong>${fmtFr(q.val)}</strong>. Compte les petites graduations depuis la borne gauche (${fmtFr(q.left)}).` };
+};
+
+/* ==========================================================
+   NIVEAU 2 : COMPARER DEUX NOMBRES
+   ========================================================== */
+GENERATORS.comparer = function () {
+    // Générer deux nombres distincts proches pour forcer la comparaison chiffre par chiffre
+    let a, b;
+    const type = rnd(0, 3);
+    if (type === 0) {
+        // Même partie entière, différents dixièmes
+        const ent = rnd(0, 20);
+        const d1 = rnd(0, 9), d2 = rnd(0, 9);
+        if (d1 === d2) { a = parseFloat((ent + d1/10).toFixed(1)); b = parseFloat((ent + (d2+1 > 9 ? d2-1 : d2+1)/10).toFixed(1)); }
+        else { a = parseFloat((ent + d1/10).toFixed(1)); b = parseFloat((ent + d2/10).toFixed(1)); }
+    } else if (type === 1) {
+        // Même partie entière + même dixième, différents centièmes (pièges genre 7,8 vs 7,65)
+        const ent = rnd(0, 20);
+        const d = rnd(1, 8);
+        const c1 = rnd(0, 9), c2 = rnd(0, 9);
+        // Assure distinction
+        if (c1 !== c2) { a = parseFloat((ent + d/10 + c1/100).toFixed(2)); b = parseFloat((ent + d/10 + c2/100).toFixed(2)); }
+        else { a = parseFloat((ent + d/10 + c1/100).toFixed(2)); b = parseFloat((ent + (d+1)/10).toFixed(1)); }
+    } else if (type === 2) {
+        // Parties entières différentes
+        const e1 = rnd(0, 20), d1 = rnd(0, 9);
+        let e2 = rnd(0, 20);
+        while (e2 === e1) e2 = rnd(0, 20);
+        a = parseFloat((e1 + d1/10).toFixed(1));
+        b = parseFloat((e2 + rnd(0,9)/10).toFixed(1));
+    } else {
+        // Piège classique : x,y vs x,0z (ex : 7,8 vs 7,65)
+        const ent = rnd(1, 15);
+        const d = rnd(2, 9);
+        const dB = rnd(0, d-1);
+        const cB = rnd(1, 9);
+        a = parseFloat((ent + d/10).toFixed(1));      // ex : 7,8
+        b = parseFloat((ent + dB/10 + cB/100).toFixed(2)); // ex : 7,65
+    }
+    const correct = a < b ? '<' : '>';
+    return { a, b, correct };
+};
+
+RENDERERS.comparer = function (q, box) {
+    box.innerHTML = `
+        ${hint('Compare d\'abord les <strong>parties entières</strong>. Si elles sont égales, compare les chiffres <strong>un par un de gauche à droite</strong> après la virgule (dixièmes, puis centièmes…). Attention : 7,8 = 7,80 > 7,65 !')}  
+        <p class="q-prompt">Place le bon symbole entre ces deux nombres :</p>
+        <div class="choice-grid">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:1.4em;font-weight:700;align-self:center;padding:10px">${fmtFr(q.a)}</div>
+            <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+                <button class="choice-btn" data-val="<" onclick="pickChoice(this)">&lt;</button>
+                <button class="choice-btn" data-val=">" onclick="pickChoice(this)">&gt;</button>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:1.4em;font-weight:700;align-self:center;padding:10px">${fmtFr(q.b)}</div>
+        </div>`;
+};
+
+let chosenSymbol = null;
+function pickChoice(btn) {
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+    btn.classList.add('chosen');
+    chosenSymbol = btn.dataset.val;
+}
+
+CHECKERS.comparer = function (q) {
+    if (!chosenSymbol) return { ok: false, msg: 'Choisis &lt; ou &gt; avant de vérifier.' };
+    const ok = chosenSymbol === q.correct;
+    document.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('chosen');
+        if (b.dataset.val === q.correct) b.classList.add('ok');
+        else if (b.dataset.val === chosenSymbol && !ok) b.classList.add('err');
+    });
+    chosenSymbol = null;
+    if (ok) return { ok: true, msg: `Bravo ! <strong>${fmtFr(q.a)} ${q.correct} ${fmtFr(q.b)}</strong>` };
+    const opp = q.correct === '<' ? '>' : '<';
+    return { ok: false, msg: `Non : <strong>${fmtFr(q.a)} ${q.correct} ${fmtFr(q.b)}</strong>. Recompare chiffre par chiffre !` };
+};
+
+/* ==========================================================
+   NIVEAU 3 : RANGER (drag & drop)
+   ========================================================== */
+GENERATORS.ranger = function () {
+    // Générer 4 nombres décimaux avec des pièges
+    let nums = [];
+    const ent = rnd(0, 10);
+    // Piège : même partie entière, dixièmes différents
+    nums.push(parseFloat((ent + rnd(1,9)/10).toFixed(1)));
+    nums.push(parseFloat((ent + rnd(0,9)/10 + rnd(1,9)/100).toFixed(2)));
+    nums.push(parseFloat((ent - 1 + rnd(5,9)/10).toFixed(1))); // un plus petit
+    nums.push(parseFloat((ent + rnd(0,9)/10 + rnd(1,9)/100 + rnd(1,9)/1000).toFixed(3)));
+    // Déduplique
+    nums = [...new Set(nums)];
+    while (nums.length < 4) nums.push(parseFloat((ent + rnd(0,9)/10 + rnd(0,9)/100).toFixed(2)));
+
+    const ordre = rnd(0, 1); // 0 = croissant, 1 = décroissant
+    const sorted = [...nums].sort((a, b) => ordre === 0 ? a - b : b - a);
+    // Mélange
+    const shuffled = [...nums].sort(() => Math.random() - 0.5);
+    return { nums: shuffled, sorted, ordre };
+};
+
+let dragSrc = null;
+
+RENDERERS.ranger = function (q, box) {
+    const ordreLabel = q.ordre === 0 ? 'croissant (du plus petit au plus grand)' : 'décroissant (du plus grand au plus petit)';
+    box.innerHTML = `
+        ${hint('Compare d\'abord les <strong>parties entières</strong>, puis les chiffres après la virgule <strong>de gauche à droite</strong>. Un nombre avec moins de décimales n\'est pas forcément plus petit !')} 
+        <p class="q-prompt">Range ces nombres dans l'ordre <strong>${ordreLabel}</strong>.<br><small style="font-weight:400;color:var(--text-light)">Fais glisser les nombres pour les réorganiser.</small></p>
+        <div class="sort-label">${q.ordre === 0 ? '← plus petit' : '← plus grand'} &nbsp;&nbsp;&nbsp; ${q.ordre === 0 ? 'plus grand →' : 'plus petit →'}</div>
+        <div class="sort-area" id="sortArea">
+            ${q.nums.map(n => `<div class="sort-chip" draggable="true" data-val="${n}">${fmtFr(n)}</div>`).join('')}
+        </div>`;
+
+    // ── Drag & drop (mouse) ──
+    const area = document.getElementById('sortArea');
+
+    function chipAfterCursor(area, x) {
+        // Renvoie le chip devant lequel insérer, ou null (= fin de liste)
+        const chips = [...area.querySelectorAll('.sort-chip:not(.dragging)')];
+        return chips.reduce((closest, chip) => {
+            const box = chip.getBoundingClientRect();
+            const offset = x - box.left - box.width / 2;
+            if (offset < 0 && offset > closest.offset) return { offset, chip };
+            return closest;
+        }, { offset: Number.NEGATIVE_INFINITY }).chip || null;
+    }
+
+    area.addEventListener('dragstart', e => {
+        if (!e.target.classList.contains('sort-chip')) return;
+        dragSrc = e.target;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => e.target.classList.add('dragging'), 0);
+    });
+    area.addEventListener('dragend', e => {
+        e.target.classList.remove('dragging');
+        dragSrc = null;
+        document.querySelectorAll('.drag-placeholder').forEach(p => p.remove());
+    });
+    area.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+    area.addEventListener('drop', e => {
+        e.preventDefault();
+        if (!dragSrc) return;
+        const after = chipAfterCursor(area, e.clientX);
+        if (after) area.insertBefore(dragSrc, after);
+        else area.appendChild(dragSrc);
+        dragSrc.classList.remove('dragging');
+    });
+
+    // ── Touch support ──
+    let touchEl = null, ghost = null;
+    area.addEventListener('touchstart', e => {
+        const chip = e.target.closest('.sort-chip');
+        if (!chip) return;
+        touchEl = chip;
+        ghost = chip.cloneNode(true);
+        const r = chip.getBoundingClientRect();
+        ghost.style.cssText = `position:fixed;opacity:0.75;pointer-events:none;z-index:9999;
+            border-color:#6b3fa0;transform:scale(1.08);
+            width:${r.width}px;left:${r.left}px;top:${r.top}px;`;
+        document.body.appendChild(ghost);
+    }, { passive: true });
+
+    area.addEventListener('touchmove', e => {
+        if (!touchEl || !ghost) return;
+        e.preventDefault();
+        const t = e.touches[0];
+        ghost.style.left = (t.clientX - ghost.offsetWidth / 2) + 'px';
+        ghost.style.top  = (t.clientY - ghost.offsetHeight / 2) + 'px';
+        // Trouver chip le plus proche horizontalement
+        const chips = [...area.querySelectorAll('.sort-chip')].filter(c => c !== touchEl);
+        let nearest = null, minDist = Infinity;
+        chips.forEach(c => {
+            const r = c.getBoundingClientRect();
+            const cx = r.left + r.width / 2;
+            const dist = Math.abs(t.clientX - cx);
+            if (dist < minDist) { minDist = dist; nearest = { chip: c, left: t.clientX < cx }; }
+        });
+        if (nearest) {
+            if (nearest.left) area.insertBefore(touchEl, nearest.chip);
+            else area.insertBefore(touchEl, nearest.chip.nextSibling);
+        } else {
+            area.appendChild(touchEl);
+        }
+    }, { passive: false });
+
+    area.addEventListener('touchend', () => {
+        if (ghost) { ghost.remove(); ghost = null; }
+        touchEl = null;
+    });
+};
+
+CHECKERS.ranger = function (q) {
+    const area = document.getElementById('sortArea');
+    const chips = [...area.querySelectorAll('.sort-chip')];
+    const current = chips.map(c => parseFloat(c.dataset.val));
+    let allOk = true;
+    chips.forEach((c, i) => {
+        c.classList.remove('ok', 'err');
+        if (close(current[i], q.sorted[i], 1e-9)) c.classList.add('ok');
+        else { c.classList.add('err'); allOk = false; }
+    });
+    if (allOk) return { ok: true, msg: `Parfait ! L'ordre ${q.ordre === 0 ? 'croissant' : 'décroissant'} est bien <strong>${q.sorted.map(fmtFr).join(' &lt; ')}</strong>.` };
+    return { ok: false, msg: `L'ordre attendu était : <strong>${q.sorted.map(fmtFr).join(q.ordre === 0 ? ' &lt; ' : ' &gt; ')}</strong>.` };
+};
+
+/* ==========================================================
+   NIVEAU 4 : ENCADRER ET INTERCALER
+   ========================================================== */
+GENERATORS.encadrer = function () {
+    const sub = rnd(0, 1); // 0 = encadrer, 1 = intercaler
+    if (sub === 0) {
+        // Encadrer à la précision demandée
+        const precision = rnd(0, 2); // 0=unité, 1=dixième, 2=centième
+        let val;
+        if (precision === 0) {
+            val = parseFloat((rnd(1, 150) + rnd(1,9)/10 + rnd(0,9)/100).toFixed(2));
+        } else if (precision === 1) {
+            val = parseFloat((rnd(0,99)/10 + rnd(1,9)/100).toFixed(2));
+        } else {
+            val = parseFloat((rnd(0,99)/100 + rnd(1,9)/1000).toFixed(3));
+        }
+        let low, high, precLabel;
+        if (precision === 0) {
+            low = Math.floor(val); high = low + 1; precLabel = "l'unité";
+        } else if (precision === 1) {
+            low = round1(Math.floor(val * 10) / 10); high = parseFloat((low + 0.1).toFixed(1)); precLabel = "au dixième";
+        } else {
+            low = round2(Math.floor(val * 100) / 100); high = parseFloat((low + 0.01).toFixed(2)); precLabel = "au centième";
+        }
+        return { sub: 0, val, low, high, precLabel };
+    } else {
+        // Intercaler : trouver un nombre entre a et b
+        const decimals = rnd(1, 2);
+        let a, b;
+        if (decimals === 1) {
+            const base = rnd(0, 20);
+            const d1 = rnd(0, 8);
+            a = parseFloat((base + d1/10).toFixed(1));
+            b = parseFloat((a + 0.1).toFixed(1));
+        } else {
+            const base = rnd(0, 20);
+            const d1 = rnd(0, 9); const c1 = rnd(0, 8);
+            a = parseFloat((base + d1/10 + c1/100).toFixed(2));
+            b = parseFloat((a + 0.01).toFixed(2));
+        }
+        return { sub: 1, a, b };
+    }
+};
+
+RENDERERS.encadrer = function (q, box) {
+    if (q.sub === 0) {
+        box.innerHTML = `
+            ${hint('Encadrer à l\'<strong>unité</strong> : cherche les deux entiers qui entourent le nombre. Au <strong>dixième</strong> : les bornes ont 1 décimale. Au <strong>centième</strong> : les bornes ont 2 décimales.')}
+            <p class="q-prompt">Encadre <strong>${fmtFr(q.val)}</strong> à ${q.precLabel} :</p>
+            <div class="answer-wrap">
+                <input type="text" class="answer-input narrow" id="inpL" placeholder="…" inputmode="decimal" autocomplete="off">
+                <span style="font-size:1.4em;font-weight:700;color:var(--text-light)">&lt; ${fmtFr(q.val)} &lt;</span>
+                <input type="text" class="answer-input narrow" id="inpH" placeholder="…" inputmode="decimal" autocomplete="off">
+            </div>`;
+        setTimeout(() => document.getElementById('inpL')?.focus(), 50);
+    } else {
+        box.innerHTML = `
+            ${hint('Entre deux nombres décimaux, on peut <strong>toujours</strong> en intercaler un autre. Essaie d\'ajouter un chiffre de plus après la virgule, ou de calculer leur <strong>moyenne</strong> !')}
+            <p class="q-prompt">Intercale un nombre décimal entre <strong>${fmtFr(q.a)}</strong> et <strong>${fmtFr(q.b)}</strong> :</p>
+            <div class="answer-wrap">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:1.2em;font-weight:700">${fmtFr(q.a)}</span>
+                <span style="font-size:1.2em;color:var(--text-light)">&lt;</span>
+                <input type="text" class="answer-input" id="inpI" placeholder="…" inputmode="decimal" autocomplete="off">
+                <span style="font-size:1.2em;color:var(--text-light)">&lt;</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:1.2em;font-weight:700">${fmtFr(q.b)}</span>
+            </div>`;
+        setTimeout(() => document.getElementById('inpI')?.focus(), 50);
+    }
+};
+
+CHECKERS.encadrer = function (q) {
+    if (q.sub === 0) {
+        const iL = document.getElementById('inpL'), iH = document.getElementById('inpH');
+        const vL = normNum(iL.value), vH = normNum(iH.value);
+        const okL = vL !== null && close(vL, q.low, 1e-9);
+        const okH = vH !== null && close(vH, q.high, 1e-9);
+        [iL, iH].forEach((el, i) => { el.classList.remove('ok','err'); el.classList.add([okL,okH][i] ? 'ok' : 'err'); });
+        if (okL && okH) return { ok: true, msg: `Parfait ! <strong>${fmtFr(q.low)} &lt; ${fmtFr(q.val)} &lt; ${fmtFr(q.high)}</strong>` };
+        return { ok: false, msg: `L'encadrement correct est <strong>${fmtFr(q.low)} &lt; ${fmtFr(q.val)} &lt; ${fmtFr(q.high)}</strong>.` };
+    } else {
+        const inp = document.getElementById('inpI');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && v > q.a && v < q.b;
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) return { ok: true, msg: `Bravo ! <strong>${fmtFr(v)}</strong> est bien compris entre ${fmtFr(q.a)} et ${fmtFr(q.b)}.` };
+        if (v === null) return { ok: false, msg: `Saisis un nombre décimal compris strictement entre ${fmtFr(q.a)} et ${fmtFr(q.b)}.` };
+        if (v <= q.a) return { ok: false, msg: `<strong>${fmtFr(v)}</strong> n'est pas strictement supérieur à ${fmtFr(q.a)}. Par exemple, ${fmtFr(parseFloat((q.a + (q.b-q.a)/2).toFixed(10).replace(/0+$/, '').replace(/\.$/, '')))} convient.` };
+        return { ok: false, msg: `<strong>${fmtFr(v)}</strong> n'est pas strictement inférieur à ${fmtFr(q.b)}. Cherche un nombre avec plus de décimales !` };
+    }
+};
+
+/* ==========================================================
+   TOUCHE ENTRÉE — valide ou passe à la suite
+   ========================================================== */
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    // Ne pas déclencher si on est dans un textarea
+    if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none') { btnNext.click(); return; }
+    if (btnCheck.style.display !== 'none' && !state.checked) { btnCheck.click(); }
+});
+
+/* ==========================================================
+   INIT
+   ========================================================== */
+buildMenu();
+</script>
+
+<a href="index.html" class="btn-retour-flottant" title="Retour au menu">🏠</a>
+<style>
+.btn-retour-flottant{position:fixed;bottom:20px;left:20px;z-index:9999;display:flex;align-items:center;justify-content:center;background:white;color:#5c67f2;text-decoration:none;font-size:1.3rem;width:48px;height:48px;border-radius:50%;border:2px solid #5c67f2;box-shadow:0 4px 15px rgba(0,0,0,0.1);transition:all 0.3s ease;}
+.btn-retour-flottant:hover{transform:scale(1.1);background:#5c67f2;color:white;}
+</style>
+</body>
+</html>
