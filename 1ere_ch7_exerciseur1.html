@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probabilités — Exerciseur interactif — Première</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-light: #8b5fc8;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --orange-border: rgba(184, 92, 11, 0.25);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #001f3f 0%, #003366 45%, #0369a1 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #0369a1, #be185d, #059669, #7c3aed);
+}
+.app-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.app-title::before { content: '🎲'; font-size: 1.15em; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, #0369a1, #be185d, #059669); border-radius: 6px; transition: width 0.4s; }
+
+/* ── CONTEXT CARD ── */
+.ctx-card {
+    background: linear-gradient(135deg, #f5f9ff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.93em;
+    line-height: 1.7;
+}
+.ctx-card .ctx-label {
+    font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); margin-bottom: 6px; display: block;
+}
+
+/* ── TABLEAU CROISÉ ── */
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+.tbl { border-collapse: collapse; margin: 0 auto; font-size: 0.97em; }
+.tbl th { background: #dbeafe; color: var(--blue); font-weight: 700; padding: 8px 14px; border: 2px solid #93c5fd; text-align: center; white-space: nowrap; }
+.tbl td { background: #fff; border: 1px solid #93c5fd; padding: 7px 14px; text-align: center; min-width: 60px; }
+.tbl td.given { background: #eff6ff; font-weight: 700; color: var(--blue); }
+.tbl td.total { background: #f1f5f9; font-weight: 700; color: var(--text-light); }
+
+/* ── RAPPEL MASQUÉ (hover/touch reveal) ── */
+.formula-remind {
+    background: var(--gold-pale);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+    padding: 0;
+    margin: 0 0 18px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.formula-remind .remind-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 16px;
+    font-size: 0.84em;
+    font-weight: 700;
+    color: #7a5800;
+}
+.formula-remind .remind-icon {
+    font-size: 1em;
+    transition: transform 0.3s;
+}
+.formula-remind .remind-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.3s ease;
+    padding: 0 16px;
+    font-size: 0.84em;
+    color: #7a5800;
+    line-height: 1.8;
+    text-align: center;
+}
+.formula-remind.open .remind-body {
+    max-height: 200px;
+    padding: 0 16px 10px;
+}
+.formula-remind.open .remind-icon {
+    transform: rotate(90deg);
+}
+/* Survol desktop */
+@media (hover: hover) {
+    .formula-remind:hover .remind-body {
+        max-height: 200px;
+        padding: 0 16px 10px;
+    }
+    .formula-remind:hover .remind-icon {
+        transform: rotate(90deg);
+    }
+}
+
+/* ── QUESTION BLOCK ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ── INPUT FIELD ── */
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+.answer-unit { font-weight: 700; font-size: 1.05em; color: var(--text-light); }
+.answer-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+.answer-input.narrow { width: 110px; }
+
+/* ── CHOICE BUTTONS ── */
+.choice-grid { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+.choice-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+.choice-btn:hover { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── CALCULATRICE ── */
+.calc-wrap {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+    max-width: 320px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.calc-display {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-family: 'DM Sans', monospace;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #7dd3fc;
+    text-align: right;
+    min-height: 52px;
+    overflow: hidden;
+    word-break: break-all;
+}
+.calc-expr { font-size: 0.55em; color: #475569; text-align: right; min-height: 18px; margin-bottom: 4px; font-family: 'DM Sans', monospace; }
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.calc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    padding: 12px 6px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 46px;
+}
+.calc-btn:active { transform: scale(0.93); }
+.calc-num { background: #334155; color: #f1f5f9; }
+.calc-num:hover { background: #475569; }
+.calc-op { background: #1a6fa0; color: #fff; }
+.calc-op:hover { background: #2d8dc7; }
+.calc-eq { background: #1b7a40; color: #fff; }
+.calc-eq:hover { filter: brightness(1.1); }
+.calc-clear { background: #7f1d1d; color: #fecaca; }
+.calc-clear:hover { background: #991b1b; }
+.calc-back { background: #4c1d95; color: #ddd6fe; }
+.calc-back:hover { background: #5b21b6; }
+.calc-zero { grid-column: span 2; }
+.calc-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+.calc-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+.calc-container { display: none; }
+.calc-container.visible { display: block; }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 500px; }
+.step-tag { display: inline-block; font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-light); text-align: center; width: 100%; margin-bottom: 8px; }
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── ARBRE SVG ── */
+.tree-wrap { text-align: center; margin: 14px 0; overflow-x: auto; }
+
+/* ── FEEDBACK ── */
+.fb { margin-top: 20px; padding: 14px 18px; border-radius: 12px; font-size: 0.93em; text-align: center; display: none; animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7; }
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc { width: 140px; height: 140px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; border: 6px solid; }
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.05em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+}
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind { font-size:0.85rem; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input { font-size:0.9rem; }
+}
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,#0369a1,#1a6fa0);color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(3,105,161,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(3,105,161,0.5);}
+
+/* ===== RESPONSIVE RENFORCÉ ===== */
+@media(max-width:768px){
+  body { padding: 12px 8px 50px; }
+  .app { padding: 0 6px; }
+  .app-header { padding: 12px 16px; border-radius: 12px 12px 0 0; }
+  .app-title { font-size: 1rem; }
+  .main { padding: 16px 14px; }
+  h1 { font-size: 1.2em; }
+  .menu-grid { grid-template-columns: 1fr; }
+  .mc { padding: 12px; }
+  .controls { flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size: 0.84rem; padding: 8px 14px; }
+  .expr-line { font-size: 1.25em; }
+  .term-input { width: 78px; font-size: 1em; }
+  .id-btn { min-width: 120px; font-size: 0.76em; }
+  .var-btn { min-width: 110px; padding: 10px 12px; }
+  .memo-wrap { grid-template-columns: 1fr; }
+  .build-input { width: 50px; }
+  .step-block { padding: 10px; }
+  .fb { font-size: 0.88rem; }
+}
+@media(max-width:480px){
+  body { padding: 8px 4px 40px; }
+  .app { padding: 0 2px; }
+  .app-header { padding: 10px 12px; }
+  .app-title { font-size: 0.92rem; }
+  .main { padding: 12px 10px; }
+  h1 { font-size: 1.1em; }
+  .expr-line { font-size: 1.1em; }
+  .term-input { width: 66px; font-size: 0.92em; }
+  .id-btn { min-width: 100px; }
+  .var-btn { min-width: 90px; padding: 8px 10px; font-size: 0.78em; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size: 0.8rem; padding: 7px 11px; }
+  .mc-t { font-size: 0.9rem; }
+}
+@media(max-width:360px){
+  .app-title { font-size: 0.85rem; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size: 0.76rem; padding: 6px 9px; }
+  .expr-line { font-size: 1rem; }
+  .term-input { width: 56px; }
+}
+svg[viewBox] { max-width:100%; height:auto; }
+table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
+.katex-display,.katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+.mc,.screen,.step-block,.mc-t { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Probabilités — Première</div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Cinq exerciseurs pour maîtriser les probabilités de Première : probabilité conditionnelle, tableaux croisés, arbres pondérés, indépendance et répétition d'épreuves.</p>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+                <button class="btn btn-ghost" id="btnSkip" style="display:none">Passer →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX
+   ========================================================== */
+const LEVELS = [
+    { id: 'condTableau',  icon: '📊', title: 'Probabilité conditionnelle — tableau', desc: 'Lire et calculer P_A(B) à partir d\'un tableau croisé d\'effectifs', n: 10 },
+    { id: 'condArbre',    icon: '🌳', title: 'Arbre pondéré — calcul de chemins',    desc: 'Multiplier les probabilités le long d\'un chemin puis additionner', n: 10, badge: 'Calculatrice' },
+    { id: 'identifier',   icon: '🔍', title: 'Identifier la bonne probabilité',       desc: 'Distinguer P(A), P_A(B), P_B(A) à partir d\'un énoncé', n: 10 },
+    { id: 'independance', icon: '⚖️', title: 'Indépendance de deux événements',       desc: 'Vérifier l\'indépendance via P_A(B) = P(B) ou via P(A∩B) = P(A)×P(B)', n: 10 },
+    { id: 'repetition',   icon: '🔁', title: 'Répétition d\'épreuves indépendantes',  desc: 'Calculer des probabilités sur plusieurs répétitions de Bernoulli', n: 10, badge: 'Calculatrice' },
+];
+
+let state = { levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false, attempts: 0 };
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function rndArr(arr) { return arr[rnd(0, arr.length - 1)]; }
+
+/* --- Parser de réponse : accepte décimales ET fractions a/b --- */
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/,/g, '.').replace(/\u2212/g, '-');
+    // Fraction : a/b ou a÷b
+    const fracMatch = s.match(/^(-?\d+(?:\.\d+)?)[\/÷](-?\d+(?:\.\d+)?)$/);
+    if (fracMatch) {
+        const num = parseFloat(fracMatch[1]);
+        const den = parseFloat(fracMatch[2]);
+        if (den === 0) return null;
+        return num / den;
+    }
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+function close(a, b, eps = 1e-4) { return Math.abs(a - b) < eps; }
+
+function fmt(x, decimals = 2) {
+    const r = Math.round(x * Math.pow(10, decimals)) / Math.pow(10, decimals);
+    return r % 1 === 0 ? String(r) : String(r).replace('.', ',');
+}
+
+/* ── Rappel masqué : construit le HTML du bloc ── */
+function reminderHTML(texte) {
+    return `<div class="formula-remind" onclick="this.classList.toggle('open')">
+        <div class="remind-header">
+            <span class="remind-icon">▶</span>
+            <span>Rappel de cours — cliquer ou survoler pour afficher</span>
+        </div>
+        <div class="remind-body">${texte}</div>
+    </div>`;
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+function renderKatex(el) {
+    if (window.renderMathInElement) {
+        renderMathInElement(el || document.body, {
+            delimiters: [
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false
+        });
+    }
+}
+
+/* ==========================================================
+   MOTEUR GÉNÉRIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS  = {};
+const CHECKERS   = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex  = 0;
+    state.score   = 0;
+    state.total   = lv.n;
+    state.questions = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked  = false;
+    state.attempts = 0;
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    document.getElementById('btnSkip').style.display  = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+    renderKatex(body);
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb      = document.getElementById('fb');
+    const btnCheck = document.getElementById('btnCheck');
+    const btnNext  = document.getElementById('btnNext');
+    const btnSkip  = document.getElementById('btnSkip');
+
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        renderKatex(fb);
+        if (result.advanceOnly) {
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1800);
+            btnNext.style.display = 'none';
+            btnSkip.style.display = 'none';
+            return;
+        }
+        state.checked = true;
+        state.score++;
+        btnCheck.style.display = 'none';
+        btnSkip.style.display  = 'none';
+        btnNext.style.display  = '';
+    } else {
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || "Ce n'est pas encore ça, réessaie.");
+        renderKatex(fb);
+        btnNext.style.display = 'none';
+        btnSkip.style.display = '';
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.getElementById('btnSkip').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none' && btnNext.offsetParent) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises ce thème.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+/* ==========================================================
+   CALCULATRICE INTÉGRÉE
+   ========================================================== */
+function calcHTML(id) {
+    return `
+    <button class="calc-toggle" id="calc-toggle-${id}" onclick="toggleCalc('${id}')">🔢 Afficher la calculatrice</button>
+    <div class="calc-container" id="calc-${id}">
+        <div class="calc-wrap">
+            <div class="calc-display" id="calc-disp-${id}">
+                <div class="calc-expr" id="calc-expr-${id}"></div>
+                <div id="calc-val-${id}">0</div>
+            </div>
+            <div class="calc-grid">
+                <button class="calc-btn calc-clear" onclick="cCalc('${id}','C')">C</button>
+                <button class="calc-btn calc-back"  onclick="cCalc('${id}','⌫')">⌫</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','(')">( )</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','/')">÷</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','7')">7</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','8')">8</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','9')">9</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','×')">×</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','4')">4</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','5')">5</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','6')">6</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','-')">−</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','1')">1</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','2')">2</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','3')">3</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','+')">+</button>
+                <button class="calc-btn calc-num calc-zero" onclick="cCalc('${id}','0')">0</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}',',')">.</button>
+                <button class="calc-btn calc-eq"    onclick="cCalc('${id}','=')">＝</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+const calcState = {};
+
+function toggleCalc(id) {
+    const c = document.getElementById('calc-' + id);
+    const btn = document.getElementById('calc-toggle-' + id);
+    const visible = c.classList.toggle('visible');
+    btn.textContent = visible ? '🔢 Masquer la calculatrice' : '🔢 Afficher la calculatrice';
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+}
+
+function cCalc(id, key) {
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+    const s = calcState[id];
+    const disp = document.getElementById('calc-val-' + id);
+    const exprEl = document.getElementById('calc-expr-' + id);
+
+    if (key === 'C') { s.expr = ''; s.result = '0'; s.fresh = true; }
+    else if (key === '⌫') {
+        if (s.fresh) { s.expr = ''; s.result = '0'; s.fresh = false; return; }
+        s.expr = s.expr.slice(0, -1);
+        if (!s.expr) { s.result = '0'; }
+    }
+    else if (key === '=') {
+        try {
+            let e = s.expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,/g, '.');
+            const v = Function('"use strict"; return (' + e + ')')();
+            s.result = isFinite(v) ? String(Math.round(v * 100000) / 100000).replace('.', ',') : 'Erreur';
+            exprEl.textContent = s.expr + ' =';
+            s.expr = s.result.replace(',', '.');
+            s.fresh = true;
+        } catch { s.result = 'Erreur'; }
+    }
+    else if (['+', '-', '×', '÷'].includes(key)) {
+        if (s.fresh) { s.fresh = false; }
+        s.expr += key;
+        s.result = s.expr;
+    }
+    else if (key === '( )') {
+        const opens = (s.expr.match(/\(/g) || []).length;
+        const closes = (s.expr.match(/\)/g) || []).length;
+        s.expr += (opens > closes) ? ')' : '(';
+        s.result = s.expr;
+    }
+    else {
+        if (s.fresh) { s.expr = key; s.fresh = false; }
+        else s.expr += key;
+        s.result = s.expr;
+    }
+    disp.textContent = s.result;
+    if (!s.fresh) exprEl.textContent = s.expr;
+}
+
+function lockStep(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('locked');
+    const tag = el.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+    el.querySelectorAll('input').forEach(i => i.disabled = true);
+}
+
+/* ==========================================================
+   DONNÉES COMMUNES
+   ========================================================== */
+const CONTEXTES_TABLEAU = [
+    { theme: 'Test médical',        rowLabel: 'État de santé',  colLabel: 'Résultat du test',         row1: 'Malade',      row2: 'Non malade',       col1: 'Positif',   col2: 'Négatif'     },
+    { theme: 'Transport scolaire',  rowLabel: 'Filière',        colLabel: 'Moyen de transport',        row1: 'Générale',    row2: 'Technologique',    col1: 'Bus',       col2: 'Vélo'        },
+    { theme: 'Pratique sportive',   rowLabel: 'Genre',          colLabel: 'Pratique sportive',         row1: 'Filles',      row2: 'Garçons',          col1: 'Club',      col2: 'Loisir seul' },
+    { theme: 'Préférence musicale', rowLabel: 'Classe',         colLabel: 'Genre musical préféré',     row1: 'Seconde',     row2: 'Première',         col1: 'Pop',       col2: 'Rap'         },
+    { theme: 'Alimentation',        rowLabel: 'Régime',         colLabel: 'Activité physique',         row1: 'Végétarien',  row2: 'Omnivore',         col1: 'Régulière', col2: 'Rare'        },
+];
+
+function genTableau() {
+    const ctx = rndArr(CONTEXTES_TABLEAU);
+    const n1 = rnd(3, 8) * 10;
+    const n2 = rnd(3, 8) * 10;
+    const N  = n1 + n2;
+    const a  = rnd(Math.floor(n1 * 0.2), Math.floor(n1 * 0.8));
+    const b  = n1 - a;
+    const c  = rnd(Math.floor(n2 * 0.2), Math.floor(n2 * 0.8));
+    const d  = n2 - c;
+    return { ctx, a, b, c, d, n1, n2, N, col1T: a + c, col2T: b + d };
+}
+
+/* ==========================================================
+   NIVEAU 1 : PROBABILITÉ CONDITIONNELLE — TABLEAU
+   ========================================================== */
+GENERATORS.condTableau = function () {
+    const t = genTableau();
+    const modes = [
+        { num: t.a, denom: t.n1,    sachant: t.ctx.row1, event: t.ctx.col1 },
+        { num: t.b, denom: t.n1,    sachant: t.ctx.row1, event: t.ctx.col2 },
+        { num: t.c, denom: t.n2,    sachant: t.ctx.row2, event: t.ctx.col1 },
+        { num: t.d, denom: t.n2,    sachant: t.ctx.row2, event: t.ctx.col2 },
+        { num: t.a, denom: t.col1T, sachant: t.ctx.col1, event: t.ctx.row1 },
+        { num: t.c, denom: t.col1T, sachant: t.ctx.col1, event: t.ctx.row2 },
+    ];
+    const mode = rndArr(modes);
+    const answer = mode.num / mode.denom;
+    return { ...t, mode, answer };
+};
+
+RENDERERS.condTableau = function (q, box) {
+    box.innerHTML = `
+        ${reminderHTML(`\\(P_A(B) = \\dfrac{\\text{effectif de }A\\text{ et }B}{\\text{effectif de }A}\\) — on reste dans une seule ligne ou colonne.`)}
+        <div class="ctx-card">
+            <span class="ctx-label">📝 ${q.ctx.theme}</span>
+            Tableau des effectifs dans un groupe de <strong>${q.N} personnes</strong> :
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th></th><th>${q.ctx.col1}</th><th>${q.ctx.col2}</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><th>${q.ctx.row1}</th><td class="given">${q.a}</td><td class="given">${q.b}</td><td class="total">${q.n1}</td></tr>
+              <tr><th>${q.ctx.row2}</th><td class="given">${q.c}</td><td class="given">${q.d}</td><td class="total">${q.n2}</td></tr>
+              <tr><th>Total</th><td class="total">${q.col1T}</td><td class="total">${q.col2T}</td><td class="total">${q.N}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="q-prompt">
+            Calcule \\(P_{\\textbf{${q.mode.sachant}}}(\\textbf{${q.mode.event}})\\).<br>
+            <small style="color:var(--text-light);font-weight:400">Fraction, décimale ou pourcentage acceptés.</small>
+        </div>
+        <div class="answer-wrap">
+            <span class="answer-unit">\\(P_{${q.mode.sachant}}(${q.mode.event})\\) =</span>
+            <input type="text" class="answer-input narrow" id="ans" placeholder="ex : 3/8" inputmode="decimal">
+        </div>`;
+    setTimeout(() => document.getElementById('ans')?.focus(), 50);
+};
+
+CHECKERS.condTableau = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(v, q.answer, 0.015);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const frac = `\\dfrac{${q.mode.num}}{${q.mode.denom}}`;
+    if (ok) return { ok: true,  msg: `Exact ! \\(P_{${q.mode.sachant}}(${q.mode.event}) = ${frac} \\approx ${fmt(q.answer)}\\).` };
+    return  { ok: false, msg: `On reste dans la ligne/colonne « ${q.mode.sachant} » (effectif : ${q.mode.denom}). \\(P = ${frac} \\approx ${fmt(q.answer)}\\).` };
+};
+
+/* ==========================================================
+   NIVEAU 2 : ARBRE PONDÉRÉ — CALCUL DE CHEMINS
+   ========================================================== */
+const CONTEXTES_ARBRE = [
+    { theme: 'Contrôle qualité',    A: 'Chaîne A',       B: 'Chaîne B',           E1: 'Conforme',   E2: 'Défectueux' },
+    { theme: 'Dépistage médical',   A: 'Malade',         B: 'Non malade',         E1: 'Positif',    E2: 'Négatif'    },
+    { theme: 'Météo et transport',  A: 'Pluie',          B: 'Soleil',             E1: 'En retard',  E2: 'À l\'heure' },
+    { theme: 'Résultats scolaires', A: 'A travaillé',    B: 'N\'a pas travaillé', E1: 'Réussit',    E2: 'Échoue'     },
+    { theme: 'Tirage de cartes',    A: 'Rouge',          B: 'Noire',              E1: 'Figure',     E2: 'Non-figure' },
+];
+
+GENERATORS.condArbre = function () {
+    const ctx = rndArr(CONTEXTES_ARBRE);
+    const p1Choices = [0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75];
+    const p1 = rndArr(p1Choices);
+    const p2 = Math.round((1 - p1) * 100) / 100;
+    const condChoices = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95];
+    const pE1A = rndArr(condChoices);
+    const pE2A = Math.round((1 - pE1A) * 100) / 100;
+    const pE1B = rndArr(condChoices.filter(x => x !== pE1A));
+    const pE2B = Math.round((1 - pE1B) * 100) / 100;
+    const pathAE1 = Math.round(p1 * pE1A * 10000) / 10000;
+    const pathAE2 = Math.round(p1 * pE2A * 10000) / 10000;
+    const pathBE1 = Math.round(p2 * pE1B * 10000) / 10000;
+    const pathBE2 = Math.round(p2 * pE2B * 10000) / 10000;
+    const pTotalE1 = Math.round((pathAE1 + pathBE1) * 10000) / 10000;
+    const modes = [
+        { question: `P(${ctx.E1})`,   answer: pTotalE1,  explanation: `\\(${fmt(p1)} \\times ${fmt(pE1A)} + ${fmt(p2)} \\times ${fmt(pE1B)} = ${fmt(pTotalE1)}\\)` },
+        { question: `P(${ctx.A} \\text{ et } ${ctx.E1})`, answer: pathAE1,  explanation: `\\(${fmt(p1)} \\times ${fmt(pE1A)} = ${fmt(pathAE1)}\\)` },
+        { question: `P(${ctx.B} \\text{ et } ${ctx.E2})`, answer: pathBE2,  explanation: `\\(${fmt(p2)} \\times ${fmt(pE2B)} = ${fmt(pathBE2)}\\)` },
+        { question: `P(${ctx.E2})`,   answer: Math.round((pathAE2 + pathBE2) * 10000) / 10000, explanation: `\\(${fmt(p1)} \\times ${fmt(pE2A)} + ${fmt(p2)} \\times ${fmt(pE2B)} = ${fmt(Math.round((pathAE2+pathBE2)*10000)/10000)}\\)` },
+    ];
+    const mode = rndArr(modes);
+    return { ctx, p1, p2, pE1A, pE2A, pE1B, pE2B, pathAE1, pathAE2, pathBE1, pathBE2, pTotalE1, mode };
+};
+
+/* SVG de l'arbre — labels des nœuds intermédiaires décalés avec fond blanc */
+function buildArbreSVG(q) {
+    const W = 560, H = 320;
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;background:#f8fafc;border-radius:12px;border:1.5px solid #cbd5e1;display:block;margin:0 auto;">`;
+
+    const rx = 20, ry = H / 2;          // racine
+    const mx = 200, m1y = 90, m2y = 230; // nœuds intermédiaires
+    const ex = 430;                       // x des feuilles
+    const e11y = 48, e12y = 132, e21y = 190, e22y = 272;
+
+    /* ── Branches niveau 1 ── */
+    s += `<line x1="${rx}" y1="${ry}" x2="${mx}" y2="${m1y}" stroke="#0369a1" stroke-width="2.4"/>`;
+    s += `<line x1="${rx}" y1="${ry}" x2="${mx}" y2="${m2y}" stroke="#0369a1" stroke-width="2.4"/>`;
+
+    /* Proba sur branche 1 (avec fond) */
+    function probLabel(x, y, txt, color) {
+        s += `<rect x="${x-18}" y="${y-13}" width="36" height="16" rx="4" fill="white" fill-opacity="0.85"/>`;
+        s += `<text x="${x}" y="${y}" text-anchor="middle" font-size="12" fill="${color}" font-family="DM Sans,sans-serif" font-weight="700">${txt}</text>`;
+    }
+
+    probLabel((rx + mx)/2 - 4, (ry + m1y)/2 - 4, fmt(q.p1), '#0369a1');
+    probLabel((rx + mx)/2 - 4, (ry + m2y)/2 + 12, fmt(q.p2), '#0369a1');
+
+    /* Nœuds intermédiaires : cercle + étiquette DÉCALÉE à gauche du nœud */
+    function midNode(cx, cy, label) {
+        s += `<circle cx="${cx}" cy="${cy}" r="5" fill="#374151" stroke="#f8fafc" stroke-width="1.5"/>`;
+        // fond blanc puis texte, à gauche du nœud
+        const lx = cx - 8, ly = cy - 8;
+        s += `<rect x="${lx - 2}" y="${ly - 12}" width="${label.length * 7 + 8}" height="16" rx="4" fill="#dbeafe" fill-opacity="0.95"/>`;
+        s += `<text x="${lx + 2}" y="${ly}" font-size="12" fill="#1e40af" font-family="DM Sans,sans-serif" font-weight="700">${label}</text>`;
+    }
+    midNode(mx, m1y, q.ctx.A);
+    midNode(mx, m2y, q.ctx.B);
+
+    /* ── Branches niveau 2 ── */
+    const b2 = [
+        { x1: mx, y1: m1y, x2: ex, y2: e11y, prob: fmt(q.pE1A) },
+        { x1: mx, y1: m1y, x2: ex, y2: e12y, prob: fmt(q.pE2A) },
+        { x1: mx, y1: m2y, x2: ex, y2: e21y, prob: fmt(q.pE1B) },
+        { x1: mx, y1: m2y, x2: ex, y2: e22y, prob: fmt(q.pE2B) },
+    ];
+    b2.forEach(b => {
+        s += `<line x1="${b.x1}" y1="${b.y1}" x2="${b.x2}" y2="${b.y2}" stroke="#7c3aed" stroke-width="2.2"/>`;
+        probLabel((b.x1 + b.x2)/2, (b.y1 + b.y2)/2 - 5, b.prob, '#7c3aed');
+    });
+
+    /* ── Feuilles ── */
+    const leaves = [
+        { y: e11y, label: q.ctx.E1, prob: fmt(q.pathAE1), color: '#059669' },
+        { y: e12y, label: q.ctx.E2, prob: fmt(q.pathAE2), color: '#94a3b8' },
+        { y: e21y, label: q.ctx.E1, prob: fmt(q.pathBE1), color: '#059669' },
+        { y: e22y, label: q.ctx.E2, prob: fmt(q.pathBE2), color: '#94a3b8' },
+    ];
+    leaves.forEach(n => {
+        s += `<circle cx="${ex}" cy="${n.y}" r="4" fill="#374151" stroke="#f8fafc" stroke-width="1.5"/>`;
+        s += `<text x="${ex + 10}" y="${n.y + 4}" font-size="12" fill="#1e293b" font-family="DM Sans,sans-serif" font-weight="700">${n.label}</text>`;
+        s += `<text x="${ex + 10}" y="${n.y + 18}" font-size="11" fill="${n.color}" font-family="DM Sans,sans-serif" font-weight="600">P = ${n.prob}</text>`;
+    });
+
+    /* Nœud racine */
+    s += `<circle cx="${rx}" cy="${ry}" r="5" fill="#374151" stroke="#f8fafc" stroke-width="1.5"/>`;
+
+    s += `</svg>`;
+    return s;
+}
+
+RENDERERS.condArbre = function (q, box) {
+    box.innerHTML = `
+        ${reminderHTML(`Le long d'un chemin on <strong>multiplie</strong> les probabilités.
+        Pour plusieurs chemins menant au même résultat, on <strong>additionne</strong>.`)}
+        <div class="ctx-card"><span class="ctx-label">📝 ${q.ctx.theme}</span>Utilise l'arbre pondéré ci-dessous.</div>
+        <div class="tree-wrap">${buildArbreSVG(q)}</div>
+        <div class="q-prompt">Calcule \\(${q.mode.question}\\).<br>
+        <small style="color:var(--text-light);font-weight:400">Fraction, décimale ou pourcentage acceptés.</small></div>
+        <div class="answer-wrap">
+            <input type="text" class="answer-input" id="ans" placeholder="ex : 3/20" inputmode="decimal">
+        </div>
+        ${calcHTML('arbre')}`;
+    setTimeout(() => document.getElementById('ans')?.focus(), 50);
+};
+
+CHECKERS.condArbre = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(v, q.mode.answer, 0.002);
+    inp.classList.add(ok ? 'ok' : 'err');
+    if (ok) return { ok: true,  msg: `Exact ! ${q.mode.explanation}` };
+    return  { ok: false, msg: `Utilise l'arbre : ${q.mode.explanation} = \\(${fmt(q.mode.answer, 4)}\\).` };
+};
+
+/* ==========================================================
+   NIVEAU 3 : IDENTIFIER LA BONNE PROBABILITÉ
+   ========================================================== */
+GENERATORS.identifier = function () {
+    const t = genTableau();
+    const pA  = t.n1 / t.N;
+    const pAB = t.a  / t.n1;
+    const pBA = t.a  / t.col1T;
+    const A = t.ctx.row1, B = t.ctx.col1;
+    const scenarios = [
+        {
+            enonce: `Dans ce groupe, on choisit une personne au hasard. Quelle probabilité cherche-t-on si on veut savoir si c'est un(e) <strong>${A}</strong> ?`,
+            correct: `P(${A})`,
+            distracteurs: [`P_{${A}}(${B})`, `P_{${B}}(${A})`],
+            explication: `On ne sait rien sur la personne : c'est la probabilité simple \\(P(${A}) = \\dfrac{${t.n1}}{${t.N}} \\approx ${fmt(pA)}\\).`
+        },
+        {
+            enonce: `On sait que la personne choisie est <strong>${A}</strong>. Quelle est la probabilité qu'elle utilise <strong>${B}</strong> ?`,
+            correct: `P_{${A}}(${B})`,
+            distracteurs: [`P(${B})`, `P_{${B}}(${A})`],
+            explication: `On est « sachant ${A} » : c'est \\(P_{${A}}(${B}) = \\dfrac{${t.a}}{${t.n1}} \\approx ${fmt(pAB)}\\).`
+        },
+        {
+            enonce: `On sait que la personne choisie utilise <strong>${B}</strong>. Quelle est la probabilité qu'elle soit <strong>${A}</strong> ?`,
+            correct: `P_{${B}}(${A})`,
+            distracteurs: [`P(${A})`, `P_{${A}}(${B})`],
+            explication: `On est « sachant ${B} » : c'est \\(P_{${B}}(${A}) = \\dfrac{${t.a}}{${t.col1T}} \\approx ${fmt(pBA)}\\).`
+        },
+    ];
+    const sc = rndArr(scenarios);
+    const allOptions = [sc.correct, ...sc.distracteurs].sort(() => Math.random() - 0.5);
+    return { t, A, B, sc, allOptions };
+};
+
+RENDERERS.identifier = function (q, box) {
+    const { t, sc, allOptions } = q;
+    const optButtons = allOptions.map(o =>
+        `<button class="choice-btn" data-val="${o}">\\(${o}\\)</button>`
+    ).join('');
+    box.innerHTML = `
+        ${reminderHTML(`\\(P(A)\\) = probabilité simple &nbsp;|&nbsp; \\(P_A(B)\\) = prob. de \\(B\\) <em>sachant</em> \\(A\\) (on connaît déjà \\(A\\))`)}
+        <div class="ctx-card">
+            <span class="ctx-label">📝 ${t.ctx.theme}</span>
+            <div class="tbl-wrap" style="margin-top:8px;">
+              <table class="tbl">
+                <thead><tr><th></th><th>${t.ctx.col1}</th><th>${t.ctx.col2}</th><th>Total</th></tr></thead>
+                <tbody>
+                  <tr><th>${t.ctx.row1}</th><td class="given">${t.a}</td><td class="given">${t.b}</td><td class="total">${t.n1}</td></tr>
+                  <tr><th>${t.ctx.row2}</th><td class="given">${t.c}</td><td class="given">${t.d}</td><td class="total">${t.n2}</td></tr>
+                  <tr><th>Total</th><td class="total">${t.col1T}</td><td class="total">${t.col2T}</td><td class="total">${t.N}</td></tr>
+                </tbody>
+              </table>
+            </div>
+        </div>
+        <div class="q-prompt">${sc.enonce}<br>Quelle est la <strong>bonne notation</strong> ?</div>
+        <div class="choice-grid" id="choiceId">${optButtons}</div>`;
+    box._choice = null;
+    box.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+            btn.classList.add('chosen');
+            box._choice = btn.dataset.val;
+        });
+    });
+    renderKatex(box);
+};
+
+CHECKERS.identifier = function (q) {
+    const box = document.getElementById('exBody');
+    if (!box._choice) return { ok: false, msg: 'Choisis une notation !' };
+    const ok = box._choice === q.sc.correct;
+    box.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('ok', 'err', 'chosen');
+        if (b.dataset.val === q.sc.correct) b.classList.add('ok');
+        else if (b.dataset.val === box._choice && !ok) b.classList.add('err');
+    });
+    if (ok) return { ok: true,  msg: `Exact ! ${q.sc.explication}` };
+    return  { ok: false, msg: `Ce n'est pas ça. ${q.sc.explication}` };
+};
+
+/* ==========================================================
+   NIVEAU 4 : INDÉPENDANCE DE DEUX ÉVÉNEMENTS
+   ========================================================== */
+GENERATORS.independance = function () {
+    const t = genTableau();
+    const A = t.ctx.row1, B = t.ctx.col1;
+    const pB  = t.col1T / t.N;
+    const pAB = t.a / t.n1;          // P_A(B)
+    const independent = close(pB, pAB, 0.02);
+    const pA     = t.n1 / t.N;       // P(A)
+    const pInter = t.a / t.N;        // P(A ∩ B)
+    const pProd  = Math.round(pA * pB * 10000) / 10000; // P(A) × P(B)
+    const mode = rndArr(['conditionnel', 'intersection']);
+    return { t, A, B, pB, pAB, independent, pA, pInter, pProd, mode };
+};
+
+RENDERERS.independance = function (q, box) {
+    const tableHTML = `
+        <div class="ctx-card">
+            <span class="ctx-label">📝 ${q.t.ctx.theme}</span>
+            <div class="tbl-wrap" style="margin-top:8px;">
+              <table class="tbl">
+                <thead><tr><th></th><th>${q.t.ctx.col1}</th><th>${q.t.ctx.col2}</th><th>Total</th></tr></thead>
+                <tbody>
+                  <tr><th>${q.t.ctx.row1}</th><td class="given">${q.t.a}</td><td class="given">${q.t.b}</td><td class="total">${q.t.n1}</td></tr>
+                  <tr><th>${q.t.ctx.row2}</th><td class="given">${q.t.c}</td><td class="given">${q.t.d}</td><td class="total">${q.t.n2}</td></tr>
+                  <tr><th>Total</th><td class="total">${q.t.col1T}</td><td class="total">${q.t.col2T}</td><td class="total">${q.t.N}</td></tr>
+                </tbody>
+              </table>
+            </div>
+        </div>`;
+
+    if (q.mode === 'intersection') {
+        box.innerHTML = `
+            ${reminderHTML(`\\(A\\) et \\(B\\) sont <strong>indépendants</strong> si et seulement si \\(P(A \\cap B) = P(A) \\times P(B)\\).`)}
+            ${tableHTML}
+            <div class="step-block active" id="step0">
+                <div class="step-tag">Étape 1 · Calcule \\(P(${q.A})\\), \\(P(${q.B})\\) et \\(P(${q.A} \\cap ${q.B})\\)</div>
+                <p style="text-align:center;font-size:0.84em;color:var(--text-light);margin-bottom:10px;">Fraction, décimale ou pourcentage acceptés.</p>
+                <div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
+                    <div class="answer-wrap" style="margin:0;">
+                        <span class="answer-unit">\\(P(${q.A})\\) =</span>
+                        <input type="text" class="answer-input narrow" id="ansPA" placeholder="ex : 3/8" inputmode="decimal">
+                    </div>
+                    <div class="answer-wrap" style="margin:0;">
+                        <span class="answer-unit">\\(P(${q.B})\\) =</span>
+                        <input type="text" class="answer-input narrow" id="ansPB" placeholder="ex : 2/5" inputmode="decimal">
+                    </div>
+                    <div class="answer-wrap" style="margin:0;">
+                        <span class="answer-unit">\\(P(${q.A} \\cap ${q.B})\\) =</span>
+                        <input type="text" class="answer-input narrow" id="ansPInter" placeholder="ex : 1/4" inputmode="decimal">
+                    </div>
+                </div>
+            </div>`;
+        setTimeout(() => document.getElementById('ansPA')?.focus(), 50);
+        return;
+    }
+
+    box.innerHTML = `
+        ${reminderHTML(`\\(A\\) et \\(B\\) sont <strong>indépendants</strong> si et seulement si \\(P_A(B) = P(B)\\).`)}
+        ${tableHTML}
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Calcule \\(P(${q.B})\\) et \\(P_{${q.A}}(${q.B})\\)</div>
+            <p style="text-align:center;font-size:0.84em;color:var(--text-light);margin-bottom:10px;">Fraction, décimale ou pourcentage acceptés.</p>
+            <div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
+                <div class="answer-wrap" style="margin:0;">
+                    <span class="answer-unit">\\(P(${q.B})\\) =</span>
+                    <input type="text" class="answer-input narrow" id="ansP" placeholder="ex : 3/8" inputmode="decimal">
+                </div>
+                <div class="answer-wrap" style="margin:0;">
+                    <span class="answer-unit">\\(P_{${q.A}}(${q.B})\\) =</span>
+                    <input type="text" class="answer-input narrow" id="ansPAB" placeholder="ex : 1/4" inputmode="decimal">
+                </div>
+            </div>
+        </div>`;
+    setTimeout(() => document.getElementById('ansP')?.focus(), 50);
+};
+
+CHECKERS.independance = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    if (q.mode === 'intersection') return CHECK_INDEP_INTERSECTION(q, box, stepsDone);
+    return CHECK_INDEP_CONDITIONNEL(q, box, stepsDone);
+};
+
+function CHECK_INDEP_CONDITIONNEL(q, box, stepsDone) {
+    if (stepsDone === 0) {
+        const inpP   = document.getElementById('ansP');
+        const inpPAB = document.getElementById('ansPAB');
+        const vP   = normNum(inpP.value);
+        const vPAB = normNum(inpPAB.value);
+        inpP.classList.remove('ok', 'err');
+        inpPAB.classList.remove('ok', 'err');
+        const okP   = vP   !== null && close(vP,   q.pB,  0.015);
+        const okPAB = vPAB !== null && close(vPAB, q.pAB, 0.015);
+        inpP.classList.add(okP   ? 'ok' : 'err');
+        inpPAB.classList.add(okPAB ? 'ok' : 'err');
+
+        if (okP && okPAB) {
+            lockStep('step0');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.appendChild(hr);
+            const div = document.createElement('div');
+            div.className = 'step-block active'; div.id = 'step1';
+            div.innerHTML = `
+                <div class="step-tag">Étape 2 · Conclure sur l'indépendance</div>
+                <div class="q-prompt" style="font-size:0.97em;">\\(P(${q.B}) \\approx ${fmt(q.pB)}\\) et \\(P_{${q.A}}(${q.B}) \\approx ${fmt(q.pAB)}\\).<br>Les événements « ${q.A} » et « ${q.B} » sont-ils indépendants ?</div>
+                <div class="choice-grid">
+                    <button class="choice-btn" data-val="oui">✅ Oui, indépendants</button>
+                    <button class="choice-btn" data-val="non">❌ Non, liés</button>
+                </div>`;
+            box.appendChild(div);
+            div._choice = null;
+            div.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    div.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+                    btn.classList.add('chosen');
+                    div._choice = btn.dataset.val;
+                });
+            });
+            renderKatex(div);
+            return { ok: true, advanceOnly: true, msg: `\\(P(${q.B}) = \\dfrac{${q.t.col1T}}{${q.t.N}} \\approx ${fmt(q.pB)}\\) et \\(P_{${q.A}}(${q.B}) = \\dfrac{${q.t.a}}{${q.t.n1}} \\approx ${fmt(q.pAB)}\\). Maintenant conclus !` };
+        }
+        let msg = '';
+        if (!okP)   msg += `\\(P(${q.B}) = \\dfrac{${q.t.col1T}}{${q.t.N}} \\approx ${fmt(q.pB)}\\). `;
+        if (!okPAB) msg += `\\(P_{${q.A}}(${q.B}) = \\dfrac{${q.t.a}}{${q.t.n1}} \\approx ${fmt(q.pAB)}\\).`;
+        return { ok: false, msg };
+    }
+
+    const step1 = document.getElementById('step1');
+    if (!step1 || !step1._choice) return { ok: false, msg: 'Choisis « Oui » ou « Non ».' };
+    const userSaysIndep = step1._choice === 'oui';
+    const ok = userSaysIndep === q.independent;
+    step1.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('ok', 'err', 'chosen');
+        const isCorrect = (b.dataset.val === 'oui') === q.independent;
+        if (isCorrect) b.classList.add('ok');
+        else if (b.dataset.val === step1._choice && !ok) b.classList.add('err');
+    });
+    if (q.independent) {
+        return { ok, msg: ok
+            ? `Exact ! \\(P_{${q.A}}(${q.B}) \\approx P(${q.B})\\) : connaître « ${q.A} » ne change pas la probabilité de « ${q.B} » → indépendants.`
+            : `Si ! Les deux valeurs sont très proches (\\(${fmt(q.pB)} \\approx ${fmt(q.pAB)}\\)) → indépendants.` };
+    } else {
+        return { ok, msg: ok
+            ? `Exact ! \\(${fmt(q.pAB)} \\neq ${fmt(q.pB)}\\) : connaître « ${q.A} » modifie la probabilité → pas indépendants.`
+            : `Non ! \\(${fmt(q.pAB)} \\neq ${fmt(q.pB)}\\) : les deux valeurs diffèrent → les événements ne sont <strong>pas</strong> indépendants.` };
+    }
+}
+
+function CHECK_INDEP_INTERSECTION(q, box, stepsDone) {
+    if (stepsDone === 0) {
+        const inpPA     = document.getElementById('ansPA');
+        const inpPB     = document.getElementById('ansPB');
+        const inpPInter = document.getElementById('ansPInter');
+        const vPA     = normNum(inpPA.value);
+        const vPB     = normNum(inpPB.value);
+        const vPInter = normNum(inpPInter.value);
+        inpPA.classList.remove('ok', 'err');
+        inpPB.classList.remove('ok', 'err');
+        inpPInter.classList.remove('ok', 'err');
+        const okPA     = vPA     !== null && close(vPA,     q.pA,     0.015);
+        const okPB     = vPB     !== null && close(vPB,     q.pB,     0.015);
+        const okPInter = vPInter !== null && close(vPInter, q.pInter, 0.015);
+        inpPA.classList.add(okPA ? 'ok' : 'err');
+        inpPB.classList.add(okPB ? 'ok' : 'err');
+        inpPInter.classList.add(okPInter ? 'ok' : 'err');
+
+        if (okPA && okPB && okPInter) {
+            lockStep('step0');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.appendChild(hr);
+            const div = document.createElement('div');
+            div.className = 'step-block active'; div.id = 'step1';
+            div.innerHTML = `
+                <div class="step-tag">Étape 2 · Conclure sur l'indépendance</div>
+                <div class="q-prompt" style="font-size:0.97em;">\\(P(${q.A}) \\times P(${q.B}) \\approx ${fmt(q.pA)} \\times ${fmt(q.pB)} \\approx ${fmt(q.pProd)}\\) et \\(P(${q.A} \\cap ${q.B}) \\approx ${fmt(q.pInter)}\\).<br>Les événements « ${q.A} » et « ${q.B} » sont-ils indépendants ?</div>
+                <div class="choice-grid">
+                    <button class="choice-btn" data-val="oui">✅ Oui, indépendants</button>
+                    <button class="choice-btn" data-val="non">❌ Non, liés</button>
+                </div>`;
+            box.appendChild(div);
+            div._choice = null;
+            div.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    div.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+                    btn.classList.add('chosen');
+                    div._choice = btn.dataset.val;
+                });
+            });
+            renderKatex(div);
+            return { ok: true, advanceOnly: true, msg: `\\(P(${q.A}) = \\dfrac{${q.t.n1}}{${q.t.N}} \\approx ${fmt(q.pA)}\\), \\(P(${q.B}) = \\dfrac{${q.t.col1T}}{${q.t.N}} \\approx ${fmt(q.pB)}\\) et \\(P(${q.A} \\cap ${q.B}) = \\dfrac{${q.t.a}}{${q.t.N}} \\approx ${fmt(q.pInter)}\\). Maintenant compare et conclus !` };
+        }
+        let msg = '';
+        if (!okPA)     msg += `\\(P(${q.A}) = \\dfrac{${q.t.n1}}{${q.t.N}} \\approx ${fmt(q.pA)}\\). `;
+        if (!okPB)     msg += `\\(P(${q.B}) = \\dfrac{${q.t.col1T}}{${q.t.N}} \\approx ${fmt(q.pB)}\\). `;
+        if (!okPInter) msg += `\\(P(${q.A} \\cap ${q.B}) = \\dfrac{${q.t.a}}{${q.t.N}} \\approx ${fmt(q.pInter)}\\).`;
+        return { ok: false, msg };
+    }
+
+    const step1 = document.getElementById('step1');
+    if (!step1 || !step1._choice) return { ok: false, msg: 'Choisis « Oui » ou « Non ».' };
+    const userSaysIndep = step1._choice === 'oui';
+    const ok = userSaysIndep === q.independent;
+    step1.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('ok', 'err', 'chosen');
+        const isCorrect = (b.dataset.val === 'oui') === q.independent;
+        if (isCorrect) b.classList.add('ok');
+        else if (b.dataset.val === step1._choice && !ok) b.classList.add('err');
+    });
+    if (q.independent) {
+        return { ok, msg: ok
+            ? `Exact ! \\(P(${q.A}) \\times P(${q.B}) \\approx P(${q.A} \\cap ${q.B})\\) (\\(${fmt(q.pProd)} \\approx ${fmt(q.pInter)}\\)) → indépendants.`
+            : `Si ! \\(P(${q.A}) \\times P(${q.B}) \\approx ${fmt(q.pProd)}\\), très proche de \\(P(${q.A} \\cap ${q.B}) \\approx ${fmt(q.pInter)}\\) → indépendants.` };
+    } else {
+        return { ok, msg: ok
+            ? `Exact ! \\(P(${q.A}) \\times P(${q.B}) \\approx ${fmt(q.pProd)} \\neq P(${q.A} \\cap ${q.B}) \\approx ${fmt(q.pInter)}\\) → pas indépendants.`
+            : `Non ! \\(P(${q.A}) \\times P(${q.B}) \\approx ${fmt(q.pProd)}\\) alors que \\(P(${q.A} \\cap ${q.B}) \\approx ${fmt(q.pInter)}\\) : les deux valeurs diffèrent → les événements ne sont <strong>pas</strong> indépendants.` };
+    }
+}
+
+/* ==========================================================
+   NIVEAU 5 : RÉPÉTITION D'ÉPREUVES INDÉPENDANTES
+   ========================================================== */
+const CONTEXTES_REP = [
+    { theme: 'Tirs au but',           succes: 'réussit',      echec: 'rate',    unite: 'tir'       },
+    { theme: 'Lancers de pièce',       succes: 'Pile',         echec: 'Face',    unite: 'lancer'    },
+    { theme: 'Parties de jeu vidéo',   succes: 'gagne',        echec: 'perd',    unite: 'partie'    },
+    { theme: 'Tentatives de connexion',succes: 'réussit',      echec: 'échoue',  unite: 'tentative' },
+    { theme: 'Lancers de dé (≥ 5)',    succes: 'obtient ≥ 5',  echec: 'obtient < 5', unite: 'lancer' },
+];
+
+GENERATORS.repetition = function () {
+    const ctx = rndArr(CONTEXTES_REP);
+    const pChoices = [0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8];
+    const p = rndArr(pChoices);
+    const q = Math.round((1 - p) * 100) / 100;
+    const n = rnd(2, 3);
+    const modes = [
+        {
+            enonce: `${n} épreuves indépendantes. Quelle est la probabilité d'obtenir <strong>${n} succès</strong> ?`,
+            answer: Math.round(Math.pow(p, n) * 10000) / 10000,
+            explication: `\\(${[...Array(n)].map(() => fmt(p)).join(' \\times ')} = ${fmt(Math.pow(p, n))}\\).`,
+        },
+        {
+            enonce: `${n} épreuves indépendantes. Quelle est la probabilité d'obtenir <strong>aucun succès</strong> ?`,
+            answer: Math.round(Math.pow(q, n) * 10000) / 10000,
+            explication: `On multiplie les probabilités d'échec : \\(${[...Array(n)].map(() => fmt(q)).join(' \\times ')} = ${fmt(Math.pow(q, n))}\\).`,
+        },
+        {
+            enonce: `${n} épreuves indépendantes. Quelle est la probabilité d'obtenir <strong>au moins un succès</strong> ?`,
+            answer: Math.round((1 - Math.pow(q, n)) * 10000) / 10000,
+            explication: `Événement contraire (aucun succès) : \\(${fmt(Math.pow(q, n))}\\). Donc : \\(1 - ${fmt(Math.pow(q, n))} = ${fmt(1 - Math.pow(q, n))}\\).`,
+        },
+    ];
+    if (n === 2) {
+        const pExact1 = Math.round(2 * p * q * 10000) / 10000;
+        modes.push({
+            enonce: `2 épreuves indépendantes. Quelle est la probabilité de réussir <strong>exactement 1 fois sur 2</strong> ?`,
+            answer: pExact1,
+            explication: `Deux chemins : Succès-Échec ou Échec-Succès. \\(${fmt(p)} \\times ${fmt(q)} + ${fmt(q)} \\times ${fmt(p)} = ${fmt(pExact1)}\\).`,
+        });
+    }
+    const mode = rndArr(modes);
+    return { ctx, p, q, n, mode };
+};
+
+RENDERERS.repetition = function (q, box) {
+    box.innerHTML = `
+        ${reminderHTML(`Épreuves indépendantes → on <strong>multiplie</strong> les probabilités.<br>
+        « Au moins un » → utiliser l'événement contraire : \\(1 - P(\\text{aucun})\\).`)}
+        <div class="ctx-card">
+            <span class="ctx-label">📝 ${q.ctx.theme}</span>
+            Probabilité de succès à chaque épreuve : \\(p = ${fmt(q.p)}\\). Probabilité d'échec : \\(1-p = ${fmt(q.q)}\\). Les épreuves sont <strong>indépendantes</strong>.
+        </div>
+        <div class="q-prompt">${q.mode.enonce}</div>
+        <div class="answer-wrap">
+            <input type="text" class="answer-input" id="ans" placeholder="ex : 0,09" inputmode="decimal">
+        </div>
+        <p style="text-align:center;font-size:0.84em;color:var(--text-light);margin-top:-8px;">Fraction, décimale ou pourcentage acceptés.</p>
+        ${calcHTML('rep')}`;
+    setTimeout(() => document.getElementById('ans')?.focus(), 50);
+};
+
+CHECKERS.repetition = function (q) {
+    const inp = document.getElementById('ans');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(v, q.mode.answer, 0.015);
+    inp.classList.add(ok ? 'ok' : 'err');
+    if (ok) return { ok: true,  msg: `Exact ! ${q.mode.explication}` };
+    return  { ok: false, msg: `${q.mode.explication} Résultat attendu : \\(${fmt(q.mode.answer)}\\).` };
+};
+
+/* ==========================================================
+   LANCEMENT
+   ========================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+    renderKatex(document.body);
+});
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

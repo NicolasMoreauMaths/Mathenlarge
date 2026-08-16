@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corrélation et causalité | Statistiques à deux variables — 1ère</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]})"></script>
+<style>
+  :root {
+    --navy:#0a2540;
+    --accent:#0369a1;
+    --accent-light:#e8f2fa;
+    --accent-dark:#024a75;
+    --gold:#b8860b;
+    --gold-dark:#8a5a00;
+    --gold-light:#fef8e8;
+    --teal:#1b7a40;
+    --teal-light:#e6f5ec;
+    --violet:#6b3fa0;
+    --violet-light:#f1ecf8;
+    --green:#1b7a40;
+    --green-light:#e6f5ec;
+    --rose:#be185d;
+    --bg:#f4f1eb;
+    --card:#ffffff;
+    --border:#e0dbd4;
+    --muted:#8a8380;
+    --shadow:rgba(10,37,64,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:#2b2724;line-height:1.65;padding:2rem 1rem;min-height:100vh;}
+  .container{max-width:1080px;margin:0 auto;}
+
+  header{background:linear-gradient(160deg,#001f3f 0%,#003366 40%,#0369a1 100%);border-radius:22px;padding:2.75rem 2.5rem 2.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#0369a1,#be185d,#059669,#7c3aed);}
+  header::after{content:'≠';position:absolute;right:1rem;bottom:-1.2rem;font-size:5.5rem;color:rgba(255,255,255,0.045);pointer-events:none;line-height:1;font-family:'Playfair Display',serif;font-style:italic;}
+  .header-inner{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1.25rem;position:relative;}
+  .header-text .chapter-badge{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.18em;color:rgba(255,255,255,.55);display:block;margin-bottom:.6rem;}
+  .header-text h1{font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:800;color:#fff;letter-spacing:-.01em;line-height:1.15;}
+  .header-text .subtitle{font-size:1rem;color:rgba(255,255,255,0.7);margin-top:.5rem;}
+  .header-badges{display:flex;gap:0.5rem;flex-wrap:wrap;align-self:flex-start;}
+  .hbadge{padding:0.35rem 0.9rem;border-radius:99px;font-size:0.75rem;font-weight:700;letter-spacing:0.03em;}
+  .hbadge.gold{background:var(--gold-light);color:var(--gold-dark);}
+  .hbadge.teal{background:var(--teal-light);color:var(--teal);}
+  .hbadge.red{background:#fdecea;color:#c0392b;}
+
+  .rappel{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 20px var(--shadow);}
+  .rappel-title{font-size:0.75rem;font-weight:800;color:var(--accent-dark);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.9rem;}
+  .recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.7rem;}
+  .recap-card{border-radius:12px;padding:0.8rem 1rem;font-size:0.85rem;}
+  .recap-card.c1{background:var(--gold-light);border-left:4px solid var(--gold);}
+  .recap-card.c2{background:var(--teal-light);border-left:4px solid var(--teal);}
+  .recap-card.c3{background:var(--violet-light);border-left:4px solid var(--violet);}
+  .recap-card.c4{background:var(--accent-light);border-left:4px solid var(--accent);}
+  .recap-lbl{font-weight:800;font-size:0.78rem;margin-bottom:0.35rem;color:var(--navy);}
+  .recap-formula{text-align:center;font-size:1rem;margin:0.3rem 0;}
+  .recap-tag{font-size:0.7rem;color:var(--muted);}
+
+  .prereq{background:var(--violet-light);border:2px solid #c9b8e8;border-radius:14px;padding:1rem 1.4rem;margin-bottom:1.5rem;font-size:.9rem;color:var(--navy);display:flex;align-items:center;gap:.8rem;}
+  .prereq .pr-icon{font-size:1.4rem;flex-shrink:0;}
+
+  .progress-wrapper{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:1.1rem 1.5rem;margin-bottom:1.75rem;box-shadow:0 3px 12px var(--shadow);display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+  .progress-label{font-size:0.88rem;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .progress-bar-track{flex:1;min-width:100px;height:10px;background:#ede8e0;border-radius:99px;overflow:hidden;}
+  .progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--teal));border-radius:99px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+  .progress-counter{font-size:0.9rem;font-weight:800;color:var(--gold-dark);white-space:nowrap;}
+  .progress-dots{display:flex;gap:0.4rem;}
+  .progress-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);background:white;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  .progress-dot.done{background:var(--green);border-color:var(--green);transform:scale(1.2);}
+
+  .exercise{background:var(--card);border:2px solid var(--border);border-left:5px solid var(--border);border-radius:18px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 4px 20px var(--shadow);transition:transform 0.3s ease,box-shadow 0.3s ease,border-left-color 0.4s ease;}
+  .exercise:hover{transform:translateY(-2px);box-shadow:0 10px 32px var(--shadow);}
+  .exercise.seen{border-left-color:var(--green);}
+  .exercise-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.4rem;padding-bottom:1rem;border-bottom:2px dashed var(--border);flex-wrap:wrap;gap:0.75rem;}
+  .exercise-title-group{display:flex;flex-direction:column;gap:0.3rem;}
+  .exercise-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--navy);}
+  .tag-row{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  .etag{font-size:0.69rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;padding:0.18rem 0.65rem;border-radius:99px;}
+  .etag.gold{background:var(--gold-light);color:var(--gold-dark);}
+  .etag.teal{background:var(--teal-light);color:var(--teal);}
+  .etag.violet{background:var(--violet-light);color:var(--violet);}
+  .etag.rose{background:#fdf2f8;color:var(--rose);}
+  .etag.green{background:var(--green-light);color:var(--green);}
+  .etag.navy{background:#e8edf6;color:var(--navy);}
+  .etag.recall{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;}
+  .header-right{display:flex;align-items:center;gap:0.65rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+  .seen-badge{display:none;background:var(--green);color:white;font-size:0.68rem;font-weight:800;letter-spacing:0.05em;padding:0.2rem 0.6rem;border-radius:99px;white-space:nowrap;align-self:center;animation:popBadge 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes popBadge{from{opacity:0;transform:scale(0.5);}to{opacity:1;transform:scale(1);}}
+  .exercise.seen .seen-badge{display:inline-block;}
+  .exercise-content{font-size:1.02rem;line-height:1.85;}
+
+  .btn-row{display:flex;gap:0.65rem;flex-wrap:wrap;margin-top:1.25rem;}
+  .reveal-btn{background:var(--navy);color:white;border:none;padding:0.65rem 1.3rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;transition:all 0.25s ease;box-shadow:0 3px 12px var(--shadow);flex-shrink:0;}
+  .reveal-btn:hover{transform:scale(1.04);}
+  .reveal-btn.active{background:linear-gradient(135deg,var(--green),#047857);}
+  .hint-toggle-btn{background:var(--violet-light);color:var(--violet);border:2px solid #c9b8e8;padding:0.6rem 1.1rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;transition:all 0.2s ease;flex-shrink:0;}
+  .hint-toggle-btn:hover{background:#e4d9f5;}
+
+  .hints-section{margin-top:1.2rem;border-top:2px dashed #c9b8e8;padding-top:1.2rem;display:none;}
+  .hints-section.open{display:block;}
+  .hints-title{font-size:0.75rem;font-weight:800;color:var(--violet);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.7rem;}
+  .hints-list{display:flex;flex-direction:column;gap:0.55rem;}
+  .hint-item{display:flex;align-items:flex-start;gap:0.55rem;}
+  .hint-btn{background:var(--violet-light);color:var(--violet);border:2px solid #c9b8e8;border-radius:10px;padding:0.5rem 0.9rem;font-family:'DM Sans',sans-serif;font-size:0.84rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:normal;flex-shrink:0;}
+  .hint-btn:hover:not(:disabled){background:#e4d9f5;border-color:var(--violet);}
+  .hint-btn:disabled{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;cursor:default;}
+  .hint-text{overflow-wrap:break-word;word-break:break-word;background:#faf6ff;border-left:3px solid var(--violet);border-radius:6px;padding:0 0.85rem;font-size:0.9rem;color:var(--navy);max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease,opacity 0.3s ease;opacity:0;flex:1;min-width:0;}
+  .hint-text.revealed{max-height:300px;padding:0.5rem 0.85rem;opacity:1;}
+
+  .correction{overflow:hidden;opacity:0;height:0;margin-top:0;transition:opacity 0.35s ease,height 0.35s cubic-bezier(0.4,0,0.2,1),margin-top 0.35s ease;}
+  .correction.show{opacity:1;margin-top:1.5rem;}
+  .correction-box{background:linear-gradient(135deg,#fffef5,#fefbee);border:2px solid #e8c84a;border-radius:12px;padding:2.25rem 1.5rem 1.5rem;position:relative;}
+  .correction-box::before{content:'✓ Correction';position:absolute;top:0;left:0;background:var(--green);color:white;padding:0.4rem 1.2rem;border-radius:12px 0 12px 0;font-size:0.8rem;font-weight:800;letter-spacing:0.04em;}
+  .correction-content{margin-top:0.75rem;}
+  .corr-item{background:white;border-radius:10px;padding:1rem 1.25rem;margin:0.6rem 0;border-left:4px solid var(--green);}
+  .corr-item .num{font-weight:800;color:var(--gold-dark);font-size:0.9rem;margin-bottom:0.5rem;}
+  .solution-box{background:#ecfdf5;border:2px solid var(--green);padding:0.75rem 1.2rem;border-radius:10px;font-size:1rem;font-weight:700;color:#064e3b;margin:0.6rem 0;}
+  .rule-box{background:var(--gold-light);border:2px solid var(--gold);border-radius:10px;padding:0.85rem 1.1rem;margin:0.75rem 0;font-size:0.92rem;}
+  .rule-box strong{color:var(--gold-dark);}
+  .warn-box{background:#fdecea;border:2px solid #c0392b;border-radius:10px;padding:0.85rem 1.1rem;margin:0.75rem 0;font-size:0.92rem;}
+  .warn-box strong{color:#c0392b;}
+  .hl-green{color:var(--green);font-weight:800;}
+  .answer-yes{color:var(--green);font-weight:800;}
+  .answer-no{color:#c0392b;font-weight:800;}
+
+  .calc-steps{font-size:1.05rem;line-height:2.2;margin:0.6rem 0;}
+  .step{display:grid;grid-template-columns:130px 1fr;align-items:baseline;gap:0.6rem;margin:0.15rem 0;}
+  .step-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);text-align:right;padding-top:0.1rem;white-space:nowrap;}
+  .step-eq{overflow-wrap:break-word;word-break:break-word;}
+
+  .q-list{display:flex;flex-direction:column;gap:0.6rem;margin:0.85rem 0;}
+  .q-item{background:#faf8f5;border:2px solid var(--border);border-radius:10px;padding:0.75rem 1rem;line-height:2.05;}
+  .q-item .qi-num{font-weight:800;color:var(--accent-dark);margin-right:0.4rem;}
+
+  .val-table{border-collapse:collapse;margin:.9rem auto;font-size:.97rem;}
+  .val-table th{background:var(--accent-light);color:var(--accent);font-weight:700;padding:.45rem .9rem;border:2px solid #93c5fd;text-align:center;}
+  .val-table td{background:#fff;border:1px solid #93c5fd;padding:.4rem .9rem;text-align:center;min-width:50px;height:32px;}
+  .val-table td.given{background:var(--accent-light);font-weight:700;color:var(--accent);}
+  .val-table td.result{background:var(--green-light);font-weight:700;color:var(--green);}
+
+  .scenario-list{display:flex;flex-direction:column;gap:0.7rem;margin:0.9rem 0;}
+  .scenario{background:#faf8f5;border:2px solid var(--border);border-radius:10px;padding:0.85rem 1.1rem;}
+  .scenario .sc-letter{font-weight:800;color:var(--accent-dark);margin-right:0.4rem;}
+
+  .graph-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin:1rem 0;}
+  .graph-card{background:#faf8f5;border:2px solid var(--border);border-radius:12px;padding:0.9rem;text-align:center;}
+  .graph-card .g-lbl{font-size:0.85rem;font-weight:800;color:var(--accent-dark);margin-bottom:0.4rem;}
+  .graph-card svg{width:100%;height:auto;max-width:340px;}
+  .graph-note{font-size:.78rem;color:var(--muted);margin-top:.4rem;font-style:italic;}
+
+  .score-card{background:var(--navy);border-radius:20px;padding:2rem 2.5rem;margin-top:1.5rem;margin-bottom:2rem;box-shadow:0 10px 40px var(--shadow);text-align:center;display:none;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+  .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#0369a1,#be185d,#059669,#7c3aed);}
+  @keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  .score-card.visible{display:block;}
+  .score-emoji{font-size:3rem;margin-bottom:0.5rem;display:block;}
+  .score-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;color:#fff;margin-bottom:0.5rem;}
+  .score-stars{font-size:1.8rem;letter-spacing:0.2rem;margin:0.5rem 0 1rem;}
+  .score-message{font-size:1rem;color:rgba(255,255,255,0.65);max-width:480px;margin:0 auto;}
+  .score-breakdown{display:flex;justify-content:center;gap:0.7rem;margin-top:1.2rem;flex-wrap:wrap;}
+  .sc-badge{padding:0.35rem 0.9rem;border-radius:99px;font-size:0.8rem;font-weight:800;}
+  .sc-badge.gold{background:var(--gold-light);color:var(--gold-dark);}
+  .sc-badge.teal{background:var(--teal-light);color:var(--teal);}
+
+  footer{text-align:center;margin-top:3rem;padding:1.75rem;color:var(--muted);font-style:italic;font-size:0.9rem;}
+  .katex{font-size:1.03em;}
+
+  @media(max-width:900px){body{padding:1.5rem 0.75rem;}.header-text h1{font-size:1.85rem;}.exercise{padding:1.5rem;}}
+  @media(max-width:600px){body{padding:1rem 0.5rem;}header{padding:1.5rem 1rem;border-radius:14px;}.exercise{padding:1rem 0.75rem;border-radius:12px;margin-bottom:1.25rem;}.exercise-header{flex-direction:column;align-items:flex-start;}.exercise-title{font-size:1.15rem;}.reveal-btn,.hint-toggle-btn{width:100%;text-align:center;padding:0.85rem 1rem;}.step{grid-template-columns:100px 1fr;}.hint-item{flex-direction:column;}.hint-btn{white-space:normal;width:100%;}.hint-text{width:100%;box-sizing:border-box;}.hint-text.revealed{max-height:600px;}.recap-grid{grid-template-columns:1fr;}.graph-grid{grid-template-columns:1fr;}}
+  @media(max-width:380px){.header-text h1{font-size:1.4rem;}.exercise-title{font-size:1rem;}}
+
+  .menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--accent),var(--accent));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(3,105,161,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+  .menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(3,105,161,0.5);}
+
+  svg[viewBox] { max-width:100%; height:auto; }
+  .katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+  table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .exercise-content, .correction-content, .score-card { overflow-wrap:break-word; word-break:break-word; }
+
+/* ===== RESPONSIVE RENFORCÉ ===== */
+@media(max-width:900px){
+  .container{max-width:100%;padding-left:1.2rem;padding-right:1.2rem;}
+}
+@media(max-width:768px){
+  body{font-size:15.5px;}
+  .container{padding:1.2rem 1rem 4rem;}
+  .header{padding:2rem 1rem 1.8rem;}
+  .controls-bar{padding:.55rem .8rem;gap:.4rem;}
+  .vocab-grid,.cas-grid,.var-grid,.bridge-grid,.graph-wrap{grid-template-columns:1fr !important;}
+  .section-title{font-size:1.2rem;}
+  .block,.ex-block,.exo-block{padding:1rem 1.1rem;}
+}
+@media(max-width:580px){
+  body{font-size:15px;}
+  .container{padding:1rem .8rem 3.5rem;}
+  .header{padding:1.7rem .9rem 1.4rem;}
+  .btn-ctrl{font-size:.74rem;padding:.36rem .75rem;}
+  .eq-line{font-size:.97rem;}
+  .speed-diagram{flex-direction:column;}
+  .speed-arrow{transform:rotate(90deg);}
+}
+@media(max-width:400px){
+  body{font-size:14.5px;}
+  .container{padding:.9rem .6rem 3rem;}
+  .btn-ctrl{font-size:.7rem;padding:.3rem .6rem;}
+}
+svg[viewBox]{max-width:100%;height:auto;}
+table,.val-table,.data-table,.corr-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+.katex-display,.katex{overflow-x:auto;overflow-y:hidden;max-width:100%;}
+.block,.section,.ex-block,.exo-block,.card{word-break:break-word;overflow-wrap:break-word;}
+
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="header-inner">
+    <div class="header-text">
+      <span class="chapter-badge">Chapitre 3 · Statistiques à deux variables · 1<sup>ère</sup></span>
+      <h1>Corrélation<br>et causalité</h1>
+      <p class="subtitle">Feuille d'exercices n°5 — garder un esprit critique face aux corrélations</p>
+    </div>
+    <div class="header-badges">
+      <span class="hbadge gold">Esprit critique</span>
+      <span class="hbadge teal">Fiche 5 / 6</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── RAPPEL ── -->
+<div class="rappel">
+  <p class="rappel-title">📌 Ce qu'il faut avoir en tête</p>
+  <div class="recap-grid">
+    <div class="recap-card c1">
+      <div class="recap-lbl">① Corrélation ≠ causalité</div>
+      <div class="recap-formula" style="font-size:.82rem;">un nuage aligné ne prouve pas qu'une variable cause l'autre</div>
+      <div class="recap-tag">notion du jour</div>
+    </div>
+    <div class="recap-card c3">
+      <div class="recap-lbl">② Variable confondante</div>
+      <div class="recap-formula" style="font-size:.82rem;">une 3<sup>e</sup> variable peut expliquer les deux évolutions</div>
+      <div class="recap-tag">notion du jour</div>
+    </div>
+    <div class="recap-card c4">
+      <div class="recap-lbl">③ Nuage aligné</div>
+      <div class="recap-formula" style="font-size:.85rem;">tendance croissante ou décroissante</div>
+      <div class="recap-tag">rappel fiche 1</div>
+    </div>
+    <div class="recap-card c2">
+      <div class="recap-lbl">④ Extrapoler</div>
+      <div class="recap-formula" style="font-size:.82rem;">estimer en dehors des données observées</div>
+      <div class="recap-tag">rappel fiche 4</div>
+    </div>
+  </div>
+</div>
+
+<div class="prereq">
+  <span class="pr-icon">⚠️</span>
+  <span>Constater qu'un nuage de points est bien aligné montre seulement que deux grandeurs <strong>évoluent ensemble</strong>. Cela ne prouve <strong>jamais</strong>, à soi seul, que l'une <strong>cause</strong> l'autre : il peut s'agir d'une coïncidence, d'un lien inverse, ou d'une <strong>variable confondante</strong> qui influence les deux à la fois.</span>
+</div>
+
+<!-- BARRE DE PROGRESSION -->
+<div class="progress-wrapper">
+  <span class="progress-label">Corrections vues :</span>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <span class="progress-counter" id="progressCounter">0 / 5</span>
+  <div class="progress-dots" id="progressDots"></div>
+</div>
+
+
+<!-- ══════════ EX 1 — L'exemple classique ══════════ -->
+<div class="exercise" id="card-ex1">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 1 / 5</h2>
+      <div class="tag-row">
+        <span class="etag gold">Variable confondante</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex1">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <p>Sur plusieurs mois de l'année, dans une grande ville, on observe une forte corrélation positive entre le nombre de glaces vendues et le nombre de noyades enregistrées dans les piscines municipales : plus on vend de glaces, plus il y a de noyades.</p>
+    <div class="q-list" style="margin-top:0.9rem;">
+      <div class="q-item"><span class="qi-num">1)</span> Peut-on affirmer que manger des glaces cause des noyades ?</div>
+      <div class="q-item"><span class="qi-num">2)</span> Propose une variable commune qui pourrait expliquer les deux évolutions à la fois.</div>
+      <div class="q-item"><span class="qi-num">3)</span> Explique en une phrase comment cette variable agit sur chacune des deux séries.</div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="hint-toggle-btn" data-hints="hints1">💡 Indices</button>
+  </div>
+  <div class="hints-section" id="hints1">
+    <p class="hints-title">💡 Indices</p>
+    <div class="hints-list">
+      <div class="hint-item">
+        <button class="hint-btn" data-hint="h1-1">Indice — question 2</button>
+        <div class="hint-text" id="h1-1">Pense à ce qui change fortement entre l'été et l'hiver.</div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex1"><div class="correction-box"><div class="correction-content">
+    <div class="corr-item"><div class="num">1) Causalité ?</div>
+      <div class="solution-box"><span class="answer-no">Non</span> — rien ne relie physiquement le fait de manger une glace au risque de se noyer.</div>
+    </div>
+    <div class="corr-item"><div class="num">2) Variable confondante</div>
+      <div class="solution-box"><span class="hl-green">La température (ou la saison, l'été)</span></div>
+    </div>
+    <div class="corr-item"><div class="num">3) Mécanisme</div>
+      <p>Quand il fait chaud, les gens achètent davantage de glaces <strong>et</strong> se baignent davantage (donc s'exposent plus au risque de noyade) : la chaleur influence les deux séries en même temps, sans qu'aucune des deux ne cause l'autre.</p>
+    </div>
+  </div></div></div>
+</div>
+
+
+<!-- ══════════ EX 2 — Quand la causalité est plausible ══════════ -->
+<div class="exercise" id="card-ex2">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 2 / 5</h2>
+      <div class="tag-row">
+        <span class="etag teal">Nuance</span>
+        <span class="etag recall">rappel fiche 1 : nuage aligné</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex2">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <p>On relève, pour plusieurs personnes à la plage, la durée d'exposition au soleil (en heures) et la gravité de leur coup de soleil (notée de 0 à 10). Le nuage obtenu est globalement aligné et croissant : plus la durée d'exposition augmente, plus la gravité augmente.</p>
+    <div class="q-list" style="margin-top:0.9rem;">
+      <div class="q-item"><span class="qi-num">1)</span> Cette fois, penses-tu qu'il existe un lien de cause à effet entre les deux grandeurs ? Justifie en décrivant un mécanisme physique plausible.</div>
+      <div class="q-item"><span class="qi-num">2)</span> Un nuage aligné permet-il, à lui seul, de distinguer ce cas de celui de l'exercice 1 (glaces / noyades) ?</div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="hint-toggle-btn" data-hints="hints2">💡 Indices</button>
+  </div>
+  <div class="hints-section" id="hints2">
+    <p class="hints-title">💡 Indices</p>
+    <div class="hints-list">
+      <div class="hint-item">
+        <button class="hint-btn" data-hint="h2-1">Indice — question 2</button>
+        <div class="hint-text" id="h2-1">Un nuage aligné a exactement la même allure dans les deux exercices : ce n'est pas la statistique qui change, c'est le raisonnement extérieur (biologie, physique...).</div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex2"><div class="correction-box"><div class="correction-content">
+    <div class="corr-item"><div class="num">1) Causalité plausible</div>
+      <p>Ici, un lien de cause à effet est plausible : les rayons ultraviolets du soleil endommagent directement la peau, et plus l'exposition dure longtemps, plus les dommages s'accumulent.</p>
+      <div class="solution-box"><span class="hl-green">Oui, un mécanisme physique direct est identifiable</span></div>
+    </div>
+    <div class="corr-item"><div class="num">2) Le nuage seul ne suffit pas</div>
+      <p>Statistiquement, ce nuage ressemble en tout point à celui de l'exercice 1 (bien aligné, croissant). Ce n'est pas la statistique qui permet de conclure à la causalité, mais bien une connaissance extérieure (ici, la biologie de la peau).</p>
+      <div class="solution-box">Non, il faut toujours un raisonnement extérieur aux données pour parler de causalité</div>
+    </div>
+  </div></div></div>
+</div>
+
+
+<!-- ══════════ EX 3 — Vrai/Faux ══════════ -->
+<div class="exercise" id="card-ex3">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 3 / 5</h2>
+      <div class="tag-row">
+        <span class="etag rose">Vrai / Faux</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex3">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <p>Pour chaque affirmation, dis si elle est vraie ou fausse, et corrige-la si besoin.</p>
+    <div class="q-list" style="margin-top:0.9rem;">
+      <div class="q-item"><span class="qi-num">a)</span> Une forte corrélation entre deux séries statistiques prouve toujours un lien de cause à effet.</div>
+      <div class="q-item"><span class="qi-num">b)</span> On peut observer une corrélation sans aucun lien de causalité, à cause d'une variable confondante.</div>
+      <div class="q-item"><span class="qi-num">c)</span> Si deux grandeurs sont corrélées, alors l'une des deux cause forcément l'autre, on ne sait juste pas encore laquelle.</div>
+    </div>
+  </div>
+  <div class="correction" id="ex3"><div class="correction-box"><div class="correction-content">
+    <div class="corr-item"><div class="num">a)</div>
+      <p>Comme vu dans l'exercice 1, une corrélation peut exister sans aucun lien de cause à effet.</p>
+      <div class="solution-box"><span class="answer-no">Faux</span></div>
+    </div>
+    <div class="corr-item"><div class="num">b)</div>
+      <div class="solution-box"><span class="answer-yes">Vrai</span></div>
+    </div>
+    <div class="corr-item"><div class="num">c)</div>
+      <p>Une corrélation peut aussi provenir d'une variable confondante, ou même n'être qu'une coïncidence sur les données observées, sans qu'aucune des deux grandeurs ne cause l'autre.</p>
+      <div class="solution-box"><span class="answer-no">Faux</span></div>
+    </div>
+  </div></div></div>
+</div>
+
+
+<!-- ══════════ EX 4 — Étude de cas ══════════ -->
+<div class="exercise" id="card-ex4">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 4 / 5</h2>
+      <div class="tag-row">
+        <span class="etag violet">Étude de cas</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex4">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <p>Pour chaque situation, indique s'il s'agit plutôt d'une <strong>causalité plausible</strong>, d'une <strong>corrélation due à une variable confondante</strong>, ou d'une <strong>coïncidence</strong> sans lien apparent. Justifie à chaque fois.</p>
+    <div class="scenario-list">
+      <div class="scenario"><span class="sc-letter">a)</span> Le nombre de pompiers envoyés sur un incendie et le montant des dégâts causés par cet incendie sont fortement corrélés positivement.</div>
+      <div class="scenario"><span class="sc-letter">b)</span> Le nombre d'heures d'entraînement hebdomadaire d'un athlète et sa performance en compétition sont fortement corrélés positivement.</div>
+      <div class="scenario"><span class="sc-letter">c)</span> Dans une école primaire, la pointure de chaussure des enfants et leur niveau de lecture sont fortement corrélés positivement.</div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="hint-toggle-btn" data-hints="hints4">💡 Indices</button>
+  </div>
+  <div class="hints-section" id="hints4">
+    <p class="hints-title">💡 Indices</p>
+    <div class="hints-list">
+      <div class="hint-item">
+        <button class="hint-btn" data-hint="h4-1">Indice — situation c)</button>
+        <div class="hint-text" id="h4-1">Un enfant de 10 ans a-t-il, en moyenne, une pointure et un niveau de lecture différents de ceux d'un enfant de 5 ans ?</div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex4"><div class="correction-box"><div class="correction-content">
+    <div class="corr-item"><div class="num">a) Pompiers et dégâts</div>
+      <p>Envoyer plus de pompiers n'aggrave pas les dégâts. En réalité, c'est la <strong>taille de l'incendie</strong> qui détermine à la fois le nombre de pompiers envoyés (un gros incendie mobilise plus de monde) et le montant des dégâts (un gros incendie détruit plus).</p>
+      <div class="solution-box"><span class="hl-green">Variable confondante : la gravité de l'incendie</span></div>
+    </div>
+    <div class="corr-item"><div class="num">b) Entraînement et performance</div>
+      <p>Un mécanisme physiologique direct est bien identifié : s'entraîner davantage développe les capacités physiques et techniques.</p>
+      <div class="solution-box"><span class="hl-green">Causalité plausible</span></div>
+    </div>
+    <div class="corr-item"><div class="num">c) Pointure et lecture</div>
+      <p>Avoir de grands pieds ne fait pas mieux lire. En réalité, c'est <strong>l'âge de l'enfant</strong> qui explique les deux : les enfants plus âgés ont à la fois de plus grands pieds et un meilleur niveau de lecture (plus d'années d'apprentissage).</p>
+      <div class="solution-box"><span class="hl-green">Variable confondante : l'âge de l'enfant</span></div>
+    </div>
+  </div></div></div>
+</div>
+
+
+<!-- ══════════ EX 5 — Synthèse ══════════ -->
+<div class="exercise" id="card-ex5">
+  <div class="exercise-header">
+    <div class="exercise-title-group">
+      <h2 class="exercise-title">Exercice 5 / 5</h2>
+      <div class="tag-row">
+        <span class="etag gold">Synthèse</span>
+        <span class="etag recall">rappel fiche 3 : glacier</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="seen-badge">✓ Vu</span>
+      <button class="reveal-btn" data-target="ex5">Voir la correction</button>
+    </div>
+  </div>
+  <div class="exercise-content">
+    <p>Reprends le glacier de la fiche 3 : le nuage (température / ventes de glaces) était bien aligné et croissant, avec une droite d'ajustement \(y=4x-30\).</p>
+    <div class="q-list" style="margin-top:0.9rem;">
+      <div class="q-item"><span class="qi-num">1)</span> Penses-tu que la température cause directement l'augmentation des ventes de glaces ? Justifie.</div>
+      <div class="q-item"><span class="qi-num">2)</span> Imaginons qu'on relève aussi, sur les mêmes journées, les ventes de crème solaire, et qu'on obtienne également un nuage bien aligné et croissant avec les ventes de glaces. Peut-on en conclure que les glaces et la crème solaire sont directement liées (que l'une pousse à acheter l'autre) ?</div>
+      <div class="q-item"><span class="qi-num">3)</span> Quelle variable explique alors la corrélation entre ventes de glaces et ventes de crème solaire ?</div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="hint-toggle-btn" data-hints="hints5">💡 Indices</button>
+  </div>
+  <div class="hints-section" id="hints5">
+    <p class="hints-title">💡 Indices</p>
+    <div class="hints-list">
+      <div class="hint-item">
+        <button class="hint-btn" data-hint="h5-1">Indice — question 2</button>
+        <div class="hint-text" id="h5-1">Reprends le raisonnement de l'exercice 1 : les deux séries peuvent très bien évoluer ensemble sans qu'aucune ne cause l'autre.</div>
+      </div>
+    </div>
+  </div>
+  <div class="correction" id="ex5"><div class="correction-box"><div class="correction-content">
+    <div class="corr-item"><div class="num">1) Température → ventes de glaces</div>
+      <p>Un mécanisme direct est plausible : quand il fait chaud, on a davantage envie d'un produit rafraîchissant.</p>
+      <div class="solution-box"><span class="hl-green">Causalité plausible</span></div>
+    </div>
+    <div class="corr-item"><div class="num">2) Glaces et crème solaire</div>
+      <p>Non : rien n'indique qu'acheter une glace pousse à acheter de la crème solaire (ou inversement). Les deux séries sont corrélées entre elles, mais ce n'est pas un lien de cause à effet direct.</p>
+      <div class="solution-box"><span class="answer-no">Non, ce n'est pas un lien direct entre les deux</span></div>
+    </div>
+    <div class="corr-item"><div class="num">3) Variable confondante</div>
+      <div class="solution-box"><span class="hl-green">La température (ou l'ensoleillement) influence les deux séries en même temps</span></div>
+    </div>
+  </div></div></div>
+</div>
+
+
+<div class="score-card" id="scoreCard">
+  <span class="score-emoji" id="scoreEmoji"></span>
+  <div class="score-title" id="scoreTitle"></div>
+  <div class="score-stars" id="scoreStars"></div>
+  <p class="score-message" id="scoreMessage"></p>
+  <div class="score-breakdown" id="scoreBreakdown"></div>
+</div>
+
+</div><!-- /container -->
+
+<footer>📐 Chapitre 3 — Statistiques à deux variables · Fiche n°5 · Corrélation et causalité</footer>
+
+
+
+<script>
+  const TOTAL = 5;
+  const seenSet = new Set(), openSet = new Set();
+  const SCORE_DATA = [
+    {min:5, emoji:'🏆', stars:'⭐⭐⭐', title:'Fiche maîtrisée !', msg:"Tu sais garder un esprit critique face aux corrélations — rendez-vous en fiche bilan pour tout combiner !"},
+    {min:3, emoji:'🎉', stars:'⭐⭐⭐', title:'Très bien !',  msg:'Encore un peu et tu auras tout couvert !'},
+    {min:2, emoji:'👍', stars:'⭐⭐',   title:'Bien !',        msg:"N'hésite pas à revoir les exercices précédents si besoin."},
+    {min:1, emoji:'💪', stars:'⭐',     title:"Courage !",     msg:"Repense à chercher une variable confondante avant de conclure à une causalité."},
+  ];
+
+  const dotsContainer = document.getElementById('progressDots');
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('span');
+    d.className = 'progress-dot'; d.id = `dot-ex${i}`; d.title = `Exercice ${i}`;
+    dotsContainer.appendChild(d);
+  }
+
+  function updateProgress() {
+    const done = seenSet.size;
+    document.getElementById('progressFill').style.width = `${(done/TOTAL)*100}%`;
+    document.getElementById('progressCounter').textContent = `${done} / ${TOTAL}`;
+    if (done === TOTAL) showScoreCard();
+  }
+
+  function showScoreCard() {
+    const card = document.getElementById('scoreCard');
+    if (card.classList.contains('visible')) return;
+    const data = SCORE_DATA.find(d => seenSet.size >= d.min) || SCORE_DATA[SCORE_DATA.length-1];
+    document.getElementById('scoreEmoji').textContent = data.emoji;
+    document.getElementById('scoreTitle').textContent = data.title;
+    document.getElementById('scoreStars').textContent = data.stars;
+    document.getElementById('scoreMessage').textContent = data.msg;
+    document.getElementById('scoreBreakdown').innerHTML =
+      `<span class="sc-badge gold">✓ ${seenSet.size} / ${TOTAL} corrections vues</span>` +
+      `<span class="sc-badge teal">∑ Fiche 5 terminée</span>`;
+    card.classList.add('visible');
+  }
+
+  function openC(el){el.style.height=el.scrollHeight+'px';el.classList.add('show');}
+  function closeC(el){el.style.height=el.scrollHeight+'px';requestAnimationFrame(()=>{el.style.height='0px';el.classList.remove('show');});}
+
+  function toggleCorrection(exId) {
+    const corr = document.getElementById(exId);
+    const card = corr.closest('.exercise');
+    const btns = card.querySelectorAll('.reveal-btn[data-target]');
+    const dot = document.getElementById(`dot-${exId}`);
+    const isOpen = openSet.has(exId);
+    if (isOpen) {
+      closeC(corr); btns.forEach(b=>{b.classList.remove('active');b.textContent='Voir la correction';}); openSet.delete(exId);
+    } else {
+      openC(corr); btns.forEach(b=>{b.classList.add('active');b.textContent='Masquer la correction';}); openSet.add(exId);
+      if (!seenSet.has(exId)) { seenSet.add(exId); dot.classList.add('done'); card.classList.add('seen'); updateProgress(); }
+    }
+  }
+
+  document.querySelectorAll('.reveal-btn[data-target]').forEach(btn => btn.addEventListener('click', () => toggleCorrection(btn.dataset.target)));
+  document.querySelectorAll('.correction').forEach(el => el.addEventListener('transitionend', e => { if (e.propertyName==='height' && el.classList.contains('show')) el.style.height='auto'; }));
+
+  document.querySelectorAll('.hint-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const s = document.getElementById(this.dataset.hints);
+      s.classList.toggle('open');
+      this.textContent = s.classList.contains('open') ? '💡 Masquer les indices' : '💡 Indices';
+    });
+  });
+
+  document.querySelectorAll('.hint-btn[data-hint]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.dataset.hint;
+      document.getElementById(id).classList.add('revealed');
+      this.disabled = true; this.textContent = '✓ ' + this.textContent.replace(/^✓ /, '');
+    });
+  });
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

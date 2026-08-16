@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistiques — nuage de points et ajustement affine — Première</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root {
+    --bg:#f4f1eb;--card-bg:#fff;--text:#2b2724;--text-mid:#5c5652;--text-light:#8a8380;
+    --accent:#0369a1;--blue:#1a6fa0;--blue-light:#e8f2fa;
+    --green:#1b7a40;--green-light:#e6f5ec;
+    --purple:#6b3fa0;--purple-light:#f1ecf8;
+    --orange:#b45309;--orange-light:#fef3e2;
+    --red:#c0392b;--red-light:#fdecea;
+    --gold:#b8860b;--gold-light:#fef8e8;
+    --border:#e0dbd4;
+    --correction-bg:linear-gradient(135deg,#fffef5,#fefbee);
+    --correction-border:#e8c84a;
+    --shadow:0 3px 16px rgba(0,0,0,.06);
+    --radius:12px;--radius-sm:8px;
+    --col-a:#0369a1;
+    --col-b:#be185d;
+    --col-g:#059669;
+    --col-h:#7c3aed;
+    --col-f:#b45309;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16.5px;}
+  .header{background:linear-gradient(160deg,#001f3f 0%,#003366 40%,#0369a1 100%);color:#fff;padding:3rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+  .header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(3,105,161,.25) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(190,24,93,.15) 0%,transparent 55%);pointer-events:none;}
+  .header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0369a1,#be185d,#059669,#7c3aed);}
+  .header .chapter-badge{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.6rem;}
+  .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.55rem,4.2vw,2.5rem);font-weight:800;letter-spacing:-.01em;line-height:1.25;}
+  .header .subtitle{font-size:.95rem;opacity:.75;margin-top:.6rem;max-width:560px;margin-left:auto;margin-right:auto;}
+  .header .line{width:50px;height:2px;background:rgba(255,255,255,.25);margin:.8rem auto 0;border-radius:2px;}
+  .controls-bar{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  .btn-ctrl{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.45rem 1.1rem;border:2px solid var(--accent);border-radius:50px;background:transparent;color:var(--accent);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;}
+  .btn-ctrl:hover{background:var(--accent);color:#fff;transform:translateY(-1px);}
+  .btn-ctrl.sec{border-color:var(--text-light);color:var(--text-mid);}
+  .btn-ctrl.sec:hover{background:var(--text-mid);color:#fff;}
+  .container{max-width:860px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+  .section{margin-bottom:2.8rem;animation:fadeUp .55s ease both;}
+  .section:nth-child(2){animation-delay:.08s;}.section:nth-child(3){animation-delay:.16s;}.section:nth-child(4){animation-delay:.24s;}.section:nth-child(5){animation-delay:.32s;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+  .section-title{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--accent);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;}
+  .section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:2px;}
+  .sub-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--blue);margin:1.8rem 0 .8rem;}
+  .block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border-left:5px solid;}
+  .block.def{border-left-color:var(--blue);}
+  .block.prop{border-left-color:var(--green);}
+  .block.rule{border-left-color:var(--purple);}
+  .block.conv{border-left-color:var(--orange);}
+  .block.warn{border-left-color:var(--red);}
+  .block.rem{border-left-color:#94a3b8;background:#f8fafc;}
+  .block-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;}
+  .block.def .block-tag{color:var(--blue);background:var(--blue-light);}
+  .block.prop .block-tag{color:var(--green);background:var(--green-light);}
+  .block.rule .block-tag{color:var(--purple);background:var(--purple-light);}
+  .block.conv .block-tag{color:var(--orange);background:var(--orange-light);}
+  .block.warn .block-tag{color:var(--red);background:var(--red-light);}
+  .block.rem .block-tag{color:#64748b;background:#f1f5f9;}
+  .vocab-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.8rem 0;}
+  .vocab-card{border-radius:var(--radius-sm);padding:1rem 1.2rem;border:2.5px solid;}
+  .vocab-card.card-a{background:#eff6ff;border-color:var(--col-a);}
+  .vocab-card.card-b{background:#fdf2f8;border-color:var(--col-b);}
+  .vocab-card .vc-title{font-weight:700;font-size:.95rem;margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem;}
+  .vocab-card.card-a .vc-title{color:var(--col-a);}
+  .vocab-card.card-b .vc-title{color:var(--col-b);}
+  .vocab-card .vc-symbol{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:600;padding:.2rem .6rem;border-radius:6px;display:inline-block;}
+  .vocab-card.card-a .vc-symbol{background:#dbeafe;color:var(--col-a);}
+  .vocab-card.card-b .vc-symbol{background:#fce7f3;color:var(--col-b);}
+  .vocab-card p{font-size:.9rem;line-height:1.55;color:var(--text-mid);margin-top:.35rem;}
+  .formula-box{text-align:center;font-size:1.05rem;padding:.85rem 1rem;margin:.7rem 0 .3rem;background:#faf8f5;border-radius:var(--radius-sm);border:1px solid var(--border);}
+  .ex-block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .ex-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.45rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--accent);background:#dbeafe;}
+  .ex-prompt{margin-bottom:.7rem;}
+  .exo-block{background:linear-gradient(135deg,#f0f8ff,#e8f4ff);border:1.5px solid #93c5fd;border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;}
+  .exo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.45rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--accent);background:#dbeafe;}
+  .corr-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem .95rem;border:1.5px solid var(--correction-border);border-radius:50px;background:var(--gold-light);color:var(--gold);cursor:pointer;transition:all .22s ease;display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;}
+  .corr-btn:hover{background:#fdf2c5;transform:translateY(-1px);}
+  .corr-btn .chev{display:inline-block;font-size:.6rem;transition:transform .3s ease;}
+  .corr-btn.open .chev{transform:rotate(90deg);}
+  .corr-body{display:none;background:var(--correction-bg);border-radius:var(--radius-sm);border:1.5px dashed var(--correction-border);margin-top:.7rem;padding:1.1rem;}
+  .corr-body.show{display:block;}
+  .val-table{border-collapse:collapse;margin:.7rem auto;font-size:.97rem;}
+  .val-table th{background:#dbeafe;color:var(--accent);font-weight:700;padding:.45rem .9rem;border:2px solid #93c5fd;text-align:center;}
+  .val-table td{background:#fff;border:1px solid #93c5fd;padding:.4rem .9rem;text-align:center;min-width:52px;height:32px;}
+  .val-table td.given{background:#eff6ff;font-weight:700;color:var(--accent);}
+  .val-table td.result{background:var(--green-light);font-weight:700;color:var(--green);}
+  .tip-box{background:#fef3c7;padding:.9rem 1rem;border-radius:8px;margin:.7rem 0;border:2px solid #f59e0b;font-size:.92rem;}
+  .solution-box{background:var(--green-light);border:2px solid var(--green);border-radius:8px;padding:.6rem 1rem;margin-top:.6rem;font-weight:700;text-align:center;font-size:1rem;color:var(--green);}
+  .calc-steps{font-size:1rem;line-height:1.9;}
+  .calc-steps .step{display:flex;align-items:flex-start;gap:.5rem;margin:.2rem 0;}
+  .calc-steps .step-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;opacity:.4;white-space:nowrap;padding-top:.3rem;min-width:90px;}
+  .calc-steps .eq{flex:1;}
+  .steps-list{list-style:none;padding:0;margin:.6rem 0;}
+  .steps-list li{display:flex;align-items:flex-start;gap:.75rem;padding:.5rem .3rem;border-bottom:1px solid var(--border);}
+  .steps-list li:last-child{border-bottom:none;}
+  .step-num{min-width:28px;height:28px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;margin-top:.1rem;}
+  .cas-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.8rem 0;}
+  .cas-card{border-radius:var(--radius-sm);padding:.9rem 1.1rem;border:2px solid;}
+  .cas-card.c1{background:#eff6ff;border-color:var(--col-a);}
+  .cas-card.c2{background:#fdf2f8;border-color:var(--col-b);}
+  .cas-card.c3{background:#f0fdf4;border-color:var(--col-g);grid-column:1 / -1;}
+  .cas-card .cas-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;display:inline-block;padding:.12rem .5rem;border-radius:4px;}
+  .cas-card.c1 .cas-label{color:var(--col-a);background:#dbeafe;}
+  .cas-card.c2 .cas-label{color:var(--col-b);background:#fce7f3;}
+  .cas-card.c3 .cas-label{color:var(--col-g);background:#dcfce7;}
+  .graph-wrap{display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;margin:.9rem 0;}
+  .graph-container{flex:1;min-width:300px;max-width:420px;}
+  .graph-title{text-align:center;font-weight:700;font-size:.95rem;margin-bottom:.5rem;padding:.3rem .8rem;border-radius:6px;display:inline-block;}
+  .graph-center{text-align:center;}
+  svg.repere{border-radius:var(--radius-sm);background:#fafafa;border:1px solid var(--border);}
+  .eq-line{font-family:'Georgia',serif;font-size:1.2rem;text-align:center;margin:.3rem 0;line-height:1.6;}
+  .speed-diagram{display:flex;align-items:center;justify-content:center;gap:0;margin:1rem 0;flex-wrap:wrap;}
+  .speed-box{text-align:center;background:#fff;border:2px solid var(--orange);border-radius:var(--radius-sm);padding:.8rem 1.1rem;min-width:110px;}
+  .speed-box .sb-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);font-weight:700;}
+  .speed-box .sb-val{font-size:1.15rem;font-weight:700;color:var(--orange);margin-top:.2rem;}
+  .speed-arrow{font-size:1.6rem;color:var(--orange);padding:0 .6rem;}
+  .var-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;margin:.9rem 0;}
+  .var-card{border-radius:var(--radius-sm);padding:1rem 1.1rem;border:2.5px solid;text-align:center;}
+  .var-card.up{background:#eff6ff;border-color:var(--col-a);}
+  .var-card.down{background:#fdf2f8;border-color:var(--col-b);}
+  .var-card.flat{background:#f8fafc;border-color:#94a3b8;}
+  .var-card .var-arrow{font-size:2.1rem;font-weight:700;line-height:1;margin:.3rem 0;}
+  .var-card.up .var-arrow{color:var(--col-a);}
+  .var-card.down .var-arrow{color:var(--col-b);}
+  .var-card.flat .var-arrow{color:#64748b;}
+  .var-card .var-cond{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.95rem;margin-bottom:.25rem;}
+  .var-card p{font-size:.85rem;color:var(--text-mid);margin-top:.3rem;}
+  .bridge-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.9rem 0;}
+  .bridge-card{border-radius:var(--radius-sm);padding:1.1rem 1.2rem;border:2px solid var(--purple);background:var(--purple-light);}
+  .bridge-card .bc-title{font-weight:700;color:var(--purple);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem;}
+  .bridge-card p{font-size:.9rem;color:var(--text-mid);}
+  .real-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.9rem 0;}
+  .real-card{border-radius:var(--radius-sm);padding:1.05rem 1.2rem;border:2px solid;background:#fff;}
+  .real-card.r1{border-color:var(--col-a);}
+  .real-card.r2{border-color:var(--col-b);}
+  .real-card.r3{border-color:var(--col-g);}
+  .real-card .rc-icon{font-size:1.5rem;line-height:1;margin-bottom:.35rem;}
+  .real-card .rc-title{font-weight:700;font-size:.95rem;margin-bottom:.3rem;}
+  .real-card p{font-size:.86rem;color:var(--text-mid);margin-bottom:.3rem;}
+  .flash-exo{background:#fdfaf3;border:1.5px dashed #d6c88a;border-radius:var(--radius-sm);padding:.9rem 1.1rem;margin:.8rem 0;}
+  .flash-exo .flash-q{font-size:.92rem;font-weight:600;margin-bottom:.4rem;}
+  .flash-exo .corr-btn{margin-top:.3rem;}
+  .flash-exo .corr-body{padding:.8rem 1rem;font-size:.9rem;}
+  /* Quiz */
+  .quiz-block{background:var(--card-bg);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:1.1rem 0;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .quiz-q{font-weight:700;margin-bottom:.7rem;}
+  .quiz-opts{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.6rem;}
+  .quiz-opt{display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s ease;font-size:.95rem;}
+  .quiz-opt:hover{border-color:var(--accent);background:var(--blue-light);}
+  .quiz-opt input{accent-color:var(--accent);}
+  .quiz-opt.correct{border-color:var(--green);background:var(--green-light);color:var(--green);font-weight:700;}
+  .quiz-opt.incorrect{border-color:var(--red);background:var(--red-light);color:var(--red);font-weight:700;}
+  .quiz-feedback{font-size:.88rem;font-weight:600;margin-top:.3rem;display:none;}
+  .quiz-feedback.show{display:block;}
+  .quiz-feedback.ok{color:var(--green);}
+  .quiz-feedback.ko{color:var(--red);}
+  .btn-quiz{font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;padding:.65rem 1.6rem;border:none;border-radius:50px;background:var(--accent);color:#fff;cursor:pointer;transition:all .22s ease;display:block;margin:1.2rem auto 0;}
+  .btn-quiz:hover{background:#025482;transform:translateY(-1px);}
+  .quiz-score{text-align:center;font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;margin-top:1rem;padding:.9rem;border-radius:var(--radius-sm);display:none;}
+  .quiz-score.show{display:block;}
+  @media(max-width:768px){
+    body{font-size:16px;}
+    .container{padding:1.5rem 1rem 3rem;}
+    .header{padding:2.2rem 1.2rem 1.8rem;}
+    .controls-bar{padding:.6rem 1rem;gap:.5rem;}
+  }
+  @media(max-width:640px){
+    body{font-size:15px;}
+    .container{padding:1.2rem .8rem 3rem;}
+    .vocab-grid,.cas-grid,.graph-wrap,.var-grid,.bridge-grid,.real-grid{grid-template-columns:1fr;}
+    .graph-container{max-width:100%;}
+    .eq-line{font-size:1rem;}
+    .header{padding:2rem 1rem 1.5rem;}
+    .controls-bar{padding:.55rem .7rem;gap:.4rem;}
+    .btn-ctrl{font-size:.75rem;padding:.38rem .8rem;}
+    .speed-diagram{flex-direction:column;}
+    .speed-arrow{transform:rotate(90deg);}
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  }
+  @media(max-width:380px){
+    body{font-size:14px;}
+    .container{padding:1rem .6rem 2.5rem;}
+    .header{padding:1.5rem .8rem 1.2rem;}
+    .btn-ctrl{font-size:.7rem;padding:.32rem .65rem;}
+  }
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,var(--accent),var(--accent));color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(3,105,161,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(3,105,161,0.5);}
+svg[viewBox] { max-width:100%; height:auto; }
+.tbl, table, .data-table, .corr-table, .ecart-table,
+.decomp-table, .cm-table, .axes-table { 
+  display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; 
+}
+.katex-display, .MathJax_Display, .katex { 
+  overflow-x:auto; overflow-y:hidden; max-width:100%; 
+}
+.block, .section, .def, .conclusion, .ex-block, .exo-block,
+.recap, .note, .concl, .analogy, .card, .vocab-card {
+  overflow-wrap:break-word; word-break:break-word;
+}
+
+/* ===== RESPONSIVE RENFORCÉ ===== */
+@media(max-width:900px){
+  .container{max-width:100%;}
+}
+@media(max-width:768px){
+  body{font-size:15.5px;}
+  .container{padding:1.4rem 1rem 4rem;}
+  .header{padding:2rem 1rem 1.8rem;}
+  .controls-bar{padding:.55rem .8rem;gap:.4rem;}
+  .vocab-grid,.cas-grid,.var-grid,.bridge-grid,.graph-wrap{grid-template-columns:1fr !important;}
+  .graph-container{max-width:100%;}
+}
+@media(max-width:580px){
+  body{font-size:15px;}
+  .container{padding:1.1rem .75rem 3.5rem;}
+  .header{padding:1.7rem .9rem 1.4rem;}
+  .controls-bar{padding:.5rem .6rem;gap:.35rem;}
+  .btn-ctrl{font-size:.74rem;padding:.36rem .75rem;}
+  .vocab-grid,.cas-grid,.var-grid,.bridge-grid,.graph-wrap,
+  .cas-card.c3{grid-column:1 !important;grid-template-columns:1fr !important;}
+  .graph-container{max-width:100%;}
+  .eq-line{font-size:.97rem;}
+  .speed-diagram{flex-direction:column;}
+  .speed-arrow{transform:rotate(90deg);}
+  .section-title{font-size:1.2rem;}
+  .sub-title{font-size:1rem;}
+  .block{padding:1rem 1.1rem;}
+  .ex-block,.exo-block{padding:1rem 1.1rem;}
+}
+@media(max-width:400px){
+  body{font-size:14.5px;}
+  .container{padding:.9rem .55rem 3rem;}
+  .header{padding:1.4rem .7rem 1.2rem;}
+  .btn-ctrl{font-size:.7rem;padding:.3rem .6rem;}
+}
+svg[viewBox]{max-width:100%;height:auto;}
+.tbl,table,.data-table,.corr-table,.ecart-table,
+.decomp-table,.cm-table,.axes-table,.val-table{
+  display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  max-width:100%;
+}
+.katex-display,.MathJax_Display,.katex{
+  overflow-x:auto;overflow-y:hidden;max-width:100%;
+}
+.block,.section,.def,.conclusion,.ex-block,.exo-block,
+.card,.step,.quiz-block{
+  word-break:break-word;overflow-wrap:break-word;
+}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="chapter-badge">Chapitre 3 · Première</span>
+  <h1>Statistiques — nuage de points et ajustement affine</h1>
+  <p class="subtitle">Cette fois, on croise deux séries de données à la fois — et on retrouve, encore, les outils des chapitres 1 et 2.</p>
+  <div class="line"></div>
+</div>
+
+<div class="controls-bar">
+  <button class="btn-ctrl" onclick="showAll()">📖 Afficher toutes les corrections</button>
+  <button class="btn-ctrl sec" onclick="hideAll()">🔒 Tout masquer</button>
+</div>
+
+<div class="container">
+
+<!-- POURQUOI CE CHAPITRE -->
+<div class="section">
+  <div class="block conv">
+    <div class="block-tag">🎯 Pour commencer</div>
+    <p>En 2nde, tu as appris à résumer <strong>une seule</strong> série de données (moyenne, médiane, quartiles). Ici, on s'intéresse à des situations où l'on mesure <strong>deux grandeurs en même temps</strong> sur les mêmes individus, pour voir si l'une semble influencer l'autre.</p>
+  </div>
+
+  <div class="real-grid">
+    <div class="real-card r1">
+      <div class="rc-icon">🍦</div>
+      <div class="rc-title">Température et ventes de glaces</div>
+      <p>Pour chaque journée, on relève la température <strong>et</strong> le nombre de glaces vendues. Est-ce que l'une dépend de l'autre ?</p>
+    </div>
+    <div class="real-card r2">
+      <div class="rc-icon">📚</div>
+      <div class="rc-title">Révisions et note à un contrôle</div>
+      <p>Pour chaque élève, on relève le nombre d'heures de révision <strong>et</strong> la note obtenue. Y a-t-il une tendance ?</p>
+    </div>
+  </div>
+
+  <div class="block conv" style="margin-top:1.1rem;">
+    <div class="block-tag">🔗 Le lien avec les chapitres 1 et 2</div>
+    <p>Bonne nouvelle : la boîte à outils est presque entièrement déjà dans ta poche. La formule pour calculer un coefficient directeur à partir de deux points (chapitre 1, retrouvée avec la raison au chapitre 2) va être <strong>réutilisée telle quelle</strong> pour trouver la tendance d'un nuage de points réel.</p>
+  </div>
+</div>
+
+<!-- VOCABULAIRE -->
+<div class="section">
+  <div class="section-title">Vocabulaire indispensable</div>
+  <div class="vocab-grid">
+    <div class="vocab-card card-a">
+      <div class="vc-title"><span class="vc-symbol">🎯</span> Nuage de points</div>
+      <p>L'ensemble des points \((x_i\,;\,y_i)\) obtenus en plaçant chaque individu dans un repère, une coordonnée par grandeur mesurée.</p>
+    </div>
+    <div class="vocab-card card-b">
+      <div class="vc-title"><span class="vc-symbol">G</span> Point moyen</div>
+      <p>Le point de coordonnées \((\bar x\,;\,\bar y)\), où \(\bar x\) et \(\bar y\) sont les <strong>moyennes</strong> (déjà connues depuis la 2nde) de chaque série.</p>
+    </div>
+  </div>
+</div>
+
+<!-- I. NUAGE DE POINTS -->
+<div class="section">
+  <div class="section-title">I. Le nuage de points</div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemple filé — Température et glaces vendues</div>
+    <div class="ex-prompt">Un vendeur de glaces relève, sur 5 jours, la température et le nombre de glaces vendues (en dizaines) :</div>
+    <table class="val-table">
+      <tr><th>Température (°C)</th><td class="given">15</td><td class="given">20</td><td class="given">25</td><td class="given">30</td><td class="given">35</td></tr>
+      <tr><th>Glaces vendues (dizaines)</th><td class="given">28</td><td class="given">44</td><td class="given">57</td><td class="given">63</td><td class="given">83</td></tr>
+    </table>
+    <div class="graph-wrap">
+      <div class="graph-container">
+        <div class="graph-center">
+          <svg class="repere" width="360" height="320" viewBox="0 0 360 320" style="max-width:100%;height:auto;">
+            <defs><clipPath id="clst"><rect x="5" y="5" width="350" height="310"/></clipPath></defs>
+            <g stroke="#e5e7eb" stroke-width="0.8">
+              <line x1="50" y1="10" x2="50" y2="290"/><line x1="115" y1="10" x2="115" y2="290"/><line x1="180" y1="10" x2="180" y2="290"/><line x1="245" y1="10" x2="245" y2="290"/><line x1="310" y1="10" x2="310" y2="290"/>
+              <line x1="20" y1="290" x2="340" y2="290"/><line x1="20" y1="230" x2="340" y2="230"/><line x1="20" y1="170" x2="340" y2="170"/><line x1="20" y1="110" x2="340" y2="110"/><line x1="20" y1="50" x2="340" y2="50"/>
+            </g>
+            <line x1="20" y1="290" x2="335" y2="290" stroke="#374151" stroke-width="1.8"/>
+            <line x1="50" y1="300" x2="50" y2="15" stroke="#374151" stroke-width="1.8"/>
+            <polygon points="335,290 328,286 328,294" fill="#374151"/>
+            <polygon points="50,15 46,22 54,22" fill="#374151"/>
+            <g font-family="Georgia,serif" font-style="italic" font-size="11" fill="#374151" text-anchor="middle">
+              <text x="50" y="303">15</text><text x="115" y="303">20</text><text x="180" y="303">25</text><text x="245" y="303">30</text><text x="310" y="303">35</text>
+            </g>
+            <g font-family="Georgia,serif" font-style="italic" font-size="11" fill="#374151" text-anchor="end">
+              <text x="43" y="294">0</text><text x="43" y="234">20</text><text x="43" y="174">40</text><text x="43" y="114">60</text><text x="43" y="54">80</text>
+            </g>
+            <circle cx="50" cy="206" r="6" fill="#0369a1" stroke="white" stroke-width="2"/>
+            <circle cx="115" cy="158" r="6" fill="#0369a1" stroke="white" stroke-width="2"/>
+            <circle cx="180" cy="119" r="6" fill="#0369a1" stroke="white" stroke-width="2"/>
+            <circle cx="245" cy="101" r="6" fill="#0369a1" stroke="white" stroke-width="2"/>
+            <circle cx="310" cy="41" r="6" fill="#0369a1" stroke="white" stroke-width="2"/>
+          </svg>
+        </div>
+        <p style="text-align:center;font-size:.83rem;color:var(--text-mid);margin-top:.4rem;">Abscisse : température (°C) — Ordonnée : glaces vendues (dizaines)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flash-exo">
+    <div class="flash-q">⚡ Flash — En regardant le nuage, dirais-tu que les points semblent à peu près alignés ?</div>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la réponse</button>
+    <div class="corr-body">
+      <p>Oui, à peu près : les points ne sont pas parfaitement sur une droite (des données réelles ne le sont jamais), mais ils suivent clairement une <strong>tendance croissante</strong>. C'est exactement le genre de nuage où un <strong>ajustement affine</strong> a du sens.</p>
+    </div>
+  </div>
+</div>
+
+<!-- II. POINT MOYEN -->
+<div class="section">
+  <div class="section-title">II. Le point moyen</div>
+
+  <div class="block def">
+    <div class="block-tag">📘 Définition</div>
+    <p>Pour une série de points \((x_1;y_1), (x_2;y_2), \dots, (x_n;y_n)\), le <strong>point moyen</strong> est le point \(G(\bar x\,;\,\bar y)\), où :</p>
+    <div class="formula-box" style="margin-top:.6rem;">\(\bar x = \dfrac{x_1+x_2+\dots+x_n}{n} \qquad \bar y = \dfrac{y_1+y_2+\dots+y_n}{n}\)</div>
+    <p style="margin-top:.5rem;font-size:.9rem;color:var(--text-mid);">Rien de nouveau dans le calcul : c'est la moyenne que tu connais depuis la 2nde, appliquée deux fois — une fois sur les \(x\), une fois sur les \(y\).</p>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemple — On continue avec les glaces</div>
+    <div class="calc-steps">
+      <div class="step"><span class="step-label">Moyenne des \(x\)</span><span class="eq">\(\bar x = \dfrac{15+20+25+30+35}{5} = \dfrac{125}{5} = 25\)</span></div>
+      <div class="step"><span class="step-label">Moyenne des \(y\)</span><span class="eq">\(\bar y = \dfrac{28+44+57+63+83}{5} = \dfrac{275}{5} = 55\)</span></div>
+    </div>
+    <div class="solution-box">\(G(25\,;\,55)\)</div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🎮 À toi de jouer !</div>
+    <p style="margin-bottom:.6rem;">Pour 4 élèves, on relève le nombre d'heures de révision et la note obtenue : (1 ; 8), (2 ; 11), (3 ; 13), (4 ; 16). Calcule les coordonnées du point moyen \(G\).</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="calc-steps">
+        <div class="step"><span class="step-label">Moyenne des \(x\)</span><span class="eq">\(\bar x = \dfrac{1+2+3+4}{4} = \dfrac{10}{4} = 2{,}5\)</span></div>
+        <div class="step"><span class="step-label">Moyenne des \(y\)</span><span class="eq">\(\bar y = \dfrac{8+11+13+16}{4} = \dfrac{48}{4} = 12\)</span></div>
+      </div>
+      <div class="solution-box">\(G(2{,}5\,;\,12)\)</div>
+    </div>
+  </div>
+</div>
+
+<!-- III. AJUSTEMENT AFFINE -->
+<div class="section">
+  <div class="section-title">III. L'ajustement affine</div>
+  <p style="margin-bottom:.9rem;">Quand le nuage a une allure globalement rectiligne, on peut tracer une droite qui <strong>résume la tendance</strong> : c'est la droite d'ajustement affine.</p>
+
+  <div class="block rule">
+    <div class="block-tag">📋 Méthode</div>
+    <ul class="steps-list">
+      <li><span class="step-num">1</span><span>Placer le nuage de points, puis calculer et placer le point moyen \(G\).</span></li>
+      <li><span class="step-num">2</span><span>Tracer, <strong>à la règle</strong>, une droite qui passe par \(G\) et qui semble le mieux « résumer » le nuage (à peu près autant de points au-dessus qu'en dessous).</span></li>
+      <li><span class="step-num">3</span><span>Lire les coordonnées de <strong>deux points bien choisis sur cette droite</strong> (pas forcément des points du nuage — juste des coordonnées faciles à lire).</span></li>
+      <li><span class="step-num">4</span><span>Calculer \(a\) et \(b\) avec la méthode du chapitre 1 : \(a = \dfrac{y_2-y_1}{x_2-x_1}\), puis injecter un point pour trouver \(b\).</span></li>
+    </ul>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemple — On termine avec les glaces</div>
+    <div class="ex-prompt">On trace la droite passant par \(G(25\,;\,55)\), et on lit deux points bien placés sur cette droite : \((15\,;\,30)\) et \((35\,;\,80)\).</div>
+    <div class="graph-wrap">
+      <div class="graph-container">
+        <div class="graph-center">
+          <svg class="repere" width="360" height="320" viewBox="0 0 360 320" style="max-width:100%;height:auto;">
+            <defs><clipPath id="clst2"><rect x="5" y="5" width="350" height="310"/></clipPath></defs>
+            <g stroke="#e5e7eb" stroke-width="0.8">
+              <line x1="50" y1="10" x2="50" y2="290"/><line x1="115" y1="10" x2="115" y2="290"/><line x1="180" y1="10" x2="180" y2="290"/><line x1="245" y1="10" x2="245" y2="290"/><line x1="310" y1="10" x2="310" y2="290"/>
+              <line x1="20" y1="290" x2="340" y2="290"/><line x1="20" y1="230" x2="340" y2="230"/><line x1="20" y1="170" x2="340" y2="170"/><line x1="20" y1="110" x2="340" y2="110"/><line x1="20" y1="50" x2="340" y2="50"/>
+            </g>
+            <line x1="20" y1="290" x2="335" y2="290" stroke="#374151" stroke-width="1.8"/>
+            <line x1="50" y1="300" x2="50" y2="15" stroke="#374151" stroke-width="1.8"/>
+            <polygon points="335,290 328,286 328,294" fill="#374151"/>
+            <polygon points="50,15 46,22 54,22" fill="#374151"/>
+            <g font-family="Georgia,serif" font-style="italic" font-size="11" fill="#374151" text-anchor="middle">
+              <text x="50" y="303">15</text><text x="115" y="303">20</text><text x="180" y="303">25</text><text x="245" y="303">30</text><text x="310" y="303">35</text>
+            </g>
+            <g font-family="Georgia,serif" font-style="italic" font-size="11" fill="#374151" text-anchor="end">
+              <text x="43" y="294">0</text><text x="43" y="234">20</text><text x="43" y="174">40</text><text x="43" y="114">60</text><text x="43" y="54">80</text>
+            </g>
+            <line x1="35" y1="215" x2="325" y2="35" stroke="#059669" stroke-width="2.2" clip-path="url(#clst2)"/>
+            <circle cx="50" cy="206" r="5.5" fill="#0369a1" stroke="white" stroke-width="1.5" opacity="0.55"/>
+            <circle cx="115" cy="158" r="5.5" fill="#0369a1" stroke="white" stroke-width="1.5" opacity="0.55"/>
+            <circle cx="180" cy="119" r="5.5" fill="#0369a1" stroke="white" stroke-width="1.5" opacity="0.55"/>
+            <circle cx="245" cy="101" r="5.5" fill="#0369a1" stroke="white" stroke-width="1.5" opacity="0.55"/>
+            <circle cx="310" cy="41" r="5.5" fill="#0369a1" stroke="white" stroke-width="1.5" opacity="0.55"/>
+            <circle cx="50" cy="200" r="6.5" fill="#059669" stroke="white" stroke-width="2"/>
+            <text x="20" y="192" font-size="11" fill="#059669" font-family="DM Sans,sans-serif" font-weight="700">(15;30)</text>
+            <circle cx="180" cy="125" r="7.5" fill="#c0392b" stroke="white" stroke-width="2"/>
+            <text x="188" y="122" font-size="11" fill="#c0392b" font-family="DM Sans,sans-serif" font-weight="700">G(25;55)</text>
+            <circle cx="310" cy="50" r="6.5" fill="#059669" stroke="white" stroke-width="2"/>
+            <text x="248" y="42" font-size="11" fill="#059669" font-family="DM Sans,sans-serif" font-weight="700">(35;80)</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="calc-steps">
+      <div class="step"><span class="step-label">Calcul de \(a\)</span><span class="eq">\(a = \dfrac{80-30}{35-15} = \dfrac{50}{20} = 2{,}5\)</span></div>
+      <div class="step"><span class="step-label">On pose</span><span class="eq">\(y = 2{,}5x + b\)</span></div>
+      <div class="step"><span class="step-label">On injecte</span><span class="eq">le point \((15\,;\,30)\) : \(30 = 2{,}5\times15 + b\)</span></div>
+      <div class="step"><span class="step-label">On isole \(b\)</span><span class="eq">\(30 = 37{,}5 + b \;\Rightarrow\; b = -7{,}5\)</span></div>
+    </div>
+    <div class="solution-box">Droite d'ajustement : \(y = 2{,}5x - 7{,}5\)</div>
+    <div class="tip-box" style="margin-top:.7rem;">🌟 Exactement la même méthode qu'au chapitre 1 pour retrouver \(a\) et \(b\) — seul le contexte a changé !</div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🎮 À toi de jouer !</div>
+    <p style="margin-bottom:.6rem;">Pour l'exemple des révisions (point moyen \(G(2{,}5\,;\,12)\)), on trace une droite d'ajustement qui passe par les points \((1\,;\,7)\) et \((4\,;\,16)\). Détermine son équation.</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="calc-steps">
+        <div class="step"><span class="step-label">Calcul de \(a\)</span><span class="eq">\(a = \dfrac{16-7}{4-1} = \dfrac{9}{3} = 3\)</span></div>
+        <div class="step"><span class="step-label">On pose</span><span class="eq">\(y = 3x + b\)</span></div>
+        <div class="step"><span class="step-label">On injecte</span><span class="eq">le point \((1\,;\,7)\) : \(7 = 3\times1 + b\)</span></div>
+        <div class="step"><span class="step-label">On isole \(b\)</span><span class="eq">\(7 = 3 + b \;\Rightarrow\; b = 4\)</span></div>
+      </div>
+      <div class="solution-box">\(y = 3x + 4\)</div>
+    </div>
+  </div>
+</div>
+
+<!-- IV. INTERPOLATION / EXTRAPOLATION -->
+<div class="section">
+  <div class="section-title">IV. Interpoler et extrapoler</div>
+  <p style="margin-bottom:.9rem;">Une fois la droite trouvée, on peut s'en servir pour <strong>estimer</strong> une valeur qu'on n'a pas mesurée.</p>
+
+  <div class="cas-grid">
+    <div class="cas-card c1">
+      <div class="cas-label">Interpolation</div>
+      <p>Estimer une valeur <strong>à l'intérieur</strong> de l'intervalle des données mesurées. Plutôt fiable.</p>
+    </div>
+    <div class="cas-card c2">
+      <div class="cas-label">Extrapolation</div>
+      <p>Estimer une valeur <strong>en dehors</strong> de l'intervalle mesuré. Beaucoup plus risqué.</p>
+    </div>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">✏️ Exemple — Avec la droite \(y = 2{,}5x - 7{,}5\)</div>
+    <div class="calc-steps">
+      <div class="step"><span class="step-label">Interpolation</span><span class="eq">À 27°C (compris entre 15 et 35) : \(y = 2{,}5\times27-7{,}5 = 60\) dizaines de glaces</span></div>
+      <div class="step"><span class="step-label">Extrapolation</span><span class="eq">À 45°C (hors de l'intervalle mesuré) : \(y = 2{,}5\times45-7{,}5 = 105\) dizaines de glaces</span></div>
+    </div>
+  </div>
+
+  <div class="block warn">
+    <div class="block-tag">⚠️ Prudence avec l'extrapolation</div>
+    <p>Rien ne garantit que la tendance observée entre 15°C et 35°C se poursuive à 45°C : au-delà d'un certain seuil, les clients restent peut-être chez eux plutôt que d'aller acheter des glaces ! Plus on s'éloigne des données mesurées, moins l'estimation est fiable.</p>
+  </div>
+
+  <div class="block rem">
+    <div class="block-tag">💡 Bonus — Corrélation n'est pas causalité</div>
+    <p>Un nuage bien aligné montre que deux grandeurs <strong>évoluent ensemble</strong>, pas que l'une <strong>cause</strong> l'autre. Exemple classique : les ventes de glaces et le nombre de noyades augmentent toutes les deux en été — pas parce que manger une glace ferait se noyer, mais parce que la chaleur explique les deux à la fois !</p>
+  </div>
+</div>
+
+<!-- V. CARACTERES QUALITATIFS -->
+<div class="section">
+  <div class="section-title">V. Croiser deux caractères qualitatifs</div>
+  <p style="margin-bottom:.9rem;">Jusqu'ici, on a croisé deux grandeurs <strong>chiffrées</strong> (température, ventes). Mais on peut aussi croiser deux <strong>catégories</strong> — c'est ce qu'on appelle des <strong>caractères qualitatifs</strong>.</p>
+
+  <div class="vocab-grid">
+    <div class="vocab-card card-a">
+      <div class="vc-title"><span class="vc-symbol">#</span> Caractère quantitatif</div>
+      <p>Se mesure par un <strong>nombre</strong> : température, taille, nombre d'heures de révision... (c'est ce qu'on a utilisé dans les parties précédentes)</p>
+    </div>
+    <div class="vocab-card card-b">
+      <div class="vc-title"><span class="vc-symbol">🏷️</span> Caractère qualitatif</div>
+      <p>Se range dans des <strong>catégories</strong> (non numériques) : couleur, parfum préféré, moyen de transport, genre musical...</p>
+    </div>
+  </div>
+
+  <div class="block def" style="margin-top:1rem;">
+    <div class="block-tag">📘 Définition — Tableau croisé d'effectifs</div>
+    <p>Quand on observe <strong>deux caractères qualitatifs</strong> sur le même groupe d'individus, on range les <strong>effectifs</strong> (nombre d'individus) dans un tableau à double entrée : une ligne par modalité du premier caractère, une colonne par modalité du second.</p>
+  </div>
+
+  <div class="ex-block">
+    <div class="ex-tag">🍨 Exemple filé — Parfum préféré selon la saison</div>
+    <div class="ex-prompt">Un glacier interroge 240 clients sur leur parfum préféré (Chocolat ou Fruits) et note la saison de l'interview :</div>
+    <table class="val-table">
+      <tr><th></th><th>Chocolat</th><th>Fruits</th><th>Total</th></tr>
+      <tr><th>Été</th><td class="given">40</td><td class="given">120</td><td class="total">160</td></tr>
+      <tr><th>Hiver</th><td class="given">50</td><td class="given">30</td><td class="total">80</td></tr>
+      <tr><th>Total</th><td class="total">90</td><td class="total">150</td><td class="total">240</td></tr>
+    </table>
+    <p style="margin-top:.7rem;font-size:.9rem;color:var(--text-mid);">Chaque cellule donne l'effectif des clients qui vérifient <strong>les deux modalités à la fois</strong> : par exemple, 120 clients interrogés en été préfèrent les fruits.</p>
+  </div>
+
+  <div class="block prop">
+    <div class="block-tag">📗 Fréquence</div>
+    <p>Comme pour une série simple, on peut transformer un effectif en <strong>fréquence</strong> (proportion, souvent en %) en divisant par un total :</p>
+    <div class="formula-box" style="margin-top:.6rem;">\(\text{fréquence} = \dfrac{\text{effectif de la cellule}}{\text{effectif total choisi}}\)</div>
+    <p style="margin-top:.5rem;font-size:.9rem;color:var(--text-mid);">Selon la question posée, le « total » peut être l'effectif <strong>global</strong> (240), celui d'une <strong>ligne</strong> (160 en été) ou celui d'une <strong>colonne</strong> (90 pour Chocolat) — comme pour les probabilités conditionnelles, il faut bien repérer sur quelle population on raisonne !</p>
+  </div>
+
+  <div class="flash-exo">
+    <div class="flash-q">⚡ Flash — Quelle fréquence (en %) de <strong>tous les clients interrogés</strong> préfère le chocolat ?</div>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la réponse</button>
+    <div class="corr-body">
+      <p>\(\dfrac{90}{240} = 0{,}375\) soit <strong>37,5%</strong> des clients interrogés.</p>
+    </div>
+  </div>
+
+  <div class="exo-block">
+    <div class="exo-tag">🎮 À toi de jouer !</div>
+    <p style="margin-bottom:.6rem;">Parmi les clients interrogés <strong>en été</strong> seulement, quelle proportion préfère les fruits ?</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="calc-steps">
+        <div class="step"><span class="step-label">On se limite à l'été</span><span class="eq">Effectif total en été : 160</span></div>
+        <div class="step"><span class="step-label">Fréquence</span><span class="eq">\(\dfrac{120}{160} = 0{,}75\)</span></div>
+      </div>
+      <div class="solution-box">75% des clients interrogés en été préfèrent les fruits</div>
+    </div>
+  </div>
+
+  <div class="sub-title">📊 Visualiser un croisement qualitatif</div>
+  <p style="margin-bottom:.9rem;">Un tableau croisé se lit vite, mais un <strong>diagramme en barres</strong> ou un <strong>diagramme circulaire</strong> permet souvent de comparer les catégories plus rapidement.</p>
+
+  <div class="graph-wrap">
+    <div class="graph-container">
+      <div class="graph-center">
+        <svg width="320" height="270" viewBox="0 0 320 270" style="max-width:100%;height:auto;">
+          <line x1="20" y1="230" x2="300" y2="230" stroke="#374151" stroke-width="1.8"/>
+          <g font-family="DM Sans,sans-serif" font-size="11" fill="var(--text-mid)" text-anchor="end">
+            <text x="15" y="234">0</text><text x="15" y="174">40</text><text x="15" y="114">80</text><text x="15" y="54">120</text>
+          </g>
+          <g stroke="#e5e7eb" stroke-width="0.8">
+            <line x1="20" y1="170" x2="300" y2="170"/><line x1="20" y1="110" x2="300" y2="110"/><line x1="20" y1="50" x2="300" y2="50"/>
+          </g>
+          <rect x="40" y="170" width="35" height="60" fill="var(--col-a)"/>
+          <rect x="85" y="50" width="35" height="180" fill="var(--col-b)"/>
+          <rect x="195" y="155" width="35" height="75" fill="var(--col-a)"/>
+          <rect x="240" y="185" width="35" height="45" fill="var(--col-b)"/>
+          <g font-family="DM Sans,sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#374151">
+            <text x="57" y="164">40</text><text x="102" y="44">120</text><text x="212" y="149">50</text><text x="257" y="179">30</text>
+          </g>
+          <g font-family="DM Sans,sans-serif" font-size="12.5" font-weight="700" text-anchor="middle" fill="#374151">
+            <text x="80" y="250">Été</text><text x="235" y="250">Hiver</text>
+          </g>
+        </svg>
+        <div style="display:flex;justify-content:center;gap:1.3rem;margin-top:.4rem;font-size:.83rem;color:var(--text-mid);">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--col-a);border-radius:2px;margin-right:.3rem;"></span>Chocolat</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--col-b);border-radius:2px;margin-right:.3rem;"></span>Fruits</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="graph-wrap" style="margin-top:1.2rem;">
+    <div class="graph-container">
+      <div class="graph-center">
+        <p style="text-align:center;font-size:.85rem;color:var(--text-mid);margin-bottom:.5rem;">Répartition des parfums, tous clients confondus (diagramme circulaire) :</p>
+        <svg width="180" height="180" viewBox="0 0 180 180" style="max-width:100%;height:auto;display:block;margin:0 auto;">
+          <circle r="60" cx="90" cy="90" fill="none" stroke="var(--col-a)" stroke-width="40" stroke-dasharray="141.4 377" transform="rotate(-90 90 90)"/>
+          <circle r="60" cx="90" cy="90" fill="none" stroke="var(--col-b)" stroke-width="40" stroke-dasharray="235.6 377" stroke-dashoffset="-141.4" transform="rotate(-90 90 90)"/>
+          <text x="90" y="85" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="13" font-weight="700" fill="var(--col-a)">37,5%</text>
+          <text x="90" y="102" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="13" font-weight="700" fill="var(--col-b)">62,5%</text>
+        </svg>
+        <div style="display:flex;justify-content:center;gap:1.3rem;margin-top:.4rem;font-size:.83rem;color:var(--text-mid);">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--col-a);border-radius:2px;margin-right:.3rem;"></span>Chocolat (37,5%)</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--col-b);border-radius:2px;margin-right:.3rem;"></span>Fruits (62,5%)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exo-block" style="margin-top:1.2rem;">
+    <div class="exo-tag">🎮 À toi de jouer !</div>
+    <p style="margin-bottom:.6rem;">D'après le diagramme en barres, quelle saison a vendu le plus de glaces aux fruits ? Et quelle fréquence (en %) des clients interrogés en hiver cela représente-t-il ?</p>
+    <button class="corr-btn" onclick="toggle(this)"><span class="chev">▶</span> Voir la correction</button>
+    <div class="corr-body">
+      <div class="calc-steps">
+        <div class="step"><span class="step-label">Lecture du graphique</span><span class="eq">La barre « Fruits » est bien plus haute en été (120) qu'en hiver (30)</span></div>
+        <div class="step"><span class="step-label">Fréquence en hiver</span><span class="eq">\(\dfrac{30}{80} = 0{,}375\) soit 37,5%</span></div>
+      </div>
+      <div class="solution-box">C'est en été que les fruits se vendent le plus ; en hiver, ils représentent 37,5% des clients interrogés</div>
+    </div>
+  </div>
+
+  <div class="block rem">
+    <div class="block-tag">💡 À retenir</div>
+    <p>Diagramme en barres et diagramme circulaire montrent la <strong>même information</strong> que le tableau croisé — c'est juste une autre façon de la présenter. Le barres sont pratiques pour <strong>comparer des effectifs</strong> entre catégories ; le circulaire est pratique pour visualiser une <strong>répartition en parts</strong> d'un tout (les pourcentages doivent alors sommer à 100%).</p>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="section">
+  <div class="section-title">Mini-quiz — Vérifie tes acquis</div>
+
+  <div class="quiz-block" data-correct="B">
+    <div class="quiz-q">1. Le point moyen \(G(\bar x\,;\,\bar y)\) d'un nuage de points est calculé à partir de :</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q1" value="A">La médiane de chaque série</label>
+      <label class="quiz-opt"><input type="radio" name="q1" value="B">La moyenne de chaque série</label>
+      <label class="quiz-opt"><input type="radio" name="q1" value="C">Le maximum de chaque série</label>
+      <label class="quiz-opt"><input type="radio" name="q1" value="D">L'écart type de chaque série</label>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-block" data-correct="C">
+    <div class="quiz-q">2. Trois points : (2 ; 5), (4 ; 9), (6 ; 13). Quelle est l'abscisse \(\bar x\) du point moyen ?</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q2" value="A">2</label>
+      <label class="quiz-opt"><input type="radio" name="q2" value="B">6</label>
+      <label class="quiz-opt"><input type="radio" name="q2" value="C">4</label>
+      <label class="quiz-opt"><input type="radio" name="q2" value="D">9</label>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-block" data-correct="A">
+    <div class="quiz-q">3. Une droite d'ajustement passe par (0 ; 2) et (4 ; 10). Quel est son coefficient directeur ?</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q3" value="A">2</label>
+      <label class="quiz-opt"><input type="radio" name="q3" value="B">4</label>
+      <label class="quiz-opt"><input type="radio" name="q3" value="C">8</label>
+      <label class="quiz-opt"><input type="radio" name="q3" value="D">0,5</label>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-block" data-correct="B">
+    <div class="quiz-q">4. Les données couvrent des tailles de 15 à 35°C. Estimer les ventes à 50°C, c'est :</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q4" value="A">De l'interpolation, donc plutôt fiable</label>
+      <label class="quiz-opt"><input type="radio" name="q4" value="B">De l'extrapolation, donc à prendre avec prudence</label>
+      <label class="quiz-opt"><input type="radio" name="q4" value="C">Impossible à calculer</label>
+      <label class="quiz-opt"><input type="radio" name="q4" value="D">Une causalité directe</label>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-block" data-correct="C">
+    <div class="quiz-q">5. Ventes de glaces et noyades augmentent toutes les deux en été. On peut en conclure que :</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q5" value="A">Manger une glace provoque des noyades</label>
+      <label class="quiz-opt"><input type="radio" name="q5" value="B">Les noyades font vendre des glaces</label>
+      <label class="quiz-opt"><input type="radio" name="q5" value="C">Un facteur commun (la chaleur) explique les deux, sans lien de cause à effet direct</label>
+      <label class="quiz-opt"><input type="radio" name="q5" value="D">Les deux séries n'ont aucun rapport</label>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-block" data-correct="C">
+    <div class="quiz-q">6. Dans un tableau croisé, 40 clients sur 240 interrogés en été préfèrent le chocolat, sur un total de 160 clients interrogés en été. Quelle est la fréquence de « préférer le chocolat » <strong>parmi les clients interrogés en été</strong> ?</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q6" value="A">40/240</label>
+      <label class="quiz-opt"><input type="radio" name="q6" value="B">160/240</label>
+      <label class="quiz-opt"><input type="radio" name="q6" value="C">40/160</label>
+      <label class="quiz-opt"><input type="radio" name="q6" value="D">240/160</label>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <button class="btn-quiz" onclick="checkQuiz()">✅ Vérifier mes réponses</button>
+  <div class="quiz-score" id="quizScore"></div>
+</div>
+
+</div>
+
+<script>
+const katexOpts={delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false};
+function toggle(btn){const body=btn.nextElementSibling;const open=body.classList.contains('show');body.classList.toggle('show');btn.classList.toggle('open');btn.innerHTML='<span class="chev">▶</span> '+(open?'Voir la correction':'Masquer la correction');if(!open){renderMathInElement(body,katexOpts);}}
+function showAll(){document.querySelectorAll('.corr-body').forEach(b=>{b.classList.add('show');renderMathInElement(b,katexOpts);});document.querySelectorAll('.corr-btn').forEach(b=>{b.classList.add('open');b.innerHTML='<span class="chev">▶</span> Masquer la correction';});}
+function hideAll(){document.querySelectorAll('.corr-body').forEach(b=>b.classList.remove('show'));document.querySelectorAll('.corr-btn').forEach(b=>{b.classList.remove('open');b.innerHTML='<span class="chev">▶</span> Voir la correction';});}
+function checkQuiz(){
+  const blocks=document.querySelectorAll('.quiz-block');
+  let score=0;
+  blocks.forEach(block=>{
+    const correct=block.getAttribute('data-correct');
+    const opts=block.querySelectorAll('.quiz-opt');
+    const feedback=block.querySelector('.quiz-feedback');
+    const checked=block.querySelector('input:checked');
+    opts.forEach(o=>{o.classList.remove('correct','incorrect');});
+    if(!checked){
+      feedback.textContent='⚠️ Choisis une réponse avant de valider.';
+      feedback.className='quiz-feedback show ko';
+      return;
+    }
+    const chosenLabel=checked.closest('.quiz-opt');
+    const isCorrect=checked.value===correct;
+    if(isCorrect){
+      score++;
+      chosenLabel.classList.add('correct');
+      feedback.textContent='✅ Bonne réponse !';
+      feedback.className='quiz-feedback show ok';
+    }else{
+      chosenLabel.classList.add('incorrect');
+      const correctInput=block.querySelector('input[value="'+correct+'"]');
+      if(correctInput){correctInput.closest('.quiz-opt').classList.add('correct');}
+      feedback.textContent='❌ Ce n\'est pas ça, regarde la bonne réponse surlignée en vert.';
+      feedback.className='quiz-feedback show ko';
+    }
+  });
+  const scoreBox=document.getElementById('quizScore');
+  scoreBox.textContent='Score : '+score+' / '+blocks.length;
+  scoreBox.style.background=score===blocks.length?'var(--green-light)':'var(--blue-light)';
+  scoreBox.style.color=score===blocks.length?'var(--green)':'var(--accent)';
+  scoreBox.classList.add('show');
+}
+document.addEventListener('DOMContentLoaded',()=>renderMathInElement(document.body,katexOpts));
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>
