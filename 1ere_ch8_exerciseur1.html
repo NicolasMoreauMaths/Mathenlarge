@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python & Suites — TP Première</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f1eb; --card:#ffffff; --text:#2b2724; --mid:#5c5652; --light:#8a8380;
+  --blue:#1a6fa0; --blue-l:#e8f2fa;
+  --green:#1b7a40; --green-l:#e6f5ec;
+  --purple:#6b3fa0; --purple-l:#f1ecf8;
+  --orange:#b85c0b; --orange-l:#fef2e8;
+  --red:#c0392b; --red-l:#fceae8;
+  --gold:#b8860b; --gold-l:#fef8e8;
+  --border:#e0dbd4;
+  --ide:#1e1e2e; --ide-hdr:#181825; --ide-border:#313244;
+  --str-c:#a6e3a1; --num-c:#fab387; --cm-c:#6c7086; --bi:#f9e2af; --op-c:#89b4fa; --ide-text:#cdd6f4;
+  --shadow:0 3px 16px rgba(0,0,0,.07);
+  --radius:12px; --radius-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16.5px;}
+
+.header{background:linear-gradient(160deg,#0f1b2d 0%,#1a2940 40%,#1e3a5f 100%);color:#fff;padding:3rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(26,111,160,.18) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(107,63,160,.14) 0%,transparent 55%);pointer-events:none;}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--green),var(--orange));}
+.header .chapter-badge{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.6rem;}
+.header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4.5vw,2.6rem);font-weight:800;letter-spacing:-.01em;line-height:1.2;}
+.header .subtitle{font-size:.93rem;opacity:.55;margin-top:.5rem;}
+.header .line{width:50px;height:2px;background:rgba(255,255,255,.25);margin:.8rem auto 0;border-radius:2px;}
+.header-pills{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;}
+.header-pill{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .8rem;border-radius:50px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);}
+
+.progress-bar-wrap{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;position:sticky;top:0;z-index:100;}
+.progress-label{font-size:.75rem;font-weight:600;color:var(--mid);margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;}
+.progress-label span{font-weight:700;color:var(--blue);}
+.progress-track{background:#e0dbd4;border-radius:50px;height:8px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:50px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;}
+.progress-dots{display:flex;justify-content:center;gap:.5rem;margin-top:.5rem;}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s,transform .3s;}
+.pdot.done{background:var(--green);}
+.pdot.active{background:var(--blue);transform:scale(1.4);}
+
+.container{max-width:820px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+.palier{margin-bottom:3.5rem;animation:fadeUp .5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.palier-header{display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem;}
+.palier-num{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1rem;flex-shrink:0;}
+.palier-num.blue{background:var(--blue-l);color:var(--blue);}
+.palier-num.green{background:var(--green-l);color:var(--green);}
+.palier-num.purple{background:var(--purple-l);color:var(--purple);}
+.palier-titre{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;flex:1;}
+.palier-titre.blue{color:var(--blue);}
+.palier-titre.green{color:var(--green);}
+.palier-titre.purple{color:var(--purple);}
+.palier-titre::after{content:'';display:block;height:2px;background:linear-gradient(90deg,currentColor,transparent);border-radius:2px;margin-top:.2rem;opacity:.25;}
+.palier-niveau{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;padding:.2rem .7rem;border-radius:50px;margin-bottom:1.1rem;display:inline-block;}
+.palier-niveau.guide{background:var(--blue-l);color:var(--blue);}
+.palier-niveau.semi{background:var(--orange-l);color:var(--orange);}
+.palier-niveau.auto{background:var(--purple-l);color:var(--purple);}
+
+/* contexte narratif */
+.ctx-band{border-radius:var(--radius);padding:1rem 1.3rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:.9rem;border:1px solid;}
+.ctx-band.blue{background:var(--blue-l);border-color:#aacfe8;}
+.ctx-band.orange{background:var(--orange-l);border-color:#e8c49a;}
+.ctx-band.purple{background:var(--purple-l);border-color:#c9b0e8;}
+.ctx-icon{font-size:1.6rem;flex-shrink:0;line-height:1;}
+.ctx-text{font-size:.93rem;line-height:1.65;}
+.ctx-text strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.2rem;opacity:.7;}
+
+.block{background:var(--card);border-radius:var(--radius);padding:1.3rem 1.5rem;margin:.9rem 0;box-shadow:var(--shadow);border-left:5px solid;}
+.block.def{border-left-color:var(--blue);}
+.block.warn{border-left-color:var(--orange);}
+.block-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;}
+.block.def .block-tag{color:var(--blue);background:var(--blue-l);}
+.block.warn .block-tag{color:var(--orange);background:var(--orange-l);}
+.conclusion{margin-top:.8rem;padding:.7rem 1rem;background:var(--green-l);border-radius:var(--radius-sm);border-left:4px solid var(--green);}
+.conclusion .donc-label{font-weight:700;color:var(--green);font-size:.88rem;display:block;margin-bottom:.15rem;}
+
+.code-window{background:var(--ide);border-radius:var(--radius);overflow:hidden;margin:.8rem 0;box-shadow:0 6px 24px rgba(0,0,0,.22);border:1px solid var(--ide-border);}
+.code-header{background:var(--ide-hdr);padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--ide-border);}
+.dots{display:flex;gap:.4rem;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.dot.r{background:#f38ba8;}.dot.y{background:#f9e2af;}.dot.g{background:#a6e3a1;}
+.file-name{font-size:.76rem;font-weight:600;color:#6c7086;flex:1;text-align:center;}
+.code-window pre{margin:0;padding:.9rem 1.2rem;overflow-x:auto;}
+.code-window pre code{font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:1.9;color:var(--ide-text);background:none;white-space:pre;}
+.bi{color:var(--bi);} .str{color:var(--str-c);} .nc{color:var(--num-c);} .cm{color:var(--cm-c);font-style:italic;} .op{color:var(--op-c);} .kw{color:#cba6f7;font-weight:600;}
+
+/* bug highlight */
+.bug{background:rgba(243,139,168,.18);border-bottom:2px solid #f38ba8;border-radius:3px;color:#f38ba8;padding:0 .15rem;}
+
+.exo-inter{background:linear-gradient(135deg,#f0f7ff,#e8f2fa);border:1.5px solid #b8d9f0;border-radius:var(--radius);padding:1.4rem 1.5rem;margin:1.2rem 0;position:relative;}
+.exo-inter.semi{background:linear-gradient(135deg,#fff8f0,#fef2e8);border-color:#e8c49a;}
+.exo-inter.auto{background:linear-gradient(135deg,#f5f0ff,#f1ecf8);border-color:#c9b0e8;}
+.exo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.7rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--blue);background:rgba(26,111,160,.1);}
+.exo-tag.semi{color:var(--orange);background:rgba(184,92,11,.1);}
+.exo-tag.auto{color:var(--purple);background:rgba(107,63,160,.1);}
+.exo-prompt{margin-bottom:.9rem;line-height:1.75;}
+.exo-score{position:absolute;top:1rem;right:1rem;font-size:.95rem;color:var(--gold);}
+
+.code-fill{background:var(--ide);border-radius:var(--radius);overflow:hidden;margin:.6rem 0;box-shadow:0 4px 16px rgba(0,0,0,.2);border:1px solid var(--ide-border);}
+.code-fill pre{margin:0;padding:.9rem 1.2rem;font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:2.1;color:var(--ide-text);white-space:pre-wrap;}
+.fill-input{display:inline-block;font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;border:none;border-bottom:2px solid var(--op-c);background:rgba(137,180,250,.12);color:#89b4fa;outline:none;padding:.1rem .4rem;border-radius:4px 4px 0 0;min-width:50px;transition:border-color .25s,background .25s;vertical-align:baseline;}
+.fill-input:focus{border-bottom-color:#cba6f7;background:rgba(203,166,247,.15);}
+.fill-input.correct{border-bottom-color:var(--str-c);background:rgba(166,227,161,.15);color:var(--str-c);}
+.fill-input.wrong{border-bottom-color:#f38ba8;background:rgba(243,139,168,.12);color:#f38ba8;animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+
+/* zone de saisie libre pour autonome */
+.free-zone{background:var(--ide);border-radius:var(--radius);border:1px solid var(--ide-border);margin:.6rem 0;}
+.free-zone textarea{width:100%;background:transparent;border:none;color:var(--ide-text);font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:1.9;padding:.9rem 1.2rem;resize:vertical;min-height:140px;outline:none;box-sizing:border-box;}
+.free-zone textarea::placeholder{color:#45475a;}
+
+.btn-check{font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;padding:.5rem 1.3rem;border:none;border-radius:50px;background:var(--blue);color:#fff;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem;margin-top:.7rem;}
+.btn-check:hover{background:#155c87;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,111,160,.3);}
+.btn-check:disabled{background:#b0c8da;cursor:default;transform:none;box-shadow:none;}
+.btn-check.orange{background:var(--orange);}
+.btn-check.orange:hover{background:#96480a;}
+.btn-check.purple{background:var(--purple);}
+.btn-check.purple:hover{background:#562f85;}
+
+.feedback{margin-top:.65rem;padding:.7rem 1.1rem;border-radius:var(--radius-sm);font-size:.93rem;font-weight:600;display:none;align-items:flex-start;gap:.5rem;line-height:1.55;}
+.feedback.show{display:flex;}
+.feedback.ok{background:var(--green-l);color:var(--green);border-left:4px solid var(--green);}
+.feedback.ko{background:var(--red-l);color:var(--red);border-left:4px solid var(--red);}
+.feedback.info{background:var(--purple-l);color:var(--purple);border-left:4px solid var(--purple);}
+
+.hint-btn{font-size:.8rem;font-weight:600;color:var(--mid);background:none;border:1px solid var(--border);border-radius:50px;padding:.3rem .8rem;cursor:pointer;transition:all .2s;margin-left:.5rem;}
+.hint-btn:hover{border-color:var(--orange);color:var(--orange);}
+.hint-box{display:none;margin-top:.6rem;padding:.65rem .95rem;background:var(--orange-l);border-left:4px solid var(--orange);border-radius:var(--radius-sm);font-size:.9rem;color:var(--orange);line-height:1.6;}
+.hint-box.show{display:block;}
+
+.exercise-console{margin-top:.8rem;background:var(--ide);border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--ide-border);max-height:0;transition:max-height .5s cubic-bezier(.4,0,.2,1);}
+.exercise-console.open{max-height:400px;}
+.con-header{background:var(--ide-hdr);padding:.4rem .9rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--ide-border);}
+.con-dots{display:flex;gap:.35rem;}
+.con-dot{width:9px;height:9px;border-radius:50%;}
+.con-dot.r{background:#f38ba8;}.con-dot.y{background:#f9e2af;}.con-dot.g{background:#a6e3a1;}
+.con-title{font-size:.72rem;font-weight:600;color:#6c7086;flex:1;text-align:center;}
+.con-body{padding:.7rem 1.1rem;font-family:'DM Mono','Fira Code',monospace;font-size:.84rem;line-height:1.9;max-height:300px;overflow-y:auto;}
+.con-line{display:flex;gap:.6rem;}
+.con-sym{color:#6c7086;flex-shrink:0;width:2.4em;font-weight:600;}
+.con-txt.out{color:var(--str-c);}
+.con-txt.err{color:#f38ba8;}
+.con-txt.info{color:var(--bi);}
+.con-txt.prompt{color:var(--ide-text);}
+
+.qcm-options{display:flex;flex-direction:column;gap:.5rem;margin-top:.8rem;}
+.qcm-opt{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.1rem;cursor:pointer;transition:all .2s;font-size:.95rem;display:flex;align-items:flex-start;gap:.7rem;line-height:1.5;}
+.qcm-opt:hover{border-color:var(--blue);background:var(--blue-l);}
+.qcm-opt.correct{border-color:var(--green);background:var(--green-l);pointer-events:none;}
+.qcm-opt.wrong{border-color:var(--red);background:var(--red-l);pointer-events:none;}
+.qcm-opt.grise{pointer-events:none;opacity:.55;}
+.opt-letter{font-weight:800;font-size:.85rem;flex-shrink:0;min-width:1.4em;color:var(--blue);}
+.qcm-opt.correct .opt-letter{color:var(--green);}
+.qcm-opt.wrong .opt-letter{color:var(--red);}
+.qcm-expl{display:none;margin-top:.7rem;padding:.85rem 1.1rem;background:var(--purple-l);border-left:4px solid var(--purple);border-radius:var(--radius-sm);font-size:.92rem;line-height:1.65;color:var(--text);}
+.qcm-expl.show{display:block;}
+
+/* corrigé dépliable */
+.corr-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem .95rem;border:1.5px solid #e8c84a;border-radius:50px;background:var(--gold-l);color:var(--gold);cursor:pointer;transition:all .22s;display:inline-flex;align-items:center;gap:.35rem;margin-top:.9rem;}
+.corr-btn:hover{background:#fdf2c5;}
+.corr-btn .chev{font-size:.6rem;transition:transform .3s;}
+.corr-btn.open .chev{transform:rotate(90deg);}
+.corr-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),opacity .35s;opacity:0;margin-top:.7rem;}
+.corr-body.show{max-height:600px;opacity:1;}
+
+.score-final{background:linear-gradient(135deg,var(--ide-hdr),var(--ide));border-radius:var(--radius);padding:1.5rem 2rem;text-align:center;color:#fff;margin:2rem 0;}
+.score-num{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:800;color:#a6e3a1;}
+.score-label{font-size:.9rem;opacity:.65;margin-top:.2rem;}
+.score-msg{margin-top:.8rem;font-size:1rem;font-weight:600;color:#f9e2af;}
+
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:var(--blue);color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,111,160,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);}
+
+@media(max-width:600px){body{font-size:14px;}.container{padding:0 10px;}.palier-titre{font-size:1.15rem;}.code-window pre code,.code-fill pre,.free-zone textarea{font-size:.82rem;}}
+.code-window,.exercise-console{overflow-x:auto;}
+.block,.ctx-band{overflow-wrap:break-word;word-break:break-word;}
+
+hr.sep{border:none;border-top:1.5px dashed var(--border);margin:1.5rem 0;}
+
+/* ===== RESPONSIVE RENFORCÉ ===== */
+@media(max-width:900px){
+  .container { max-width:100%; padding-left:1rem; padding-right:1rem; }
+}
+@media(max-width:768px){
+  body { font-size: 15px; }
+  .container { padding: 0 .75rem; }
+  .header { padding: 1.8rem 1rem 1.5rem; }
+  h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); }
+  .palier-titre { font-size: 1.1rem; }
+  .code-window pre code, .code-fill pre, .free-zone textarea { font-size: .82rem; }
+  .block { padding: 1rem 1.1rem; }
+  .score-num { font-size: 2.2rem; }
+  .btn-row { flex-wrap: wrap; }
+  .progress-bar-wrap { padding: 0 .75rem; }
+}
+@media(max-width:480px){
+  body { font-size: 14.5px; }
+  .container { padding: 0 .5rem; }
+  .header { padding: 1.4rem .8rem 1.2rem; }
+  h1 { font-size: 1.2rem; }
+  .palier-titre { font-size: 1rem; }
+  .code-window pre code, .code-fill pre, .free-zone textarea { font-size: .78rem; }
+  .score-num { font-size: 1.9rem; }
+  .header-pills { flex-wrap: wrap; gap: .35rem; }
+}
+@media(max-width:360px){
+  body { font-size: 13.5px; }
+  .container { padding: 0 .35rem; }
+}
+svg[viewBox] { max-width:100%; height:auto; }
+table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
+.katex-display,.katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+.code-window, .exercise-console { overflow-x:auto; }
+.block, .ctx-band, .score-final { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+
+<header class="header">
+  <span class="chapter-badge">Mathématiques · Première · TP Python n°1</span>
+  <h1>🔢 Suites arithmétiques &amp; géométriques</h1>
+  <p class="subtitle">Trois paliers · guidé → semi-guidé → autonome</p>
+  <div class="line"></div>
+  <div class="header-pills">
+    <span class="header-pill">🏙️ Démographie</span>
+    <span class="header-pill">💶 Finance</span>
+    <span class="header-pill">🏃 Sport</span>
+  </div>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-label">
+    <span>Ma progression</span>
+    <span id="prog-label">0 / 7 exercices</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="progress-dots" id="prog-dots"></div>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════
+     PALIER 1 — GUIDÉ · Démographie
+══════════════════════════════════════ -->
+<div class="palier" id="palier-1">
+  <div class="palier-header">
+    <div class="palier-num blue">1</div>
+    <div class="palier-titre blue">Palier guidé</div>
+  </div>
+  <span class="palier-niveau guide">🔵 Guidé — lire et compléter</span>
+
+  <div class="ctx-band blue">
+    <div class="ctx-icon">🏙️</div>
+    <div class="ctx-text">
+      <strong>Contexte — démographie</strong>
+      La ville de Villeneuville comptait <strong>15 000 habitants</strong> en 2015. Depuis, sa population augmente de <strong>200 habitants par an</strong>. On modélise cela par une suite arithmétique : l'année <em>n</em> correspond à 2015 + <em>n</em>.
+    </div>
+  </div>
+
+  <!-- EXO 1 — QCM : lire et prédire -->
+  <div class="exo-inter" data-exo="1">
+    <div class="exo-tag">❓ Exercice 1 — Lire un programme</div>
+    <div class="exo-score" id="star-1"></div>
+    <p class="exo-prompt">Un élève a écrit le programme ci-dessous pour connaître la population en 2022 (soit <em>n</em> = 7 ans après 2015). Quelle valeur va-t-il afficher ?</p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">population.py</span></div>
+<pre><code>u0 <span class="op">=</span> <span class="nc">15000</span>
+r  <span class="op">=</span> <span class="nc">200</span>
+n  <span class="op">=</span> <span class="nc">7</span>
+<span class="bi">print</span>(u0 <span class="op">+</span> n <span class="op">*</span> r)</code></pre>
+    </div>
+    <div class="qcm-options" id="qcm1">
+      <div class="qcm-opt" onclick="checkQCM(1,'A','C')"><span class="opt-letter">A</span>15 200</div>
+      <div class="qcm-opt" onclick="checkQCM(1,'B','C')"><span class="opt-letter">B</span>16 200</div>
+      <div class="qcm-opt" onclick="checkQCM(1,'C','C')"><span class="opt-letter">C</span>16 400</div>
+      <div class="qcm-opt" onclick="checkQCM(1,'D','C')"><span class="opt-letter">D</span>17 400</div>
+    </div>
+    <div class="qcm-expl" id="qcm1-expl">
+      ✅ <strong>Bonne réponse : C — le programme affiche <code>16400</code>.</strong><br><br>
+      Python calcule : 15 000 + 7 × 200 = 15 000 + 1 400 = <strong>16 400 habitants</strong>. La réponse D (17 400) correspond à n = 12, pas n = 7. La réponse B (16 200) résulte d'une erreur classique : 200 × 6 au lieu de 200 × 7.
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 2 — lacunaire : plusieurs trous liés -->
+  <div class="exo-inter" data-exo="2">
+    <div class="exo-tag">✏️ Exercice 2 — Compléter</div>
+    <div class="exo-score" id="star-2"></div>
+    <p class="exo-prompt">On veut afficher la population <strong>chaque année de 2015 à 2024</strong> (soit <em>n</em> = 0 à 9). Trois éléments manquent dans le code. Complète-les.</p>
+    <div class="code-fill">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice2.py</span></div>
+<pre><code>u0 <span class="op">=</span> <span class="nc">15000</span>
+r  <span class="op">=</span> <span class="nc">200</span>
+<span class="kw">for</span> n <span class="kw">in</span> <span class="bi">range</span>(<input class="fill-input" id="e2a" data-ans="0" placeholder="?" style="width:32px;">, <input class="fill-input" id="e2b" data-ans="10" placeholder="?" style="width:32px;">) :
+    pop <span class="op">=</span> u0 <span class="op">+</span> n <span class="op">*</span> <input class="fill-input" id="e2c" data-ans="r" placeholder="?" style="width:32px;">
+    <span class="bi">print</span>(pop)
+<span class="cm"># affiche 15000, 15200, 15400, ..., 16800</span></code></pre>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check" onclick="check(2)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(2)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-2">
+      <strong>Trou 1 :</strong> la boucle doit commencer à n = 0 (année 2015).<br>
+      <strong>Trou 2 :</strong> <code>range(0, ?)</code> doit produire les valeurs 0, 1, …, 9 — la borne est <em>exclue</em>.<br>
+      <strong>Trou 3 :</strong> la formule est u₀ + n × <em>r</em> — on utilise la variable, pas le nombre brut.
+    </div>
+    <div class="feedback" id="fb-2"></div>
+    <div class="exercise-console" id="con-2">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-2"></div>
+    </div>
+  </div>
+</div><!-- /palier 1 -->
+
+
+<!-- ══════════════════════════════════════
+     PALIER 2 — SEMI-GUIDÉ · Finance
+══════════════════════════════════════ -->
+<div class="palier" id="palier-2">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--orange-l);color:var(--orange);">2</div>
+    <div class="palier-titre" style="color:var(--orange);">Palier semi-guidé</div>
+  </div>
+  <span class="palier-niveau semi">🟠 Semi-guidé — déboguer et adapter</span>
+
+  <div class="ctx-band orange">
+    <div class="ctx-icon">💶</div>
+    <div class="ctx-text">
+      <strong>Contexte — placement financier</strong>
+      Léa place <strong>2 000 €</strong> sur un compte rémunéré à <strong>3 % par an</strong>. Chaque année, son capital est multiplié par 1,03. La valeur de son capital forme une <strong>suite géométrique</strong> de premier terme u₀ = 2 000 et de raison q = 1,03.
+    </div>
+  </div>
+
+  <!-- EXO 3 — code bugué à corriger (2 bugs) -->
+  <div class="exo-inter semi" data-exo="3">
+    <div class="exo-tag semi">🐛 Exercice 3 — Corriger le code</div>
+    <div class="exo-score" id="star-3"></div>
+    <p class="exo-prompt">
+      Un camarade a écrit un programme pour afficher le capital de Léa <strong>chaque année, de l'année 0 à l'année 9</strong>. Son code contient <strong>deux erreurs</strong> — repère-les et corrige-les dans les deux champs.
+    </p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">capital_bugue.py</span></div>
+<pre><code>u0 <span class="op">=</span> <span class="nc">2000</span>
+q  <span class="op">=</span> <span class="nc">1.03</span>
+<span class="kw">for</span> n <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="bug">11</span>) :         <span class="cm"># ← bug 1</span>
+    capital <span class="op">=</span> u0 <span class="op">*</span> q <span class="bug">*</span> n    <span class="cm"># ← bug 2</span>
+    <span class="bi">print</span>(capital)</code></pre>
+    </div>
+    <p style="margin-top:.8rem;font-size:.93rem;">Explique chaque bug et donne la correction :</p>
+    <div style="display:flex;flex-direction:column;gap:.7rem;margin-top:.6rem;">
+      <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--ide-text);background:var(--ide);padding:.2rem .6rem;border-radius:4px;">Bug 1 — range(0,&nbsp;<input class="fill-input" id="e3a" data-ans="10" placeholder="?" style="width:38px;">&nbsp;)</span>
+        <span style="font-size:.85rem;color:var(--mid);">remplace <code style="color:#f38ba8;">11</code></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--ide-text);background:var(--ide);padding:.2rem .6rem;border-radius:4px;">Bug 2 — u0 * q&nbsp;<input class="fill-input" id="e3b" data-ans="**" placeholder="?" style="width:40px;">&nbsp;n</span>
+        <span style="font-size:.85rem;color:var(--mid);">remplace <code style="color:#f38ba8;">*</code></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check orange" onclick="check(3)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(3)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-3">
+      <strong>Bug 1 :</strong> <code>range(0, 11)</code> génère 0, 1, …, 10 — soit 11 valeurs. On veut n = 0 à 9, donc 10 valeurs.<br>
+      <strong>Bug 2 :</strong> <code>q * n</code> multiplie q par n — ce n'est pas une puissance. La puissance en Python s'écrit <code>**</code>.
+    </div>
+    <div class="feedback" id="fb-3"></div>
+    <div class="exercise-console" id="con-3">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-3"></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 4 — adapter le code (plusieurs trous, logique à construire) -->
+  <div class="exo-inter semi" data-exo="4">
+    <div class="exo-tag semi">✏️ Exercice 4 — Adapter</div>
+    <div class="exo-score" id="star-4"></div>
+    <p class="exo-prompt">
+      On veut maintenant calculer le <strong>capital total accumulé</strong> par Léa sur 10 ans, c'est-à-dire la somme u₀ + u₁ + … + u₉.
+      Complète le programme ci-dessous. Quatre éléments manquent.
+    </p>
+    <div class="code-fill">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice4.py</span></div>
+<pre><code>u0    <span class="op">=</span> <span class="nc">2000</span>
+q     <span class="op">=</span> <span class="nc">1.03</span>
+total <span class="op">=</span> <input class="fill-input" id="e4a" data-ans="0" placeholder="?" style="width:32px;">        <span class="cm"># accumulateur</span>
+<span class="kw">for</span> n <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <input class="fill-input" id="e4b" data-ans="10" placeholder="?" style="width:38px;">) :
+    capital <span class="op">=</span> u0 <span class="op">*</span> q <span class="op">**</span> n
+    total   <span class="op">=</span> <input class="fill-input" id="e4c" data-ans="total" placeholder="    ?" style="width:55px;"> <span class="op">+</span> capital
+<span class="bi">print</span>(<input class="fill-input" id="e4d" data-ans="total" placeholder="    ?" style="width:55px;">)
+<span class="cm"># doit afficher environ 22927.76</span></code></pre>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check orange" onclick="check(4)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(4)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-4">
+      L'accumulateur démarre à <code>0</code> (neutre pour l'addition). À chaque tour on fait <code>total = total + capital</code>. Le <code>print</code> est <em>en dehors</em> de la boucle pour n'afficher qu'une seule fois la somme finale.
+    </div>
+    <div class="feedback" id="fb-4"></div>
+    <div class="exercise-console" id="con-4">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-4"></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 5 — QCM raisonnement -->
+  <div class="exo-inter semi" data-exo="5">
+    <div class="exo-tag semi">❓ Exercice 5 — Raisonner</div>
+    <div class="exo-score" id="star-5"></div>
+    <p class="exo-prompt">
+      Léa veut savoir au bout de combien d'années son capital <strong>dépasse 2 500 €</strong> pour la première fois. Elle modifie son programme pour chercher cela. Lequel de ces codes répond correctement à sa question ?
+    </p>
+    <div class="qcm-options" id="qcm5">
+      <div class="qcm-opt" onclick="checkQCM(5,'A','C')">
+        <span class="opt-letter">A</span>
+        <div>
+<pre style="font-family:'DM Mono',monospace;font-size:.82rem;line-height:1.7;background:none;white-space:pre-wrap;">for n in range(0, 20):
+    if 2000 * 1.03 * n > 2500:
+        print(n)</pre>
+        </div>
+      </div>
+      <div class="qcm-opt" onclick="checkQCM(5,'B','C')">
+        <span class="opt-letter">B</span>
+        <div>
+<pre style="font-family:'DM Mono',monospace;font-size:.82rem;line-height:1.7;background:none;white-space:pre-wrap;">for n in range(0, 20):
+    if 2000 * 1.03 ** n > 2500:
+        print(n)
+        break</pre>
+        </div>
+      </div>
+      <div class="qcm-opt" onclick="checkQCM(5,'C','C')">
+        <span class="opt-letter">C</span>
+        <div>
+<pre style="font-family:'DM Mono',monospace;font-size:.82rem;line-height:1.7;background:none;white-space:pre-wrap;">for n in range(0, 20):
+    if 2000 * 1.03 ** n > 2500:
+        print(n)
+        break</pre>
+<span style="font-size:.8rem;color:var(--mid);">(identique à B — mais avec la bonne puissance <code>**</code> et un <code>break</code>)</span>
+        </div>
+      </div>
+      <div class="qcm-opt" onclick="checkQCM(5,'D','C')">
+        <span class="opt-letter">D</span>
+        <div>
+<pre style="font-family:'DM Mono',monospace;font-size:.82rem;line-height:1.7;background:none;white-space:pre-wrap;">for n in range(0, 20):
+    if 2000 * 1.03 ** n > 2500:
+        print(n)</pre>
+        </div>
+      </div>
+    </div>
+    <div class="qcm-expl" id="qcm5-expl">
+      ✅ <strong>Bonne réponse : B (ou C, ils sont identiques).</strong><br><br>
+      Il faut deux choses : la formule géométrique correcte (<code>1.03 ** n</code>, pas <code>1.03 * n</code>) et un <code>break</code> pour s'arrêter dès le <em>premier</em> dépassement. Sans <code>break</code> (réponse D), le programme afficherait toutes les années où le capital dépasse 2 500 €, pas seulement la première. La réponse A utilise une multiplication simple au lieu d'une puissance — calcul complètement faux.
+      <br><br>Le capital dépasse 2 500 € à <strong>n = 9</strong> (soit en 2024) : 2 000 × 1,03⁹ ≈ 2 609 €.
+    </div>
+  </div>
+</div><!-- /palier 2 -->
+
+
+<!-- ══════════════════════════════════════
+     PALIER 3 — AUTONOME · Sport
+══════════════════════════════════════ -->
+<div class="palier" id="palier-3">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--purple-l);color:var(--purple);">3</div>
+    <div class="palier-titre" style="color:var(--purple);">Palier autonome</div>
+  </div>
+  <span class="palier-niveau auto">🟣 Autonome — écrire son propre code</span>
+
+  <div class="ctx-band purple">
+    <div class="ctx-icon">🏃</div>
+    <div class="ctx-text">
+      <strong>Contexte — entraînement sportif</strong>
+      Karim prépare un championnat de 400 m. En semaine 0, son meilleur temps est <strong>72,0 secondes</strong>. Grâce à son entraîneur, il améliore son temps de <strong>0,8 seconde par semaine</strong>. Son objectif est de passer <strong>sous 65 secondes</strong>.
+    </div>
+  </div>
+
+  <!-- EXO 6 — écrire le code qui liste les temps -->
+  <div class="exo-inter auto" data-exo="6">
+    <div class="exo-tag auto">⌨️ Exercice 6 — Écrire le code</div>
+    <div class="exo-score" id="star-6"></div>
+    <p class="exo-prompt">
+      Écris un programme qui affiche le temps de Karim <strong>semaine par semaine, de la semaine 0 à la semaine 12</strong>.<br>
+      Le temps évolue selon une suite arithmétique : <strong>tₙ = 72 − 0,8 × n</strong>.<br>
+      <em>En Python, 0,8 s'écrit <code>0.8</code>.</em>
+    </p>
+    <div class="free-zone">
+      <div class="code-header" style="background:var(--ide-hdr);"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice6.py</span></div>
+      <textarea id="free6" spellcheck="false" placeholder="# Écris ton programme ici…
+t0 = ..."></textarea>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check purple" onclick="checkFree6()">▶ Vérifier</button>
+      <button class="corr-btn" id="corrBtn6" onclick="toggleCorr('corr6','corrBtn6')">📋 Voir un corrigé <span class="chev">▶</span></button>
+    </div>
+    <div class="feedback" id="fb-6"></div>
+    <div class="corr-body" id="corr6">
+      <div class="code-window" style="margin:0;">
+        <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">corrigé6.py</span></div>
+<pre><code>t0 <span class="op">=</span> <span class="nc">72</span>
+r  <span class="op">=</span> <span class="nc">-0.8</span>
+<span class="kw">for</span> n <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">13</span>) :
+    t_n <span class="op">=</span> t0 <span class="op">+</span> n <span class="op">*</span> r
+    <span class="bi">print</span>(t_n)</code></pre>
+      </div>
+      <p style="margin-top:.6rem;font-size:.9rem;color:var(--mid);">
+        <code>range(0, 13)</code> génère 0, 1, …, 12 (13 valeurs). La raison est négative car le temps <em>diminue</em>. En Python, <code>-0.8</code> est valide tel quel.
+      </p>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 7 — code complet avec condition if -->
+  <div class="exo-inter auto" data-exo="7">
+    <div class="exo-tag auto">⌨️ Exercice 7 — Aller plus loin</div>
+    <div class="exo-score" id="star-7"></div>
+    <p class="exo-prompt">
+      Améliore ton programme : au lieu d'afficher tous les temps, fais-le <strong>s'arrêter dès que Karim passe sous 65 secondes</strong> et affiche le numéro de semaine correspondant.<br><br>
+      Tu auras besoin de :<br>
+      — une condition <code>if t_n &lt; 65 :</code><br>
+      — l'instruction <code>break</code> pour sortir de la boucle<br>
+      — <code>print(n)</code> pour afficher la semaine
+    </p>
+    <div class="free-zone">
+      <div class="code-header" style="background:var(--ide-hdr);"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice7.py</span></div>
+      <textarea id="free7" spellcheck="false" placeholder="# Écris ton programme ici…"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check purple" onclick="checkFree7()">▶ Vérifier</button>
+      <button class="corr-btn" id="corrBtn7" onclick="toggleCorr('corr7','corrBtn7')">📋 Voir un corrigé <span class="chev">▶</span></button>
+    </div>
+    <div class="feedback" id="fb-7"></div>
+    <div class="corr-body" id="corr7">
+      <div class="code-window" style="margin:0;">
+        <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">corrigé7.py</span></div>
+<pre><code>t0 <span class="op">=</span> <span class="nc">72</span>
+r  <span class="op">=</span> <span class="nc">-0.8</span>
+<span class="kw">for</span> n <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">50</span>) :
+    t_n <span class="op">=</span> t0 <span class="op">+</span> n <span class="op">*</span> r
+    <span class="kw">if</span> t_n <span class="op">&lt;</span> <span class="nc">65</span> :
+        <span class="bi">print</span>(n)
+        <span class="kw">break</span></code></pre>
+      </div>
+      <p style="margin-top:.6rem;font-size:.9rem;color:var(--mid);">
+        Karim atteint son objectif à la <strong>semaine 9</strong> : t₉ = 72 − 0,8 × 9 = 64,8 s. On peut vérifier algébriquement : 72 − 0,8n &lt; 65 ⟺ 0,8n &gt; 7 ⟺ n &gt; 8,75, donc le premier entier est n = 9.
+      </p>
+    </div>
+  </div>
+</div><!-- /palier 3 -->
+
+<!-- SCORE FINAL -->
+<div class="score-final">
+  <div class="score-num" id="score-num">0 / 7</div>
+  <div class="score-label">exercices validés</div>
+  <div class="score-msg" id="score-msg"></div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const TOTAL = 7;
+const done  = {};
+const tried = {};
+
+(function buildDots(){
+  const w = document.getElementById('prog-dots');
+  for(let i=1;i<=TOTAL;i++){
+    const d=document.createElement('span');
+    d.className='pdot'; d.id='pdot-'+i; d.title='Exercice '+i;
+    w.appendChild(d);
+  }
+})();
+
+function updateProgress(){
+  const n = Object.values(done).filter(Boolean).length;
+  const pct = (n/TOTAL)*100;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-label').textContent = n+' / '+TOTAL+' exercices';
+  document.getElementById('score-num').textContent  = n+' / '+TOTAL;
+  const msgs = ['','Bien ! Continue 💪','','À mi-chemin 🎯','','Presque !','','Excellent ! 🏆'];
+  document.getElementById('score-msg').textContent = msgs[n]||'';
+}
+
+function setDot(n, state){
+  const d=document.getElementById('pdot-'+n);
+  if(d) d.className='pdot '+(state==='done'?'done':'');
+}
+
+function conWrite(bodyId, lines){
+  const body=document.getElementById(bodyId);
+  if(!body) return;
+  body.innerHTML='';
+  lines.forEach(l=>{
+    const row=document.createElement('div'); row.className='con-line';
+    const sym=document.createElement('span'); sym.className='con-sym'; sym.textContent=l.sym||'';
+    const txt=document.createElement('span'); txt.className='con-txt '+(l.type||''); txt.textContent=l.txt||'';
+    row.appendChild(sym); row.appendChild(txt); body.appendChild(row);
+  });
+}
+function conOpen(id){ const el=document.getElementById(id); if(el) el.classList.add('open'); }
+
+/* ═══ DONNÉES EXERCICES LACUNAIRES ═══ */
+const EXOS = {
+  2:{
+    inputs:['e2a','e2b','e2c'],
+    ok:[
+      {type:'info',sym:'',txt:'population année 0 : 15000'},
+      {type:'info',sym:'',txt:'population année 1 : 15200'},
+      {type:'info',sym:'',txt:'population année 2 : 15400'},
+      {type:'out', sym:'',txt:'  … (10 lignes au total)'},
+      {type:'info',sym:'',txt:'population année 9 : 16800'}
+    ],
+    ko:[{type:'err',sym:'❌',txt:'Relis les indices : vérifie la borne de range() et la variable dans la formule.'}]
+  },
+  3:{
+    inputs:['e3a','e3b'],
+    ok:[
+      {type:'out',sym:'',txt:'2000.0'},
+      {type:'out',sym:'',txt:'2060.0'},
+      {type:'out',sym:'',txt:'2121.8'},
+      {type:'out',sym:'',txt:'  …'},
+      {type:'out',sym:'',txt:'2609.55  (année 9)'}
+    ],
+    ko:[{type:'err',sym:'❌',txt:'Pas encore — relis les deux bugs : l\'un concerne le range, l\'autre l\'opérateur de puissance.'}]
+  },
+  4:{
+    inputs:['e4a','e4b','e4c','e4d'],
+    ok:[
+      {type:'prompt',sym:'>>>',txt:'total = u0 + u1 + … + u9'},
+      {type:'out',sym:'',txt:'22927.76'}
+    ],
+    ko:[{type:'err',sym:'❌',txt:'Vérifie : accumulateur à 0, range(0,10), total = total + capital, print(total) hors boucle.'}]
+  }
+};
+
+function check(n){
+  const exo=EXOS[n]; if(!exo) return;
+  const inputs=exo.inputs.map(id=>document.getElementById(id));
+  let allOk=true;
+  inputs.forEach(inp=>{
+    const ok=inp.value.trim()===inp.dataset.ans;
+    inp.classList.remove('correct','wrong');
+    inp.classList.add(ok?'correct':'wrong');
+    if(!ok) allOk=false;
+  });
+  const fb=document.getElementById('fb-'+n);
+  if(allOk){
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ Parfait !';
+    if(!tried[n]) done[n]=true;
+    setDot(n,'done');
+    inputs.forEach(i=>i.disabled=true);
+    const btn=document.querySelector('[data-exo="'+n+'"] .btn-check');
+    if(btn) btn.disabled=true;
+    const star=document.getElementById('star-'+n);
+    if(star) star.textContent='⭐';
+    conWrite('con-body-'+n, exo.ok);
+    setTimeout(()=>conOpen('con-'+n),80);
+  } else {
+    fb.className='feedback show ko';
+    fb.innerHTML='❌ Pas tout à fait — relis l\'indice.';
+    tried[n]=true;
+    conWrite('con-body-'+n, exo.ko);
+    setTimeout(()=>conOpen('con-'+n),80);
+  }
+  updateProgress();
+}
+
+function checkQCM(n, choice, correct){
+  const wrap=document.getElementById('qcm'+n);
+  if(!wrap||wrap.dataset.done) return;
+  const opts=wrap.querySelectorAll('.qcm-opt');
+  opts.forEach((opt,i)=>{
+    const letter=String.fromCharCode(65+i);
+    if(letter===correct) opt.classList.add('correct');
+    else if(letter===choice) opt.classList.add('wrong');
+    else opt.classList.add('grise');
+  });
+  wrap.dataset.done='1';
+  const expl=document.getElementById('qcm'+n+'-expl');
+  if(expl) expl.classList.add('show');
+  if(choice===correct){
+    const star=document.getElementById('star-'+n);
+    if(star) star.textContent='⭐';
+    if(!tried[n]) done[n]=true;
+    setDot(n,'done');
+  } else { tried[n]=true; }
+  updateProgress();
+}
+
+/* ═══ VÉRIFICATION EXERCICES LIBRES ═══
+   Stratégie : on évalue le code de l'élève côté JS en cherchant
+   les éléments structurels attendus (mots-clés, valeurs clés).
+   On ne ré-exécute pas Python, mais on détecte les patterns essentiels.
+*/
+function checkFree6(){
+  const code = document.getElementById('free6').value.trim();
+  const fb   = document.getElementById('fb-6');
+  if(!code){ fb.className='feedback show ko'; fb.innerHTML='❌ Écris ton programme avant de vérifier !'; return; }
+
+  const hasFor    = /\bfor\b/.test(code);
+  const hasRange  = /range\s*\(/.test(code);
+  const hasPrint  = /\bprint\b/.test(code);
+  const hasT0     = /72/.test(code);
+  const hasR      = /0\.8/.test(code) || /0,8/.test(code);
+  const hasArith  = /[\+\-]\s*n|\*\s*r|\*\s*0/.test(code);
+  const has13     = /13/.test(code) || /12/.test(code); // range(0,13) ou indices 0..12
+
+  const score = [hasFor, hasRange, hasPrint, hasT0, hasR].filter(Boolean).length;
+
+  if(score >= 4 && (hasArith || (hasT0 && hasR))){
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ Très bien ! Ton programme a les bons ingrédients. Teste-le mentalement : t₀ = 72, t₁ = 71,2, …, t₁₂ = 62,4.';
+    if(!tried[6]) done[6]=true;
+    setDot(6,'done');
+    document.getElementById('star-6').textContent='⭐';
+  } else {
+    fb.className='feedback show ko';
+    let msg = '❌ ';
+    if(!hasFor || !hasRange) msg += 'Il manque une boucle <code>for</code> avec <code>range()</code>. ';
+    if(!hasT0)  msg += 'La valeur initiale 72 ne semble pas présente. ';
+    if(!hasR)   msg += 'La raison 0.8 ne semble pas utilisée. ';
+    if(!hasPrint) msg += 'N\'oublie pas le <code>print()</code>. ';
+    fb.innerHTML = msg;
+    tried[6]=true;
+  }
+  updateProgress();
+}
+
+function checkFree7(){
+  const code = document.getElementById('free7').value.trim();
+  const fb   = document.getElementById('fb-7');
+  if(!code){ fb.className='feedback show ko'; fb.innerHTML='❌ Écris ton programme avant de vérifier !'; return; }
+
+  const hasFor   = /\bfor\b/.test(code);
+  const hasIf    = /\bif\b/.test(code);
+  const hasBreak = /\bbreak\b/.test(code);
+  const hasPrint = /\bprint\b/.test(code);
+  const hasT0    = /72/.test(code);
+  const has65    = /65/.test(code);
+  const hasLt    = /</.test(code);
+
+  const score = [hasFor, hasIf, hasBreak, hasPrint, hasT0, has65, hasLt].filter(Boolean).length;
+
+  if(score >= 6){
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ Excellent ! Ton programme contient tous les éléments clés. La réponse est la semaine <strong>9</strong> : t₉ = 72 − 0,8 × 9 = 64,8 s.';
+    if(!tried[7]) done[7]=true;
+    setDot(7,'done');
+    document.getElementById('star-7').textContent='⭐';
+  } else {
+    fb.className='feedback show ko';
+    let msg = '❌ ';
+    if(!hasFor)   msg += 'Il faut une boucle <code>for</code>. ';
+    if(!hasIf)    msg += 'Il faut une condition <code>if</code>. ';
+    if(!hasBreak) msg += 'N\'oublie pas le <code>break</code> pour s\'arrêter au bon moment. ';
+    if(!has65)    msg += 'La valeur seuil 65 ne semble pas présente. ';
+    fb.innerHTML = msg;
+    tried[7]=true;
+  }
+  updateProgress();
+}
+
+function toggleHint(n){ const b=document.getElementById('hint-'+n); if(b) b.classList.toggle('show'); }
+
+function toggleCorr(bodyId, btnId){
+  const body=document.getElementById(bodyId);
+  const btn=document.getElementById(btnId);
+  if(!body) return;
+  body.classList.toggle('show');
+  btn.classList.toggle('open');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && e.target.classList.contains('fill-input')){
+    const exoDiv=e.target.closest('[data-exo]');
+    if(exoDiv) check(parseInt(exoDiv.dataset.exo));
+  }
+});
+
+document.querySelectorAll('.fill-input').forEach(inp=>{
+  inp.addEventListener('input',function(){
+    this.style.width=Math.max(32,this.value.length*11+20)+'px';
+  });
+});
+
+updateProgress();
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

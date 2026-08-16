@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python & Second degré — TP Première</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f1eb; --card:#ffffff; --text:#2b2724; --mid:#5c5652; --light:#8a8380;
+  --blue:#1a6fa0; --blue-l:#e8f2fa;
+  --green:#1b7a40; --green-l:#e6f5ec;
+  --purple:#6b3fa0; --purple-l:#f1ecf8;
+  --orange:#b85c0b; --orange-l:#fef2e8;
+  --red:#c0392b; --red-l:#fceae8;
+  --gold:#b8860b; --gold-l:#fef8e8;
+  --border:#e0dbd4;
+  --ide:#1e1e2e; --ide-hdr:#181825; --ide-border:#313244;
+  --str-c:#a6e3a1; --num-c:#fab387; --cm-c:#6c7086; --bi:#f9e2af; --op-c:#89b4fa; --ide-text:#cdd6f4;
+  --shadow:0 3px 16px rgba(0,0,0,.07);
+  --radius:12px; --radius-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16.5px;}
+
+.header{background:linear-gradient(160deg,#001f3f 0%,#003366 40%,#0369a1 100%);color:#fff;padding:3rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(3,105,161,.25) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(190,24,93,.15) 0%,transparent 55%);pointer-events:none;}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0369a1,#be185d,#059669,#7c3aed);}
+.header .chapter-badge{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.6rem;}
+.header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4.5vw,2.6rem);font-weight:800;letter-spacing:-.01em;line-height:1.2;}
+.header .subtitle{font-size:.93rem;opacity:.55;margin-top:.5rem;}
+.header .line{width:50px;height:2px;background:rgba(255,255,255,.25);margin:.8rem auto 0;border-radius:2px;}
+.header-pills{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;}
+.header-pill{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .8rem;border-radius:50px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);}
+
+.progress-bar-wrap{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;position:sticky;top:0;z-index:100;}
+.progress-label{font-size:.75rem;font-weight:600;color:var(--mid);margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;}
+.progress-label span{font-weight:700;color:var(--blue);}
+.progress-track{background:#e0dbd4;border-radius:50px;height:8px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#0369a1,#be185d);border-radius:50px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;}
+.progress-dots{display:flex;justify-content:center;gap:.5rem;margin-top:.5rem;}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s,transform .3s;}
+.pdot.done{background:var(--green);}
+
+.container{max-width:820px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+.palier{margin-bottom:3.5rem;animation:fadeUp .5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.palier-header{display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem;}
+.palier-num{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1rem;flex-shrink:0;}
+.palier-titre{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;flex:1;}
+.palier-titre::after{content:'';display:block;height:2px;background:linear-gradient(90deg,currentColor,transparent);border-radius:2px;margin-top:.2rem;opacity:.25;}
+.palier-niveau{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;padding:.2rem .7rem;border-radius:50px;margin-bottom:1.1rem;display:inline-block;}
+.palier-niveau.guide{background:var(--blue-l);color:var(--blue);}
+.palier-niveau.semi{background:var(--orange-l);color:var(--orange);}
+.palier-niveau.auto{background:var(--purple-l);color:var(--purple);}
+
+.ctx-band{border-radius:var(--radius);padding:1rem 1.3rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:.9rem;border:1px solid;}
+.ctx-band.blue{background:var(--blue-l);border-color:#aacfe8;}
+.ctx-band.orange{background:var(--orange-l);border-color:#e8c49a;}
+.ctx-band.purple{background:var(--purple-l);border-color:#c9b0e8;}
+.ctx-icon{font-size:1.6rem;flex-shrink:0;line-height:1;}
+.ctx-text{font-size:.93rem;line-height:1.65;}
+.ctx-text strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.2rem;opacity:.7;}
+
+.block{background:var(--card);border-radius:var(--radius);padding:1.2rem 1.4rem;margin:.9rem 0;box-shadow:var(--shadow);border-left:5px solid;}
+.block.info{border-left-color:var(--blue);}
+.block.warn{border-left-color:var(--orange);}
+.block-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;}
+.block.info .block-tag{color:var(--blue);background:var(--blue-l);}
+.block.warn .block-tag{color:var(--orange);background:var(--orange-l);}
+
+.code-window{background:var(--ide);border-radius:var(--radius);overflow:hidden;margin:.8rem 0;box-shadow:0 6px 24px rgba(0,0,0,.22);border:1px solid var(--ide-border);}
+.code-header{background:var(--ide-hdr);padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--ide-border);}
+.dots{display:flex;gap:.4rem;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.dot.r{background:#f38ba8;}.dot.y{background:#f9e2af;}.dot.g{background:#a6e3a1;}
+.file-name{font-size:.76rem;font-weight:600;color:#6c7086;flex:1;text-align:center;}
+.code-window pre{margin:0;padding:.9rem 1.2rem;overflow-x:auto;}
+.code-window pre code{font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:1.9;color:var(--ide-text);background:none;white-space:pre;}
+.bi{color:var(--bi);} .str{color:var(--str-c);} .nc{color:var(--num-c);} .cm{color:var(--cm-c);font-style:italic;} .op{color:var(--op-c);} .kw{color:#cba6f7;font-weight:600;}
+.bug{background:rgba(243,139,168,.18);border-bottom:2px solid #f38ba8;border-radius:3px;color:#f38ba8;padding:0 .15rem;}
+
+.exo-inter{background:linear-gradient(135deg,#f0f7ff,#e8f2fa);border:1.5px solid #b8d9f0;border-radius:var(--radius);padding:1.4rem 1.5rem;margin:1.2rem 0;position:relative;}
+.exo-inter.semi{background:linear-gradient(135deg,#fff8f0,#fef2e8);border-color:#e8c49a;}
+.exo-inter.auto{background:linear-gradient(135deg,#f5f0ff,#f1ecf8);border-color:#c9b0e8;}
+.exo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.7rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--blue);background:rgba(26,111,160,.1);}
+.exo-tag.semi{color:var(--orange);background:rgba(184,92,11,.1);}
+.exo-tag.auto{color:var(--purple);background:rgba(107,63,160,.1);}
+.exo-prompt{margin-bottom:.9rem;line-height:1.8;}
+.exo-score{position:absolute;top:1rem;right:1rem;font-size:.95rem;color:var(--gold);}
+
+.code-fill{background:var(--ide);border-radius:var(--radius);overflow:hidden;margin:.6rem 0;box-shadow:0 4px 16px rgba(0,0,0,.2);border:1px solid var(--ide-border);}
+.code-fill pre{margin:0;padding:.9rem 1.2rem;font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:2.1;color:var(--ide-text);white-space:pre-wrap;}
+.fill-input{display:inline-block;font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;border:none;border-bottom:2px solid var(--op-c);background:rgba(137,180,250,.12);color:#89b4fa;outline:none;padding:.1rem .4rem;border-radius:4px 4px 0 0;min-width:44px;transition:border-color .25s,background .25s;vertical-align:baseline;}
+.fill-input:focus{border-bottom-color:#cba6f7;background:rgba(203,166,247,.15);}
+.fill-input.correct{border-bottom-color:var(--str-c);background:rgba(166,227,161,.15);color:var(--str-c);}
+.fill-input.wrong{border-bottom-color:#f38ba8;background:rgba(243,139,168,.12);color:#f38ba8;animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+
+.free-zone{background:var(--ide);border-radius:var(--radius);border:1px solid var(--ide-border);margin:.6rem 0;}
+.free-zone textarea{width:100%;background:transparent;border:none;color:var(--ide-text);font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:1.9;padding:.9rem 1.2rem;resize:vertical;min-height:150px;outline:none;box-sizing:border-box;}
+.free-zone textarea::placeholder{color:#45475a;}
+
+.btn-check{font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;padding:.5rem 1.3rem;border:none;border-radius:50px;background:var(--blue);color:#fff;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem;margin-top:.7rem;}
+.btn-check:hover{background:#155c87;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,111,160,.3);}
+.btn-check:disabled{background:#b0c8da;cursor:default;transform:none;box-shadow:none;}
+.btn-check.orange{background:var(--orange);}
+.btn-check.orange:hover{background:#96480a;}
+.btn-check.purple{background:var(--purple);}
+.btn-check.purple:hover{background:#562f85;}
+
+.feedback{margin-top:.65rem;padding:.7rem 1.1rem;border-radius:var(--radius-sm);font-size:.93rem;font-weight:600;display:none;align-items:flex-start;gap:.5rem;line-height:1.6;}
+.feedback.show{display:flex;}
+.feedback.ok{background:var(--green-l);color:var(--green);border-left:4px solid var(--green);}
+.feedback.ko{background:var(--red-l);color:var(--red);border-left:4px solid var(--red);}
+
+.hint-btn{font-size:.8rem;font-weight:600;color:var(--mid);background:none;border:1px solid var(--border);border-radius:50px;padding:.3rem .8rem;cursor:pointer;transition:all .2s;margin-left:.5rem;}
+.hint-btn:hover{border-color:var(--orange);color:var(--orange);}
+.hint-box{display:none;margin-top:.6rem;padding:.65rem .95rem;background:var(--orange-l);border-left:4px solid var(--orange);border-radius:var(--radius-sm);font-size:.9rem;color:var(--orange);line-height:1.6;}
+.hint-box.show{display:block;}
+
+.exercise-console{margin-top:.8rem;background:var(--ide);border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--ide-border);max-height:0;transition:max-height .5s cubic-bezier(.4,0,.2,1);}
+.exercise-console.open{max-height:400px;}
+.con-header{background:var(--ide-hdr);padding:.4rem .9rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--ide-border);}
+.con-dots{display:flex;gap:.35rem;}
+.con-dot{width:9px;height:9px;border-radius:50%;}
+.con-dot.r{background:#f38ba8;}.con-dot.y{background:#f9e2af;}.con-dot.g{background:#a6e3a1;}
+.con-title{font-size:.72rem;font-weight:600;color:#6c7086;flex:1;text-align:center;}
+.con-body{padding:.7rem 1.1rem;font-family:'DM Mono','Fira Code',monospace;font-size:.84rem;line-height:1.9;max-height:300px;overflow-y:auto;}
+.con-line{display:flex;gap:.6rem;}
+.con-sym{color:#6c7086;flex-shrink:0;width:2.4em;font-weight:600;}
+.con-txt.out{color:var(--str-c);}
+.con-txt.err{color:#f38ba8;}
+.con-txt.info{color:var(--bi);}
+
+.qcm-options{display:flex;flex-direction:column;gap:.5rem;margin-top:.8rem;}
+.qcm-opt{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.1rem;cursor:pointer;transition:all .2s;font-size:.95rem;display:flex;align-items:flex-start;gap:.7rem;line-height:1.5;}
+.qcm-opt:hover{border-color:var(--blue);background:var(--blue-l);}
+.qcm-opt.correct{border-color:var(--green);background:var(--green-l);pointer-events:none;}
+.qcm-opt.wrong{border-color:var(--red);background:var(--red-l);pointer-events:none;}
+.qcm-opt.grise{pointer-events:none;opacity:.55;}
+.opt-letter{font-weight:800;font-size:.85rem;flex-shrink:0;min-width:1.4em;color:var(--blue);}
+.qcm-opt.correct .opt-letter{color:var(--green);}
+.qcm-opt.wrong .opt-letter{color:var(--red);}
+.qcm-expl{display:none;margin-top:.7rem;padding:.85rem 1.1rem;background:var(--purple-l);border-left:4px solid var(--purple);border-radius:var(--radius-sm);font-size:.92rem;line-height:1.65;}
+.qcm-expl.show{display:block;}
+
+.corr-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem .95rem;border:1.5px solid #e8c84a;border-radius:50px;background:var(--gold-l);color:var(--gold);cursor:pointer;transition:all .22s;display:inline-flex;align-items:center;gap:.35rem;margin-top:.9rem;}
+.corr-btn:hover{background:#fdf2c5;}
+.corr-btn .chev{font-size:.6rem;transition:transform .3s;}
+.corr-btn.open .chev{transform:rotate(90deg);}
+.corr-body{max-height:0;overflow:hidden;transition:max-height .6s cubic-bezier(.4,0,.2,1),opacity .35s;opacity:0;margin-top:.7rem;}
+.corr-body.show{max-height:700px;opacity:1;}
+
+.score-final{background:linear-gradient(135deg,var(--ide-hdr),var(--ide));border-radius:var(--radius);padding:1.5rem 2rem;text-align:center;color:#fff;margin:2rem 0;}
+.score-num{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:800;color:#a6e3a1;}
+.score-label{font-size:.9rem;opacity:.65;margin-top:.2rem;}
+.score-msg{margin-top:.8rem;font-size:1rem;font-weight:600;color:#f9e2af;}
+hr.sep{border:none;border-top:1.5px dashed var(--border);margin:1.5rem 0;}
+
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:#0369a1;color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(3,105,161,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform .2s;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);}
+
+@media(max-width:600px){body{font-size:14px;}.container{padding:0 10px;}.palier-titre{font-size:1.15rem;}.code-window pre code,.code-fill pre,.free-zone textarea{font-size:.82rem;}}
+.code-window,.exercise-console,.code-fill{overflow-x:auto;}
+.block,.ctx-band{overflow-wrap:break-word;word-break:break-word;}
+
+/* ===== RESPONSIVE RENFORCÉ ===== */
+@media(max-width:900px){
+  .container { max-width:100%; padding-left:1rem; padding-right:1rem; }
+}
+@media(max-width:768px){
+  body { font-size: 15px; }
+  .container { padding: 0 .75rem; }
+  .header { padding: 1.8rem 1rem 1.5rem; }
+  h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); }
+  .palier-titre { font-size: 1.1rem; }
+  .code-window pre code, .code-fill pre, .free-zone textarea { font-size: .82rem; }
+  .block { padding: 1rem 1.1rem; }
+  .score-num { font-size: 2.2rem; }
+  .btn-row { flex-wrap: wrap; }
+  .progress-bar-wrap { padding: 0 .75rem; }
+}
+@media(max-width:480px){
+  body { font-size: 14.5px; }
+  .container { padding: 0 .5rem; }
+  .header { padding: 1.4rem .8rem 1.2rem; }
+  h1 { font-size: 1.2rem; }
+  .palier-titre { font-size: 1rem; }
+  .code-window pre code, .code-fill pre, .free-zone textarea { font-size: .78rem; }
+  .score-num { font-size: 1.9rem; }
+  .header-pills { flex-wrap: wrap; gap: .35rem; }
+}
+@media(max-width:360px){
+  body { font-size: 13.5px; }
+  .container { padding: 0 .35rem; }
+}
+svg[viewBox] { max-width:100%; height:auto; }
+table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
+.katex-display,.katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+.code-window, .exercise-console { overflow-x:auto; }
+.block, .ctx-band, .score-final { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+
+<header class="header">
+  <span class="chapter-badge">Chapitre 4 · Première · TP Python n°2</span>
+  <h1>📐 Second degré &amp; Python</h1>
+  <p class="subtitle">Trois paliers · guidé → semi-guidé → autonome</p>
+  <div class="line"></div>
+  <div class="header-pills">
+    <span class="header-pill">🏀 Physique</span>
+    <span class="header-pill">📈 Économie</span>
+    <span class="header-pill">🌉 Architecture</span>
+  </div>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-label">
+    <span>Ma progression</span>
+    <span id="prog-label">0 / 7 exercices</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="progress-dots" id="prog-dots"></div>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════
+     PALIER 1 — GUIDÉ · Physique
+══════════════════════════════════════ -->
+<div class="palier">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--blue-l);color:var(--blue);">1</div>
+    <div class="palier-titre" style="color:var(--blue);">Palier guidé</div>
+  </div>
+  <span class="palier-niveau guide">🔵 Guidé — lire et compléter</span>
+
+  <div class="ctx-band blue">
+    <div class="ctx-icon">🏀</div>
+    <div class="ctx-text">
+      <strong>Contexte — trajectoire d'un ballon</strong>
+      Un ballon est lancé depuis le sol. Sa hauteur en mètres au cours du temps est modélisée par la fonction <strong>f(x) = −x² + 6x</strong>, où x est le temps en secondes. Le ballon retombe au sol à x = 6 secondes.
+    </div>
+  </div>
+
+  <div class="block info">
+    <div class="block-tag">💡 Comment écrire f(x) = −x² + 6x en Python ?</div>
+    <p>En Python, <strong>x²</strong> s'écrit <code>x**2</code>. Le coefficient −1 devant x² doit être écrit explicitement : <code>-1 * x**2</code> ou plus simplement <code>-x**2</code> n'est pas valide — il faut écrire <code>-1 * x**2 + 6*x</code>.</p>
+  </div>
+
+  <!-- EXO 1 — QCM : lire et prédire la sortie -->
+  <div class="exo-inter" data-exo="1">
+    <div class="exo-tag">❓ Exercice 1 — Lire et prédire</div>
+    <div class="exo-score" id="star-1"></div>
+    <p class="exo-prompt">Voici un programme qui calcule la hauteur du ballon pour différentes valeurs de x. Parmi les quatre sorties proposées, laquelle est correcte ?</p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">ballon.py</span></div>
+<pre><code><span class="kw">for</span> x <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">7</span>) :
+    hauteur <span class="op">=</span> <span class="op">-</span><span class="nc">1</span> <span class="op">*</span> x<span class="op">**</span><span class="nc">2</span> <span class="op">+</span> <span class="nc">6</span> <span class="op">*</span> x
+    <span class="bi">print</span>(hauteur)</code></pre>
+    </div>
+    <div class="qcm-options" id="qcm1">
+      <div class="qcm-opt" onclick="checkQCM(1,'A','B')">
+        <span class="opt-letter">A</span>
+        <span>0, 6, 12, 18, 24, 30, 36</span>
+      </div>
+      <div class="qcm-opt" onclick="checkQCM(1,'B','B')">
+        <span class="opt-letter">B</span>
+        <span>0, 5, 8, 9, 8, 5, 0</span>
+      </div>
+      <div class="qcm-opt" onclick="checkQCM(1,'C','B')">
+        <span class="opt-letter">C</span>
+        <span>0, 5, 8, 9, 8, 5</span>
+      </div>
+      <div class="qcm-opt" onclick="checkQCM(1,'D','B')">
+        <span class="opt-letter">D</span>
+        <span>0, 7, 12, 15, 16, 15, 12</span>
+      </div>
+    </div>
+    <div class="qcm-expl" id="qcm1-expl">
+      ✅ <strong>Bonne réponse : B.</strong><br><br>
+      <code>range(0, 7)</code> génère x = 0, 1, 2, 3, 4, 5, 6 — soit 7 valeurs. Pour chacune : f(0)=0, f(1)=5, f(2)=8, f(3)=9, f(4)=8, f(5)=5, f(6)=0. La réponse C est presque correcte mais n'a que 6 valeurs (oubli de x=0 ou x=6). La réponse A correspond à 6x sans le terme −x² (oubli de la puissance). La réponse D résulte d'une erreur de signe.
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 2 — compléter : trouver la hauteur max par exploration Python -->
+  <div class="exo-inter" data-exo="2">
+    <div class="exo-tag">✏️ Exercice 2 — Compléter</div>
+    <div class="exo-score" id="star-2"></div>
+    <p class="exo-prompt">
+      On veut trouver la <strong>hauteur maximale</strong> atteinte par le ballon. L'idée : on parcourt toutes les valeurs de x, et à chaque fois qu'on trouve une hauteur plus grande que la meilleure connue, on la retient.
+    </p>
+    <div class="block info" style="margin:.5rem 0 .9rem;">
+      <div class="block-tag">💡 Logique du programme</div>
+      <p style="margin-bottom:.4rem;">On utilise une variable <strong><code>h_max</code></strong> pour mémoriser le plus grand <code>h</code> rencontré jusqu'ici. Au départ elle vaut 0 (le ballon est au sol). À chaque tour :</p>
+      <ol style="margin:.3rem 0 0 1.2rem;font-size:.93rem;line-height:1.9;">
+        <li>On calcule la hauteur <code>h</code> à l'instant <code>x</code>.</li>
+        <li>Si <code>h</code> est <strong>plus grande</strong> que <code>h_max</code>, alors c'est un nouveau record : on met <code>h_max</code> à jour avec cette nouvelle valeur, et on note l'instant <code>x</code> dans <code>x_max</code>.</li>
+        <li>Sinon, on ne fait rien : <code>h_max</code> reste inchangé.</li>
+      </ol>
+      <p style="margin-top:.5rem;">À la fin de la boucle, <code>h_max</code> contient la hauteur maximale et <code>x_max</code> l'instant auquel elle est atteinte.</p>
+    </div>
+    <p style="font-size:.93rem;margin-bottom:.6rem;">Complète les trois trous du programme :</p>
+    <div class="code-fill">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice2.py</span></div>
+<pre><code>h_max <span class="op">=</span> <span class="nc">0</span>          <span class="cm"># on commence avec le record à 0 (ballon au sol)</span>
+x_max <span class="op">=</span> <span class="nc">0</span>          <span class="cm"># instant du record</span>
+<span class="kw">for</span> x <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">7</span>) :
+    h <span class="op">=</span> <span class="op">-</span><span class="nc">1</span> <span class="op">*</span> x<span class="op">**</span><span class="nc">2</span> <span class="op">+</span> <span class="nc">6</span> <span class="op">*</span> x   <span class="cm"># hauteur à l'instant x</span>
+    <span class="kw">if</span> h <span class="op">&gt;</span> h_max :             <span class="cm"># nouveau record ?</span>
+        h_max <span class="op">=</span> <input class="fill-input" id="e2a" data-ans="h" placeholder="?" style="width:34px;">      <span class="cm"># ① on retient la nouvelle hauteur maximale</span>
+        x_max <span class="op">=</span> <input class="fill-input" id="e2b" data-ans="x" placeholder="?" style="width:34px;">      <span class="cm"># ② on retient l'instant correspondant</span>
+<span class="bi">print</span>(<span class="str">"Hauteur max :"</span>, h_max, <span class="str">"m à t ="</span>, <input class="fill-input" id="e2c" data-ans="x_max" placeholder="   ?" style="width:58px;">, <span class="str">"s"</span>)
+<span class="cm"># doit afficher : Hauteur max : 9 m à t = 3 s</span></code></pre>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check" onclick="check(2)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(2)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-2">
+      <strong>① :</strong> on vient de trouver que <code>h</code> est plus grande que l'ancien record — c'est elle le nouveau maximum. Quelle variable contient cette hauteur ?<br>
+      <strong>② :</strong> on veut retenir à quel instant ce record a eu lieu. Quelle variable contient l'instant courant dans la boucle ?<br>
+      <strong>③ :</strong> à la fin, on affiche l'instant du record — c'est la variable qu'on a mise à jour en ②.
+    </div>
+    <div class="feedback" id="fb-2"></div>
+    <div class="exercise-console" id="con-2">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-2"></div>
+    </div>
+  </div>
+</div><!-- /palier 1 -->
+
+
+<!-- ══════════════════════════════════════
+     PALIER 2 — SEMI-GUIDÉ · Économie
+══════════════════════════════════════ -->
+<div class="palier">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--orange-l);color:var(--orange);">2</div>
+    <div class="palier-titre" style="color:var(--orange);">Palier semi-guidé</div>
+  </div>
+  <span class="palier-niveau semi">🟠 Semi-guidé — déboguer et adapter</span>
+
+  <div class="ctx-band orange">
+    <div class="ctx-icon">📈</div>
+    <div class="ctx-text">
+      <strong>Contexte — bénéfice d'une startup</strong>
+      Une entreprise modélise son bénéfice mensuel (en milliers d'euros) en fonction du nombre x de produits vendus (en centaines) par la fonction <strong>g(x) = −2x² + 20x − 32</strong>. Elle sait par ailleurs que ce bénéfice s'annule exactement pour x = 2 et x = 8, ce qui correspond à la forme factorisée g(x) = −2(x − 2)(x − 8).
+    </div>
+  </div>
+
+  <!-- EXO 3 — code bugué à corriger (2 bugs) -->
+  <div class="exo-inter semi" data-exo="3">
+    <div class="exo-tag semi">🐛 Exercice 3 — Corriger le code</div>
+    <div class="exo-score" id="star-3"></div>
+    <p class="exo-prompt">
+      Un élève veut afficher le bénéfice de l'entreprise pour chaque x où il est positif, puis afficher le bénéfice maximal à la fin. Son code contient <strong>deux erreurs</strong> signalées par des soulignements rouges. Repère-les et corrige-les.
+    </p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">benefice_bugue.py</span></div>
+<pre><code>g_max <span class="op">=</span> <span class="nc">0</span>
+<span class="kw">for</span> x <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">11</span>) :
+    g <span class="op">=</span> <span class="op">-</span><span class="nc">2</span> <span class="op">*</span> x<span class="op">**</span><span class="nc">2</span> <span class="op">+</span> <span class="nc">20</span> <span class="op">*</span> x <span class="op">-</span> <span class="nc">32</span>
+    <span class="kw">if</span> g <span class="op">&gt;</span> <span class="nc">0</span> :
+        <span class="bi">print</span>(<span class="bug">x</span>)          <span class="cm"># ← bug 1</span>
+        <span class="kw">if</span> g <span class="op">&gt;</span> g_max :
+            g_max <span class="op">=</span> g
+<span class="bi">print</span>(<span class="str">"Maximum :"</span>, <span class="bug">x</span>)   <span class="cm"># ← bug 2</span></code></pre>
+    </div>
+    <p style="margin-top:.8rem;font-size:.93rem;">Pour chaque bug, indique ce qu'il faut écrire à la place :</p>
+    <div style="display:flex;flex-direction:column;gap:.8rem;margin-top:.7rem;">
+      <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--ide-text);background:var(--ide);padding:.25rem .7rem;border-radius:4px;white-space:nowrap;">Bug 1 — print(<input class="fill-input" id="e3a" data-ans="g" placeholder="?" style="width:32px;">)</span>
+        <span style="font-size:.85rem;color:var(--mid);">on veut afficher le bénéfice, pas le numéro de produits</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--ide-text);background:var(--ide);padding:.25rem .7rem;border-radius:4px;white-space:nowrap;">Bug 2 — print("Maximum :", <input class="fill-input" id="e3b" data-ans="g_max" placeholder="    ?" style="width:58px;">)</span>
+        <span style="font-size:.85rem;color:var(--mid);">on veut afficher le bénéfice maximal, pas x</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check orange" onclick="check(3)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(3)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-3">
+      <strong>Bug 1 :</strong> dans la boucle, <code>x</code> est le nombre de produits et <code>g</code> est le bénéfice. On veut afficher le bénéfice.<br>
+      <strong>Bug 2 :</strong> après la boucle, <code>x</code> vaut 10 (la dernière valeur du <code>range</code>) — ce n'est pas le maximum. La variable qui mémorise le bénéfice le plus élevé s'appelle <code>g_max</code>.
+    </div>
+    <div class="feedback" id="fb-3"></div>
+    <div class="exercise-console" id="con-3">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-3"></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 4 — adapter : utiliser la forme factorisée, retrouver l'axe de symétrie -->
+  <div class="exo-inter semi" data-exo="4">
+    <div class="exo-tag semi">✏️ Exercice 4 — Adapter</div>
+    <div class="exo-score" id="star-4"></div>
+    <p class="exo-prompt">
+      On sait que g(x) = −2(x − 2)(x − 8) — les racines sont donc x = 2 et x = 8. L'axe de symétrie de la parabole passe par le milieu de ces deux racines.<br><br>
+      Complète le programme qui calcule cet axe de symétrie et la valeur du sommet, sans boucle.
+    </p>
+    <div class="code-fill">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice4.py</span></div>
+<pre><code>x1 <span class="op">=</span> <span class="nc">2</span>        <span class="cm"># première racine</span>
+x2 <span class="op">=</span> <span class="nc">8</span>        <span class="cm"># deuxième racine</span>
+axe <span class="op">=</span> (<input class="fill-input" id="e4a" data-ans="x1" placeholder="?" style="width:34px;"> <span class="op">+</span> <input class="fill-input" id="e4b" data-ans="x2" placeholder="?" style="width:34px;">) <span class="op">/</span> <span class="nc">2</span>
+<span class="cm"># calcul du sommet : on évalue g en x = axe</span>
+sommet <span class="op">=</span> <span class="op">-</span><span class="nc">2</span> <span class="op">*</span> axe<span class="op">**</span><span class="nc">2</span> <span class="op">+</span> <span class="nc">20</span> <span class="op">*</span> axe <span class="op">-</span> <span class="nc">32</span>
+<span class="bi">print</span>(<span class="str">"Axe de symétrie : x ="</span>, <input class="fill-input" id="e4c" data-ans="axe" placeholder="  ?" style="width:44px;">)
+<span class="bi">print</span>(<span class="str">"Sommet : g ="</span>, <input class="fill-input" id="e4d" data-ans="sommet" placeholder="    ?" style="width:58px;">)
+<span class="cm"># doit afficher : Axe de symétrie : x = 5.0</span>
+<span class="cm">#                 Sommet : g = 18.0</span></code></pre>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check orange" onclick="check(4)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(4)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-4">
+      L'axe de symétrie est le milieu de x1 et x2 : <code>(x1 + x2) / 2</code>. Ensuite, le sommet est l'image de ce point par g — on évalue la formule en remplaçant x par <code>axe</code>.
+    </div>
+    <div class="feedback" id="fb-4"></div>
+    <div class="exercise-console" id="con-4">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-4"></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 5 — QCM : interpréter le signe -->
+  <div class="exo-inter semi" data-exo="5">
+    <div class="exo-tag semi">❓ Exercice 5 — Interpréter</div>
+    <div class="exo-score" id="star-5"></div>
+    <p class="exo-prompt">
+      Un élève exécute le programme suivant pour savoir quand l'entreprise est <strong>bénéficiaire</strong> (g(x) > 0). Que va-t-il afficher ?
+    </p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">question5.py</span></div>
+<pre><code><span class="kw">for</span> x <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">11</span>) :
+    g <span class="op">=</span> <span class="op">-</span><span class="nc">2</span> <span class="op">*</span> (x <span class="op">-</span> <span class="nc">2</span>) <span class="op">*</span> (x <span class="op">-</span> <span class="nc">8</span>)
+    <span class="kw">if</span> g <span class="op">&gt;</span> <span class="nc">0</span> :
+        <span class="bi">print</span>(x)</code></pre>
+    </div>
+    <div class="qcm-options" id="qcm5">
+      <div class="qcm-opt" onclick="checkQCM(5,'A','C')"><span class="opt-letter">A</span>Les valeurs 2, 3, 4, 5, 6, 7, 8 (entre les racines et aux racines)</div>
+      <div class="qcm-opt" onclick="checkQCM(5,'B','C')"><span class="opt-letter">B</span>Les valeurs 0, 1, 9, 10 (à l'extérieur des racines)</div>
+      <div class="qcm-opt" onclick="checkQCM(5,'C','C')"><span class="opt-letter">C</span>Les valeurs 3, 4, 5, 6, 7 (strictement entre les racines)</div>
+      <div class="qcm-opt" onclick="checkQCM(5,'D','C')"><span class="opt-letter">D</span>Aucune valeur — g est toujours négatif</div>
+    </div>
+    <div class="qcm-expl" id="qcm5-expl">
+      ✅ <strong>Bonne réponse : C.</strong><br><br>
+      Ici a = −2 &lt; 0, donc g(x) est <strong>positif entre les racines</strong> et négatif à l'extérieur — exactement l'inverse du cas a &gt; 0. Les racines sont 2 et 8, mais g(2) = g(8) = 0 : la condition <code>g &gt; 0</code> (strictement) les exclut. Seules les valeurs entières 3, 4, 5, 6, 7 vérifient g(x) &gt; 0. La réponse B correspondrait à un coefficient a positif.
+    </div>
+  </div>
+</div><!-- /palier 2 -->
+
+
+<!-- ══════════════════════════════════════
+     PALIER 3 — AUTONOME · Architecture
+══════════════════════════════════════ -->
+<div class="palier">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--purple-l);color:var(--purple);">3</div>
+    <div class="palier-titre" style="color:var(--purple);">Palier autonome</div>
+  </div>
+  <span class="palier-niveau auto">🟣 Autonome — écrire son propre code</span>
+
+  <div class="ctx-band purple">
+    <div class="ctx-icon">🌉</div>
+    <div class="ctx-text">
+      <strong>Contexte — arche d'un pont</strong>
+      L'arche d'un pont piétonnier est modélisée par la fonction <strong>h(x) = −0,5 · x · (x − 20)</strong>, où x est la position horizontale en mètres (de x = 0 à x = 20) et h(x) la hauteur en mètres. Les deux pieds du pont sont au sol (h = 0) en x = 0 et x = 20.
+    </div>
+  </div>
+
+  <!-- EXO 6 — écrire : afficher les hauteurs tous les 2 mètres -->
+  <div class="exo-inter auto" data-exo="6">
+    <div class="exo-tag auto">⌨️ Exercice 6 — Écrire</div>
+    <div class="exo-score" id="star-6"></div>
+    <p class="exo-prompt">
+      Écris un programme qui affiche la hauteur h(x) pour <strong>x = 0, 2, 4, 6, …, 20</strong> (tous les 2 mètres).<br><br>
+      Rappel : <strong>h(x) = −0.5 * x * (x − 20)</strong>.<br>
+      <em>Astuce : <code>range(0, 21, 2)</code> génère 0, 2, 4, …, 20.</em>
+    </p>
+    <div class="free-zone">
+      <div class="code-header" style="background:var(--ide-hdr);"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice6.py</span></div>
+      <textarea id="free6" spellcheck="false" placeholder="# Écris ton programme ici…"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check purple" onclick="checkFree6()">▶ Vérifier</button>
+      <button class="corr-btn" id="corrBtn6" onclick="toggleCorr('corr6','corrBtn6')">📋 Voir un corrigé <span class="chev">▶</span></button>
+    </div>
+    <div class="feedback" id="fb-6"></div>
+    <div class="corr-body" id="corr6">
+      <div class="code-window" style="margin:0;">
+        <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">corrigé6.py</span></div>
+<pre><code><span class="kw">for</span> x <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">21</span>, <span class="nc">2</span>) :
+    h <span class="op">=</span> <span class="op">-</span><span class="nc">0.5</span> <span class="op">*</span> x <span class="op">*</span> (x <span class="op">-</span> <span class="nc">20</span>)
+    <span class="bi">print</span>(h)</code></pre>
+      </div>
+      <p style="margin-top:.7rem;font-size:.9rem;color:var(--mid);">
+        On obtient : 0, 18, 32, 42, 48, 50, 48, 42, 32, 18, 0 — la symétrie est parfaitement visible. Le maximum est bien 50 m en x = 10 m (milieu du pont).
+      </p>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 7 — écrire : trouver où h(x) > 40 (contrainte de gabarit) -->
+  <div class="exo-inter auto" data-exo="7">
+    <div class="exo-tag auto">⌨️ Exercice 7 — Aller plus loin</div>
+    <div class="exo-score" id="star-7"></div>
+    <p class="exo-prompt">
+      Un bateau doit passer sous le pont. Il a besoin d'un passage d'au moins <strong>40 mètres de hauteur</strong>.<br><br>
+      Écris un programme qui parcourt x de 0 à 20 et affiche, pour chaque valeur entière de x, si le passage est possible (<code>"OK"</code>) ou non (<code>"trop bas"</code>) selon que h(x) est supérieure ou non à 40.<br><br>
+      Tu auras besoin de : une boucle <code>for</code>, une condition <code>if / else</code>, et un <code>print()</code>.
+    </p>
+    <div class="free-zone">
+      <div class="code-header" style="background:var(--ide-hdr);"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice7.py</span></div>
+      <textarea id="free7" spellcheck="false" placeholder="# Écris ton programme ici…"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check purple" onclick="checkFree7()">▶ Vérifier</button>
+      <button class="corr-btn" id="corrBtn7" onclick="toggleCorr('corr7','corrBtn7')">📋 Voir un corrigé <span class="chev">▶</span></button>
+    </div>
+    <div class="feedback" id="fb-7"></div>
+    <div class="corr-body" id="corr7">
+      <div class="code-window" style="margin:0;">
+        <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">corrigé7.py</span></div>
+<pre><code><span class="kw">for</span> x <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">0</span>, <span class="nc">21</span>) :
+    h <span class="op">=</span> <span class="op">-</span><span class="nc">0.5</span> <span class="op">*</span> x <span class="op">*</span> (x <span class="op">-</span> <span class="nc">20</span>)
+    <span class="kw">if</span> h <span class="op">&gt;</span> <span class="nc">40</span> :
+        <span class="bi">print</span>(x, <span class="str">"OK"</span>)
+    <span class="kw">else</span> :
+        <span class="bi">print</span>(x, <span class="str">"trop bas"</span>)</code></pre>
+      </div>
+      <p style="margin-top:.7rem;font-size:.9rem;color:var(--mid);">
+        Le passage est possible (h &gt; 40) pour x = 6, 7, 8, 9, 10, 11, 12, 13, 14 — soit sur <strong>9 mètres de large</strong> au milieu du pont. On peut vérifier : h(6) = −0,5 × 6 × (−14) = 42 m. Algébriquement, h(x) &gt; 40 ⟺ −0,5x(x−20) &gt; 40 ⟺ x² − 20x + 80 &lt; 0, dont les racines sont ≈ 5,53 et 14,47.
+      </p>
+    </div>
+  </div>
+</div><!-- /palier 3 -->
+
+<!-- SCORE FINAL -->
+<div class="score-final">
+  <div class="score-num" id="score-num">0 / 7</div>
+  <div class="score-label">exercices validés</div>
+  <div class="score-msg" id="score-msg"></div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const TOTAL = 7;
+const done  = {};
+const tried = {};
+
+(function buildDots(){
+  const w = document.getElementById('prog-dots');
+  for(let i=1;i<=TOTAL;i++){
+    const d=document.createElement('span');
+    d.className='pdot'; d.id='pdot-'+i;
+    w.appendChild(d);
+  }
+})();
+
+function updateProgress(){
+  const n = Object.values(done).filter(Boolean).length;
+  const pct = (n/TOTAL)*100;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-label').textContent = n+' / '+TOTAL+' exercices';
+  document.getElementById('score-num').textContent  = n+' / '+TOTAL;
+  const msgs = ['','Bien ! 💪','','À mi-chemin 🎯','','Presque !','','Parfait ! 🏆'];
+  document.getElementById('score-msg').textContent = msgs[n]||'';
+}
+
+function setDot(n, state){
+  const d=document.getElementById('pdot-'+n);
+  if(d) d.className='pdot '+(state==='done'?'done':'');
+}
+
+function conWrite(bodyId, lines){
+  const body=document.getElementById(bodyId);
+  if(!body) return;
+  body.innerHTML='';
+  lines.forEach(l=>{
+    const row=document.createElement('div'); row.className='con-line';
+    const sym=document.createElement('span'); sym.className='con-sym'; sym.textContent=l.sym||'';
+    const txt=document.createElement('span'); txt.className='con-txt '+(l.type||''); txt.textContent=l.txt||'';
+    row.appendChild(sym); row.appendChild(txt); body.appendChild(row);
+  });
+}
+function conOpen(id){ const el=document.getElementById(id); if(el) el.classList.add('open'); }
+
+/* ═══ DONNÉES EXERCICES ═══ */
+const EXOS = {
+  2:{
+    inputs:['e2a','e2b','e2c'],
+    ok:[
+      {type:'info',sym:'',txt:'→ x=1 : h=5  > 0  → nouveau record !'},
+      {type:'info',sym:'',txt:'→ x=2 : h=8  > 5  → nouveau record !'},
+      {type:'info',sym:'',txt:'→ x=3 : h=9  > 8  → nouveau record !'},
+      {type:'info',sym:'',txt:'→ x=4 : h=8  ≤ 9  → on ne change rien'},
+      {type:'out', sym:'',txt:'Hauteur max : 9 m à t = 3 s'}
+    ],
+    ko:[{type:'err',sym:'❌',txt:'① h_max = h (la hauteur courante) ② x_max = x (l\'instant courant) ③ on affiche x_max à la fin.'}]
+  },
+  3:{
+    inputs:['e3a','e3b'],
+    ok:[
+      {type:'out',sym:'',txt:'10  (x=3)'},
+      {type:'out',sym:'',txt:'16  (x=4)'},
+      {type:'out',sym:'',txt:'18  (x=5)  ← maximum'},
+      {type:'out',sym:'',txt:'16  (x=6)'},
+      {type:'out',sym:'',txt:'10  (x=7)'},
+      {type:'out',sym:'',txt:'Maximum : 18'}
+    ],
+    ko:[{type:'err',sym:'❌',txt:'Bug 1 : affiche g (le bénéfice), pas x. Bug 2 : crée g_max avant la boucle pour mémoriser le maximum.'}]
+  },
+  4:{
+    inputs:['e4a','e4b','e4c','e4d'],
+    ok:[
+      {type:'out',sym:'',txt:'Axe de symétrie : x = 5.0'},
+      {type:'out',sym:'',txt:'Sommet : g = 18.0'}
+    ],
+    ko:[{type:'err',sym:'❌',txt:'La formule est (x1 + x2) / 2. Ensuite print(axe) et print(sommet).'}]
+  }
+};
+
+function check(n){
+  const exo=EXOS[n]; if(!exo) return;
+  const inputs=exo.inputs.map(id=>document.getElementById(id));
+  let allOk=true;
+  inputs.forEach(inp=>{
+    const ok=inp.value.trim()===inp.dataset.ans;
+    inp.classList.remove('correct','wrong');
+    inp.classList.add(ok?'correct':'wrong');
+    if(!ok) allOk=false;
+  });
+  const fb=document.getElementById('fb-'+n);
+  if(allOk){
+    fb.className='feedback show ok'; fb.innerHTML='✅ Parfait !';
+    if(!tried[n]) done[n]=true;
+    setDot(n,'done');
+    inputs.forEach(i=>i.disabled=true);
+    const btn=document.querySelector('[data-exo="'+n+'"] .btn-check');
+    if(btn) btn.disabled=true;
+    const star=document.getElementById('star-'+n);
+    if(star) star.textContent='⭐';
+    conWrite('con-body-'+n, exo.ok);
+    setTimeout(()=>conOpen('con-'+n),80);
+  } else {
+    fb.className='feedback show ko'; fb.innerHTML='❌ Pas tout à fait — relis l\'indice.';
+    tried[n]=true;
+    conWrite('con-body-'+n, exo.ko);
+    setTimeout(()=>conOpen('con-'+n),80);
+  }
+  updateProgress();
+}
+
+function checkQCM(n, choice, correct){
+  const wrap=document.getElementById('qcm'+n);
+  if(!wrap||wrap.dataset.done) return;
+  const opts=wrap.querySelectorAll('.qcm-opt');
+  opts.forEach((opt,i)=>{
+    const letter=String.fromCharCode(65+i);
+    if(letter===correct) opt.classList.add('correct');
+    else if(letter===choice) opt.classList.add('wrong');
+    else opt.classList.add('grise');
+  });
+  wrap.dataset.done='1';
+  const expl=document.getElementById('qcm'+n+'-expl');
+  if(expl) expl.classList.add('show');
+  if(choice===correct){
+    const star=document.getElementById('star-'+n);
+    if(star) star.textContent='⭐';
+    if(!tried[n]) done[n]=true;
+    setDot(n,'done');
+  } else { tried[n]=true; }
+  updateProgress();
+}
+
+/* ═══ VÉRIFICATION EXERCICES LIBRES ═══ */
+function checkFree6(){
+  const code = document.getElementById('free6').value.trim();
+  const fb   = document.getElementById('fb-6');
+  if(!code){ fb.className='feedback show ko'; fb.innerHTML='❌ Écris ton programme avant de vérifier !'; return; }
+
+  const hasFor    = /\bfor\b/.test(code);
+  const hasRange  = /range\s*\(/.test(code);
+  const hasPrint  = /\bprint\b/.test(code);
+  const has05     = /0\.5/.test(code);
+  const has20     = /20/.test(code);
+  const hasStep   = /range\s*\([^)]*,\s*2\s*\)/.test(code) || /range\s*\([^)]*21[^)]*\)/.test(code) || /step/.test(code);
+
+  const score = [hasFor, hasRange, hasPrint, has05, has20].filter(Boolean).length;
+
+  if(score >= 4){
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ Très bien ! Résultats attendus : 0, 18, 32, 42, 48, 50, 48, 42, 32, 18, 0 — tu remarques la symétrie autour de x = 10.';
+    if(!tried[6]) done[6]=true;
+    setDot(6,'done');
+    document.getElementById('star-6').textContent='⭐';
+  } else {
+    fb.className='feedback show ko';
+    let msg = '❌ ';
+    if(!hasFor || !hasRange) msg += 'Il faut une boucle <code>for</code> avec <code>range()</code>. ';
+    if(!has05)  msg += 'La valeur 0.5 (coefficient de h) ne semble pas présente. ';
+    if(!has20)  msg += 'La valeur 20 (longueur du pont) ne semble pas utilisée. ';
+    if(!hasPrint) msg += 'N\'oublie pas le <code>print()</code>. ';
+    fb.innerHTML = msg;
+    tried[6]=true;
+  }
+  updateProgress();
+}
+
+function checkFree7(){
+  const code = document.getElementById('free7').value.trim();
+  const fb   = document.getElementById('fb-7');
+  if(!code){ fb.className='feedback show ko'; fb.innerHTML='❌ Écris ton programme avant de vérifier !'; return; }
+
+  const hasFor   = /\bfor\b/.test(code);
+  const hasIf    = /\bif\b/.test(code);
+  const hasElse  = /\belse\b/.test(code);
+  const hasPrint = /\bprint\b/.test(code);
+  const has40    = /40/.test(code);
+  const has05    = /0\.5/.test(code);
+  const hasOK    = /OK|ok/.test(code);
+
+  const score = [hasFor, hasIf, hasElse, hasPrint, has40, has05].filter(Boolean).length;
+
+  if(score >= 5 && hasOK){
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ Excellent ! Le bateau peut passer en x = 6 à 14 (h &gt; 40 m sur 9 mètres de large au centre du pont).';
+    if(!tried[7]) done[7]=true;
+    setDot(7,'done');
+    document.getElementById('star-7').textContent='⭐';
+  } else {
+    fb.className='feedback show ko';
+    let msg = '❌ ';
+    if(!hasFor)   msg += 'Il faut une boucle <code>for</code>. ';
+    if(!hasIf)    msg += 'Il faut une condition <code>if</code>. ';
+    if(!hasElse)  msg += 'N\'oublie pas le <code>else</code> pour le cas "trop bas". ';
+    if(!has40)    msg += 'Le seuil 40 ne semble pas utilisé. ';
+    if(!hasOK)    msg += 'Affiche "OK" ou "trop bas" selon le cas. ';
+    fb.innerHTML = msg;
+    tried[7]=true;
+  }
+  updateProgress();
+}
+
+function toggleHint(n){ const b=document.getElementById('hint-'+n); if(b) b.classList.toggle('show'); }
+
+function toggleCorr(bodyId, btnId){
+  const body=document.getElementById(bodyId);
+  const btn=document.getElementById(btnId);
+  if(!body) return;
+  body.classList.toggle('show');
+  btn.classList.toggle('open');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && e.target.classList.contains('fill-input')){
+    const exoDiv=e.target.closest('[data-exo]');
+    if(exoDiv) check(parseInt(exoDiv.dataset.exo));
+  }
+});
+
+document.querySelectorAll('.fill-input').forEach(inp=>{
+  inp.addEventListener('input',function(){
+    this.style.width=Math.max(34,this.value.length*11+20)+'px';
+  });
+});
+
+updateProgress();
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

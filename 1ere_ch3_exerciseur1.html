@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistiques — nuage de points et ajustement affine — Exerciseur interactif — Première</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #eef2f7;
+    --grid: #d5dce6;
+    --card: #fff;
+    --blue: #1a6fa0;
+    --blue-light: #2d8dc7;
+    --blue-pale: rgba(26, 111, 160, 0.08);
+    --blue-border: rgba(26, 111, 160, 0.2);
+    --purple: #6b3fa0;
+    --purple-light: #8b5fc8;
+    --purple-pale: rgba(107, 63, 160, 0.1);
+    --orange: #b85c0b;
+    --orange-pale: rgba(184, 92, 11, 0.1);
+    --orange-border: rgba(184, 92, 11, 0.25);
+    --green: #1b7a40;
+    --green-pale: rgba(27, 122, 64, 0.1);
+    --red: #c0392b;
+    --red-pale: rgba(192, 57, 43, 0.08);
+    --teal: #0d9488;
+    --teal-pale: rgba(13, 148, 136, 0.1);
+    --gold: #b8860b;
+    --gold-pale: rgba(184, 134, 11, 0.12);
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --shadow: rgba(30, 41, 59, 0.08);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+    padding: 16px 10px 60px;
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+}
+
+.app { max-width: 900px; width: 100%; }
+
+.app-header {
+    background: linear-gradient(135deg, #001f3f 0%, #003366 45%, #0369a1 100%);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(12, 22, 36, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), transparent 50%);
+    pointer-events: none;
+}
+
+.app-header-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #0369a1, #be185d, #059669, #7c3aed);
+}
+
+.app-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-title::before { content: '📊'; font-size: 1.15em; }
+
+.main {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+    box-shadow: 0 8px 28px var(--shadow);
+    min-height: 60vh;
+}
+
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+h1 {
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--blue);
+}
+
+.sub {
+    text-align: center;
+    font-size: 0.92em;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ── BUTTONS ── */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 11px 26px;
+    border-radius: 12px;
+    font-size: 0.93em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+}
+
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 2px 12px rgba(26,111,160,0.2); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,111,160,0.3); }
+
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+
+.btn-ghost { background: transparent; color: var(--text-light); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--text-light); }
+
+.controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* ── MENU ── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+
+.mc {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mc:hover { border-color: var(--blue); transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+.mc-icon { font-size: 2em; margin-bottom: 8px; }
+.mc-t { font-size: 0.9em; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.mc-d { font-size: 0.78em; color: var(--text-light); line-height: 1.4; }
+.mc-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--orange-pale); color: var(--orange);
+    font-size: 0.68em; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+
+/* ── EX HEADER ── */
+.ex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ex-badge { background: var(--blue-pale); color: var(--blue); padding: 6px 16px; border-radius: 20px; font-size: 0.84em; font-weight: 700; }
+.ex-score { font-size: 0.88em; color: var(--text-light); font-weight: 600; }
+
+.pbar { width: 100%; background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+.pfill { height: 100%; background: linear-gradient(90deg, #0369a1, #be185d, #059669); border-radius: 6px; transition: width 0.4s; }
+
+/* ── CONTEXT CARD ── */
+.ctx-card {
+    background: linear-gradient(135deg, #f5f9ff, #eff4ff);
+    border: 1.5px solid #c5d8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.93em;
+    line-height: 1.7;
+}
+
+.ctx-card .ctx-label {
+    font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--blue); margin-bottom: 6px; display: block;
+}
+
+/* ── FORMULA REMINDER (masqué, révélé au survol / toucher) ── */
+.formula-remind {
+    background: var(--gold-pale);
+    border: 1.5px dashed var(--gold);
+    border-radius: 10px;
+    padding: 8px 16px;
+    margin: 0 0 18px;
+    text-align: center;
+    cursor: help;
+    transition: background 0.2s;
+    user-select: none;
+}
+.formula-remind:hover, .formula-remind.touched { background: rgba(184, 134, 11, 0.18); }
+
+.remind-label {
+    font-size: 0.84em; font-weight: 700; color: #7a5800; display: block;
+}
+.remind-hint { font-weight: 500; font-size: 0.85em; opacity: 0.7; }
+
+.remind-content {
+    max-height: 0; opacity: 0; overflow: hidden;
+    font-size: 0.84em; color: #7a5800; line-height: 1.8;
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.25s ease;
+}
+.formula-remind:hover .remind-content,
+.formula-remind.touched .remind-content {
+    max-height: 240px; opacity: 1; margin-top: 8px;
+}
+
+/* ── QUESTION BLOCK ── */
+.q-prompt {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ── INPUT FIELD ── */
+.answer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.answer-unit {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text-light);
+}
+
+.answer-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 160px;
+    padding: 10px 12px;
+    text-align: center;
+    border: 3px dashed var(--purple);
+    border-radius: 12px;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.answer-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-pale); }
+.answer-input.ok { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+.answer-input.err { border-color: var(--red); background: var(--red-pale); animation: shake 0.3s; }
+.answer-input.wide { width: 220px; }
+.answer-input.narrow { width: 110px; }
+
+/* ── MULTI-INPUT ROW ── */
+.row-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.row-label { font-size: 0.85em; font-weight: 600; color: var(--text-light); }
+
+/* ── CHOICE BUTTONS ── */
+.choice-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.choice-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95em;
+    font-weight: 700;
+    padding: 14px 22px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.choice-btn:hover { border-color: var(--blue); transform: translateY(-2px); }
+.choice-btn.chosen { background: var(--purple); border-color: var(--purple); color: white; }
+.choice-btn.ok { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.choice-btn.err { background: var(--red-pale); border-color: var(--red); color: var(--red); animation: shake 0.3s; }
+
+/* ── CALCULATOR ── */
+.calc-wrap {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 16px;
+    max-width: 320px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.calc-display {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-family: 'DM Sans', monospace;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #7dd3fc;
+    text-align: right;
+    min-height: 52px;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+.calc-expr {
+    font-size: 0.55em;
+    color: #475569;
+    text-align: right;
+    min-height: 18px;
+    margin-bottom: 4px;
+    font-family: 'DM Sans', monospace;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.calc-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    padding: 12px 6px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 46px;
+}
+
+.calc-btn:active { transform: scale(0.93); }
+.calc-num { background: #334155; color: #f1f5f9; }
+.calc-num:hover { background: #475569; }
+.calc-op { background: #1a6fa0; color: #fff; }
+.calc-op:hover { background: #2d8dc7; }
+.calc-eq { background: #1b7a40; color: #fff; }
+.calc-eq:hover { filter: brightness(1.1); }
+.calc-clear { background: #7f1d1d; color: #fecaca; }
+.calc-clear:hover { background: #991b1b; }
+.calc-back { background: #4c1d95; color: #ddd6fe; }
+.calc-back:hover { background: #5b21b6; }
+.calc-zero { grid-column: span 2; }
+
+.calc-toggle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-light);
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    margin: 0 auto 12px;
+    display: block;
+    transition: all 0.2s;
+}
+
+.calc-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+.calc-container { display: none; }
+.calc-container.visible { display: block; }
+
+/* ── STEP BLOCKS ── */
+.step-block { margin-bottom: 18px; padding-bottom: 14px; }
+.step-block.locked { opacity: 0.88; }
+.step-block.locked .answer-input { pointer-events: none; }
+
+.step-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px auto 18px; max-width: 500px; }
+
+.step-tag {
+    display: inline-block;
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-light);
+    text-align: center; width: 100%; margin-bottom: 8px;
+}
+
+.step-tag.locked-tag { color: var(--green); }
+.step-tag.locked-tag::before { content: '✓  '; }
+
+/* ── STAT TABLE ── */
+.suite-table-wrap { overflow-x: auto; margin: 14px 0; }
+.suite-table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-size: 1em;
+}
+.suite-table th {
+    background: #dbeafe;
+    color: var(--blue);
+    font-weight: 700;
+    padding: 8px 14px;
+    border: 2px solid #93c5fd;
+    text-align: center;
+    white-space: nowrap;
+}
+.suite-table td {
+    background: #fff;
+    border: 1px solid #93c5fd;
+    padding: 7px 14px;
+    text-align: center;
+    min-width: 52px;
+}
+.suite-table td.given { background: #eff6ff; font-weight: 700; color: var(--blue); }
+.suite-table td.blank {
+    background: #fafafa;
+    font-weight: 700;
+    color: var(--text-light);
+    font-size: 1.3em;
+    letter-spacing: 2px;
+}
+
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+.tbl { border-collapse: collapse; margin: 0 auto; font-size: 0.97em; }
+.tbl th { background: #dbeafe; color: var(--blue); font-weight: 700; padding: 8px 14px; border: 2px solid #93c5fd; text-align: center; white-space: nowrap; }
+.tbl td { background: #fff; border: 1px solid #93c5fd; padding: 7px 14px; text-align: center; min-width: 60px; }
+.tbl td.given { background: #eff6ff; font-weight: 700; color: var(--blue); }
+.tbl td.total { background: #f1f5f9; font-weight: 700; color: var(--text-light); }
+.tbl td.unknown { background: var(--red-pale); font-weight: 800; color: var(--red); }
+
+/* ── GRAPH ── */
+.graph-center { text-align: center; margin: 14px 0; }
+
+/* ── FRACTION ÉDITABLE ── */
+.frac-wrap { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 4px 8px; }
+.frac-wrap .answer-input { width: 130px; margin: 0; font-size: 1.05em; }
+.frac-bar { width: 100%; height: 2px; background: var(--text); margin: 5px 0; border-radius: 1px; }
+
+/* ── FEEDBACK ── */
+.fb {
+    margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.93em; text-align: center; display: none;
+    animation: fadeIn 0.3s; font-weight: 600; line-height: 1.7;
+}
+.fb.ok { display: block; background: var(--green-pale); color: var(--green); border: 2px solid rgba(27,122,64,0.2); }
+.fb.bad { display: block; background: var(--red-pale); color: var(--red); border: 2px solid rgba(192,57,43,0.15); }
+
+/* ── RESULTS ── */
+.rc {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 20px auto; border: 6px solid;
+}
+.rc.good { border-color: var(--green); background: var(--green-pale); }
+.rc.mid  { border-color: var(--orange); background: var(--orange-pale); }
+.rc.bad  { border-color: var(--red); background: var(--red-pale); }
+.rp { font-size: 2.2em; font-weight: 700; line-height: 1; }
+.rm { font-size: 1.05em; text-align: center; margin: 16px 0; line-height: 1.5; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+@media (max-width: 640px) {
+    .app-header { padding: 14px 18px; }
+    .app-title { font-size: 1.05em; }
+    .main { padding: 22px 16px; }
+    h1 { font-size: 1.25em; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .answer-input { width: 130px; font-size: 1.1em; }
+}
+@media(max-width:380px){
+  body { font-size:13px; }
+  .app { padding:0 6px; }
+  .app-header { padding:8px 10px; }
+  .app-title { font-size:1rem; }
+  .mc { padding:10px; }
+  .mc-t { font-size:0.9rem; }
+  .mc-d { font-size:0.82rem; }
+  .main { padding:8px; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size:0.82rem; padding:7px 12px; }
+  .controls { flex-wrap:wrap; gap:6px; }
+  .choice-btn { font-size:0.85rem; padding:8px; }
+  .choice-grid { gap:6px; }
+  .q-prompt { font-size:0.9rem; }
+  .step-block { padding:8px; }
+  .step-tag { font-size:0.75rem; }
+  .fb { font-size:0.85rem; padding:8px; }
+  .formula-remind { font-size:0.85rem; padding:8px; overflow-x:auto; }
+  .ctx-card { padding:8px; font-size:0.85rem; }
+  .answer-input { font-size:0.9rem; }
+}
+.katex-display, .katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+svg[viewBox] { max-width:100%; height:auto; }
+.mc, .screen, .step-block { overflow-wrap:break-word; word-break:break-word; }
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:linear-gradient(135deg,#0369a1,#1a6fa0);color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(3,105,161,0.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease,box-shadow 0.2s ease;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(3,105,161,0.5);}
+
+/* ===== RESPONSIVE RENFORCÉ ===== */
+@media(max-width:768px){
+  body { padding: 12px 8px 50px; }
+  .app { padding: 0 6px; }
+  .app-header { padding: 12px 16px; border-radius: 12px 12px 0 0; }
+  .app-title { font-size: 1rem; }
+  .main { padding: 16px 14px; }
+  h1 { font-size: 1.2em; }
+  .menu-grid { grid-template-columns: 1fr; }
+  .mc { padding: 12px; }
+  .controls { flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size: 0.84rem; padding: 8px 14px; }
+  .expr-line { font-size: 1.25em; }
+  .term-input { width: 78px; font-size: 1em; }
+  .id-btn { min-width: 120px; font-size: 0.76em; }
+  .var-btn { min-width: 110px; padding: 10px 12px; }
+  .memo-wrap { grid-template-columns: 1fr; }
+  .build-input { width: 50px; }
+  .step-block { padding: 10px; }
+  .fb { font-size: 0.88rem; }
+}
+@media(max-width:480px){
+  body { padding: 8px 4px 40px; }
+  .app { padding: 0 2px; }
+  .app-header { padding: 10px 12px; }
+  .app-title { font-size: 0.92rem; }
+  .main { padding: 12px 10px; }
+  h1 { font-size: 1.1em; }
+  .expr-line { font-size: 1.1em; }
+  .term-input { width: 66px; font-size: 0.92em; }
+  .id-btn { min-width: 100px; }
+  .var-btn { min-width: 90px; padding: 8px 10px; font-size: 0.78em; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size: 0.8rem; padding: 7px 11px; }
+  .mc-t { font-size: 0.9rem; }
+}
+@media(max-width:360px){
+  .app-title { font-size: 0.85rem; }
+  .btn, .btn-blue, .btn-ghost, .btn-green { font-size: 0.76rem; padding: 6px 9px; }
+  .expr-line { font-size: 1rem; }
+  .term-input { width: 56px; }
+}
+svg[viewBox] { max-width:100%; height:auto; }
+table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
+.katex-display,.katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+.mc,.screen,.step-block,.mc-t { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="app-header">
+        <div class="app-title">Statistiques à deux variables — Première</div>
+        <div class="app-header-bar"></div>
+    </div>
+    <div class="main">
+
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>Choisis un thème</h1>
+            <p class="sub">Six exerciseurs pour maîtriser le nuage de points, le point moyen et la droite d'ajustement affine : lecture graphique, calculs et interprétation.</p>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+
+        <!-- EXERCISE -->
+        <div id="screen-ex" class="screen">
+            <div class="ex-top">
+                <span class="ex-badge" id="exBadge">Thème</span>
+                <span class="ex-score" id="exScore">Question 1/8</span>
+            </div>
+            <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+            <div id="exBody"></div>
+            <div class="fb" id="fb"></div>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu">← Menu</button>
+                <button class="btn btn-blue" id="btnCheck">Vérifier</button>
+                <button class="btn btn-green" id="btnNext" style="display:none">Suivant →</button>
+                <button class="btn btn-ghost" id="btnSkip" style="display:none">Passer →</button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="screen-res" class="screen">
+            <h1>Résultats</h1>
+            <div class="rc" id="rc"><div class="rp" id="rp">0%</div></div>
+            <p class="rm" id="rm"></p>
+            <div class="controls">
+                <button class="btn btn-ghost" id="btnMenu2">← Menu</button>
+                <button class="btn btn-blue" id="btnRetry">Recommencer</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   CONFIG NIVEAUX
+   ========================================================== */
+const LEVELS = [
+    { id: 'pointMoyen',    icon: '🎯', title: 'Calculer le point moyen',            desc: 'Calculer les coordonnées du point moyen G d\'un nuage de points', n: 10 },
+    { id: 'lireNuage',     icon: '📊', title: 'Lire un nuage de points',            desc: 'Lire des coordonnées sur un graphique et repérer la tendance', n: 10 },
+    { id: 'droiteAjust',   icon: '📐', title: 'Équation de la droite d\'ajustement', desc: 'Calculer a et b à partir de deux points de la droite', n: 8 },
+    { id: 'interExtra',    icon: '🔍', title: 'Interpoler ou extrapoler',           desc: 'Estimer une valeur avec la droite d\'ajustement et juger sa fiabilité', n: 8 },
+    { id: 'tendance',      icon: '📈', title: 'Repérer la tendance d\'un nuage',     desc: 'Décider si un nuage de points semble croissant, décroissant, ou sans tendance', n: 8 },
+    { id: 'correlCausal',  icon: '🔗', title: 'Corrélation et causalité',           desc: 'Distinguer un lien de cause à effet d\'une simple corrélation', n: 6 },
+    { id: 'qualitatif',    icon: '🏷️', title: 'Tableaux croisés qualitatifs',       desc: 'Compléter un tableau croisé et calculer une fréquence (globale, en ligne ou en colonne)', n: 10 },
+];
+
+let state = { levelId: null, qIndex: 0, total: 0, score: 0, questions: [], checked: false, attempts: 0 };
+
+/* ==========================================================
+   UTILS
+   ========================================================== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function rndArr(arr) { return arr[rnd(0, arr.length - 1)]; }
+
+function normNum(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim().replace(',', '.').replace(/\s+/g, '');
+    if (s === '') return null;
+    s = s.replace(/\u2212/g, '-');
+    const fracMatch = s.match(/^(-?\d+(?:\.\d+)?)[\/÷](-?\d+(?:\.\d+)?)$/);
+    if (fracMatch) {
+        const num = parseFloat(fracMatch[1]);
+        const den = parseFloat(fracMatch[2]);
+        if (den === 0) return null;
+        return num / den;
+    }
+    const v = parseFloat(s);
+    return isNaN(v) ? null : v;
+}
+
+// Évalue un calcul écrit par l'élève (ex : "-28-(-22)", "6-4", "5×3") :
+// accepte n'importe quelle expression mathématiquement correcte, pas seulement
+// un nombre déjà calculé.
+function evalExpr(str) {
+    if (str === null || str === undefined) return null;
+    let s = String(str).trim();
+    if (s === '') return null;
+    s = s.replace(/,/g, '.').replace(/×/g, '*').replace(/÷/g, '/').replace(/\u2212/g, '-').replace(/\s+/g, '');
+    if (!/^[0-9+\-*/().]+$/.test(s)) return null;
+    try {
+        const v = Function('"use strict"; return (' + s + ')')();
+        return isFinite(v) ? v : null;
+    } catch (e) { return null; }
+}
+
+// Génère un encart "rappel" masqué par défaut, révélé au survol (souris) ou au toucher (mobile).
+function remindHTML(html) {
+    return `<div class="formula-remind"><span class="remind-label">💡 Rappel <span class="remind-hint">(survole ou appuie ici)</span></span><div class="remind-content">${html}</div></div>`;
+}
+
+function close(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
+
+function fmt(x) {
+    const r = Math.round(x * 100) / 100;
+    return r % 1 === 0 ? String(r) : String(r).replace('.', ',');
+}
+
+function fmtLatex(x) {
+    return fmt(x).replace('-', '-');
+}
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildMenu() {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const el = document.createElement('div');
+        el.className = 'mc';
+        el.innerHTML = `
+            ${lv.badge ? `<div class="mc-badge">${lv.badge}</div>` : ''}
+            <div class="mc-icon">${lv.icon}</div>
+            <div class="mc-t">${lv.title}</div>
+            <div class="mc-d">${lv.desc}</div>
+        `;
+        el.addEventListener('click', () => startLevel(lv.id));
+        grid.appendChild(el);
+    });
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnMenu2').addEventListener('click', () => showScreen('screen-menu'));
+document.getElementById('btnRetry').addEventListener('click', () => startLevel(state.levelId));
+
+buildMenu();
+
+function renderKatex(el) {
+    if (window.renderMathInElement) {
+        renderMathInElement(el || document.body, {
+            delimiters: [
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false
+        });
+    }
+}
+
+/* ==========================================================
+   MOTEUR GÉNÉRIQUE
+   ========================================================== */
+const GENERATORS = {};
+const RENDERERS  = {};
+const CHECKERS   = {};
+
+function startLevel(levelId) {
+    const lv = LEVELS.find(l => l.id === levelId);
+    state.levelId = levelId;
+    state.qIndex  = 0;
+    state.score   = 0;
+    state.total   = lv.n;
+    state.questions = [];
+    for (let i = 0; i < lv.n; i++) state.questions.push(GENERATORS[levelId]());
+    document.getElementById('exBadge').textContent = lv.title;
+    showScreen('screen-ex');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    state.checked  = false;
+    state.attempts = 0;
+    document.getElementById('exScore').textContent = `Question ${state.qIndex + 1}/${state.total}`;
+    document.getElementById('pfill').style.width = (state.qIndex / state.total * 100) + '%';
+    const body = document.getElementById('exBody');
+    body.innerHTML = '';
+    const fb = document.getElementById('fb');
+    fb.className = 'fb'; fb.textContent = '';
+    document.getElementById('btnCheck').style.display = '';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnNext').style.display = 'none';
+    document.getElementById('btnSkip').style.display  = 'none';
+    RENDERERS[state.levelId](state.questions[state.qIndex], body);
+    renderKatex(body);
+}
+
+document.getElementById('btnCheck').addEventListener('click', () => {
+    if (state.checked) return;
+    const q = state.questions[state.qIndex];
+    const result = CHECKERS[state.levelId](q);
+    const fb      = document.getElementById('fb');
+    const btnCheck = document.getElementById('btnCheck');
+    const btnNext  = document.getElementById('btnNext');
+    const btnSkip  = document.getElementById('btnSkip');
+
+    if (result.ok) {
+        fb.className = 'fb ok';
+        fb.innerHTML = '✓ ' + (result.msg || 'Exact, bien joué !');
+        renderKatex(fb);
+        if (result.advanceOnly) {
+            // Étape intermédiaire validée : effacer le feedback, garder "Vérifier"
+            setTimeout(() => { fb.className = 'fb'; fb.textContent = ''; }, 1600);
+            btnNext.style.display = 'none';
+            btnSkip.style.display = 'none';
+            return;
+        }
+        // Bonne réponse finale
+        state.checked = true;
+        state.score++;
+        btnCheck.style.display = 'none';
+        btnSkip.style.display  = 'none';
+        btnNext.style.display  = '';
+    } else {
+        // Mauvaise réponse : on laisse "Vérifier" actif pour corriger
+        // et on propose "Passer" pour continuer sans point
+        fb.className = 'fb bad';
+        fb.innerHTML = '✗ ' + (result.msg || "Ce n\'est pas encore ça, réessaie.");
+        renderKatex(fb);
+        btnNext.style.display = 'none';   // pas de Suivant direct
+        btnSkip.style.display = '';        // "Passer" disponible
+    }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.getElementById('btnSkip').addEventListener('click', () => {
+    // L'élève passe sans avoir eu la bonne réponse (pas de point)
+    state.qIndex++;
+    if (state.qIndex >= state.total) showResults();
+    else renderQuestion();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const exScreen = document.getElementById('screen-ex');
+    if (!exScreen.classList.contains('active')) return;
+    e.preventDefault();
+    const btnNext  = document.getElementById('btnNext');
+    const btnCheck = document.getElementById('btnCheck');
+    if (btnNext.style.display !== 'none' && btnNext.offsetParent) btnNext.click();
+    else if (btnCheck.style.display !== 'none' && !btnCheck.disabled) btnCheck.click();
+});
+
+function showResults() {
+    document.getElementById('pfill').style.width = '100%';
+    const pct = Math.round(state.score / state.total * 100);
+    const rc = document.getElementById('rc');
+    rc.className = 'rc ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+    document.getElementById('rp').textContent = pct + '%';
+    let msg;
+    if (pct >= 80) msg = `Excellent ! ${state.score}/${state.total} bonnes réponses. Tu maîtrises ce thème.`;
+    else if (pct >= 50) msg = `${state.score}/${state.total} bonnes réponses. C'est en bonne voie, encore un peu d'entraînement !`;
+    else msg = `${state.score}/${state.total} bonnes réponses. Reprends la leçon et réessaie, tu vas progresser.`;
+    document.getElementById('rm').textContent = msg;
+    showScreen('screen-res');
+}
+
+/* ==========================================================
+   CALCULATRICE INTÉGRÉE
+   ========================================================== */
+function calcHTML(id) {
+    return `
+    <button class="calc-toggle" id="calc-toggle-${id}" onclick="toggleCalc('${id}')">🔢 Afficher la calculatrice</button>
+    <div class="calc-container" id="calc-${id}">
+        <div class="calc-wrap">
+            <div class="calc-display" id="calc-disp-${id}">
+                <div class="calc-expr" id="calc-expr-${id}"></div>
+                <div id="calc-val-${id}">0</div>
+            </div>
+            <div class="calc-grid">
+                <button class="calc-btn calc-clear" onclick="cCalc('${id}','C')">C</button>
+                <button class="calc-btn calc-back"  onclick="cCalc('${id}','⌫')">⌫</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','(')">( )</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','/')">÷</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','7')">7</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','8')">8</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','9')">9</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','×')">×</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','4')">4</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','5')">5</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','6')">6</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','-')">−</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','1')">1</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','2')">2</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}','3')">3</button>
+                <button class="calc-btn calc-op"    onclick="cCalc('${id}','+')">+</button>
+                <button class="calc-btn calc-num calc-zero" onclick="cCalc('${id}','0')">0</button>
+                <button class="calc-btn calc-num"   onclick="cCalc('${id}',',')">.</button>
+                <button class="calc-btn calc-eq"    onclick="cCalc('${id}','=')">＝</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+const calcState = {};
+
+function toggleCalc(id) {
+    const c = document.getElementById('calc-' + id);
+    const btn = document.getElementById('calc-toggle-' + id);
+    const visible = c.classList.toggle('visible');
+    btn.textContent = visible ? '🔢 Masquer la calculatrice' : '🔢 Afficher la calculatrice';
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+}
+
+function cCalc(id, key) {
+    if (!calcState[id]) calcState[id] = { expr: '', result: '0', fresh: true };
+    const s = calcState[id];
+    const disp = document.getElementById('calc-val-' + id);
+    const exprEl = document.getElementById('calc-expr-' + id);
+
+    if (key === 'C') { s.expr = ''; s.result = '0'; s.fresh = true; }
+    else if (key === '⌫') {
+        if (s.fresh) { s.expr = ''; s.result = '0'; s.fresh = false; return; }
+        s.expr = s.expr.slice(0, -1);
+        if (!s.expr) { s.result = '0'; }
+    }
+    else if (key === '=') {
+        try {
+            let e = s.expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,/g, '.');
+            const v = Function('"use strict"; return (' + e + ')')();
+            s.result = isFinite(v) ? String(Math.round(v * 10000) / 10000).replace('.', ',') : 'Erreur';
+            exprEl.textContent = s.expr + ' =';
+            s.expr = s.result.replace(',', '.');
+            s.fresh = true;
+        } catch { s.result = 'Erreur'; }
+    }
+    else if (['+', '-', '×', '÷'].includes(key)) {
+        if (s.fresh) { s.fresh = false; }
+        s.expr += key;
+        s.result = s.expr;
+    }
+    else if (key === '( )') {
+        const opens = (s.expr.match(/\(/g) || []).length;
+        const closes = (s.expr.match(/\)/g) || []).length;
+        s.expr += (opens > closes) ? ')' : '(';
+        s.result = s.expr;
+    }
+    else {
+        if (s.fresh) { s.expr = key; s.fresh = false; }
+        else s.expr += key;
+        s.result = s.expr;
+    }
+    disp.textContent = s.result;
+    if (!s.fresh) exprEl.textContent = s.expr;
+}
+
+function lockStep(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('locked');
+    const tag = el.querySelector('.step-tag');
+    if (tag) tag.classList.add('locked-tag');
+    el.querySelectorAll('input').forEach(i => i.disabled = true);
+}
+
+/* ==========================================================
+   OUTIL SVG — nuage de points sur quadrillage
+   ========================================================== */
+const X_GRID = [10, 15, 20, 25, 30, 35, 40];
+const Y_GRID = [0, 10, 20, 30, 40, 50, 60];
+
+function buildScatterSVG(xVals, yVals, highlightIdx) {
+    const W = 420, H = 320;
+    const padL = 55, padR = 25, padT = 20, padB = 45;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    const cx = v => padL + (v - X_GRID[0]) / (X_GRID[X_GRID.length - 1] - X_GRID[0]) * plotW;
+    const cy = v => padT + plotH - (v - Y_GRID[0]) / (Y_GRID[Y_GRID.length - 1] - Y_GRID[0]) * plotH;
+
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+        style="max-width:100%;height:auto;background:#fafafa;border-radius:12px;border:1.5px solid #cbd5e1;display:block;margin:0 auto;">`;
+
+    // Quadrillage
+    X_GRID.forEach(v => { const x = cx(v); s += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${H - padB}" stroke="#e5e7eb" stroke-width="0.8"/>`; });
+    Y_GRID.forEach(v => { const y = cy(v); s += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#e5e7eb" stroke-width="0.8"/>`; });
+
+    // Axes
+    s += `<line x1="${padL - 6}" y1="${H - padB}" x2="${W - padR + 4}" y2="${H - padB}" stroke="#374151" stroke-width="1.8"/>`;
+    s += `<polygon points="${W-padR+4},${H-padB} ${W-padR-4},${H-padB-4} ${W-padR-4},${H-padB+4}" fill="#374151"/>`;
+    s += `<line x1="${padL}" y1="${H - padB + 6}" x2="${padL}" y2="${padT - 4}" stroke="#374151" stroke-width="1.8"/>`;
+    s += `<polygon points="${padL},${padT-4} ${padL-4},${padT+6} ${padL+4},${padT+6}" fill="#374151"/>`;
+
+    // Graduations
+    X_GRID.forEach(v => { const x = cx(v); s += `<text x="${x}" y="${H - padB + 18}" text-anchor="middle" font-size="11" fill="#374151" font-family="Georgia,serif" font-style="italic">${v}</text>`; });
+    Y_GRID.forEach(v => { const y = cy(v); s += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#374151" font-family="Georgia,serif" font-style="italic">${v}</text>`; });
+
+    // Points
+    xVals.forEach((xv, i) => {
+        const yv = yVals[i];
+        const px = cx(xv), py = cy(yv);
+        if (i === highlightIdx) {
+            s += `<line x1="${padL}" y1="${py}" x2="${px}" y2="${py}" stroke="#94a3b8" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+            s += `<line x1="${px}" y1="${H-padB}" x2="${px}" y2="${py}" stroke="#94a3b8" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+            s += `<circle cx="${px}" cy="${py}" r="7.5" fill="#c0392b" stroke="white" stroke-width="2.5"/>`;
+        } else {
+            s += `<circle cx="${px}" cy="${py}" r="6" fill="#0369a1" stroke="white" stroke-width="2" opacity="0.85"/>`;
+        }
+    });
+
+    s += `</svg>`;
+    return s;
+}
+
+/* ==========================================================
+   NIVEAU 1 : CALCULER LE POINT MOYEN
+   ========================================================== */
+
+const CONTEXTES_PM = [
+    { intro: "Un vendeur de glaces relève, sur plusieurs jours, la température (°C) et le nombre de glaces vendues (dizaines) :", xLab: 'x_i', yLab: 'y_i' },
+    { intro: "Pour plusieurs élèves, on relève le nombre d'heures de révision et la note obtenue sur 20 :", xLab: 'x_i', yLab: 'y_i' },
+    { intro: "On mesure, pour plusieurs plants, la dose d'engrais (g) reçue et la hauteur atteinte (cm) :", xLab: 'x_i', yLab: 'y_i' },
+    { intro: "Une entreprise relève le budget publicité (en k€) et le chiffre d'affaires (en k€) sur plusieurs mois :", xLab: 'x_i', yLab: 'y_i' },
+    { intro: "On relève, pour plusieurs trajets, la distance parcourue (km) et le temps de trajet (min) :", xLab: 'x_i', yLab: 'y_i' },
+    { intro: null, xLab: 'x_i', yLab: 'y_i' },
+];
+
+// Jeux d'écarts qui se compensent exactement (somme nulle) pour garantir
+// une moyenne entière, calculable de tête, quelle que soit la valeur centrale choisie.
+const DEV_SETS_4 = [[-6, -2, 2, 6], [-4, -2, 2, 4], [-3, -1, 1, 3], [-5, -1, 1, 5], [-2, -1, 1, 2]];
+const DEV_SETS_5 = [[-4, -2, 0, 2, 4], [-6, -3, 0, 3, 6], [-2, -1, 0, 1, 2], [-8, -4, 0, 4, 8]];
+
+GENERATORS.pointMoyen = function () {
+    const n = rndArr([4, 5]);
+    const devSet = n === 4 ? rndArr(DEV_SETS_4) : rndArr(DEV_SETS_5);
+    const devSet2 = n === 4 ? rndArr(DEV_SETS_4) : rndArr(DEV_SETS_5);
+
+    const xbar = rnd(3, 6) * 5;      // multiple de 5, facile à manier : 15, 20, 25, 30
+    const ybar = rnd(2, 9) * 5;      // multiple de 5 également
+
+    const xVals = devSet.map(d => xbar + d);
+    const yVals = devSet2.map(d => ybar + d);
+
+    const ctx = rndArr(CONTEXTES_PM);
+    return { n, xVals, yVals, xbar, ybar, ctx };
+};
+
+RENDERERS.pointMoyen = function (q, box) {
+    const xCells = q.xVals.map(v => `<td class="given">${fmt(v)}</td>`).join('');
+    const yCells = q.yVals.map(v => `<td class="given">${fmt(v)}</td>`).join('');
+    box.innerHTML = `
+        ${remindHTML("Rappel : \\(\\bar x = \\dfrac{x_1+x_2+\\dots+x_n}{n}\\) &nbsp;&nbsp; \\(\\bar y = \\dfrac{y_1+y_2+\\dots+y_n}{n}\\)")}
+        ${q.ctx.intro ? `<div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx.intro}</div>` : `<div class="q-prompt" style="margin-bottom:10px;">On considère la série de points suivante :</div>`}
+        <div class="suite-table-wrap">
+          <table class="suite-table">
+            <tbody>
+              <tr><th>\\(x_i\\)</th>${xCells}</tr>
+              <tr><th>\\(y_i\\)</th>${yCells}</tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="q-prompt" style="margin-top:16px;">Calcule les coordonnées du point moyen \\(G(\\bar x\\,;\\,\\bar y)\\).</div>
+        <div class="row-inputs">
+            <span class="row-label">\\(\\bar x\\) =</span>
+            <input type="text" class="answer-input narrow" id="ansX" placeholder="…" inputmode="decimal">
+            <span class="row-label">\\(\\bar y\\) =</span>
+            <input type="text" class="answer-input narrow" id="ansY" placeholder="…" inputmode="decimal">
+        </div>
+        ${calcHTML('pm')}`;
+    setTimeout(() => document.getElementById('ansX')?.focus(), 50);
+};
+
+CHECKERS.pointMoyen = function (q) {
+    const inpX = document.getElementById('ansX');
+    const inpY = document.getElementById('ansY');
+    const vX = normNum(inpX.value);
+    const vY = normNum(inpY.value);
+    inpX.classList.remove('ok', 'err');
+    inpY.classList.remove('ok', 'err');
+    const okX = vX !== null && close(vX, q.xbar, 0.05);
+    const okY = vY !== null && close(vY, q.ybar, 0.05);
+    inpX.classList.add(okX ? 'ok' : 'err');
+    inpY.classList.add(okY ? 'ok' : 'err');
+    const sumX = q.xVals.map(fmt).join('+');
+    const sumY = q.yVals.map(fmt).join('+');
+    if (okX && okY) {
+        return { ok: true, msg: `Parfait ! \\(G(${fmt(q.xbar)}\\,;\\,${fmt(q.ybar)})\\).` };
+    }
+    return { ok: false, msg: `\\(\\bar x = \\dfrac{${sumX}}{${q.n}} = ${fmt(q.xbar)}\\) et \\(\\bar y = \\dfrac{${sumY}}{${q.n}} = ${fmt(q.ybar)}\\), donc \\(G(${fmt(q.xbar)}\\,;\\,${fmt(q.ybar)})\\).` };
+};
+
+/* ==========================================================
+   NIVEAU 2 : LIRE UN NUAGE DE POINTS
+   ========================================================== */
+
+GENERATORS.lireNuage = function () {
+    const base = rndArr([10, 15, 20]);
+    const xVals = [0, 1, 2, 3, 4].map(i => base + i * 5);
+    const trendType = rndArr(['croissante', 'croissante', 'décroissante', 'décroissante', 'aucune']);
+    const yVals = [];
+    let yBase = rnd(1, 4) * 10;
+    for (let i = 0; i < 5; i++) {
+        let v;
+        if (trendType === 'croissante') v = yBase + i * rnd(6, 12) + rndArr([-5, 0, 5]);
+        else if (trendType === 'décroissante') v = yBase - i * rnd(6, 12) + rndArr([-5, 0, 5]);
+        else v = rnd(0, 60);
+        v = Math.round(v / 5) * 5;
+        v = Math.max(0, Math.min(60, v));
+        yVals.push(v);
+    }
+    const mode = Math.random() < 0.55 ? 'coord' : 'trend';
+    const highlightIdx = mode === 'coord' ? rnd(0, 4) : null;
+    return { xVals, yVals, trendType, mode, highlightIdx };
+};
+
+RENDERERS.lireNuage = function (q, box) {
+    const svg = buildScatterSVG(q.xVals, q.yVals, q.highlightIdx);
+    let questionHtml = '';
+    if (q.mode === 'coord') {
+        questionHtml = `
+            <div class="q-prompt">D'après le graphique, quelles sont les coordonnées du point <span style="color:#c0392b;font-weight:700;">rouge</span> ?</div>
+            <div class="row-inputs">
+                <span class="row-label">\\(x\\) =</span>
+                <input type="text" class="answer-input narrow" id="ansX" placeholder="…" inputmode="decimal">
+                <span class="row-label">\\(y\\) =</span>
+                <input type="text" class="answer-input narrow" id="ansY" placeholder="…" inputmode="decimal">
+            </div>`;
+    } else {
+        questionHtml = `
+            <div class="q-prompt">En observant ce nuage de points, quelle semble être la tendance générale ?</div>
+            <div class="choice-grid">
+                <button class="choice-btn" data-val="croissante">↗ Croissante</button>
+                <button class="choice-btn" data-val="décroissante">↘ Décroissante</button>
+                <button class="choice-btn" data-val="aucune">✕ Pas de tendance claire</button>
+            </div>`;
+    }
+    box.innerHTML = `
+        ${remindHTML("Chaque point a pour coordonnées \\((x_i\\,;\\,y_i)\\). Utilise le quadrillage pour lire les valeurs.")}
+        <div class="graph-center">${svg}</div>
+        ${questionHtml}`;
+    box._choice = null;
+    if (q.mode === 'coord') {
+        setTimeout(() => document.getElementById('ansX')?.focus(), 50);
+    } else {
+        box.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+                btn.classList.add('chosen');
+                box._choice = btn.dataset.val;
+            });
+        });
+    }
+};
+
+CHECKERS.lireNuage = function (q) {
+    const box = document.getElementById('exBody');
+    if (q.mode === 'coord') {
+        const inpX = document.getElementById('ansX');
+        const inpY = document.getElementById('ansY');
+        const vX = normNum(inpX.value);
+        const vY = normNum(inpY.value);
+        inpX.classList.remove('ok', 'err');
+        inpY.classList.remove('ok', 'err');
+        const expX = q.xVals[q.highlightIdx];
+        const expY = q.yVals[q.highlightIdx];
+        const okX = vX !== null && close(vX, expX, 0.5);
+        const okY = vY !== null && close(vY, expY, 0.5);
+        inpX.classList.add(okX ? 'ok' : 'err');
+        inpY.classList.add(okY ? 'ok' : 'err');
+        if (okX && okY) return { ok: true, msg: `Exact ! Le point rouge a pour coordonnées \\((${fmt(expX)}\\,;\\,${fmt(expY)})\\).` };
+        return { ok: false, msg: `Le point rouge est à l'intersection \\(x = ${fmt(expX)}\\) et \\(y = ${fmt(expY)}\\), donc \\((${fmt(expX)}\\,;\\,${fmt(expY)})\\).` };
+    }
+    if (!box._choice) return { ok: false, msg: 'Choisis une réponse !' };
+    box.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('ok', 'err');
+        if (b.dataset.val === q.trendType) b.classList.add('ok');
+        else if (b.dataset.val === box._choice) b.classList.add('err');
+    });
+    const ok = box._choice === q.trendType;
+    const phrase = q.trendType === 'croissante' ? 'les points montent globalement de gauche à droite : la tendance est croissante.'
+        : q.trendType === 'décroissante' ? 'les points descendent globalement de gauche à droite : la tendance est décroissante.'
+        : 'les points sont dispersés sans direction claire : il n\'y a pas de tendance nette.';
+    if (ok) return { ok: true, msg: `Exact ! En observant le nuage, ${phrase}` };
+    return { ok: false, msg: `En observant le nuage, ${phrase}` };
+};
+
+/* ==========================================================
+   NIVEAU 3 : ÉQUATION DE LA DROITE D'AJUSTEMENT
+   ========================================================== */
+
+GENERATORS.droiteAjust = function () {
+    const aPool = [-4, -3, -2, -1, 1, 2, 3, 4];
+    const bPool = [-10, -8, -5, -4, -2, 0, 2, 4, 5, 8, 10];
+    const a = rndArr(aPool);
+    const b = rndArr(bPool);
+    const x1 = rnd(0, 8);
+    const dx = rndArr([2, 3, 4, 5, 6]);
+    const x2 = x1 + dx;
+    const y1 = a * x1 + b;
+    const y2 = a * x2 + b;
+    return { a, b, x1, y1, x2, y2, num: y2 - y1, den: x2 - x1 };
+};
+
+RENDERERS.droiteAjust = function (q, box) {
+    box.innerHTML = `
+        ${remindHTML("\\(a = \\dfrac{y_2-y_1}{x_2-x_1}\\) puis on injecte un point dans \\(y = ax+b\\) pour trouver \\(b\\).")}
+        <div class="ctx-card">
+            <span class="ctx-label">📝 Données</span>
+            Une droite d'ajustement affine passe par les points \\(A(${fmtLatex(q.x1)}\\,;\\,${fmtLatex(q.y1)})\\) et \\(B(${fmtLatex(q.x2)}\\,;\\,${fmtLatex(q.y2)})\\).
+        </div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Écris le calcul de \\(a\\)</div>
+            <div class="q-prompt" style="font-size:0.95em;margin-bottom:8px;">Remplace \\(x_1,y_1,x_2,y_2\\) par leurs valeurs dans \\(a = \\dfrac{y_2-y_1}{x_2-x_1}\\) :</div>
+            <div class="row-inputs">
+                <span class="row-label">\\(a =\\)</span>
+                <span class="frac-wrap">
+                    <input type="text" class="answer-input narrow" id="ansNumExpr" placeholder="ex : 5-2" inputmode="text">
+                    <div class="frac-bar"></div>
+                    <input type="text" class="answer-input narrow" id="ansDenExpr" placeholder="ex : 3-1" inputmode="text">
+                </span>
+            </div>
+        </div>`;
+    setTimeout(() => document.getElementById('ansNumExpr')?.focus(), 50);
+};
+
+CHECKERS.droiteAjust = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    // Étape 1 : écrire le calcul (expression substituée, forme libre)
+    if (stepsDone === 0) {
+        const inpN = document.getElementById('ansNumExpr');
+        const inpD = document.getElementById('ansDenExpr');
+        const vN = evalExpr(inpN.value);
+        const vD = evalExpr(inpD.value);
+        inpN.classList.remove('ok', 'err');
+        inpD.classList.remove('ok', 'err');
+        const okN = vN !== null && close(vN, q.num, 0.005);
+        const okD = vD !== null && close(vD, q.den, 0.005);
+        inpN.classList.add(okN ? 'ok' : 'err');
+        inpD.classList.add(okD ? 'ok' : 'err');
+        if (okN && okD) {
+            lockStep('step0');
+            const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+            div.innerHTML = `
+                <div class="step-tag">Étape 2 · Calcule le numérateur et le dénominateur</div>
+                <div class="row-inputs">
+                    <span class="row-label">Numérateur =</span>
+                    <input type="text" class="answer-input narrow" id="ansNumVal" placeholder="…" inputmode="decimal">
+                    <span class="row-label">Dénominateur =</span>
+                    <input type="text" class="answer-input narrow" id="ansDenVal" placeholder="…" inputmode="decimal">
+                </div>`;
+            box.appendChild(div);
+            renderKatex(div);
+            setTimeout(() => document.getElementById('ansNumVal')?.focus(), 50);
+            return { ok: true, msg: `Calcul correctement posé ! Termine maintenant chaque calcul.`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Numérateur attendu : \\(y_2 - y_1 = ${fmtLatex(q.y2)} - (${fmtLatex(q.y1)})\\). Dénominateur attendu : \\(x_2 - x_1 = ${fmtLatex(q.x2)} - ${fmtLatex(q.x1)}\\).` };
+    }
+
+    // Étape 2 : résultat du numérateur et du dénominateur
+    if (stepsDone === 1) {
+        const inpN = document.getElementById('ansNumVal');
+        const inpD = document.getElementById('ansDenVal');
+        const vN = evalExpr(inpN.value);
+        const vD = evalExpr(inpD.value);
+        inpN.classList.remove('ok', 'err');
+        inpD.classList.remove('ok', 'err');
+        const okN = vN !== null && close(vN, q.num, 0.005);
+        const okD = vD !== null && close(vD, q.den, 0.005);
+        inpN.classList.add(okN ? 'ok' : 'err');
+        inpD.classList.add(okD ? 'ok' : 'err');
+        if (okN && okD) {
+            lockStep('step1');
+            const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step2';
+            div.innerHTML = `
+                <div class="step-tag">Étape 3 · Calcule \\(a\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">\\(a = \\dfrac{${fmtLatex(q.num)}}{${fmtLatex(q.den)}} =\\)</span>
+                    <input type="text" class="answer-input narrow" id="ansA" placeholder="…" inputmode="decimal">
+                </div>`;
+            box.appendChild(div);
+            renderKatex(div);
+            setTimeout(() => document.getElementById('ansA')?.focus(), 50);
+            return { ok: true, msg: `\\(y_2-y_1 = ${fmt(q.num)}\\) et \\(x_2-x_1 = ${fmt(q.den)}\\). Termine en calculant \\(a\\) !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(y_2 - y_1 = ${fmtLatex(q.y2)} - (${fmtLatex(q.y1)}) = \\mathbf{${fmt(q.num)}}\\) et \\(x_2 - x_1 = ${fmtLatex(q.x2)} - ${fmtLatex(q.x1)} = \\mathbf{${fmt(q.den)}}\\).` };
+    }
+
+    // Étape 3 : calcul de a
+    if (stepsDone === 2) {
+        const inp = document.getElementById('ansA');
+        const v = evalExpr(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && close(v, q.a, 0.005);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStep('step2');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.appendChild(hr);
+            const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step3';
+            div.innerHTML = `
+                <div class="step-tag">Étape 4 · Ordonnée à l'origine \\(b\\)</div>
+                <div class="row-inputs">
+                    <span class="row-label">\\(b\\) =</span>
+                    <input type="text" class="answer-input narrow" id="ansB" placeholder="…" inputmode="decimal">
+                </div>`;
+            box.appendChild(div);
+            renderKatex(div);
+            setTimeout(() => document.getElementById('ansB')?.focus(), 50);
+            return { ok: true, msg: `\\(a = \\dfrac{${fmtLatex(q.num)}}{${fmtLatex(q.den)}} = ${fmt(q.a)}\\). Maintenant trouve \\(b\\) !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(a = \\dfrac{${fmtLatex(q.num)}}{${fmtLatex(q.den)}} = \\mathbf{${fmt(q.a)}}\\).` };
+    }
+
+    // Étape 4 : calcul de b (finale)
+    const inp = document.getElementById('ansB');
+    const v = evalExpr(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(v, q.b, 0.005);
+    inp.classList.add(ok ? 'ok' : 'err');
+    const bSign = q.b >= 0 ? `+ ${fmtLatex(q.b)}` : `- ${fmtLatex(Math.abs(q.b))}`;
+    if (ok) return { ok: true, msg: `Parfait ! La droite d'ajustement a pour équation \\(y = ${fmt(q.a)}x ${bSign}\\).` };
+    return { ok: false, msg: `On injecte \\(A(${fmtLatex(q.x1)}\\,;\\,${fmtLatex(q.y1)})\\) dans \\(y = ${fmt(q.a)}x + b\\) : \\(${fmtLatex(q.y1)} = ${fmt(q.a)}\\times${fmtLatex(q.x1)} + b\\), donc \\(b = \\mathbf{${fmt(q.b)}}\\).` };
+};
+
+/* ==========================================================
+   NIVEAU 4 : INTERPOLER OU EXTRAPOLER
+   ========================================================== */
+
+GENERATORS.interExtra = function () {
+    const aPool = [-3, -2.5, -2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2, 2.5, 3];
+    const bPool = [-20, -15, -10, -5, 0, 5, 10, 15, 20];
+    const a = rndArr(aPool);
+    const b = rndArr(bPool);
+    const xmin = rndArr([5, 10, 15]);
+    const xmax = xmin + rndArr([20, 25, 30]);
+    const isInterp = Math.random() < 0.5;
+    let xTarget;
+    if (isInterp) {
+        xTarget = rnd(xmin + 2, xmax - 2);
+    } else {
+        xTarget = Math.random() < 0.5 ? rnd(xmin - 15, xmin - 3) : rnd(xmax + 3, xmax + 15);
+    }
+    const yEst = Math.round((a * xTarget + b) * 100) / 100;
+    return { a, b, xmin, xmax, xTarget, yEst, isInterp };
+};
+
+RENDERERS.interExtra = function (q, box) {
+    const bSign = q.b >= 0 ? `+ ${fmtLatex(q.b)}` : `- ${fmtLatex(Math.abs(q.b))}`;
+    box.innerHTML = `
+        ${remindHTML("Interpoler : estimer une valeur <strong>à l'intérieur</strong> de l'intervalle mesuré (plutôt fiable).<br>Extrapoler : estimer une valeur <strong>en dehors</strong> de cet intervalle (moins fiable).")}
+        <div class="ctx-card">
+            <span class="ctx-label">📝 Données</span>
+            On a mesuré des données pour \\(x\\) compris entre \\(${fmtLatex(q.xmin)}\\) et \\(${fmtLatex(q.xmax)}\\). La droite d'ajustement obtenue est \\(y = ${fmtLatex(q.a)}x ${bSign}\\).
+        </div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Estimation</div>
+            <div class="q-prompt" style="font-size:0.98em;">Estime la valeur de \\(y\\) pour \\(x = ${fmtLatex(q.xTarget)}\\).</div>
+            <div class="answer-wrap">
+                <span class="answer-unit">\\(y\\) ≈</span>
+                <input type="text" class="answer-input" id="ansY" placeholder="…" inputmode="decimal">
+            </div>
+        </div>
+        ${calcHTML('ie')}`;
+    setTimeout(() => document.getElementById('ansY')?.focus(), 50);
+};
+
+CHECKERS.interExtra = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    // Étape 1 : estimation numérique
+    if (stepsDone === 0) {
+        const inp = document.getElementById('ansY');
+        const v = normNum(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && close(v, q.yEst, Math.max(0.5, Math.abs(q.yEst) * 0.02));
+        inp.classList.add(ok ? 'ok' : 'err');
+        const bSign = q.b >= 0 ? `+ ${fmtLatex(q.b)}` : `- ${fmtLatex(Math.abs(q.b))}`;
+        if (ok) {
+            lockStep('step0');
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.insertBefore(hr, box.querySelector('.calc-toggle'));
+            const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+            div.innerHTML = `
+                <div class="step-tag">Étape 2 · Interpolation ou extrapolation ?</div>
+                <div class="q-prompt" style="font-size:0.98em;">Cette estimation est-elle une interpolation ou une extrapolation ?</div>
+                <div class="choice-grid" id="choiceIE">
+                    <button class="choice-btn" data-val="interp">Interpolation</button>
+                    <button class="choice-btn" data-val="extrap">Extrapolation</button>
+                </div>`;
+            box.insertBefore(div, box.querySelector('.calc-toggle'));
+            renderKatex(div);
+            div.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    div.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+                    btn.classList.add('chosen');
+                    box._choice = btn.dataset.val;
+                });
+            });
+            box._choice = null;
+            return { ok: true, msg: `\\(y = ${fmtLatex(q.a)}\\times${fmtLatex(q.xTarget)} ${bSign} = ${fmt(q.yEst)}\\). Maintenant précise le type d'estimation !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `\\(y = ${fmtLatex(q.a)}\\times${fmtLatex(q.xTarget)} ${bSign} = \\mathbf{${fmt(q.yEst)}}\\).` };
+    }
+
+    // Étape 2 : interpolation / extrapolation
+    if (!box._choice) return { ok: false, msg: 'Choisis « Interpolation » ou « Extrapolation ».' };
+    const div = document.getElementById('step1');
+    div.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('ok', 'err');
+        const correctVal = q.isInterp ? 'interp' : 'extrap';
+        if (b.dataset.val === correctVal) b.classList.add('ok');
+        else if (b.dataset.val === box._choice) b.classList.add('err');
+    });
+    const correctVal = q.isInterp ? 'interp' : 'extrap';
+    const ok = box._choice === correctVal;
+    const expl = q.isInterp
+        ? `\\(x = ${fmtLatex(q.xTarget)}\\) est compris entre \\(${fmtLatex(q.xmin)}\\) et \\(${fmtLatex(q.xmax)}\\) : c'est une <strong>interpolation</strong>, plutôt fiable.`
+        : `\\(x = ${fmtLatex(q.xTarget)}\\) est en dehors de l'intervalle \\([${fmtLatex(q.xmin)}\\,;\\,${fmtLatex(q.xmax)}]\\) : c'est une <strong>extrapolation</strong>, à prendre avec prudence.`;
+    if (ok) return { ok: true, msg: `Exact ! ${expl}` };
+    return { ok: false, msg: expl };
+};
+
+/* ==========================================================
+   NIVEAU 5 : REPÉRER LA TENDANCE D'UN NUAGE (tableau)
+   ========================================================== */
+
+const CONTEXTES_TEND = [
+    { intro: "Nombre d'heures d'ensoleillement et litres d'eau consommés par un jardin :" },
+    { intro: "Âge d'un véhicule (années) et sa valeur de revente (k€) :" },
+    { intro: "Nombre de clients en caisse et temps d'attente moyen (min) :" },
+    { intro: "Vitesse d'un coureur (km/h) et son rythme cardiaque (bpm) :" },
+    { intro: "Numéro de la semaine et nombre d'articles vendus dans un magasin :" },
+    { intro: null },
+];
+
+GENERATORS.tendance = function () {
+    const n = 5;
+    const xVals = [];
+    let x = rnd(0, 5);
+    for (let i = 0; i < n; i++) { xVals.push(x); x += rnd(1, 4); }
+    const trendType = rndArr(['croissante', 'croissante', 'décroissante', 'décroissante', 'aucune']);
+    const yVals = [];
+    let yBase = rnd(5, 30);
+    for (let i = 0; i < n; i++) {
+        let v;
+        if (trendType === 'croissante') v = yBase + i * rnd(3, 8) + rnd(-3, 3);
+        else if (trendType === 'décroissante') v = yBase - i * rnd(3, 8) + rnd(-3, 3);
+        else v = rnd(0, 50);
+        yVals.push(Math.max(0, Math.round(v)));
+    }
+    const ctx = rndArr(CONTEXTES_TEND);
+    return { xVals, yVals, trendType, ctx };
+};
+
+RENDERERS.tendance = function (q, box) {
+    const xCells = q.xVals.map(v => `<td class="given">${fmt(v)}</td>`).join('');
+    const yCells = q.yVals.map(v => `<td class="given">${fmt(v)}</td>`).join('');
+    box.innerHTML = `
+        ${remindHTML("Observe comment les valeurs de \\(y\\) évoluent quand \\(x\\) augmente.")}
+        ${q.ctx.intro ? `<div class="ctx-card"><span class="ctx-label">📝 Situation</span>${q.ctx.intro}</div>` : `<div class="q-prompt" style="margin-bottom:10px;">On considère la série de points suivante :</div>`}
+        <div class="suite-table-wrap">
+          <table class="suite-table">
+            <tbody>
+              <tr><th>\\(x_i\\)</th>${xCells}</tr>
+              <tr><th>\\(y_i\\)</th>${yCells}</tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="q-prompt" style="margin-top:16px;">Quelle semble être la tendance de ce nuage de points ?</div>
+        <div class="choice-grid">
+            <button class="choice-btn" data-val="croissante">↗ Croissante</button>
+            <button class="choice-btn" data-val="décroissante">↘ Décroissante</button>
+            <button class="choice-btn" data-val="aucune">✕ Pas de tendance claire</button>
+        </div>`;
+    box._choice = null;
+    box.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+            btn.classList.add('chosen');
+            box._choice = btn.dataset.val;
+        });
+    });
+};
+
+CHECKERS.tendance = function (q) {
+    const box = document.getElementById('exBody');
+    if (!box._choice) return { ok: false, msg: 'Choisis une réponse !' };
+    box.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('ok', 'err');
+        if (b.dataset.val === q.trendType) b.classList.add('ok');
+        else if (b.dataset.val === box._choice) b.classList.add('err');
+    });
+    const ok = box._choice === q.trendType;
+    const phrase = q.trendType === 'croissante' ? 'quand \\(x\\) augmente, \\(y\\) augmente globalement aussi : la tendance est croissante.'
+        : q.trendType === 'décroissante' ? 'quand \\(x\\) augmente, \\(y\\) diminue globalement : la tendance est décroissante.'
+        : 'les valeurs de \\(y\\) ne suivent pas de direction claire quand \\(x\\) augmente : il n\'y a pas de tendance nette.';
+    if (ok) return { ok: true, msg: `Exact ! En effet, ${phrase}` };
+    return { ok: false, msg: `En effet, ${phrase}` };
+};
+
+/* ==========================================================
+   NIVEAU 6 : CORRÉLATION ET CAUSALITÉ
+   ========================================================== */
+
+const SCENARIOS_CC = [
+    { text: "Les ventes de glaces et le nombre de noyades augmentent tous les deux en été.", correct: 'non', expl: "Un facteur commun — la chaleur estivale — explique les deux évolutions. Manger une glace ne provoque pas de noyade." },
+    { text: "Plus on ajoute d'engrais à une plante, plus elle grandit vite.", correct: 'oui', expl: "L'engrais apporte des nutriments qui agissent directement sur la croissance : il s'agit bien d'un lien de cause à effet." },
+    { text: "Dans les villes, le nombre de pompiers présents sur un incendie et le montant des dégâts sont souvent corrélés.", correct: 'non', expl: "Ce n'est pas le nombre de pompiers qui cause les dégâts : un facteur commun (la taille de l'incendie) explique les deux." },
+    { text: "Le nombre d'heures de révision d'un élève et sa note à un contrôle sont corrélés positivement.", correct: 'oui', expl: "Réviser davantage permet de mieux mémoriser et comprendre le cours, ce qui améliore directement la note." },
+    { text: "Les ventes de parapluies et les ventes de bottes de pluie augmentent en même temps.", correct: 'non', expl: "Un facteur commun — la pluie — explique les deux évolutions, sans que l'un ne cause l'autre." },
+    { text: "Plus la vitesse d'un véhicule est élevée, plus sa distance de freinage est grande.", correct: 'oui', expl: "C'est un principe physique direct : l'énergie cinétique à dissiper augmente avec la vitesse, ce qui allonge la distance de freinage." },
+    { text: "Dans une population d'enfants, la taille des chaussures et le niveau de lecture sont corrélés.", correct: 'non', expl: "Un facteur commun — l'âge de l'enfant — explique les deux évolutions : ce n'est pas la pointure qui influence la lecture." },
+    { text: "Le budget publicité d'une entreprise et son chiffre d'affaires évoluent souvent ensemble.", correct: 'oui', expl: "Une publicité plus intense touche davantage de clients potentiels, ce qui peut directement augmenter les ventes (même si d'autres facteurs jouent aussi)." },
+];
+
+GENERATORS.correlCausal = function () {
+    return rndArr(SCENARIOS_CC);
+};
+
+RENDERERS.correlCausal = function (q, box) {
+    box.innerHTML = `
+        ${remindHTML("Une corrélation entre deux grandeurs ne signifie pas toujours que l'une cause l'autre : un facteur commun ou une coïncidence peuvent l'expliquer.")}
+        <div class="ctx-card">
+            <span class="ctx-label">📝 Observation</span>
+            ${q.text}
+        </div>
+        <div class="q-prompt">S'agit-il d'un véritable lien de cause à effet direct ?</div>
+        <div class="choice-grid">
+            <button class="choice-btn" data-val="oui">✅ Oui, causalité directe</button>
+            <button class="choice-btn" data-val="non">❌ Non, corrélation sans causalité directe</button>
+        </div>`;
+    box._choice = null;
+    box.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            box.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+            btn.classList.add('chosen');
+            box._choice = btn.dataset.val;
+        });
+    });
+};
+
+CHECKERS.correlCausal = function (q) {
+    const box = document.getElementById('exBody');
+    if (!box._choice) return { ok: false, msg: 'Choisis une réponse !' };
+    box.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.remove('ok', 'err');
+        if (b.dataset.val === q.correct) b.classList.add('ok');
+        else if (b.dataset.val === box._choice) b.classList.add('err');
+    });
+    const ok = box._choice === q.correct;
+    if (ok) return { ok: true, msg: `Exact ! ${q.expl}` };
+    return { ok: false, msg: q.expl };
+};
+
+/* ==========================================================
+   NIVEAU 7 : TABLEAUX CROISÉS QUALITATIFS
+   ========================================================== */
+
+const CONTEXTES_QUALI = [
+    { theme: 'Un club de sport',       row1: 'Moins de 30 ans',        row2: '30 ans et plus',         col1: 'Natation',   col2: 'Fitness'    },
+    { theme: 'Une salle de cinéma',    row1: 'Moins de 18 ans',        row2: '18 ans et plus',         col1: 'Action',     col2: 'Comédie'    },
+    { theme: 'Un lycée',               row1: 'Filière Générale',       row2: 'Filière Technologique',  col1: 'Football',   col2: 'Basket'     },
+    { theme: 'Une enquête transport',  row1: 'Élèves de Seconde',      row2: 'Élèves de Première',     col1: 'Bus',        col2: 'Vélo'       },
+    { theme: 'Un glacier',             row1: 'Interrogés en été',      row2: 'Interrogés en hiver',    col1: 'Chocolat',   col2: 'Fruits'     },
+    { theme: 'Un festival de musique', row1: 'Moins de 25 ans',        row2: '25 ans et plus',         col1: 'Pop',        col2: 'Rock'       },
+];
+
+function genTableauQuali() {
+    const ctx = rndArr(CONTEXTES_QUALI);
+    const n1 = rnd(3, 9) * 10;
+    const n2 = rnd(3, 9) * 10;
+    const N  = n1 + n2;
+    const a  = rnd(Math.floor(n1 * 0.2), Math.floor(n1 * 0.8));
+    const b  = n1 - a;
+    const c  = rnd(Math.floor(n2 * 0.2), Math.floor(n2 * 0.8));
+    const d  = n2 - c;
+    return { ctx, a, b, c, d, n1, n2, N, col1T: a + c, col2T: b + d };
+}
+
+GENERATORS.qualitatif = function () {
+    const t = genTableauQuali();
+    const hidden = rndArr(['a', 'b', 'c', 'd']);
+    const modes = [
+        { num: t.a, denom: t.N,     phrase: `« ${t.ctx.row1} » et « ${t.ctx.col1} », parmi tous les individus interrogés` },
+        { num: t.b, denom: t.N,     phrase: `« ${t.ctx.row1} » et « ${t.ctx.col2} », parmi tous les individus interrogés` },
+        { num: t.c, denom: t.N,     phrase: `« ${t.ctx.row2} » et « ${t.ctx.col1} », parmi tous les individus interrogés` },
+        { num: t.d, denom: t.N,     phrase: `« ${t.ctx.row2} » et « ${t.ctx.col2} », parmi tous les individus interrogés` },
+        { num: t.a, denom: t.n1,    phrase: `« ${t.ctx.col1} », parmi les « ${t.ctx.row1} » seulement` },
+        { num: t.b, denom: t.n1,    phrase: `« ${t.ctx.col2} », parmi les « ${t.ctx.row1} » seulement` },
+        { num: t.c, denom: t.n2,    phrase: `« ${t.ctx.col1} », parmi les « ${t.ctx.row2} » seulement` },
+        { num: t.d, denom: t.n2,    phrase: `« ${t.ctx.col2} », parmi les « ${t.ctx.row2} » seulement` },
+        { num: t.a, denom: t.col1T, phrase: `« ${t.ctx.row1} », parmi les « ${t.ctx.col1} » seulement` },
+        { num: t.c, denom: t.col1T, phrase: `« ${t.ctx.row2} », parmi les « ${t.ctx.col1} » seulement` },
+        { num: t.b, denom: t.col2T, phrase: `« ${t.ctx.row1} », parmi les « ${t.ctx.col2} » seulement` },
+        { num: t.d, denom: t.col2T, phrase: `« ${t.ctx.row2} », parmi les « ${t.ctx.col2} » seulement` },
+    ];
+    const mode = rndArr(modes);
+    const freq = mode.num / mode.denom;
+    const hiddenVal = t[hidden];
+    return { t, hidden, hiddenVal, mode, freq };
+};
+
+RENDERERS.qualitatif = function (q, box) {
+    const t = q.t;
+    const cell = (key, val) => key === q.hidden
+        ? `<td class="unknown" id="tblHidden">?</td>`
+        : `<td class="given">${fmt(val)}</td>`;
+    box.innerHTML = `
+        ${remindHTML(`Une <strong>fréquence</strong> se calcule en divisant un effectif par le <strong>bon total</strong> : celui de tout le tableau, d'une ligne, ou d'une colonne.`)}
+        <div class="ctx-card">
+            <span class="ctx-label">📝 ${t.ctx.theme}</span>
+            Tableau des effectifs (une case a été effacée) :
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th></th><th>${t.ctx.col1}</th><th>${t.ctx.col2}</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><th>${t.ctx.row1}</th>${cell('a', t.a)}${cell('b', t.b)}<td class="total">${t.n1}</td></tr>
+              <tr><th>${t.ctx.row2}</th>${cell('c', t.c)}${cell('d', t.d)}<td class="total">${t.n2}</td></tr>
+              <tr><th>Total</th><td class="total">${t.col1T}</td><td class="total">${t.col2T}</td><td class="total">${t.N}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="step-block active" id="step0">
+            <div class="step-tag">Étape 1 · Retrouve la case manquante</div>
+            <div class="row-inputs">
+                <span class="row-label">Case manquante =</span>
+                <input type="text" class="answer-input narrow" id="ansHidden" placeholder="…" inputmode="decimal">
+            </div>
+        </div>`;
+    setTimeout(() => document.getElementById('ansHidden')?.focus(), 50);
+};
+
+CHECKERS.qualitatif = function (q) {
+    const box = document.getElementById('exBody');
+    const stepsDone = box.querySelectorAll('.step-block.locked').length;
+
+    // Étape 1 : retrouver la case manquante
+    if (stepsDone === 0) {
+        const inp = document.getElementById('ansHidden');
+        const v = evalExpr(inp.value);
+        inp.classList.remove('ok', 'err');
+        const ok = v !== null && close(v, q.hiddenVal, 0.005);
+        inp.classList.add(ok ? 'ok' : 'err');
+        if (ok) {
+            lockStep('step0');
+            const cellEl = document.getElementById('tblHidden');
+            if (cellEl) { cellEl.textContent = fmt(q.hiddenVal); cellEl.classList.remove('unknown'); cellEl.classList.add('given'); }
+            const hr = document.createElement('hr'); hr.className = 'step-divider';
+            box.appendChild(hr);
+            const div = document.createElement('div'); div.className = 'step-block active'; div.id = 'step1';
+            div.innerHTML = `
+                <div class="step-tag">Étape 2 · Calcule une fréquence</div>
+                <div class="q-prompt" style="font-size:0.95em;margin-bottom:8px;">Quelle est la fréquence de ${q.mode.phrase} ?</div>
+                <div class="row-inputs">
+                    <span class="row-label">Fréquence =</span>
+                    <input type="text" class="answer-input narrow" id="ansFreq" placeholder="ex : 0,4 ou 2/5" inputmode="text">
+                </div>`;
+            box.appendChild(div);
+            renderKatex(div);
+            setTimeout(() => document.getElementById('ansFreq')?.focus(), 50);
+            return { ok: true, msg: `La case manquante valait bien \\(${fmt(q.hiddenVal)}\\). Maintenant, calcule une fréquence !`, advanceOnly: true };
+        }
+        return { ok: false, msg: `Utilise le total de la ligne ou de la colonne concernée : la case manquante valait \\(\\mathbf{${fmt(q.hiddenVal)}}\\).` };
+    }
+
+    // Étape 2 : calcul de la fréquence
+    const inp = document.getElementById('ansFreq');
+    const v = normNum(inp.value);
+    inp.classList.remove('ok', 'err');
+    const ok = v !== null && close(v, q.freq, 0.01);
+    inp.classList.add(ok ? 'ok' : 'err');
+    if (ok) return { ok: true, msg: `Exact ! \\(\\dfrac{${fmt(q.mode.num)}}{${fmt(q.mode.denom)}} \\approx ${fmt(q.freq)}\\).` };
+    return { ok: false, msg: `\\(\\dfrac{${fmt(q.mode.num)}}{${fmt(q.mode.denom)}} \\approx \\mathbf{${fmt(q.freq)}}\\).` };
+};
+
+/* ==========================================================
+   LANCEMENT
+   ========================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+    renderKatex(document.body);
+    document.body.addEventListener('touchstart', (e) => {
+        const el = e.target.closest('.formula-remind');
+        if (el) el.classList.add('touched');
+    }, { passive: true });
+    document.body.addEventListener('touchend', () => {
+        document.querySelectorAll('.formula-remind.touched').forEach(el => el.classList.remove('touched'));
+    }, { passive: true });
+});
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>

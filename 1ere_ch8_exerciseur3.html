@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python · Probabilités &amp; Statistiques — TP Première</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f1eb; --card:#ffffff; --text:#2b2724; --mid:#5c5652;
+  --blue:#1a6fa0; --blue-l:#e8f2fa;
+  --green:#1b7a40; --green-l:#e6f5ec;
+  --purple:#6b3fa0; --purple-l:#f1ecf8;
+  --orange:#b85c0b; --orange-l:#fef2e8;
+  --red:#c0392b; --red-l:#fceae8;
+  --gold:#b8860b; --gold-l:#fef8e8;
+  --border:#e0dbd4;
+  --ide:#1e1e2e; --ide-hdr:#181825; --ide-border:#313244;
+  --str-c:#a6e3a1; --num-c:#fab387; --cm-c:#6c7086; --bi:#f9e2af; --op-c:#89b4fa; --ide-text:#cdd6f4;
+  --shadow:0 3px 16px rgba(0,0,0,.07);
+  --radius:12px; --radius-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16.5px;}
+
+.header{background:linear-gradient(160deg,#0f1b2d 0%,#1a2940 40%,#1e3a5f 100%);color:#fff;padding:3rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(26,111,160,.18) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(107,63,160,.14) 0%,transparent 55%);pointer-events:none;}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--green),var(--orange));}
+.chapter-badge{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.2em;opacity:.55;display:block;margin-bottom:.6rem;}
+.header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4.5vw,2.6rem);font-weight:800;line-height:1.2;}
+.header .subtitle{font-size:.93rem;opacity:.55;margin-top:.5rem;}
+.header .line{width:50px;height:2px;background:rgba(255,255,255,.25);margin:.8rem auto 0;border-radius:2px;}
+.header-pills{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;}
+.header-pill{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .8rem;border-radius:50px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);}
+
+.progress-bar-wrap{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;position:sticky;top:0;z-index:100;}
+.progress-label{font-size:.75rem;font-weight:600;color:var(--mid);margin-bottom:.4rem;display:flex;justify-content:space-between;}
+.progress-label span{font-weight:700;color:var(--blue);}
+.progress-track{background:#e0dbd4;border-radius:50px;height:8px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:50px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;}
+.progress-dots{display:flex;justify-content:center;gap:.5rem;margin-top:.5rem;}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s,transform .3s;}
+.pdot.done{background:var(--green);}
+
+.container{max-width:820px;margin:0 auto;padding:2rem 1.2rem 5rem;}
+.palier{margin-bottom:3.5rem;animation:fadeUp .5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.palier-header{display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem;}
+.palier-num{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:1rem;flex-shrink:0;}
+.palier-titre{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;flex:1;}
+.palier-titre::after{content:'';display:block;height:2px;background:linear-gradient(90deg,currentColor,transparent);border-radius:2px;margin-top:.2rem;opacity:.25;}
+.palier-niveau{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;padding:.2rem .7rem;border-radius:50px;margin-bottom:1.1rem;display:inline-block;}
+.palier-niveau.guide{background:var(--blue-l);color:var(--blue);}
+.palier-niveau.semi{background:var(--orange-l);color:var(--orange);}
+.palier-niveau.auto{background:var(--purple-l);color:var(--purple);}
+
+.ctx-band{border-radius:var(--radius);padding:1rem 1.3rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:.9rem;border:1px solid;}
+.ctx-band.blue{background:var(--blue-l);border-color:#aacfe8;}
+.ctx-band.orange{background:var(--orange-l);border-color:#e8c49a;}
+.ctx-band.purple{background:var(--purple-l);border-color:#c9b0e8;}
+.ctx-icon{font-size:1.6rem;flex-shrink:0;line-height:1;}
+.ctx-text{font-size:.93rem;line-height:1.65;}
+.ctx-text strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.2rem;opacity:.7;}
+
+.block{background:var(--card);border-radius:var(--radius);padding:1.2rem 1.4rem;margin:.9rem 0;box-shadow:var(--shadow);border-left:5px solid;}
+.block.info{border-left-color:var(--blue);}
+.block.warn{border-left-color:var(--orange);}
+.block-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;}
+.block.info .block-tag{color:var(--blue);background:var(--blue-l);}
+.block.warn .block-tag{color:var(--orange);background:var(--orange-l);}
+
+.code-window{background:var(--ide);border-radius:var(--radius);overflow:hidden;margin:.8rem 0;box-shadow:0 6px 24px rgba(0,0,0,.22);border:1px solid var(--ide-border);}
+.code-header{background:var(--ide-hdr);padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--ide-border);}
+.dots{display:flex;gap:.4rem;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.dot.r{background:#f38ba8;}.dot.y{background:#f9e2af;}.dot.g{background:#a6e3a1;}
+.file-name{font-size:.76rem;font-weight:600;color:#6c7086;flex:1;text-align:center;}
+.code-window pre{margin:0;padding:.9rem 1.2rem;overflow-x:auto;}
+.code-window pre code{font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:1.9;color:var(--ide-text);background:none;white-space:pre;}
+.bi{color:var(--bi);} .str{color:var(--str-c);} .nc{color:var(--num-c);} .cm{color:var(--cm-c);font-style:italic;} .op{color:var(--op-c);} .kw{color:#cba6f7;font-weight:600;}
+.bug{background:rgba(243,139,168,.18);border-bottom:2px solid #f38ba8;border-radius:3px;color:#f38ba8;padding:0 .15rem;}
+
+.exo-inter{background:linear-gradient(135deg,#f0f7ff,#e8f2fa);border:1.5px solid #b8d9f0;border-radius:var(--radius);padding:1.4rem 1.5rem;margin:1.2rem 0;position:relative;}
+.exo-inter.semi{background:linear-gradient(135deg,#fff8f0,#fef2e8);border-color:#e8c49a;}
+.exo-inter.auto{background:linear-gradient(135deg,#f5f0ff,#f1ecf8);border-color:#c9b0e8;}
+.exo-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.7rem;display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .55rem;border-radius:4px;color:var(--blue);background:rgba(26,111,160,.1);}
+.exo-tag.semi{color:var(--orange);background:rgba(184,92,11,.1);}
+.exo-tag.auto{color:var(--purple);background:rgba(107,63,160,.1);}
+.exo-prompt{margin-bottom:.9rem;line-height:1.8;}
+.exo-score{position:absolute;top:1rem;right:1rem;font-size:.95rem;color:var(--gold);}
+
+.code-fill{background:var(--ide);border-radius:var(--radius);overflow:hidden;margin:.6rem 0;box-shadow:0 4px 16px rgba(0,0,0,.2);border:1px solid var(--ide-border);}
+.code-fill pre{margin:0;padding:.9rem 1.2rem;font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:2.1;color:var(--ide-text);white-space:pre-wrap;}
+.fill-input{display:inline-block;font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;border:none;border-bottom:2px solid var(--op-c);background:rgba(137,180,250,.12);color:#89b4fa;outline:none;padding:.1rem .4rem;border-radius:4px 4px 0 0;min-width:44px;transition:border-color .25s,background .25s;vertical-align:baseline;}
+.fill-input:focus{border-bottom-color:#cba6f7;background:rgba(203,166,247,.15);}
+.fill-input.correct{border-bottom-color:var(--str-c);background:rgba(166,227,161,.15);color:var(--str-c);}
+.fill-input.wrong{border-bottom-color:#f38ba8;background:rgba(243,139,168,.12);color:#f38ba8;animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+
+.free-zone{background:var(--ide);border-radius:var(--radius);border:1px solid var(--ide-border);margin:.6rem 0;}
+.free-zone textarea{width:100%;background:transparent;border:none;color:var(--ide-text);font-family:'DM Mono','Fira Code',monospace;font-size:.9rem;line-height:1.9;padding:.9rem 1.2rem;resize:vertical;min-height:150px;outline:none;box-sizing:border-box;}
+.free-zone textarea::placeholder{color:#45475a;}
+
+.btn-check{font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;padding:.5rem 1.3rem;border:none;border-radius:50px;background:var(--blue);color:#fff;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem;margin-top:.7rem;}
+.btn-check:hover{background:#155c87;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,111,160,.3);}
+.btn-check:disabled{background:#b0c8da;cursor:default;transform:none;box-shadow:none;}
+.btn-check.orange{background:var(--orange);}.btn-check.orange:hover{background:#96480a;}
+.btn-check.purple{background:var(--purple);}.btn-check.purple:hover{background:#562f85;}
+
+.feedback{margin-top:.65rem;padding:.7rem 1.1rem;border-radius:var(--radius-sm);font-size:.93rem;font-weight:600;display:none;align-items:flex-start;gap:.5rem;line-height:1.6;}
+.feedback.show{display:flex;}
+.feedback.ok{background:var(--green-l);color:var(--green);border-left:4px solid var(--green);}
+.feedback.ko{background:var(--red-l);color:var(--red);border-left:4px solid var(--red);}
+
+.hint-btn{font-size:.8rem;font-weight:600;color:var(--mid);background:none;border:1px solid var(--border);border-radius:50px;padding:.3rem .8rem;cursor:pointer;transition:all .2s;margin-left:.5rem;}
+.hint-btn:hover{border-color:var(--orange);color:var(--orange);}
+.hint-box{display:none;margin-top:.6rem;padding:.65rem .95rem;background:var(--orange-l);border-left:4px solid var(--orange);border-radius:var(--radius-sm);font-size:.9rem;color:var(--orange);line-height:1.6;}
+.hint-box.show{display:block;}
+
+.exercise-console{margin-top:.8rem;background:var(--ide);border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--ide-border);max-height:0;transition:max-height .5s cubic-bezier(.4,0,.2,1);}
+.exercise-console.open{max-height:400px;}
+.con-header{background:var(--ide-hdr);padding:.4rem .9rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--ide-border);}
+.con-dots{display:flex;gap:.35rem;}
+.con-dot{width:9px;height:9px;border-radius:50%;}
+.con-dot.r{background:#f38ba8;}.con-dot.y{background:#f9e2af;}.con-dot.g{background:#a6e3a1;}
+.con-title{font-size:.72rem;font-weight:600;color:#6c7086;flex:1;text-align:center;}
+.con-body{padding:.7rem 1.1rem;font-family:'DM Mono','Fira Code',monospace;font-size:.84rem;line-height:1.9;max-height:300px;overflow-y:auto;}
+.con-line{display:flex;gap:.6rem;}
+.con-sym{color:#6c7086;flex-shrink:0;width:2.4em;font-weight:600;}
+.con-txt.out{color:var(--str-c);}
+.con-txt.err{color:#f38ba8;}
+.con-txt.info{color:var(--bi);}
+
+.qcm-options{display:flex;flex-direction:column;gap:.5rem;margin-top:.8rem;}
+.qcm-opt{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.1rem;cursor:pointer;transition:all .2s;font-size:.95rem;display:flex;align-items:flex-start;gap:.7rem;line-height:1.5;}
+.qcm-opt:hover{border-color:var(--blue);background:var(--blue-l);}
+.qcm-opt.correct{border-color:var(--green);background:var(--green-l);pointer-events:none;}
+.qcm-opt.wrong{border-color:var(--red);background:var(--red-l);pointer-events:none;}
+.qcm-opt.grise{pointer-events:none;opacity:.55;}
+.opt-letter{font-weight:800;font-size:.85rem;flex-shrink:0;min-width:1.4em;color:var(--blue);}
+.qcm-opt.correct .opt-letter{color:var(--green);}
+.qcm-opt.wrong .opt-letter{color:var(--red);}
+.qcm-expl{display:none;margin-top:.7rem;padding:.85rem 1.1rem;background:var(--purple-l);border-left:4px solid var(--purple);border-radius:var(--radius-sm);font-size:.92rem;line-height:1.7;}
+.qcm-expl.show{display:block;}
+
+.corr-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem .95rem;border:1.5px solid #e8c84a;border-radius:50px;background:var(--gold-l);color:var(--gold);cursor:pointer;transition:all .22s;display:inline-flex;align-items:center;gap:.35rem;margin-top:.9rem;}
+.corr-btn:hover{background:#fdf2c5;}
+.corr-btn .chev{font-size:.6rem;transition:transform .3s;}
+.corr-btn.open .chev{transform:rotate(90deg);}
+.corr-body{max-height:0;overflow:hidden;transition:max-height .6s cubic-bezier(.4,0,.2,1),opacity .35s;opacity:0;margin-top:.7rem;}
+.corr-body.show{max-height:800px;opacity:1;}
+
+.score-final{background:linear-gradient(135deg,var(--ide-hdr),var(--ide));border-radius:var(--radius);padding:1.5rem 2rem;text-align:center;color:#fff;margin:2rem 0;}
+.score-num{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:800;color:#a6e3a1;}
+.score-label{font-size:.9rem;opacity:.65;margin-top:.2rem;}
+.score-msg{margin-top:.8rem;font-size:1rem;font-weight:600;color:#f9e2af;}
+hr.sep{border:none;border-top:1.5px dashed var(--border);margin:1.5rem 0;}
+.menu-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:var(--blue);color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 15px rgba(26,111,160,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform .2s;text-decoration:none;}
+.menu-btn:hover{transform:scale(1.1);}
+@media(max-width:600px){body{font-size:14px;}.container{padding:0 10px;}.palier-titre{font-size:1.15rem;}.code-window pre code,.code-fill pre,.free-zone textarea{font-size:.82rem;}}
+.code-window,.exercise-console,.code-fill{overflow-x:auto;}
+.block,.ctx-band{overflow-wrap:break-word;word-break:break-word;}
+
+/* ===== RESPONSIVE RENFORCÉ ===== */
+@media(max-width:900px){
+  .container { max-width:100%; padding-left:1rem; padding-right:1rem; }
+}
+@media(max-width:768px){
+  body { font-size: 15px; }
+  .container { padding: 0 .75rem; }
+  .header { padding: 1.8rem 1rem 1.5rem; }
+  h1 { font-size: clamp(1.3rem, 4vw, 1.8rem); }
+  .palier-titre { font-size: 1.1rem; }
+  .code-window pre code, .code-fill pre, .free-zone textarea { font-size: .82rem; }
+  .block { padding: 1rem 1.1rem; }
+  .score-num { font-size: 2.2rem; }
+  .btn-row { flex-wrap: wrap; }
+  .progress-bar-wrap { padding: 0 .75rem; }
+}
+@media(max-width:480px){
+  body { font-size: 14.5px; }
+  .container { padding: 0 .5rem; }
+  .header { padding: 1.4rem .8rem 1.2rem; }
+  h1 { font-size: 1.2rem; }
+  .palier-titre { font-size: 1rem; }
+  .code-window pre code, .code-fill pre, .free-zone textarea { font-size: .78rem; }
+  .score-num { font-size: 1.9rem; }
+  .header-pills { flex-wrap: wrap; gap: .35rem; }
+}
+@media(max-width:360px){
+  body { font-size: 13.5px; }
+  .container { padding: 0 .35rem; }
+}
+svg[viewBox] { max-width:100%; height:auto; }
+table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
+.katex-display,.katex { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+.code-window, .exercise-console { overflow-x:auto; }
+.block, .ctx-band, .score-final { overflow-wrap:break-word; word-break:break-word; }
+
+</style>
+</head>
+<body>
+
+<header class="header">
+  <span class="chapter-badge">Chapitres 3 &amp; 7 · Première · TP Python n°3</span>
+  <h1>🎲 Probabilités &amp; Statistiques</h1>
+  <p class="subtitle">Trois paliers · guidé → semi-guidé → autonome</p>
+  <div class="line"></div>
+  <div class="header-pills">
+    <span class="header-pill">🪙 Simulation</span>
+    <span class="header-pill">🏥 Probabilités conditionnelles</span>
+    <span class="header-pill">🎲 Monte-Carlo</span>
+  </div>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-label">
+    <span>Ma progression</span>
+    <span id="prog-label">0 / 7 exercices</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="progress-dots" id="prog-dots"></div>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════
+     PALIER 1 — GUIDÉ · Simulation pile ou face
+══════════════════════════════════════ -->
+<div class="palier">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--blue-l);color:var(--blue);">1</div>
+    <div class="palier-titre" style="color:var(--blue);">Palier guidé</div>
+  </div>
+  <span class="palier-niveau guide">🔵 Guidé — lire et compléter</span>
+
+  <div class="ctx-band blue">
+    <div class="ctx-icon">🪙</div>
+    <div class="ctx-text">
+      <strong>Contexte — simuler le hasard avec Python</strong>
+      La fonction <code>random.random()</code> renvoie un nombre décimal tiré <strong>au hasard</strong> entre 0 et 1 (valeur différente à chaque appel). En comparant ce nombre à une probabilité p, on simule n'importe quelle épreuve aléatoire — sans dé, sans pièce, sans rien.
+    </div>
+  </div>
+
+  <div class="block info">
+    <div class="block-tag">💡 L'idée clé</div>
+    <p><code>random.random() &lt; 0.5</code> est vrai environ une fois sur deux — comme pile ou face.<br>
+    <code>random.random() &lt; 0.7</code> est vrai environ 7 fois sur 10 — comme un événement de probabilité 0,7.<br>
+    En répétant cela des milliers de fois dans une boucle, on <strong>estime</strong> des probabilités : c'est la méthode Monte-Carlo.</p>
+  </div>
+
+  <!-- EXO 1 — QCM : lire et comprendre random() -->
+  <div class="exo-inter" data-exo="1">
+    <div class="exo-tag">❓ Exercice 1 — Lire et comprendre</div>
+    <div class="exo-score" id="star-1"></div>
+    <p class="exo-prompt">Voici un programme qui simule 1 000 lancers d'une pièce équilibrée et compte le nombre de « pile ». Que représente la variable <code>compteur</code> à la fin du programme ?</p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">pile_ou_face.py</span></div>
+<pre><code><span class="kw">import</span> random
+compteur <span class="op">=</span> <span class="nc">0</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">1000</span>) :
+    <span class="kw">if</span> random.random() <span class="op">&lt;</span> <span class="nc">0.5</span> :
+        compteur <span class="op">=</span> compteur <span class="op">+</span> <span class="nc">1</span>
+<span class="bi">print</span>(compteur)</code></pre>
+    </div>
+    <div class="qcm-options" id="qcm1">
+      <div class="qcm-opt" onclick="checkQCM(1,'A','C')"><span class="opt-letter">A</span>Toujours exactement 500, car P(pile) = 0,5</div>
+      <div class="qcm-opt" onclick="checkQCM(1,'B','C')"><span class="opt-letter">B</span>Le nombre de fois où <code>random.random()</code> a renvoyé exactement 0,5</div>
+      <div class="qcm-opt" onclick="checkQCM(1,'C','C')"><span class="opt-letter">C</span>Le nombre de lancers simulés « pile », un résultat aléatoire proche de 500</div>
+      <div class="qcm-opt" onclick="checkQCM(1,'D','C')"><span class="opt-letter">D</span>Le nombre de lancers simulés « face »</div>
+    </div>
+    <div class="qcm-expl" id="qcm1-expl">
+      ✅ <strong>Bonne réponse : C.</strong><br><br>
+      <code>compteur</code> augmente d'1 chaque fois que <code>random.random()</code> renvoie un nombre strictement inférieur à 0,5, ce qui arrive environ une fois sur deux. Le résultat est <em>aléatoire</em> — proche de 500 mais rarement exactement 500. En relançant le programme on obtiendrait une valeur différente. La réponse B est fausse : <code>random.random()</code> tire dans [0 ; 1[ en continu, la probabilité d'obtenir exactement 0,5 est nulle.
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 2 — compléter : simuler N lancers d'une pièce biaisée -->
+  <div class="exo-inter" data-exo="2">
+    <div class="exo-tag">✏️ Exercice 2 — Compléter</div>
+    <div class="exo-score" id="star-2"></div>
+    <p class="exo-prompt">
+      On veut simuler 10 000 lancers d'une pièce <strong>biaisée</strong>, où « pile » sort avec une probabilité de <strong>0,3</strong>. Le programme compte le nombre de « pile » et affiche la fréquence obtenue. Complète les deux trous.
+    </p>
+    <div class="code-fill">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice2.py</span></div>
+<pre><code><span class="kw">import</span> random
+N        <span class="op">=</span> <span class="nc">10000</span>
+compteur <span class="op">=</span> <span class="nc">0</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="bi">range</span>(N) :
+    <span class="kw">if</span> random.random() <span class="op">&lt;</span> <input class="fill-input" id="e2a" data-ans="0.3" placeholder=" ?" style="width:44px;"> :
+        compteur <span class="op">=</span> compteur <span class="op">+</span> <span class="nc">1</span>
+<span class="bi">print</span>(compteur <span class="op">/</span> <input class="fill-input" id="e2b" data-ans="N" placeholder="?" style="width:32px;">)
+<span class="cm"># affiche un nombre proche de 0.3</span></code></pre>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check" onclick="check(2)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(2)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-2">
+      Pour simuler un événement de probabilité p, on compare <code>random.random()</code> à cette valeur p. La fréquence se calcule en divisant le compteur par le nombre total de lancers.
+    </div>
+    <div class="feedback" id="fb-2"></div>
+    <div class="exercise-console" id="con-2">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-2"></div>
+    </div>
+  </div>
+</div><!-- /palier 1 -->
+
+
+<!-- ══════════════════════════════════════
+     PALIER 2 — SEMI-GUIDÉ · Probabilités conditionnelles
+══════════════════════════════════════ -->
+<div class="palier">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--orange-l);color:var(--orange);">2</div>
+    <div class="palier-titre" style="color:var(--orange);">Palier semi-guidé</div>
+  </div>
+  <span class="palier-niveau semi">🟠 Semi-guidé — déboguer et adapter</span>
+
+  <div class="ctx-band orange">
+    <div class="ctx-icon">🏥</div>
+    <div class="ctx-text">
+      <strong>Contexte — test de dépistage</strong>
+      On reprend le tableau croisé étudié en cours. Sur 1 000 personnes testées :
+      <br><br>
+      <table style="border-collapse:collapse;font-size:.88rem;margin-top:.3rem;">
+        <tr><th style="padding:.3rem .7rem;border:1px solid #e8c49a;background:#fde9d0;"></th><th style="padding:.3rem .7rem;border:1px solid #e8c49a;background:#fde9d0;">Test +</th><th style="padding:.3rem .7rem;border:1px solid #e8c49a;background:#fde9d0;">Test −</th><th style="padding:.3rem .7rem;border:1px solid #e8c49a;background:#fde9d0;">Total</th></tr>
+        <tr><th style="padding:.3rem .7rem;border:1px solid #e8c49a;background:#fff8f0;">Malade</th><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;background:#fff;">36</td><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;background:#fff;">4</td><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;font-weight:700;background:#fff8f0;">40</td></tr>
+        <tr><th style="padding:.3rem .7rem;border:1px solid #e8c49a;background:#fff8f0;">Non malade</th><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;background:#fff;">48</td><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;background:#fff;">912</td><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;font-weight:700;background:#fff8f0;">960</td></tr>
+        <tr><th style="padding:.3rem .7rem;border:1px solid #e8c49a;background:#fff8f0;">Total</th><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;font-weight:700;background:#fff8f0;">84</td><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;font-weight:700;background:#fff8f0;">916</td><td style="padding:.3rem .7rem;border:1px solid #e8c49a;text-align:center;font-weight:700;background:#fde9d0;">1000</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXO 3 — débuguer : mauvais dénominateur -->
+  <div class="exo-inter semi" data-exo="3">
+    <div class="exo-tag semi">🐛 Exercice 3 — Corriger le code</div>
+    <div class="exo-score" id="star-3"></div>
+    <p class="exo-prompt">
+      Un élève veut calculer P<sub>Malade</sub>(Positif) — la probabilité d'avoir un test positif <strong>chez les malades</strong> — puis P<sub>Positif</sub>(Malade). Son code contient <strong>deux bugs de dénominateur</strong>.
+    </p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">proba_cond_bugue.py</span></div>
+<pre><code>total         <span class="op">=</span> <span class="nc">1000</span>
+malades       <span class="op">=</span> <span class="nc">40</span>
+positifs      <span class="op">=</span> <span class="nc">84</span>
+malade_et_pos <span class="op">=</span> <span class="nc">36</span>
+
+<span class="cm"># P_Malade(Positif)</span>
+p1 <span class="op">=</span> malade_et_pos <span class="op">/</span> <span class="bug">total</span>       <span class="cm"># ← bug 1</span>
+<span class="bi">print</span>(p1)
+
+<span class="cm"># P_Positif(Malade)</span>
+p2 <span class="op">=</span> malade_et_pos <span class="op">/</span> <span class="bug">malades</span>     <span class="cm"># ← bug 2</span>
+<span class="bi">print</span>(p2)</code></pre>
+    </div>
+    <p style="margin-top:.8rem;font-size:.93rem;">Pour chaque probabilité conditionnelle, quel dénominateur faut-il utiliser ?</p>
+    <div style="display:flex;flex-direction:column;gap:.8rem;margin-top:.7rem;">
+      <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--ide-text);background:var(--ide);padding:.25rem .7rem;border-radius:4px;white-space:nowrap;">Bug 1 — malade_et_pos / <input class="fill-input" id="e3a" data-ans="malades" placeholder="     ?" style="width:72px;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--ide-text);background:var(--ide);padding:.25rem .7rem;border-radius:4px;white-space:nowrap;">Bug 2 — malade_et_pos / <input class="fill-input" id="e3b" data-ans="positifs" placeholder="     ?" style="width:72px;"></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check orange" onclick="check(3)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(3)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-3">
+      Pour P<sub>A</sub>(B), on restreint l'univers à A : le dénominateur est l'effectif de A. Identifie dans chaque cas qui joue le rôle de A.
+    </div>
+    <div class="feedback" id="fb-3"></div>
+    <div class="exercise-console" id="con-3">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-3"></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 4 — adapter : simuler et comparer à la valeur théorique -->
+  <div class="exo-inter semi" data-exo="4">
+    <div class="exo-tag semi">✏️ Exercice 4 — Adapter</div>
+    <div class="exo-score" id="star-4"></div>
+    <p class="exo-prompt">
+      On sait que P<sub>Malade</sub>(Positif) = 0,9 et P<sub>Non malade</sub>(Positif) = 0,05. Le programme ci-dessous <strong>simule</strong> le test sur une population de 10 000 personnes (dont 4 % sont malades) et estime ces deux probabilités conditionnelles. Deux trous à compléter.
+    </p>
+    <div class="code-fill">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice4.py</span></div>
+<pre><code><span class="kw">import</span> random
+N <span class="op">=</span> <span class="nc">10000</span>
+malade_et_pos <span class="op">=</span> <span class="nc">0</span>
+malades_total <span class="op">=</span> <span class="nc">0</span>
+
+<span class="kw">for</span> i <span class="kw">in</span> <span class="bi">range</span>(N) :
+    malade <span class="op">=</span> random.random() <span class="op">&lt;</span> <span class="nc">0.04</span>   <span class="cm"># 4% de malades</span>
+    <span class="kw">if</span> malade :
+        malades_total <span class="op">=</span> malades_total <span class="op">+</span> <span class="nc">1</span>
+        <span class="kw">if</span> random.random() <span class="op">&lt;</span> <input class="fill-input" id="e4a" data-ans="0.9" placeholder=" ?" style="width:44px;"> :  <span class="cm"># sensibilité du test</span>
+            malade_et_pos <span class="op">=</span> malade_et_pos <span class="op">+</span> <span class="nc">1</span>
+
+<span class="bi">print</span>(malade_et_pos <span class="op">/</span> <input class="fill-input" id="e4b" data-ans="malades_total" placeholder="           ?" style="width:118px;">)
+<span class="cm"># affiche un nombre proche de 0.9</span></code></pre>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check orange" onclick="check(4)">✔ Vérifier</button>
+      <button class="hint-btn" onclick="toggleHint(4)">💡 Indice</button>
+    </div>
+    <div class="hint-box" id="hint-4">
+      Le premier trou est la probabilité qu'un malade soit détecté positif. Le second trou : on veut estimer P<sub>Malade</sub>(Positif), donc on divise le nombre de malades positifs par le nombre total de malades simulés.
+    </div>
+    <div class="feedback" id="fb-4"></div>
+    <div class="exercise-console" id="con-4">
+      <div class="con-header"><div class="con-dots"><span class="con-dot r"></span><span class="con-dot y"></span><span class="con-dot g"></span></div><span class="con-title">Terminal Python</span></div>
+      <div class="con-body" id="con-body-4"></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 5 — QCM : interpréter un résultat de simulation -->
+  <div class="exo-inter semi" data-exo="5">
+    <div class="exo-tag semi">❓ Exercice 5 — Interpréter</div>
+    <div class="exo-score" id="star-5"></div>
+    <p class="exo-prompt">
+      Deux élèves exécutent chacun ce programme et obtiennent des résultats différents. Laquelle de ces affirmations est correcte ?
+    </p>
+    <div class="code-window">
+      <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">question5.py</span></div>
+<pre><code><span class="kw">import</span> random
+compteur <span class="op">=</span> <span class="nc">0</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="bi">range</span>(<span class="nc">100</span>) :
+    <span class="kw">if</span> random.random() <span class="op">&lt;</span> <span class="nc">0.5</span> :
+        compteur <span class="op">+= </span><span class="nc">1</span>
+<span class="bi">print</span>(compteur <span class="op">/</span> <span class="nc">100</span>)</code></pre>
+    </div>
+    <p style="font-size:.9rem;margin:.5rem 0 .9rem;">Mia obtient <code>0.47</code>, Tom obtient <code>0.53</code>.</p>
+    <div class="qcm-options" id="qcm5">
+      <div class="qcm-opt" onclick="checkQCM(5,'A','D')"><span class="opt-letter">A</span>L'un des deux a fait une erreur, car la fréquence doit être exactement 0,5.</div>
+      <div class="qcm-opt" onclick="checkQCM(5,'B','D')"><span class="opt-letter">B</span>Avec 100 lancers c'est insuffisant, le programme est mal écrit.</div>
+      <div class="qcm-opt" onclick="checkQCM(5,'C','D')"><span class="opt-letter">C</span>Les deux résultats sont faux car ils ne sont pas égaux entre eux.</div>
+      <div class="qcm-opt" onclick="checkQCM(5,'D','D')"><span class="opt-letter">D</span>Les deux résultats sont corrects : c'est la variabilité naturelle d'une simulation.</div>
+    </div>
+    <div class="qcm-expl" id="qcm5-expl">
+      ✅ <strong>Bonne réponse : D.</strong><br><br>
+      Une simulation produit des résultats aléatoires — deux exécutions du même programme donnent des valeurs différentes. Avec seulement 100 lancers, les fluctuations peuvent être importantes (ici ±3 points). Si on portait N à 100 000, les deux résultats seraient bien plus proches de 0,5, mais toujours pas exactement égaux.
+    </div>
+  </div>
+</div><!-- /palier 2 -->
+
+
+<!-- ══════════════════════════════════════
+     PALIER 3 — AUTONOME · Monte-Carlo avec deux dés
+══════════════════════════════════════ -->
+<div class="palier">
+  <div class="palier-header">
+    <div class="palier-num" style="background:var(--purple-l);color:var(--purple);">3</div>
+    <div class="palier-titre" style="color:var(--purple);">Palier autonome</div>
+  </div>
+  <span class="palier-niveau auto">🟣 Autonome — écrire son propre code</span>
+
+  <div class="ctx-band purple">
+    <div class="ctx-icon">🎲</div>
+    <div class="ctx-text">
+      <strong>Contexte — lancer de deux dés</strong>
+      On lance simultanément deux dés équilibrés à 6 faces. En Python, <code>random.randint(1, 6)</code> simule le lancer d'un dé (renvoie un entier entre 1 et 6 inclus). On s'intéresse à la somme des deux dés et à d'autres événements.
+    </div>
+  </div>
+
+  <!-- EXO 6 — écrire : estimer P(somme = 7) -->
+  <div class="exo-inter auto" data-exo="6">
+    <div class="exo-tag auto">⌨️ Exercice 6 — Écrire</div>
+    <div class="exo-score" id="star-6"></div>
+    <p class="exo-prompt">
+      Écris un programme qui simule <strong>10 000 lancers</strong> de deux dés et estime la probabilité d'obtenir une somme égale à 7.<br><br>
+      Tu auras besoin de : <code>import random</code>, <code>random.randint(1, 6)</code>, une boucle <code>for</code>, un compteur, et un <code>print</code> de la fréquence.<br><br>
+      <em>La valeur théorique est 6/36 ≈ 0,167 — vérifie que ta simulation s'en approche.</em>
+    </p>
+    <div class="free-zone">
+      <div class="code-header" style="background:var(--ide-hdr);"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice6.py</span></div>
+      <textarea id="free6" spellcheck="false" placeholder="import random
+# ..."></textarea>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check purple" onclick="checkFree6()">▶ Vérifier</button>
+      <button class="corr-btn" id="corrBtn6" onclick="toggleCorr('corr6','corrBtn6')">📋 Voir un corrigé <span class="chev">▶</span></button>
+    </div>
+    <div class="feedback" id="fb-6"></div>
+    <div class="corr-body" id="corr6">
+      <div class="code-window" style="margin:0;">
+        <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">corrigé6.py</span></div>
+<pre><code><span class="kw">import</span> random
+N        <span class="op">=</span> <span class="nc">10000</span>
+compteur <span class="op">=</span> <span class="nc">0</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="bi">range</span>(N) :
+    d1 <span class="op">=</span> random.randint(<span class="nc">1</span>, <span class="nc">6</span>)
+    d2 <span class="op">=</span> random.randint(<span class="nc">1</span>, <span class="nc">6</span>)
+    <span class="kw">if</span> d1 <span class="op">+</span> d2 <span class="op">==</span> <span class="nc">7</span> :
+        compteur <span class="op">=</span> compteur <span class="op">+</span> <span class="nc">1</span>
+<span class="bi">print</span>(compteur <span class="op">/</span> N)</code></pre>
+      </div>
+      <p style="margin-top:.7rem;font-size:.9rem;color:var(--mid);">
+        Les 6 combinaisons gagnantes sont (1,6), (2,5), (3,4), (4,3), (5,2), (6,1) sur 36 possibles → P = 6/36 ≈ 0,167. La simulation devrait donner un résultat proche.
+      </p>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- EXO 7 — écrire : P(double) et loi des grands nombres -->
+  <div class="exo-inter auto" data-exo="7">
+    <div class="exo-tag auto">⌨️ Exercice 7 — Aller plus loin</div>
+    <div class="exo-score" id="star-7"></div>
+    <p class="exo-prompt">
+      Modifie ton programme pour estimer la probabilité d'obtenir un <strong>double</strong> (les deux dés affichent la même valeur). Affiche la fréquence obtenue pour N = 100, N = 1 000, puis N = 100 000 dans trois <code>print()</code> séparés.<br><br>
+      <em>Observe comment la fréquence se stabilise autour de la valeur théorique quand N augmente : c'est la loi des grands nombres.</em>
+    </p>
+    <div class="free-zone">
+      <div class="code-header" style="background:var(--ide-hdr);"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">exercice7.py</span></div>
+      <textarea id="free7" spellcheck="false" placeholder="import random
+# ..."></textarea>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <button class="btn-check purple" onclick="checkFree7()">▶ Vérifier</button>
+      <button class="corr-btn" id="corrBtn7" onclick="toggleCorr('corr7','corrBtn7')">📋 Voir un corrigé <span class="chev">▶</span></button>
+    </div>
+    <div class="feedback" id="fb-7"></div>
+    <div class="corr-body" id="corr7">
+      <div class="code-window" style="margin:0;">
+        <div class="code-header"><div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div><span class="file-name">corrigé7.py</span></div>
+<pre><code><span class="kw">import</span> random
+
+<span class="kw">def</span> <span class="bi">simul</span>(N) :
+    compteur <span class="op">=</span> <span class="nc">0</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="bi">range</span>(N) :
+        d1 <span class="op">=</span> random.randint(<span class="nc">1</span>, <span class="nc">6</span>)
+        d2 <span class="op">=</span> random.randint(<span class="nc">1</span>, <span class="nc">6</span>)
+        <span class="kw">if</span> d1 <span class="op">==</span> d2 :
+            compteur <span class="op">=</span> compteur <span class="op">+</span> <span class="nc">1</span>
+    <span class="kw">return</span> compteur <span class="op">/</span> N
+
+<span class="bi">print</span>(<span class="bi">simul</span>(<span class="nc">100</span>))
+<span class="bi">print</span>(<span class="bi">simul</span>(<span class="nc">1000</span>))
+<span class="bi">print</span>(<span class="bi">simul</span>(<span class="nc">100000</span>))</code></pre>
+      </div>
+      <p style="margin-top:.7rem;font-size:.9rem;color:var(--mid);">
+        Il y a 6 doubles sur 36 issues → P(double) = 1/6 ≈ 0,167. Avec N = 100, la fréquence peut varier entre 0,10 et 0,24 ; avec N = 100 000, elle sera généralement entre 0,165 et 0,169. C'est la loi des grands nombres en action. La version avec une fonction <code>def simul(N)</code> est élégante mais pas obligatoire — trois boucles séparées sont aussi correctes.
+      </p>
+    </div>
+  </div>
+</div><!-- /palier 3 -->
+
+<div class="score-final">
+  <div class="score-num" id="score-num">0 / 7</div>
+  <div class="score-label">exercices validés</div>
+  <div class="score-msg" id="score-msg"></div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const TOTAL=7, done={}, tried={};
+(function(){const w=document.getElementById('prog-dots');for(let i=1;i<=TOTAL;i++){const d=document.createElement('span');d.className='pdot';d.id='pdot-'+i;w.appendChild(d);}})();
+
+function updateProgress(){
+  const n=Object.values(done).filter(Boolean).length;
+  document.getElementById('prog-fill').style.width=(n/TOTAL*100)+'%';
+  document.getElementById('prog-label').textContent=n+' / '+TOTAL+' exercices';
+  document.getElementById('score-num').textContent=n+' / '+TOTAL;
+  const msgs=['','Bien ! 💪','','À mi-chemin 🎯','','Presque !','','Parfait ! 🏆'];
+  document.getElementById('score-msg').textContent=msgs[n]||'';
+}
+function setDot(n,s){const d=document.getElementById('pdot-'+n);if(d)d.className='pdot '+(s==='done'?'done':'');}
+function conWrite(id,lines){
+  const b=document.getElementById(id);if(!b)return;b.innerHTML='';
+  lines.forEach(l=>{const r=document.createElement('div');r.className='con-line';const s=document.createElement('span');s.className='con-sym';s.textContent=l.sym||'';const t=document.createElement('span');t.className='con-txt '+(l.type||'');t.textContent=l.txt||'';r.appendChild(s);r.appendChild(t);b.appendChild(r);});
+}
+function conOpen(id){const e=document.getElementById(id);if(e)e.classList.add('open');}
+
+const EXOS={
+  2:{
+    inputs:['e2a','e2b'],
+    ok:[{type:'info',sym:'',txt:'Simulation en cours… (10 000 lancers)'},{type:'out',sym:'',txt:'0.298  ← proche de 0.3 ✓'}],
+    ko:[{type:'err',sym:'❌',txt:'Relis l\'indice et réessaie.'}]
+  },
+  3:{
+    inputs:['e3a','e3b'],
+    ok:[{type:'out',sym:'',txt:'0.9   ← P_Malade(Positif)'},{type:'out',sym:'',txt:'0.4286  ← P_Positif(Malade)'}],
+    ko:[{type:'err',sym:'❌',txt:'Pour P_A(B), le dénominateur est l\'effectif de A.'}]
+  },
+  4:{
+    inputs:['e4a','e4b'],
+    ok:[{type:'info',sym:'',txt:'Simulation en cours… (10 000 personnes)'},{type:'out',sym:'',txt:'0.897  ← proche de 0.9 ✓'}],
+    ko:[{type:'err',sym:'❌',txt:'Relis l\'indice et réessaie.'}]
+  }
+};
+
+function check(n){
+  const exo=EXOS[n];if(!exo)return;
+  const inputs=exo.inputs.map(id=>document.getElementById(id));
+  let allOk=true;
+  inputs.forEach(inp=>{const ok=inp.value.trim()===inp.dataset.ans;inp.classList.remove('correct','wrong');inp.classList.add(ok?'correct':'wrong');if(!ok)allOk=false;});
+  const fb=document.getElementById('fb-'+n);
+  if(allOk){
+    fb.className='feedback show ok';fb.innerHTML='✅ Parfait !';
+    if(!tried[n])done[n]=true;setDot(n,'done');
+    inputs.forEach(i=>i.disabled=true);
+    const btn=document.querySelector('[data-exo="'+n+'"] .btn-check');if(btn)btn.disabled=true;
+    const star=document.getElementById('star-'+n);if(star)star.textContent='⭐';
+    conWrite('con-body-'+n,exo.ok);setTimeout(()=>conOpen('con-'+n),80);
+  } else {
+    fb.className='feedback show ko';fb.innerHTML='❌ Relis l\'indice et réessaie.';
+    tried[n]=true;conWrite('con-body-'+n,exo.ko);setTimeout(()=>conOpen('con-'+n),80);
+  }
+  updateProgress();
+}
+
+function checkQCM(n,choice,correct){
+  const wrap=document.getElementById('qcm'+n);if(!wrap||wrap.dataset.done)return;
+  wrap.querySelectorAll('.qcm-opt').forEach((opt,i)=>{
+    const l=String.fromCharCode(65+i);
+    if(l===correct)opt.classList.add('correct');
+    else if(l===choice)opt.classList.add('wrong');
+    else opt.classList.add('grise');
+  });
+  wrap.dataset.done='1';
+  const expl=document.getElementById('qcm'+n+'-expl');if(expl)expl.classList.add('show');
+  if(choice===correct){const star=document.getElementById('star-'+n);if(star)star.textContent='⭐';if(!tried[n])done[n]=true;setDot(n,'done');}
+  else tried[n]=true;
+  updateProgress();
+}
+
+function checkFree6(){
+  const code=document.getElementById('free6').value.trim();
+  const fb=document.getElementById('fb-6');
+  if(!code){fb.className='feedback show ko';fb.innerHTML='❌ Écris ton programme avant de vérifier !';return;}
+  const ok=[/import\s+random/.test(code),/randint/.test(code),/\bfor\b/.test(code),/\+\s*d[12]|d[12]\s*\+/.test(code)||/somme|sum/.test(code)||/d1\s*\+\s*d2|d2\s*\+\s*d1/.test(code),/==\s*7|7\s*==/.test(code),/\bprint\b/.test(code)];
+  if(ok.filter(Boolean).length>=5){
+    fb.className='feedback show ok';fb.innerHTML='✅ Bien construit ! Ta simulation devrait afficher un nombre proche de 0.167 (6/36).';
+    if(!tried[6])done[6]=true;setDot(6,'done');document.getElementById('star-6').textContent='⭐';
+  } else {
+    fb.className='feedback show ko';
+    let m='❌ ';
+    if(!ok[0])m+='N\'oublie pas <code>import random</code>. ';
+    if(!ok[1])m+='Utilise <code>random.randint(1, 6)</code> pour chaque dé. ';
+    if(!ok[2])m+='Il faut une boucle <code>for</code>. ';
+    if(!ok[4])m+='La condition doit tester si la somme vaut 7. ';
+    fb.innerHTML=m;tried[6]=true;
+  }
+  updateProgress();
+}
+
+function checkFree7(){
+  const code=document.getElementById('free7').value.trim();
+  const fb=document.getElementById('fb-7');
+  if(!code){fb.className='feedback show ko';fb.innerHTML='❌ Écris ton programme avant de vérifier !';return;}
+  const ok=[/import\s+random/.test(code),/randint/.test(code),/\bfor\b/.test(code),/d1\s*==\s*d2|d2\s*==\s*d1/.test(code),/100000|100_000/.test(code),/\bprint\b/.test(code)];
+  if(ok.filter(Boolean).length>=5){
+    fb.className='feedback show ok';fb.innerHTML='✅ Excellent ! Tu devrais observer que la fréquence se stabilise autour de 0.167 (= 1/6) quand N augmente.';
+    if(!tried[7])done[7]=true;setDot(7,'done');document.getElementById('star-7').textContent='⭐';
+  } else {
+    fb.className='feedback show ko';
+    let m='❌ ';
+    if(!ok[1])m+='Utilise <code>random.randint(1, 6)</code>. ';
+    if(!ok[3])m+='La condition doit tester si les deux dés sont égaux (<code>d1 == d2</code>). ';
+    if(!ok[4])m+='Teste bien les trois valeurs de N, dont 100 000. ';
+    fb.innerHTML=m;tried[7]=true;
+  }
+  updateProgress();
+}
+
+function toggleHint(n){const b=document.getElementById('hint-'+n);if(b)b.classList.toggle('show');}
+function toggleCorr(bodyId,btnId){const b=document.getElementById(bodyId),btn=document.getElementById(btnId);if(!b)return;b.classList.toggle('show');btn.classList.toggle('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.contains('fill-input')){const d=e.target.closest('[data-exo]');if(d)check(parseInt(d.dataset.exo));}});
+document.querySelectorAll('.fill-input').forEach(inp=>{inp.addEventListener('input',function(){this.style.width=Math.max(34,this.value.length*11+20)+'px';});});
+updateProgress();
+</script>
+<a class="menu-btn" href="index.html" title="Retour au menu">🏠</a>
+</body>
+</html>
