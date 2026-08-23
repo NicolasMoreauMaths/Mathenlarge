@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expressions littérales — Exerciseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#eef2f7;--grid:#d5dce6;--card:#fff;
+--blue:#1d4ed8;--blue-light:#3b82f6;--blue-pale:rgba(59,130,246,.08);--blue-border:rgba(59,130,246,.2);
+--orange:#ea580c;--orange-pale:rgba(234,88,12,.1);--orange-border:rgba(234,88,12,.25);
+--green:#16a34a;--green-pale:rgba(22,163,74,.1);
+--red:#dc2626;--red-pale:rgba(220,38,38,.08);
+--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--shadow:rgba(30,41,59,.08);
+}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--bg);
+background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+background-size:20px 20px;display:flex;justify-content:center;padding:16px 10px 60px;color:var(--text);
+-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+.app{max-width:820px;width:100%}
+.app-header{background:var(--blue);color:#fff;padding:14px 22px;border-radius:14px 14px 0 0;
+display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 16px rgba(29,78,216,.2);position:relative;overflow:hidden}
+.app-header::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%);pointer-events:none}
+.app-title{font-size:1.1em;font-weight:700;position:relative}
+.main{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;
+padding:28px 24px;box-shadow:0 8px 28px var(--shadow);min-height:50vh}
+.screen{display:none;animation:fadeIn .3s ease}.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:1.45em;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:.92em;color:var(--text-light);margin-bottom:20px;line-height:1.5}
+.btn{font-family:'DM Sans',sans-serif;padding:11px 24px;border-radius:10px;font-size:.92em;font-weight:600;
+cursor:pointer;transition:all .2s;border:2px solid;-webkit-tap-highlight-color:transparent;
+min-height:44px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(29,78,216,.15)}
+.btn-blue:hover:not(:disabled){background:var(--blue-light);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-ghost{background:transparent;color:var(--text-light);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--text-light)}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* MENU */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:20px 0}
+.mc{background:var(--card);border:2px solid var(--border);border-radius:12px;
+padding:20px 16px;text-align:center;cursor:pointer;transition:all .25s;position:relative}
+.mc:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 8px 20px var(--shadow)}
+.mc-icon{font-size:1.8em;margin-bottom:6px}
+.mc-t{font-size:.95em;color:var(--blue);font-weight:700;margin-bottom:3px}
+.mc-d{font-size:.8em;color:var(--text-light);line-height:1.4}
+
+/* EX HEADER */
+.ex-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.ex-badge{background:var(--blue-pale);color:var(--blue);padding:5px 14px;border-radius:20px;font-size:.85em;font-weight:700}
+.ex-score{font-size:.88em;color:var(--text-light);font-weight:600}
+.pbar{width:100%;background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin-bottom:16px}
+.pfill{height:100%;background:var(--blue);border-radius:4px;transition:width .4s}
+
+/* MATH ZONE */
+.mz{background:var(--blue-pale);border:2px solid var(--blue-border);border-radius:14px;
+padding:20px;margin:16px 0;text-align:center}
+.mz-title{font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+color:var(--blue);margin-bottom:12px}
+.math-display{font-size:1.6em;margin:12px 0;min-height:50px;display:flex;align-items:center;justify-content:center}
+.katex{font-size:1em!important}
+
+/* INPUT ZONE */
+.iz{background:var(--bg);border:2px solid var(--border);border-radius:14px;
+padding:18px 20px;margin:14px 0;text-align:center}
+.iz-title{font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+color:var(--text-light);margin-bottom:12px}
+.input-line{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0;flex-wrap:wrap}
+.input-line .label{font-size:1em;font-weight:600;color:var(--text)}
+.math-input{font-family:'Kalam',cursive;font-size:1.3em;min-width:180px;max-width:400px;width:auto;
+text-align:center;border:2px dashed var(--blue-border);border-radius:10px;background:#fff;
+padding:12px 16px;outline:none;color:var(--text);font-weight:700;transition:all .2s;
+min-height:48px;touch-action:manipulation}
+.math-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale)}
+.math-input.ok{border-color:var(--green)!important;background:var(--green-pale)!important;color:var(--green)!important}
+.math-input.err{border-color:var(--red)!important;background:var(--red-pale)!important;animation:shake .35s}
+.math-input::placeholder{color:var(--text-light);opacity:.6;font-size:.85em}
+
+/* SPLIT ZONE (pour niveau 2 et 3) */
+.split-zone{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.split-side{background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.split-side.left{border-color:var(--orange-border)}
+.split-side.right{border-color:var(--blue-border)}
+.side-title{font-size:.82em;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.side-title.left{color:var(--orange)}
+.side-title.right{color:var(--blue)}
+.side-math{font-size:1.3em;margin:10px 0;min-height:40px;display:flex;align-items:center;justify-content:center}
+
+/* CHOICE BUTTONS */
+.choice-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.choice-btn{font-family:'DM Sans',sans-serif;font-size:1.05em;font-weight:700;
+padding:14px 32px;border-radius:12px;cursor:pointer;border:3px solid;transition:all .2s;background:#fff;
+min-height:48px;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center}
+.choice-btn.eq{color:var(--green);border-color:var(--green)}
+.choice-btn.eq:hover:not(:disabled){background:var(--green-pale)}
+.choice-btn.neq{color:var(--red);border-color:var(--red)}
+.choice-btn.neq:hover:not(:disabled){background:var(--red-pale)}
+.choice-btn.correct{background:var(--green)!important;color:#fff!important;border-color:var(--green)!important}
+.choice-btn.wrong{opacity:.35}
+.choice-btn:disabled{cursor:not-allowed}
+
+/* FEEDBACK */
+.fb{margin-top:16px;padding:14px 18px;border-radius:10px;font-size:.95em;text-align:center;
+display:none;animation:fadeIn .3s;font-weight:600;line-height:1.5}
+.fb.ok{display:block;background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,.2)}
+.fb.bad{display:block;background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+
+/* RESULTS */
+.rc{width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:20px auto;border:5px solid}
+.rc.good{border-color:var(--green);background:var(--green-pale)}
+.rc.mid{border-color:var(--orange);background:var(--orange-pale)}
+.rc.bad{border-color:var(--red);background:var(--red-pale)}
+.rp{font-size:2.2em;font-weight:700;line-height:1}
+.rm{font-size:1.08em;text-align:center;margin:16px 0;font-weight:600}
+
+/* PHASE DOTS */
+.pd{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border)}
+.dot.active{background:var(--blue)}
+.dot.done{background:var(--green)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.main{padding:24px 18px}
+.app-header{padding:12px 18px}
+.app-title{font-size:1em}
+h1{font-size:1.3em}
+.sub{font-size:.88em}
+.menu-grid{grid-template-columns:1fr;gap:12px}
+.mc{padding:18px 14px}
+.mc-icon{font-size:1.6em}
+.mc-t{font-size:.92em}
+.mc-d{font-size:.78em}
+.split-zone{grid-template-columns:1fr;gap:12px}
+.math-input{min-width:140px;max-width:100%;font-size:1.15em;padding:11px 14px}
+.math-display{font-size:1.4em}
+.side-math{font-size:1.2em}
+.mz{padding:16px}
+.iz{padding:16px 18px}
+.choice-btn{padding:12px 24px;font-size:1em;min-height:46px}
+.choice-row{gap:10px}
+.btn{padding:10px 20px;font-size:.88em;min-height:42px}
+.controls{gap:8px}
+.rc{width:110px;height:110px;border:4px solid}
+.rp{font-size:2em}
+}
+
+@media(max-width:500px){
+.main{padding:20px 14px}
+.app-header{padding:10px 14px}
+.app-title{font-size:.95em}
+h1{font-size:1.2em}
+.sub{font-size:.85em;line-height:1.4}
+.menu-grid{gap:10px}
+.mc{padding:16px 12px}
+.mc-icon{font-size:1.5em;margin-bottom:4px}
+.mc-t{font-size:.88em}
+.mc-d{font-size:.76em}
+.math-input{min-width:120px;font-size:1.05em;padding:10px 12px;min-height:44px}
+.math-display{font-size:1.25em;min-height:40px}
+.side-math{font-size:1.1em;min-height:35px}
+.mz{padding:14px;margin:12px 0}
+.mz-title,.iz-title,.side-title{font-size:.75em}
+.iz{padding:14px 16px;margin:12px 0}
+.input-line{gap:8px;margin:8px 0}
+.input-line .label{font-size:.95em}
+.choice-btn{padding:11px 20px;font-size:.95em;min-height:44px}
+.btn{padding:9px 18px;font-size:.85em;min-height:40px}
+.rc{width:100px;height:100px}
+.rp{font-size:1.8em}
+.rm{font-size:1em}
+}
+
+@media(max-width:380px){
+.main{padding:18px 12px}
+.app-header{padding:9px 12px}
+h1{font-size:1.1em}
+.mc{padding:14px 10px}
+.math-input{min-width:100px;font-size:1em}
+.math-display{font-size:1.15em}
+.choice-btn{padding:10px 16px;font-size:.9em;width:100%;max-width:200px}
+.choice-row{flex-direction:column;align-items:center}
+.btn{padding:8px 16px;font-size:.82em}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+<div class="app-title">✨ Expressions littérales</div>
+<div id="badge" class="ex-badge" style="display:none"></div>
+</div>
+<div class="main">
+
+<!-- MENU SCREEN -->
+<div id="S_menu" class="screen active">
+<h1>Choisissez un niveau</h1>
+<p class="sub">Travaillez la substitution et le test d'égalités</p>
+<div class="menu-grid">
+<div class="mc" onclick="go(1)">
+<div class="mc-icon">📝</div>
+<div class="mc-t">Substitution simple</div>
+<div class="mc-d">Remplacer les lettres par des nombres</div>
+</div>
+<div class="mc" onclick="go(2)">
+<div class="mc-icon">⚖️</div>
+<div class="mc-t">Test d'égalité numérique</div>
+<div class="mc-d">Tester avec des valeurs</div>
+</div>
+<div class="mc" onclick="go(3)">
+<div class="mc-icon">🔬</div>
+<div class="mc-t">Test d'égalité algébrique</div>
+<div class="mc-d">Simplifier et comparer</div>
+</div>
+</div>
+</div>
+
+<!-- EXERCISE SCREEN -->
+<div id="S_ex" class="screen">
+<div class="ex-top">
+<div class="ex-badge" id="badgeEx"></div>
+<div class="ex-score" id="scLbl">0 / 0</div>
+</div>
+<div class="pbar"><div class="pfill" id="pfill"></div></div>
+<div id="zone"></div>
+<div id="fb" class="fb"></div>
+<div class="controls">
+<button class="btn btn-blue" id="nxt" onclick="nxtQ()" style="display:none">Suivant →</button>
+<button class="btn btn-ghost" onclick="backMenu()">← Menu</button>
+</div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="S_res" class="screen">
+<h1>Résultats</h1>
+<div id="rCirc" class="rc good">
+<div class="rp" id="rPct">100%</div>
+</div>
+<div class="rm" id="rMsg">Parfait !</div>
+<div class="controls">
+<button class="btn btn-blue" onclick="show('S_menu')">← Retour au menu</button>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')};
+const LVNAMES=['','Substitution simple','Test d\'égalité numérique','Test d\'égalité algébrique'];
+let lv=0,qs=[],cq=null,qi=0,sc=0;
+
+// ===== UTILS =====
+function rv(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function sh(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+function renderMath(element,tex){
+try{katex.render(tex,element,{throwOnError:false,displayMode:false})}
+catch(e){element.textContent=tex}
+}
+
+// Normalisation pour comparaison
+function normalize(str){
+return str.replace(/\s+/g,'').replace(/²/g,'^2').replace(/\*\*/g,'^').toLowerCase();
+}
+
+// Ajouter les multiplications implicites (3x -> 3*x, 2y -> 2*y)
+function addMultiplications(expr){
+// Remplacer les coefficients devant les variables par coefficient*variable
+return expr.replace(/(\d)([a-z])/gi,'$1*$2');
+}
+
+// Substituer les variables par leurs valeurs
+function substitute(expr,vars,vals){
+let result=addMultiplications(expr);
+vars.forEach((v,i)=>{
+const val=vals[i];
+// Remplacer x^2 par (val)^2
+result=result.replace(new RegExp(v+'\\^2','g'),`(${val})^2`);
+// Remplacer x par val
+result=result.replace(new RegExp(v,'g'),val);
+});
+return result;
+}
+
+// ===== NIVEAU 1: SUBSTITUTION SIMPLE =====
+function genL1(){
+const exs=[];
+const templates=[
+// 1 variable simple
+{expr:'3x+5',vars:['x'],vals:[[2],[4],[7]]},
+{expr:'2x-7',vars:['x'],vals:[[5],[8],[10]]},
+{expr:'5x+3',vars:['x'],vals:[[1],[3],[6]]},
+{expr:'4x-2',vars:['x'],vals:[[3],[5],[9]]},
+// 1 variable avec carré
+{expr:'x^2+3',vars:['x'],vals:[[2],[3],[5]]},
+{expr:'2x^2-1',vars:['x'],vals:[[2],[3],[4]]},
+{expr:'x^2+2x',vars:['x'],vals:[[3],[4],[5]]},
+// 2 variables
+{expr:'3x+2y',vars:['x','y'],vals:[[2,1],[3,2],[4,3]]},
+{expr:'x+4y',vars:['x','y'],vals:[[5,2],[6,3],[8,1]]},
+{expr:'2x-y',vars:['x','y'],vals:[[7,3],[8,4],[10,5]]},
+{expr:'5x+3y',vars:['x','y'],vals:[[2,3],[3,1],[4,2]]},
+// 2 variables avec carré
+{expr:'x^2+y',vars:['x','y'],vals:[[2,3],[3,2],[4,1]]},
+{expr:'2x+y^2',vars:['x','y'],vals:[[3,2],[4,3],[5,2]]},
+{expr:'x^2+2y',vars:['x','y'],vals:[[3,4],[2,5],[4,2]]}
+];
+const sel=sh(templates).slice(0,8);
+sel.forEach(t=>{
+const vals=rv(t.vals);
+exs.push({expr:t.expr,vars:t.vars,vals:vals});
+});
+return exs;
+}
+
+function renderL1(q){
+const Z=$('zone');
+let h=`<div class="mz">
+<div class="mz-title">Expression à calculer</div>
+<div class="math-display" id="mathExpr"></div>
+</div>`;
+
+h+=`<div class="iz">
+<div class="iz-title">Étape 1 : Substitution</div>
+<div class="input-line">
+<span class="label">Remplacez ${q.vars.map((v,i)=>`<b>${v} = ${q.vals[i]}</b>`).join(' et ')} :</span>
+</div>
+<input type="text" class="math-input" id="subInput" placeholder="Écrivez le calcul après substitution...">
+<div style="margin-top:12px">
+<button class="btn btn-blue" onclick="checkSubstitution()">Valider la substitution</button>
+</div>
+</div>`;
+
+h+=`<div id="calcZone" style="display:none">
+<div class="iz">
+<div class="iz-title">Étape 2 : Résultat</div>
+<input type="text" class="math-input" id="resInput" placeholder="Résultat final..." style="max-width:150px">
+<div style="margin-top:12px">
+<button class="btn btn-blue" onclick="checkResult()">Valider le résultat</button>
+</div>
+</div>
+</div>`;
+
+Z.innerHTML=h;
+renderMath($('mathExpr'),q.expr);
+cq._phase=1;
+}
+
+function checkSubstitution(){
+const q=cq;
+const userInput=normalize($('subInput').value);
+const exprWithVals=substitute(q.expr,q.vars,q.vals);
+const expectedCalc=normalize(exprWithVals);
+
+const inp=$('subInput');
+inp.classList.remove('ok','err');
+
+// Vérifier en évaluant les expressions
+let isCorrect=false;
+try{
+const userEval=eval(userInput.replace(/\^/g,'**'));
+const expectedEval=eval(expectedCalc.replace(/\^/g,'**'));
+if(Math.abs(userEval-expectedEval)<0.001)isCorrect=true;
+}catch(e){}
+
+// Si eval échoue, comparaison directe
+if(!isCorrect&&userInput===expectedCalc)isCorrect=true;
+
+if(isCorrect){
+inp.classList.add('ok');
+inp.disabled=true;
+$('calcZone').style.display='block';
+cq._phase=2;
+}else{
+inp.classList.add('err');
+const fb=$('fb');
+fb.className='fb bad';
+fb.textContent=`❌ Incorrect. Attendu : ${exprWithVals}`;
+}
+}
+
+function checkResult(){
+const q=cq;
+const userRes=parseFloat($('resInput').value.replace(',','.'));
+const exprEval=substitute(q.expr,q.vars,q.vals);
+let expected=0;
+try{
+expected=eval(exprEval.replace(/\^/g,'**'));
+}catch(e){}
+
+const inp=$('resInput');
+inp.classList.remove('ok','err');
+
+if(Math.abs(userRes-expected)<0.001){
+inp.classList.add('ok');
+inp.disabled=true;
+finish(true,`Excellent ! Le résultat est bien ${expected}.`);
+}else{
+inp.classList.add('err');
+const fb=$('fb');
+fb.className='fb bad';
+fb.textContent=`❌ Le résultat correct est ${expected}.`;
+sc++;
+$('scLbl').textContent=`${sc} / ${qi+1}`;
+$('nxt').style.display='';
+}
+}
+
+// ===== NIVEAU 2: TEST ÉGALITÉ NUMÉRIQUE =====
+function genL2(){
+const exs=[];
+// Égalités vraies
+const trueEqs=[
+{expr:'7x+2=9x',var:'x',val:1,isTrue:true}, // 9=9
+{expr:'5x-3=2x+6',var:'x',val:3,isTrue:true}, // 12=12
+{expr:'3x+4=x+10',var:'x',val:3,isTrue:true}, // 13=13
+{expr:'4x-1=2x+5',var:'x',val:3,isTrue:true}, // 11=11
+{expr:'6x=4x+8',var:'x',val:4,isTrue:true} // 24=24
+];
+// Égalités fausses
+const falseEqs=[
+{expr:'7x+2=9x',var:'x',val:2,isTrue:false}, // 16≠18
+{expr:'5x-3=2x+6',var:'x',val:2,isTrue:false}, // 7≠10
+{expr:'3x+4=x+10',var:'x',val:2,isTrue:false}, // 10≠12
+{expr:'4x-1=3x+5',var:'x',val:3,isTrue:false}, // 11≠14
+{expr:'2x+3=x+8',var:'x',val:4,isTrue:false} // 11≠12
+];
+
+const selected=[...sh(trueEqs).slice(0,4),...sh(falseEqs).slice(0,4)];
+return sh(selected);
+}
+
+function renderL2(q){
+const Z=$('zone');
+const [left,right]=q.expr.split('=');
+
+let h=`<div class="mz">
+<div class="mz-title">Égalité à tester</div>
+<div class="math-display" id="mathExpr"></div>
+<div style="margin-top:10px;font-size:1.1em;color:var(--orange);font-weight:700">
+Pour ${q.var} = ${q.val}
+</div>
+</div>`;
+
+h+=`<div class="pd">
+<div class="dot active"></div>
+<div class="dot" id="dot2"></div>
+<div class="dot" id="dot3"></div>
+</div>`;
+
+h+=`<div class="split-zone">
+<div class="split-side left">
+<div class="side-title left">Gauche</div>
+<div class="side-math" id="leftMath"></div>
+<div class="iz-title" style="font-size:.75em;margin:8px 0">Étape 1 : Le calcul</div>
+<input type="text" class="math-input" id="leftCalcInput" placeholder="Calcul gauche..." style="max-width:100%">
+<div style="margin-top:10px">
+<button class="btn btn-blue" onclick="checkCalc('left')" id="btnLeftCalc">Valider le calcul</button>
+</div>
+<div id="leftResZone" style="display:none;margin-top:14px">
+<div class="iz-title" style="font-size:.75em;margin:8px 0">Étape 2 : Le résultat</div>
+<input type="text" class="math-input" id="leftResInput" placeholder="Résultat..." style="max-width:150px">
+<div style="margin-top:10px">
+<button class="btn btn-blue" onclick="checkRes('left')" id="btnLeftRes">Valider le résultat</button>
+</div>
+</div>
+</div>
+<div class="split-side right">
+<div class="side-title right">Droite</div>
+<div class="side-math" id="rightMath"></div>
+<div class="iz-title" style="font-size:.75em;margin:8px 0">Étape 1 : Le calcul</div>
+<input type="text" class="math-input" id="rightCalcInput" placeholder="Calcul droite..." style="max-width:100%">
+<div style="margin-top:10px">
+<button class="btn btn-blue" onclick="checkCalc('right')" id="btnRightCalc">Valider le calcul</button>
+</div>
+<div id="rightResZone" style="display:none;margin-top:14px">
+<div class="iz-title" style="font-size:.75em;margin:8px 0">Étape 2 : Le résultat</div>
+<input type="text" class="math-input" id="rightResInput" placeholder="Résultat..." style="max-width:150px">
+<div style="margin-top:10px">
+<button class="btn btn-blue" onclick="checkRes('right')" id="btnRightRes">Valider le résultat</button>
+</div>
+</div>
+</div>
+</div>`;
+
+h+=`<div id="compareZone" style="display:none">
+<div class="iz">
+<div class="iz-title">Comparaison</div>
+<p style="font-size:1em;margin-bottom:12px">Gauche = Droite ?</p>
+<div class="choice-row">
+<button class="choice-btn eq" onclick="checkEquality(true)">Gauche = Droite</button>
+<button class="choice-btn neq" onclick="checkEquality(false)">Gauche ≠ Droite</button>
+</div>
+</div>
+</div>`;
+
+Z.innerHTML=h;
+renderMath($('mathExpr'),q.expr.replace(/=/,' = '));
+renderMath($('leftMath'),left);
+renderMath($('rightMath'),right);
+
+cq._leftCalcDone=false;
+cq._rightCalcDone=false;
+cq._leftResDone=false;
+cq._rightResDone=false;
+cq._leftVal=null;
+cq._rightVal=null;
+}
+
+function checkCalc(side){
+const q=cq;
+const [left,right]=q.expr.split('=');
+const expr=side==='left'?left:right;
+const input=$(side+'CalcInput');
+const btn=$('btn'+side.charAt(0).toUpperCase()+side.slice(1)+'Calc');
+
+const userCalc=normalize(input.value);
+const expectedCalc=normalize(substitute(expr,[q.var],[q.val]));
+
+input.classList.remove('ok','err');
+
+let isCorrect=false;
+try{
+const userEval=eval(userCalc.replace(/\^/g,'**'));
+const expectedEval=eval(expectedCalc.replace(/\^/g,'**'));
+if(Math.abs(userEval-expectedEval)<0.001)isCorrect=true;
+}catch(e){}
+
+if(!isCorrect){
+// Comparaison directe
+if(userCalc===expectedCalc)isCorrect=true;
+}
+
+if(isCorrect){
+input.classList.add('ok');
+input.disabled=true;
+btn.disabled=true;
+$(side+'ResZone').style.display='block';
+if(side==='left'){
+cq._leftCalcDone=true;
+$('dot2').classList.add('done');
+}else{
+cq._rightCalcDone=true;
+}
+}else{
+input.classList.add('err');
+}
+}
+
+function checkRes(side){
+const q=cq;
+const [left,right]=q.expr.split('=');
+const expr=side==='left'?left:right;
+const input=$(side+'ResInput');
+const btn=$('btn'+side.charAt(0).toUpperCase()+side.slice(1)+'Res');
+
+const userRes=parseFloat(input.value.replace(',','.'));
+const expectedCalc=substitute(expr,[q.var],[q.val]);
+let expectedVal;
+try{
+expectedVal=eval(expectedCalc.replace(/\^/g,'**'));
+}catch(e){return}
+
+input.classList.remove('ok','err');
+
+if(Math.abs(userRes-expectedVal)<0.001){
+input.classList.add('ok');
+input.disabled=true;
+btn.disabled=true;
+if(side==='left'){
+cq._leftResDone=true;
+cq._leftVal=expectedVal;
+}else{
+cq._rightResDone=true;
+cq._rightVal=expectedVal;
+$('dot3').classList.add('done');
+}
+if(cq._leftResDone&&cq._rightResDone){
+$('compareZone').style.display='block';
+}
+}else{
+input.classList.add('err');
+}
+}
+
+function checkEquality(userSaysEqual){
+const q=cq;
+const correct=(q._leftVal===q._rightVal)===userSaysEqual;
+
+document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+
+if(correct){
+document.querySelector(userSaysEqual?'.choice-btn.eq':'.choice-btn.neq').classList.add('correct');
+finish(true,`✅ Correct ! ${userSaysEqual?'Les deux côtés sont égaux.':'Les deux côtés sont différents.'}`);
+}else{
+document.querySelector(userSaysEqual?'.choice-btn.eq':'.choice-btn.neq').classList.add('wrong');
+document.querySelector(!userSaysEqual?'.choice-btn.eq':'.choice-btn.neq').classList.add('correct');
+finish(false,`❌ Incorrect. Gauche = ${q._leftVal}, Droite = ${q._rightVal}.`);
+}
+}
+
+// ===== NIVEAU 3: TEST ÉGALITÉ ALGÉBRIQUE =====
+function genL3(){
+const exs=[];
+// Égalités vraies (simplification identique)
+const trueEqs=[
+{expr:'3(x+1)=2x+x+3',isTrue:true,leftSimp:'3x+3',rightSimp:'3x+3'},
+{expr:'5(x+2)=4x+x+10',isTrue:true,leftSimp:'5x+10',rightSimp:'5x+10'},
+{expr:'2(3x+1)=6x+2',isTrue:true,leftSimp:'6x+2',rightSimp:'6x+2'},
+{expr:'4(x+3)=2(2x+6)',isTrue:true,leftSimp:'4x+12',rightSimp:'4x+12'},
+{expr:'3x+2x=6x-x',isTrue:true,leftSimp:'5x',rightSimp:'5x'},
+{expr:'2(x+4)=3x-x+8',isTrue:true,leftSimp:'2x+8',rightSimp:'2x+8'}
+];
+// Égalités fausses
+const falseEqs=[
+{expr:'7(x+2)=5(x+3)+2x',isTrue:false,leftSimp:'7x+14',rightSimp:'7x+15'},
+{expr:'3(x+1)=2x+4',isTrue:false,leftSimp:'3x+3',rightSimp:'2x+4'},
+{expr:'5(x+2)=4x+x+8',isTrue:false,leftSimp:'5x+10',rightSimp:'5x+8'},
+{expr:'2(3x+1)=5x+3',isTrue:false,leftSimp:'6x+2',rightSimp:'5x+3'},
+{expr:'4(x+3)=2(2x+5)',isTrue:false,leftSimp:'4x+12',rightSimp:'4x+10'}
+];
+
+const selected=[...sh(trueEqs).slice(0,4),...sh(falseEqs).slice(0,4)];
+return sh(selected);
+}
+
+function renderL3(q){
+const Z=$('zone');
+const [left,right]=q.expr.split('=');
+
+let h=`<div class="mz">
+<div class="mz-title">Égalité à tester</div>
+<div class="math-display" id="mathExpr"></div>
+</div>`;
+
+h+=`<div class="pd">
+<div class="dot active"></div>
+<div class="dot" id="dot2"></div>
+</div>`;
+
+h+=`<div class="split-zone">
+<div class="split-side left">
+<div class="side-title left">Gauche</div>
+<div class="side-math" id="leftMath"></div>
+<div class="iz-title" style="font-size:.75em;margin:10px 0">Développez et réduisez</div>
+<input type="text" class="math-input" id="leftInput" placeholder="Forme réduite..." style="max-width:100%">
+<div style="margin-top:10px">
+<button class="btn btn-blue" onclick="checkSideL3('left')" id="btnLeft">Valider</button>
+</div>
+</div>
+<div class="split-side right">
+<div class="side-title right">Droite</div>
+<div class="side-math" id="rightMath"></div>
+<div class="iz-title" style="font-size:.75em;margin:10px 0">Développez et réduisez</div>
+<input type="text" class="math-input" id="rightInput" placeholder="Forme réduite..." style="max-width:100%">
+<div style="margin-top:10px">
+<button class="btn btn-blue" onclick="checkSideL3('right')" id="btnRight">Valider</button>
+</div>
+</div>
+</div>`;
+
+h+=`<div id="compareZone" style="display:none">
+<div class="iz">
+<div class="iz-title">Comparaison</div>
+<p style="font-size:1em;margin-bottom:12px">Les formes réduites sont-elles identiques ?</p>
+<div class="choice-row">
+<button class="choice-btn eq" onclick="checkEqualityL3(true)">Gauche = Droite</button>
+<button class="choice-btn neq" onclick="checkEqualityL3(false)">Gauche ≠ Droite</button>
+</div>
+</div>
+</div>`;
+
+Z.innerHTML=h;
+renderMath($('mathExpr'),q.expr.replace(/=/,' = '));
+renderMath($('leftMath'),left);
+renderMath($('rightMath'),right);
+
+cq._leftDone=false;
+cq._rightDone=false;
+cq._leftSimp=null;
+cq._rightSimp=null;
+}
+
+function checkSideL3(side){
+const q=cq;
+const input=$(side+'Input');
+const btn=$('btn'+side.charAt(0).toUpperCase()+side.slice(1));
+
+const userInput=normalize(input.value);
+const expected=normalize(q[side+'Simp']);
+
+input.classList.remove('ok','err');
+
+// Accepter avec ou sans * entre coefficient et variable
+const userNorm=userInput.replace(/\*/g,'');
+const expectedNorm=expected.replace(/\*/g,'');
+
+if(userNorm===expectedNorm){
+input.classList.add('ok');
+input.disabled=true;
+btn.disabled=true;
+if(side==='left'){
+cq._leftDone=true;
+cq._leftSimp=expectedNorm;
+}else{
+cq._rightDone=true;
+cq._rightSimp=expectedNorm;
+}
+if(cq._leftDone&&cq._rightDone){
+$('dot2').classList.add('done');
+$('compareZone').style.display='block';
+}
+}else{
+input.classList.add('err');
+}
+}
+
+function checkEqualityL3(userSaysEqual){
+const q=cq;
+const leftNorm=normalize(q.leftSimp);
+const rightNorm=normalize(q.rightSimp);
+const actualEqual=(leftNorm===rightNorm);
+const correct=(actualEqual===userSaysEqual);
+
+document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+
+if(correct){
+document.querySelector(userSaysEqual?'.choice-btn.eq':'.choice-btn.neq').classList.add('correct');
+finish(true,`✅ Correct ! ${userSaysEqual?'Les deux expressions sont identiques.':'Les deux expressions sont différentes.'}`);
+}else{
+document.querySelector(userSaysEqual?'.choice-btn.eq':'.choice-btn.neq').classList.add('wrong');
+document.querySelector(!userSaysEqual?'.choice-btn.eq':'.choice-btn.neq').classList.add('correct');
+finish(false,`❌ Incorrect. Gauche : ${q.leftSimp}, Droite : ${q.rightSimp}`);
+}
+}
+
+// ===== FLOW =====
+function go(level){
+lv=level;sc=0;qi=0;
+if(level===1)qs=genL1();
+else if(level===2)qs=genL2();
+else qs=genL3();
+$('badgeEx').textContent=LVNAMES[level];
+show('S_ex');
+loadQ();
+}
+
+function loadQ(){
+cq=qs[qi];
+$('scLbl').textContent=`${sc} / ${qi}`;
+$('pfill').style.width=(qi/qs.length*100)+'%';
+$('fb').className='fb';
+$('nxt').style.display='none';
+$('zone').innerHTML='';
+
+if(lv===1)renderL1(cq);
+else if(lv===2)renderL2(cq);
+else renderL3(cq);
+}
+
+function finish(ok,msg){
+if(ok)sc++;
+$('scLbl').textContent=`${sc} / ${qi+1}`;
+const fb=$('fb');
+fb.className=ok?'fb ok':'fb bad';
+fb.textContent=msg;
+$('nxt').style.display='';
+}
+
+function nxtQ(){
+qi++;
+if(qi>=qs.length)showRes();
+else loadQ();
+}
+
+function backMenu(){
+show('S_menu');
+}
+
+function showRes(){
+const tot=qs.length;
+const pct=tot>0?Math.round(sc/tot*100):0;
+const tier=pct>=80?'good':pct>=50?'mid':'bad';
+$('rCirc').className=`rc ${tier}`;
+const rp=$('rPct');
+rp.textContent=`${pct}%`;
+rp.style.color=tier==='good'?'var(--green)':tier==='mid'?'var(--orange)':'var(--red)';
+$('rMsg').textContent=pct===100?'Parfait !':pct>=80?'Très bien !':pct>=60?'Continue tes efforts !':'Reprends les méthodes et réessaie.';
+show('S_res');
+}
+
+// Validation au clavier (touche Entrée)
+$('zone').addEventListener('keydown',function(e){
+if(e.key!=='Enter')return;
+const id=e.target.id;
+if(id==='subInput')checkSubstitution();
+else if(id==='resInput')checkResult();
+else if(id==='leftCalcInput')checkCalc('left');
+else if(id==='rightCalcInput')checkCalc('right');
+else if(id==='leftResInput')checkRes('left');
+else if(id==='rightResInput')checkRes('right');
+else if(id==='leftInput')checkSideL3('left');
+else if(id==='rightInput')checkSideL3('right');
+});
+</script>
+<a href="index.html" class="btn-retour-flottant">
+    <span>🏠</span> Menu
+</a>
+
+<style>
+    .btn-retour-flottant {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #5c67f2;
+        text-decoration: none;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 10px 18px;
+        border-radius: 50px;
+        border: 2px solid #5c67f2;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-retour-flottant:hover {
+        transform: scale(1.05);
+        background: #5c67f2;
+        color: white;
+    }
+    @media (max-width: 600px) {
+        .btn-retour-flottant {
+            top: auto;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 22px;
+            font-size: 1rem;
+        }
+    }
+</style>
+</body>
+</html>
