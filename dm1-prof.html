@@ -1179,9 +1179,20 @@ function tryLoadFromHash(){
   const hash = window.location.hash;
   const m = hash.match(/data=([^&]+)/);
   if (m){
+    let data = null;
+    const raw = m[1];
+    /* Méthode 1 : URL-encoded JSON (format utilisé par dm-eleve.html) */
     try {
-      const json = b64DecodeUnicode(decodeURIComponent(m[1]));
-      const data = JSON.parse(json);
+      const json = decodeURIComponent(raw);
+      data = JSON.parse(json);
+    } catch(e1){
+      /* Méthode 2 : base64 (fallback) */
+      try {
+        const json = b64DecodeUnicode(decodeURIComponent(raw));
+        data = JSON.parse(json);
+      } catch(e2){ console.error('Erreur de décodage du lien', e2); }
+    }
+    if (data){
       renderDoc(data);
       if (window.__addCopyToGrid){
         const result = window.__addCopyToGrid(data);
@@ -1198,7 +1209,7 @@ function tryLoadFromHash(){
         }
       }
       return true;
-    } catch(e){ console.error('Erreur de décodage du lien', e); }
+    }
   }
   return false;
 }
