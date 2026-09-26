@@ -463,6 +463,7 @@ function isBlocked(title){if(!title)return true;const t=title.toLowerCase();if(B
 
 function getPool(d){if(!pools[d])pools[d]=Promise.all(DISCS[d].cats.map(fetchCat)).then(ls=>{const s=new Set();ls.forEach(l=>l.forEach(t=>{if(!isBlocked(t))s.add(t)}));if(EXTRAS[d])EXTRAS[d].forEach(t=>{if(!isBlocked(t))s.add(t)});const a=[...s];pools[d]._c=a;console.log('Pool',d,':',a.length,'articles');return a}).catch(function(e){console.error('Pool error',d,e);delete pools[d];return[]});return pools[d]}
 function getRandomPool(){var k=DK[Math.floor(Math.random()*DK.length)];return getPool(k).then(function(p){return{pool:p,disc:k}})}
+function getAllPool(){return Promise.all(DK.map(function(k){return getPool(k)})).then(function(arrs){var s=new Set();arrs.forEach(function(a){a.forEach(function(t){s.add(t)})});return[...s]})}
 async function fetchPages(titles){try{const d=await wpQuery({action:'query',format:'json',titles:titles.slice(0,12).join('|'),prop:'extracts|pageimages|info',exintro:'1',explaintext:'1',exchars:'300',piprop:'thumbnail',pithumbsize:'500',inprop:'url',redirects:'1'});if(!d)return[];const pages=d&&d.query&&d.query.pages?Object.values(d.query.pages).filter(function(p){return p.pageid>0}):[];console.log('Pages:',titles.length,'->',pages.length,'valid');return pages}catch(e){console.error('fetchPages:',e);return[]}}
 async function fetchViews(t){
   /* Wikimedia REST pageviews API doesn't support JSONP, so we estimate views from page properties */
@@ -995,7 +996,14 @@ setInterval(checkNotif,30000);
   const test=await wpQuery({action:'query',format:'json',list:'categorymembers',cmtitle:'Catégorie:Mathématiques',cmnamespace:'0',cmlimit:'5'});
   if(test&&test.query){console.log('API OK via '+(useJsonp?'JSONP':'fetch'))}
   else{console.warn('API returned empty, trying JSONP...');useJsonp=true;const t2=await wpQuery({action:'query',format:'json',list:'categorymembers',cmtitle:'Catégorie:Mathématiques',cmnamespace:'0',cmlimit:'5'});console.log('JSONP test:',t2?'OK':'FAIL')}
-}catch(e){console.error('API test failed:',e)}})();
+}catch(e){console.error('API test failed:',e)}
+/* Preload all discipline pools so completion percentages are accurate from the start */
+DK.forEach(function(k){getPool(k).then(function(){
+  /* Refresh collection progress display if visible */
+  var dprog=document.getElementById('dprog');
+  if(dprog)dprog.innerHTML='<h4 style="grid-column:1/-1;font-size:.82rem;margin-bottom:4px">📖 Progression par discipline</h4>'+renderCompletion();
+})});
+})();
 window.onerror=function(msg){console.error('Tiroir error:',msg)};
 /* Expose needed symbols to Firebase script */
 window._T={S:function(){return S},save:save,refreshUI:refreshUI,switchView:switchView,toast:toast,toastAction:toastAction,addXP:addXP,ckAch:ckAch,fN:fN,esc:esc,trunc:trunc,rT:rT,getTitle:getTitle,sample:sample,DISCS:DISCS,DK:DK,fireConfetti:fireConfetti,sLeg:sLeg,sRare:sRare,sClick:sClick,checkMissions:checkMissions,dailyProgress:function(){return dailyProgress},mathPH:mathPH,discTag2:discTag2,estimatePopularity:estimatePopularity,fetchPages:fetchPages,mkCard:mkCard,todayS:todayS};
