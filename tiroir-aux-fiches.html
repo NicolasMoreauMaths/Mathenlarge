@@ -211,7 +211,39 @@
 .avpick{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}
 .avpick button{width:100%;aspect-ratio:1;border-radius:10px;border:2px solid var(--brd);background:var(--bg3);font-size:1.6rem;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center}
 .avpick button:hover{border-color:var(--acc);transform:scale(1.1)}.avpick button.sel{border-color:var(--acc);background:var(--acc2);box-shadow:0 0 10px rgba(45,212,168,.3)}
-.credit{text-align:center;margin-top:28px;font-size:.6rem;color:var(--txt3)}
+.credit{text-align:center;margin-top:28px;font-size:.7rem;color:var(--txt3)}
+/* Desktop readability: bump base sizes */
+@media(min-width:761px){
+body{font-size:1.05rem}
+.vh h1{font-size:1.7rem}.vh p{font-size:1rem}
+.ni{font-size:1rem;padding:11px 14px}
+.tiles{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.tbd h4{font-size:.92rem}.tst{font-size:.82rem}
+.sb,.bb{font-size:.78rem;padding:6px 8px}
+.fb{font-size:.82rem;padding:5px 12px}
+.si{font-size:.92rem;padding:9px 13px}
+.ach{padding:12px 14px}.achi{width:36px;height:36px;font-size:1.05rem}
+.acht h4{font-size:.95rem}.acht p{font-size:.82rem}
+.achr{font-size:.82rem}
+.eh{font-size:.95rem}
+.duel-pick{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.duel-pick .dp-card .dp-nm{font-size:.65rem;padding:4px 5px}
+.duel-pick .dp-card .dp-ph{height:65px;font-size:1.4rem}
+.duel-pick .dp-card .dp-st{font-size:.6rem}
+.duel-pick .dp-card .dp-rb{font-size:.5rem}
+.duel-sel .ds-card{width:85px}.duel-sel .ds-card .dp-ph{height:55px;font-size:1.1rem}
+.duel-btn{font-size:1rem;padding:12px 26px}
+.quiz-box{max-width:400px;padding:20px}.quiz-box h4{font-size:.95rem}.quiz-box p{font-size:.88rem}.quiz-opt{font-size:.88rem;padding:10px 14px}
+.pcard{padding:22px;gap:18px}.pav{width:58px;height:58px;font-size:1.4rem}.pinf h3{font-size:1.15rem}.pinf p{font-size:.88rem}
+.sv{font-size:1.6rem}.sl{font-size:.8rem}
+.toast{font-size:.88rem;padding:10px 14px}
+.mbd h3{font-size:1.15rem}.mbd>p{font-size:.9rem}
+.bal{font-size:1rem;padding:8px 16px}
+.rb{font-size:.65rem;padding:3px 8px}
+.dprog{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.dp-name{font-size:.8rem}.dp-count{font-size:.7rem}
+.dcr{font-size:.82rem}
+}
 .bnav{display:none}
 .more-popup{display:none}
 @media(max-width:760px){.sidebar{display:none}.bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--brd);z-index:90;padding:4px 0 max(4px,env(safe-area-inset-bottom));justify-content:space-around}.bnav button{background:none;border:none;color:var(--txt3);font-size:.55rem;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 2px;cursor:pointer;position:relative;flex:1}.bnav button.active{color:var(--acc)}.bnav button svg{width:20px;height:20px}.bnav .nb2{position:absolute;top:0;right:calc(50% - 12px);min-width:13px;height:13px;border-radius:7px;background:var(--cur);color:#fff;font-size:.45rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 2px}
@@ -957,6 +989,9 @@ window._T={S:function(){return S},save:save,refreshUI:refreshUI,switchView:switc
 <script>
 /* Bridge: alias IIFE-scoped symbols into this script block */
 var T=window._T,S=T.S(),save=T.save,refreshUI=T.refreshUI,switchView=T.switchView,toast=T.toast,addXP=T.addXP,ckAch=T.ckAch,fN=T.fN,esc=T.esc,trunc=T.trunc,rT=T.rT,getTitle=T.getTitle,sample=T.sample,DISCS=T.DISCS,DK=T.DK,fireConfetti=T.fireConfetti,sLeg=T.sLeg,sRare=T.sRare,sClick=T.sClick,checkMissions=T.checkMissions,mathPH=T.mathPH,discTag2=T.discTag2,todayS=T.todayS;
+/* Short tag from UID to disambiguate same pseudos (e.g. #a3f2) */
+function pTag(uid){return'#'+uid.slice(-4)}
+function displayName(pseudo,uid){return esc(pseudo)+'<span style="color:var(--txt3);font-size:.75em;margin-left:2px">'+pTag(uid)+'</span>'}
 /* ===== FIREBASE CONFIG — COLLER CONFIG ICI ===== */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDA9TMR8lHIoTZm-YTasdesLCXC-ILy1ys",
@@ -1012,8 +1047,11 @@ function showLoginScreen(){
       /* Save player profile to Firestore */
       await syncToCloud();
       modal.classList.remove('open');
-      toast('🌐 Connecté !');
+      toast('🌐 Connecté ! Votre tag : '+pseudo+pTag(fbUser.uid));
       refreshUI();
+      /* Re-render active view so it shows logged-in state */
+      var av=document.querySelector('.view.active');
+      if(av){var vn=av.id.replace('v-','');switchView(vn)}
     }catch(e){document.getElementById('fb-err').textContent='Erreur : '+e.message;console.error(e)}
   });
 }
@@ -1030,7 +1068,7 @@ async function syncToCloud(){
     title:getTitle(S.level||0),
     cardCount:unique.size,
     totalCards:S.coll.length,
-    topCards:[...unique.values()].sort(function(a,b){return(b.atk+b.def)-(a.atk+a.def)}).slice(0,5).map(function(c){return{title:c.title,rarity:c.rarity,atk:c.atk,def:c.def,disc:c.disc}}),
+    topCards:[...unique.values()].sort(function(a,b){return(b.atk+b.def)-(a.atk+a.def)}).slice(0,20).map(function(c){return{title:c.title,rarity:c.rarity,atk:c.atk,def:c.def,disc:c.disc}}),
     lastSeen:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
 }
@@ -1042,33 +1080,37 @@ async function getPlayers(){
   return snap.docs.map(function(d){return Object.assign({id:d.id},d.data())}).filter(function(p){return p.id!==fbUser?.uid});
 }
 
-async function proposeTrade(toId,toPseudo,myCardTitle,wantCardTitle){
+async function proposeTrade(toId,toPseudo,offerCards,offerEcus,wantCards,wantEcus){
   if(!fbDb||!fbClass||!fbUser)return;
-  const myCard=S.coll.find(function(c){return c.title===myCardTitle});
-  if(!myCard){toast('Carte introuvable.');return}
+  if(!offerCards.length&&!offerEcus&&!wantCards.length&&!wantEcus){toast('Échange vide.');return}
   await fbDb.collection('classes').doc(fbClass).collection('trades').add({
     from:fbUser.uid,
     fromPseudo:S.pseudo,
     to:toId,
     toPseudo:toPseudo,
-    offerCard:{title:myCard.title,rarity:myCard.rarity,atk:myCard.atk,def:myCard.def,disc:myCard.disc},
-    wantCard:wantCardTitle||'Au choix',
+    offerCards:offerCards.map(function(c){return{title:c.title,rarity:c.rarity,atk:c.atk,def:c.def,disc:c.disc}}),
+    offerEcus:offerEcus||0,
+    wantCards:wantCards.map(function(c){return{title:c.title,rarity:c.rarity,atk:c.atk,def:c.def,disc:c.disc}}),
+    wantEcus:wantEcus||0,
     status:'pending',
     createdAt:firebase.firestore.FieldValue.serverTimestamp()
   });
-  toast('Offre envoyée à '+toPseudo+' !');
+  toast('Offre envoyée à '+esc(toPseudo)+' !');
 }
 
 async function acceptTrade(tradeId,tradeData){
   if(!fbDb||!fbClass||!fbUser)return;
-  /* Remove offered card from sender (handled by sender on their end) */
-  /* Add received card to my collection */
-  const card=tradeData.offerCard;
-  S.coll.push(Object.assign({},card,{views:0,extract:'',url:'',thumb:null,qscore:0}));
+  /* Give me their offered cards */
+  (tradeData.offerCards||[]).forEach(function(c){S.coll.push(Object.assign({},c,{views:0,extract:'',url:'',thumb:null,qscore:0}))});
+  /* Remove my cards that I gave */
+  (tradeData.wantCards||[]).forEach(function(wc){var idx=S.coll.findIndex(function(c){return c.title===wc.title});if(idx>=0)S.coll.splice(idx,1)});
+  /* Ecus */
+  S.ecus=(S.ecus||0)+(tradeData.offerEcus||0)-(tradeData.wantEcus||0);
+  if(S.ecus<0)S.ecus=0;
   save();
   await fbDb.collection('classes').doc(fbClass).collection('trades').doc(tradeId).update({status:'accepted'});
   await syncToCloud();
-  toast('Échange accepté ! +'+card.title);
+  toast('Échange accepté !');addXP(10);ckAch();
   refreshUI();
 }
 
@@ -1078,42 +1120,156 @@ async function rejectTrade(tradeId){
   toast('Échange refusé.');
 }
 
+/* ===== TRADE CARD PICKER COMPONENT ===== */
+function renderCardPicker(containerId,cards,selectedTitles,onSelect,searchId){
+  var el=document.getElementById(containerId);if(!el)return;
+  var q=(document.getElementById(searchId)?.value||'').toLowerCase();
+  var filtered=q?cards.filter(function(c){return c.title.toLowerCase().includes(q)}):cards;
+  el.innerHTML=filtered.slice(0,60).map(function(c){
+    var isSel=selectedTitles.indexOf(c.title)>=0;
+    return'<div class="dp-card'+(isSel?' sel':'')+'" data-t="'+esc(c.title)+'" style="cursor:pointer"><div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+(c.thumb?'<img class="dp-img" src="'+c.thumb+'">':(DISCS[c.disc]||{i:'📐'}).i)+'</div><span class="rb dp-rb rb-'+c.rarity+'">'+rT(c.rarity).s+'</span><div class="dp-nm">'+esc(trunc(c.title,22))+'</div><div class="dp-st"><span style="color:#f43f5e">⚔'+fN(c.atk)+'</span><span style="color:#3b82f6">🛡'+fN(c.def)+'</span></div></div>'
+  }).join('');
+  el.addEventListener('click',function handler(e){var card=e.target.closest('.dp-card');if(!card)return;onSelect(card.dataset.t);el.removeEventListener('click',handler)});
+}
+
 /* ===== TRADES VIEW ===== */
 function renderEchanges(){
   const v=document.getElementById('v-echanges');
-  if(!FIREBASE_ENABLED){v.innerHTML='<header class="vh" style="text-align:center"><h1>Échanges</h1><p>Le multijoueur nécessite la configuration Firebase.</p><p style="color:var(--txt3);font-size:.82rem;margin-top:8px">Voir le fichier GUIDE-FIREBASE.md</p></header>';return}
+  if(!FIREBASE_ENABLED){v.innerHTML='<header class="vh" style="text-align:center"><h1>Échanges</h1><p>Le multijoueur nécessite la configuration Firebase.</p></header>';return}
   if(!fbUser){v.innerHTML='<header class="vh" style="text-align:center"><h1>Échanges</h1><p>Connectez-vous pour échanger des cartes.</p><button class="duel-btn go" id="fb-connect" style="margin-top:14px">Se connecter</button></header>';v.querySelector('#fb-connect')?.addEventListener('click',showLoginScreen);return}
-  v.innerHTML='<header class="vh"><h1>Échanges</h1><p>Proposez et recevez des échanges.</p></header><div style="display:flex;gap:8px;margin-bottom:14px"><button class="fb active" id="et-recv">Reçues</button><button class="fb" id="et-sent">Envoyées</button><button class="fb" id="et-new">+ Proposer</button></div><div id="trades-list"><p style="color:var(--txt3);font-size:.82rem">Chargement...</p></div>';
+  v.innerHTML='<header class="vh"><h1>🔄 Échanges</h1><p>Proposez et recevez des échanges de cartes et d\'écus.</p></header>'+
+    '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><button class="fb active" id="et-recv">📩 Reçues</button><button class="fb" id="et-sent">📤 Envoyées</button><button class="fb" id="et-new">+ Proposer</button></div>'+
+    '<div id="trades-list"><p style="color:var(--txt3)">Chargement...</p></div>';
   var tab='recv';
   async function loadTrades(){
     const list=document.getElementById('trades-list');
     try{
+      if(tab==='new'){showNewTrade();return}
       let snap;
       if(tab==='recv'){snap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('to','==',fbUser.uid).where('status','==','pending').get()}
-      else if(tab==='sent'){snap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('from','==',fbUser.uid).get()}
-      else{showNewTrade();return}
+      else{snap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('from','==',fbUser.uid).orderBy('createdAt','desc').get()}
       if(snap.empty){list.innerHTML='<p class="eh">Aucun échange '+(tab==='recv'?'reçu':'envoyé')+'.</p>';return}
-      list.innerHTML=snap.docs.map(function(d){var t=d.data();var isRecv=tab==='recv';
-        return'<div class="ach '+(t.status==='pending'&&isRecv?'rdy':t.status==='accepted'?'done':'')+'" style="cursor:default"><span class="achi">'+(t.status==='accepted'?'✅':t.status==='rejected'?'❌':'🔄')+'</span><div class="acht"><h4>'+(isRecv?t.fromPseudo:t.toPseudo)+' '+(isRecv?'vous propose':'← envoyé')+'</h4><p><strong>'+t.offerCard.title+'</strong> ('+t.offerCard.rarity.toUpperCase()+') ⚔'+t.offerCard.atk+'</p></div>'+(t.status==='pending'&&isRecv?'<div style="display:flex;gap:4px"><button class="bb" data-accept="'+d.id+'">✓</button><button class="sb" data-reject="'+d.id+'">✗</button></div>':'<span class="achr" style="opacity:.5">'+t.status+'</span>')+'</div>'
+      list.innerHTML=snap.docs.map(function(d){
+        var t=d.data();var isRecv=tab==='recv';
+        var oCards=(t.offerCards||[]).map(function(c){return esc(trunc(c.title,18))+' <span class="rb rb-'+c.rarity+'" style="font-size:.5rem">'+rT(c.rarity).s+'</span>'}).join(', ')||(t.offerCard?esc(t.offerCard.title):'');
+        var wCards=(t.wantCards||[]).map(function(c){return esc(trunc(c.title,18))+' <span class="rb rb-'+c.rarity+'" style="font-size:.5rem">'+rT(c.rarity).s+'</span>'}).join(', ')||'';
+        var oEcus=t.offerEcus||0;var wEcus=t.wantEcus||0;
+        var statusIcon=t.status==='accepted'?'✅':t.status==='rejected'?'❌':t.status==='negotiating'?'💬':'🔄';
+        return'<div class="ach '+(t.status==='pending'&&isRecv?'rdy':t.status==='accepted'?'done':'')+'" style="cursor:default;flex-wrap:wrap">'+
+          '<span class="achi">'+statusIcon+'</span>'+
+          '<div class="acht" style="flex:1;min-width:180px"><h4>'+(isRecv?displayName(t.fromPseudo,t.from):displayName(t.toPseudo,t.to))+'</h4>'+
+          '<p style="line-height:1.6"><span style="color:var(--acc)">Donne :</span> '+(oCards||'rien')+(oEcus?' + '+fN(oEcus)+' écus':'')+
+          '<br><span style="color:var(--cur)">Veut :</span> '+(wCards||'rien')+(wEcus?' + '+fN(wEcus)+' écus':'')+'</p></div>'+
+          (t.status==='pending'&&isRecv?'<div style="display:flex;gap:5px;flex-wrap:wrap"><button class="bb" data-accept="'+d.id+'">✓ Accepter</button><button class="duel-btn go" data-negotiate="'+d.id+'" style="font-size:.78rem;padding:6px 12px;background:var(--bg3);color:var(--acc);border:1px solid var(--acc)">💬 Négocier</button><button class="sb" data-reject="'+d.id+'">✗ Refuser</button></div>':'<span class="achr" style="opacity:.5">'+t.status+'</span>')+
+          '</div>';
       }).join('');
-      list.querySelectorAll('[data-accept]').forEach(function(b){b.addEventListener('click',function(){var id=b.dataset.accept;var t=snap.docs.find(function(d){return d.id===id});if(t)acceptTrade(id,t.data()).then(loadTrades)})});
-      list.querySelectorAll('[data-reject]').forEach(function(b){b.addEventListener('click',function(){rejectTrade(b.dataset.reject).then(loadTrades)})});
+      list.querySelectorAll('[data-accept]').forEach(function(b){b.addEventListener('click',function(){var id=b.dataset.accept;var t=snap.docs.find(function(d){return d.id===id});if(t)acceptTrade(id,t.data()).then(function(){loadTrades()})})});
+      list.querySelectorAll('[data-reject]').forEach(function(b){b.addEventListener('click',function(){rejectTrade(b.dataset.reject).then(function(){loadTrades()})})});
+      list.querySelectorAll('[data-negotiate]').forEach(function(b){b.addEventListener('click',function(){
+        var id=b.dataset.negotiate;var t=snap.docs.find(function(d){return d.id===id});
+        if(!t)return;var td=t.data();
+        /* Open trade editor pre-filled with a counter-offer */
+        rejectTrade(id).then(function(){
+          tab='new';showNewTradeWith(td.from,td.fromPseudo,td.wantCards||[],td.wantEcus||0,td.offerCards||[],td.offerEcus||0);
+        });
+      })});
     }catch(e){list.innerHTML='<p class="eh">Erreur : '+e.message+'</p>'}
   }
-  async function showNewTrade(){
+
+  async function showNewTrade(){showNewTradeWith(null,null,[],0,[],0)}
+
+  async function showNewTradeWith(preToId,preToPseudo,preOffer,preOfferEcus,preWant,preWantEcus){
     const list=document.getElementById('trades-list');
-    list.innerHTML='<p style="color:var(--txt3)">Chargement des joueurs...</p>';
-    const players=await getPlayers();
-    if(!players.length){list.innerHTML='<p class="eh">Aucun autre joueur dans cette classe.</p>';return}
-    const unique=new Map();S.coll.forEach(function(c){if(!unique.has(c.title))unique.set(c.title,c)});
-    const myCards=[...unique.values()];
-    list.innerHTML='<div style="margin-bottom:12px"><p style="font-size:.82rem;margin-bottom:6px">Envoyer à :</p><div class="fr" id="tr-players">'+players.map(function(p){return'<button class="fb" data-pid="'+p.id+'" data-pn="'+p.pseudo+'">'+p.avatar+' '+p.pseudo+' (Nv.'+p.level+')</button>'}).join('')+'</div></div><div id="tr-step2" style="display:none"><p style="font-size:.82rem;margin-bottom:6px">Votre carte à proposer :</p><input type="search" class="si" id="tr-search" placeholder="Rechercher..." style="max-width:260px"><div class="duel-pick" id="tr-cards" style="max-height:35vh"></div></div>';
-    var selPlayer=null,selCard=null;
-    document.getElementById('tr-players').addEventListener('click',function(e){var b=e.target.closest('[data-pid]');if(!b)return;selPlayer={id:b.dataset.pid,pseudo:b.dataset.pn};document.getElementById('tr-players').querySelectorAll('.fb').forEach(function(x){x.classList.toggle('active',x===b)});document.getElementById('tr-step2').style.display='block';fillCards()});
-    function fillCards(){var q=(document.getElementById('tr-search')?.value||'').toLowerCase();var filtered=myCards.filter(function(c){return!q||c.title.toLowerCase().includes(q)});document.getElementById('tr-cards').innerHTML=filtered.slice(0,50).map(function(c){return'<div class="dp-card'+(selCard===c.title?' sel':'')+'" data-ct="'+c.title+'" style="cursor:pointer"><div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+((DISCS[c.disc]||{i:'📐'}).i)+'</div><span class="rb dp-rb rb-'+c.rarity+'">'+rT(c.rarity).s+'</span><div class="dp-nm">'+c.title.slice(0,22)+'</div><div class="dp-st"><span style="color:#f43f5e">⚔'+c.atk+'</span></div></div>'}).join('')+'<div style="grid-column:1/-1;text-align:center;padding:8px">'+(selPlayer&&selCard?'<button class="duel-btn go" id="tr-send">Envoyer l\'offre</button>':'')+'</div>'}
-    document.getElementById('tr-search')?.addEventListener('input',fillCards);
-    document.getElementById('tr-cards').addEventListener('click',function(e){var c=e.target.closest('.dp-card');if(c){selCard=c.dataset.ct;fillCards()}var send=e.target.closest('#tr-send');if(send&&selPlayer&&selCard){proposeTrade(selPlayer.id,selPlayer.pseudo,selCard,'').then(function(){tab='sent';loadTrades()})}});
+    list.innerHTML='<p style="color:var(--txt3)">Chargement...</p>';
+    var friends=await getFriends();
+    var playerSnap=await fbDb.collection('classes').doc(fbClass).collection('players').get();
+    var playerMap={};playerSnap.docs.forEach(function(d){playerMap[d.id]=d.data()});
+    if(!friends.length){list.innerHTML='<p class="eh">Ajoutez d\'abord des amis pour échanger !</p>';return}
+
+    var selFriend=preToId?{id:preToId,pseudo:preToPseudo}:null;
+    var offerSel=preOffer.map(function(c){return c.title});
+    var wantSel=preWant.map(function(c){return c.title});
+    var offerEcus=preOfferEcus||0;
+    var wantEcus=preWantEcus||0;
+
+    function draw(){
+      var unique=new Map();S.coll.forEach(function(c){if(!unique.has(c.title))unique.set(c.title,c)});
+      var myCards=[...unique.values()];
+      var theirCards=[];
+      if(selFriend){var p=playerMap[selFriend.id];if(p&&p.topCards)theirCards=p.topCards}
+
+      list.innerHTML=
+        '<div style="margin-bottom:14px"><p style="font-weight:600;margin-bottom:6px">Échanger avec :</p>'+
+        '<div class="fr" id="tr-friends">'+friends.map(function(f){
+          var p=playerMap[f.uid]||{};
+          return'<button class="fb'+(selFriend&&selFriend.id===f.uid?' active':'')+'" data-fid="'+f.uid+'" data-fpseudo="'+esc(p.pseudo||f.pseudo)+'">'+(p.avatar||f.avatar||'📐')+' '+(p.pseudo||f.pseudo)+pTag(f.uid)+'</button>';
+        }).join('')+'</div></div>'+
+        (selFriend?
+        '<div style="display:flex;gap:16px;flex-wrap:wrap">'+
+          /* LEFT: what I give */
+          '<div style="flex:1;min-width:250px;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:14px">'+
+            '<h3 style="font-size:.95rem;color:var(--acc);margin-bottom:8px">🎁 Ce que je donne</h3>'+
+            (offerSel.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+offerSel.map(function(t,i){var c=myCards.find(function(x){return x.title===t});return c?'<span class="fb active" style="cursor:pointer" data-rmoff="'+i+'">'+esc(trunc(c.title,16))+' <span class="rb rb-'+c.rarity+'" style="font-size:.45rem">'+rT(c.rarity).s+'</span> ✕</span>':''}).join('')+'</div>':'')+
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="coin">É</span><input type="number" class="si" id="tr-oecus" value="'+offerEcus+'" min="0" max="'+(S.ecus||0)+'" style="max-width:100px;margin:0"><span style="font-size:.8rem;color:var(--txt3)">/ '+fN(S.ecus||0)+'</span></div>'+
+            '<input type="search" class="si" id="tr-osearch" placeholder="Rechercher dans mes cartes..." style="max-width:100%">'+
+            '<div class="duel-pick" id="tr-ocards" style="max-height:30vh"></div>'+
+          '</div>'+
+          /* RIGHT: what I want */
+          '<div style="flex:1;min-width:250px;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:14px">'+
+            '<h3 style="font-size:.95rem;color:var(--cur);margin-bottom:8px">💎 Ce que je veux</h3>'+
+            (wantSel.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+wantSel.map(function(t,i){var c=theirCards.find(function(x){return x.title===t});return c?'<span class="fb active" style="cursor:pointer;border-color:var(--cur);color:var(--cur)" data-rmwant="'+i+'">'+esc(trunc(c.title,16))+' <span class="rb rb-'+c.rarity+'" style="font-size:.45rem">'+rT(c.rarity).s+'</span> ✕</span>':''}).join('')+'</div>':'')+
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="coin">É</span><input type="number" class="si" id="tr-wecus" value="'+wantEcus+'" min="0" style="max-width:100px;margin:0"></div>'+
+            (theirCards.length?
+              '<p style="font-size:.8rem;color:var(--txt2);margin-bottom:6px">Cartes visibles de '+esc(selFriend.pseudo)+' :</p>'+
+              '<div class="duel-pick" id="tr-wcards" style="max-height:30vh"></div>'
+              :'<p style="font-size:.8rem;color:var(--txt3)">Les meilleures cartes de '+esc(selFriend.pseudo)+' apparaîtront ici.</p>')+
+          '</div>'+
+        '</div>'+
+        '<div style="text-align:center;margin-top:16px"><button class="duel-btn go" id="tr-send" '+(offerSel.length||offerEcus||wantSel.length||wantEcus?'':'disabled')+'>Envoyer la proposition d\'échange</button></div>'
+        :'<p style="color:var(--txt3);text-align:center;padding:16px">Sélectionnez un ami ci-dessus.</p>');
+
+      /* Bind friend selection */
+      document.getElementById('tr-friends')?.addEventListener('click',function(e){var b=e.target.closest('[data-fid]');if(!b)return;selFriend={id:b.dataset.fid,pseudo:b.dataset.fpseudo};offerSel=[];wantSel=[];wantEcus=0;draw()});
+
+      if(!selFriend)return;
+
+      /* Bind offer card picker */
+      renderCardPicker('tr-ocards',myCards,offerSel,function(title){
+        var idx=offerSel.indexOf(title);if(idx>=0)offerSel.splice(idx,1);else offerSel.push(title);draw();
+      },'tr-osearch');
+      document.getElementById('tr-osearch')?.addEventListener('input',function(){
+        renderCardPicker('tr-ocards',myCards,offerSel,function(title){
+          var idx=offerSel.indexOf(title);if(idx>=0)offerSel.splice(idx,1);else offerSel.push(title);draw();
+        },'tr-osearch');
+      });
+
+      /* Bind want card picker */
+      if(theirCards.length){
+        renderCardPicker('tr-wcards',theirCards,wantSel,function(title){
+          var idx=wantSel.indexOf(title);if(idx>=0)wantSel.splice(idx,1);else wantSel.push(title);draw();
+        },null);
+      }
+
+      /* Remove tags */
+      list.querySelectorAll('[data-rmoff]').forEach(function(b){b.addEventListener('click',function(){offerSel.splice(+b.dataset.rmoff,1);draw()})});
+      list.querySelectorAll('[data-rmwant]').forEach(function(b){b.addEventListener('click',function(){wantSel.splice(+b.dataset.rmwant,1);draw()})});
+
+      /* Ecus inputs */
+      document.getElementById('tr-oecus')?.addEventListener('change',function(){offerEcus=Math.max(0,Math.min(S.ecus||0,+this.value||0));draw()});
+      document.getElementById('tr-wecus')?.addEventListener('change',function(){wantEcus=Math.max(0,+this.value||0);draw()});
+
+      /* Send button */
+      document.getElementById('tr-send')?.addEventListener('click',function(){
+        if(!selFriend)return;
+        var unique=new Map();S.coll.forEach(function(c){if(!unique.has(c.title))unique.set(c.title,c)});
+        var oc=offerSel.map(function(t){return unique.get(t)}).filter(Boolean);
+        var wc=wantSel.map(function(t){return theirCards.find(function(x){return x.title===t})}).filter(Boolean);
+        proposeTrade(selFriend.id,selFriend.pseudo,oc,offerEcus,wc,wantEcus).then(function(){tab='sent';loadTrades()});
+      });
+    }
+    draw();
   }
+
   v.querySelector('#et-recv').addEventListener('click',function(){tab='recv';v.querySelectorAll('.fb').forEach(function(b){b.classList.remove('active')});this.classList.add('active');loadTrades()});
   v.querySelector('#et-sent').addEventListener('click',function(){tab='sent';v.querySelectorAll('.fb').forEach(function(b){b.classList.remove('active')});this.classList.add('active');loadTrades()});
   v.querySelector('#et-new').addEventListener('click',function(){tab='new';v.querySelectorAll('.fb').forEach(function(b){b.classList.remove('active')});this.classList.add('active');loadTrades()});
@@ -1169,54 +1325,74 @@ function renderAmis(){
   const v=document.getElementById('v-amis');
   if(!FIREBASE_ENABLED){v.innerHTML='<header class="vh" style="text-align:center"><h1>Amis</h1><p>Le multijoueur nécessite Firebase.</p></header>';return}
   if(!fbUser){v.innerHTML='<header class="vh" style="text-align:center"><h1>Amis</h1><p>Connectez-vous pour ajouter des amis.</p><button class="duel-btn go" id="fb-amis-connect" style="margin-top:14px">Se connecter</button></header>';v.querySelector('#fb-amis-connect')?.addEventListener('click',showLoginScreen);return}
-  v.innerHTML='<header class="vh"><h1>👥 Amis</h1><p>Gérez vos amis dans la classe.</p></header><div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><button class="fb active" id="at-friends">Mes amis</button><button class="fb" id="at-requests">Demandes</button><button class="fb" id="at-add">+ Ajouter</button></div><div id="amis-list"><p style="color:var(--txt3);font-size:.82rem">Chargement...</p></div>';
-  var tab='friends';
-  async function loadAmisTab(){
-    const list=document.getElementById('amis-list');
-    try{
-      if(tab==='friends'){
-        const friends=await getFriends();
-        if(!friends.length){list.innerHTML='<p class="eh">Aucun ami pour le moment. Ajoutez des camarades !</p>';return}
-        // Fetch online status
-        const playerSnap=await fbDb.collection('classes').doc(fbClass).collection('players').get();
-        const playerMap={};playerSnap.docs.forEach(function(d){playerMap[d.id]=d.data()});
-        list.innerHTML=friends.map(function(f){
+  v.innerHTML='<header class="vh"><h1>👥 Amis</h1><p>Votre code : <strong>'+esc(S.pseudo||'?')+pTag(fbUser.uid)+'</strong></p></header>'+
+    '<div id="amis-requests"></div>'+
+    '<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">'+
+      '<div style="flex:1;min-width:260px" id="amis-friends"><p style="color:var(--txt3)">Chargement...</p></div>'+
+      '<div style="flex:1;min-width:260px" id="amis-add"></div>'+
+    '</div>';
+  loadAmisAll();
+}
+
+async function loadAmisAll(){
+  try{
+    var friends=await getFriends();
+    var reqs=await getFriendRequests();
+    var players=await getPlayers();
+    var playerSnap=await fbDb.collection('classes').doc(fbClass).collection('players').get();
+    var playerMap={};playerSnap.docs.forEach(function(d){playerMap[d.id]=d.data()});
+    var friendUids=friends.map(function(f){return f.uid});
+
+    /* --- Requests section --- */
+    var reqDiv=document.getElementById('amis-requests');
+    if(reqs.length){
+      reqDiv.innerHTML='<div style="background:var(--acc2);border:1px solid rgba(45,212,168,.25);border-radius:var(--rad);padding:14px;margin-bottom:18px"><h3 style="font-size:.95rem;margin-bottom:10px">📩 Demandes d\'amis ('+reqs.length+')</h3>'+
+        reqs.map(function(r){
+          return'<div class="ach rdy" style="cursor:default;margin-bottom:4px"><span class="achi" style="font-size:1.3rem">'+(r.fromAvatar||'📐')+'</span><div class="acht"><h4>'+displayName(r.fromPseudo,r.from)+'</h4><p>Veut être votre ami</p></div><div style="display:flex;gap:6px"><button class="bb" data-accfriend="'+r.id+'" style="padding:6px 14px">Accepter</button><button class="sb" data-decfriend="'+r.id+'" style="padding:6px 10px">Refuser</button></div></div>'
+        }).join('')+'</div>';
+      reqDiv.querySelectorAll('[data-accfriend]').forEach(function(b){b.addEventListener('click',function(){acceptFriend(b.dataset.accfriend).then(loadAmisAll)})});
+      reqDiv.querySelectorAll('[data-decfriend]').forEach(function(b){b.addEventListener('click',function(){fbDb.collection('classes').doc(fbClass).collection('friends').doc(b.dataset.decfriend).delete().then(loadAmisAll)})});
+    } else {reqDiv.innerHTML=''}
+
+    /* --- Friends list --- */
+    var fDiv=document.getElementById('amis-friends');
+    if(friends.length){
+      fDiv.innerHTML='<h3 style="font-size:.95rem;margin-bottom:10px">Mes amis ('+friends.length+')</h3>'+
+        friends.map(function(f){
           var p=playerMap[f.uid]||{};
           var lastSeen=p.lastSeen?p.lastSeen.toDate():null;
           var isOnline=lastSeen&&(Date.now()-lastSeen.getTime()<5*60*1000);
-          return'<div class="ach" style="cursor:default"><span class="achi" style="font-size:1.3rem">'+((p.avatar||f.avatar)||'📐')+'</span><div class="acht"><h4>'+(p.pseudo||f.pseudo)+'</h4><p style="font-size:.75rem">Nv.'+(p.level||0)+' · '+(p.cardCount||0)+' fiches · <span style="color:'+(isOnline?'var(--acc)':'var(--txt3)')+'">●</span> '+(isOnline?'En ligne':'Hors ligne')+'</p></div><div style="display:flex;gap:4px"><button class="bb pvp-btn" data-fuid="'+f.uid+'" data-fpseudo="'+(p.pseudo||f.pseudo)+'" title="Défier en duel">⚔</button><button class="sb" data-rmfriend="'+f.id+'" title="Retirer">✗</button></div></div>'
+          return'<div class="ach" style="cursor:default;margin-bottom:4px"><span class="achi" style="font-size:1.3rem">'+((p.avatar||f.avatar)||'📐')+'</span><div class="acht"><h4>'+displayName(p.pseudo||f.pseudo,f.uid)+'</h4><p>Nv.'+(p.level||0)+' · '+(p.cardCount||0)+' fiches · <span style="color:'+(isOnline?'var(--acc)':'var(--txt3)')+'">●</span> '+(isOnline?'En ligne':'Hors ligne')+'</p></div><div style="display:flex;gap:5px"><button class="bb pvp-btn" data-fuid="'+f.uid+'" data-fpseudo="'+(p.pseudo||f.pseudo)+'" title="Défier">⚔</button><button class="sb" data-rmfriend="'+f.id+'" title="Retirer" style="flex:none;width:32px;padding:5px">✗</button></div></div>'
         }).join('');
-        list.querySelectorAll('[data-rmfriend]').forEach(function(b){b.addEventListener('click',function(){if(confirm('Retirer cet ami ?'))removeFriend(b.dataset.rmfriend).then(loadAmisTab)})});
-        list.querySelectorAll('.pvp-btn').forEach(function(b){b.addEventListener('click',function(){startPvPChallenge(b.dataset.fuid,b.dataset.fpseudo)})});
-      } else if(tab==='requests'){
-        const reqs=await getFriendRequests();
-        if(!reqs.length){list.innerHTML='<p class="eh">Aucune demande en attente.</p>';return}
-        list.innerHTML=reqs.map(function(r){
-          return'<div class="ach rdy" style="cursor:default"><span class="achi" style="font-size:1.3rem">'+(r.fromAvatar||'📐')+'</span><div class="acht"><h4>'+r.fromPseudo+'</h4><p style="font-size:.75rem">Veut être votre ami</p></div><div style="display:flex;gap:4px"><button class="bb" data-accfriend="'+r.id+'">✓</button><button class="sb" data-decfriend="'+r.id+'">✗</button></div></div>'
-        }).join('');
-        list.querySelectorAll('[data-accfriend]').forEach(function(b){b.addEventListener('click',function(){acceptFriend(b.dataset.accfriend).then(loadAmisTab)})});
-        list.querySelectorAll('[data-decfriend]').forEach(function(b){b.addEventListener('click',function(){
-          fbDb.collection('classes').doc(fbClass).collection('friends').doc(b.dataset.decfriend).delete().then(loadAmisTab);
-        })});
-      } else {
-        // Add friend - show player list
-        const players=await getPlayers();
-        const friends=await getFriends();
-        const friendUids=friends.map(function(f){return f.uid});
-        const available=players.filter(function(p){return friendUids.indexOf(p.id)===-1});
-        if(!available.length){list.innerHTML='<p class="eh">Tous les joueurs sont déjà vos amis !</p>';return}
-        list.innerHTML=available.map(function(p){
-          return'<div class="ach" style="cursor:default"><span class="achi" style="font-size:1.3rem">'+(p.avatar||'📐')+'</span><div class="acht"><h4>'+p.pseudo+'</h4><p style="font-size:.75rem">Nv.'+(p.level||0)+' · '+(p.cardCount||0)+' fiches</p></div><button class="bb" data-adduid="'+p.id+'" data-addpseudo="'+p.pseudo+'" data-addavatar="'+(p.avatar||'📐')+'">+ Ajouter</button></div>'
-        }).join('');
-        list.querySelectorAll('[data-adduid]').forEach(function(b){b.addEventListener('click',function(){sendFriendRequest(b.dataset.adduid,b.dataset.addpseudo,b.dataset.addavatar).then(loadAmisTab)})});
-      }
-    }catch(e){list.innerHTML='<p class="eh">Erreur : '+e.message+'</p>'}
+      fDiv.querySelectorAll('[data-rmfriend]').forEach(function(b){b.addEventListener('click',function(){if(confirm('Retirer cet ami ?'))removeFriend(b.dataset.rmfriend).then(loadAmisAll)})});
+      fDiv.querySelectorAll('.pvp-btn').forEach(function(b){b.addEventListener('click',function(){startPvPChallenge(b.dataset.fuid,b.dataset.fpseudo)})});
+    } else {
+      fDiv.innerHTML='<h3 style="font-size:.95rem;margin-bottom:10px">Mes amis</h3><p class="eh" style="padding:14px 0">Aucun ami pour le moment.</p>';
+    }
+
+    /* --- Add friends panel --- */
+    var aDiv=document.getElementById('amis-add');
+    var pendingFromMe=[];
+    try{var pSnap=await fbDb.collection('classes').doc(fbClass).collection('friends').where('from','==',fbUser.uid).where('status','==','pending').get();pendingFromMe=pSnap.docs.map(function(d){return d.data().to})}catch(e){}
+    var available=players.filter(function(p){return friendUids.indexOf(p.id)===-1&&pendingFromMe.indexOf(p.id)===-1});
+    aDiv.innerHTML='<h3 style="font-size:.95rem;margin-bottom:10px">+ Ajouter un ami</h3>'+
+      (available.length?
+        '<input type="search" class="si" id="amis-search" placeholder="Rechercher un joueur..." style="max-width:100%;margin-bottom:8px">'+
+        '<div id="amis-available">'+available.map(function(p){
+          return'<div class="ach" style="cursor:default;margin-bottom:4px"><span class="achi" style="font-size:1.3rem">'+(p.avatar||'📐')+'</span><div class="acht"><h4>'+displayName(p.pseudo,p.id)+'</h4><p>Nv.'+(p.level||0)+' · '+(p.cardCount||0)+' fiches</p></div><button class="bb" data-adduid="'+p.id+'" data-addpseudo="'+esc(p.pseudo)+'" data-addavatar="'+(p.avatar||'📐')+'" style="padding:6px 14px">+ Ajouter</button></div>'
+        }).join('')+'</div>'
+      :'<p class="eh" style="padding:14px 0">'+(players.length?'Tous les joueurs sont vos amis !':'Aucun autre joueur dans la classe.')+'</p>');
+    document.getElementById('amis-search')?.addEventListener('input',function(){
+      var q=this.value.toLowerCase();
+      document.querySelectorAll('#amis-available .ach').forEach(function(el){
+        var name=el.querySelector('.acht h4')?.textContent||'';
+        el.style.display=name.toLowerCase().includes(q)?'':'none';
+      });
+    });
+    aDiv.querySelectorAll('[data-adduid]').forEach(function(b){b.addEventListener('click',function(){sendFriendRequest(b.dataset.adduid,b.dataset.addpseudo,b.dataset.addavatar).then(loadAmisAll)})});
+  }catch(e){
+    var f=document.getElementById('amis-friends');if(f)f.innerHTML='<p class="eh">Erreur : '+e.message+'</p>';
   }
-  function setTab(t){tab=t;v.querySelectorAll('.fb').forEach(function(b){b.classList.remove('active')});v.querySelector('#at-'+t)?.classList.add('active');loadAmisTab()}
-  v.querySelector('#at-friends').addEventListener('click',function(){setTab('friends')});
-  v.querySelector('#at-requests').addEventListener('click',function(){setTab('requests')});
-  v.querySelector('#at-add').addEventListener('click',function(){setTab('add')});
-  loadAmisTab();
 }
 
 /* ===== PVP DUEL SYSTEM ===== */
@@ -1256,7 +1432,7 @@ async function loadPvPMenu(){
     if(!recv.empty){
       html+='<h3 style="font-size:.9rem;margin-bottom:8px">📩 Défis reçus</h3>';
       recv.docs.forEach(function(d){var data=d.data();
-        html+='<div class="ach rdy" style="cursor:default"><span class="achi">⚔</span><div class="acht"><h4>'+data.challengerPseudo+' vous défie !</h4><p style="font-size:.75rem">5 manches · Répondez avec vos cartes</p></div><button class="bb" data-accept-pvp="'+d.id+'">Accepter</button></div>';
+        html+='<div class="ach rdy" style="cursor:default"><span class="achi">⚔</span><div class="acht"><h4>'+displayName(data.challengerPseudo,data.challengerUid)+' vous défie !</h4><p>5 manches · Répondez avec vos cartes</p></div><button class="bb" data-accept-pvp="'+d.id+'">Accepter</button></div>';
       });
     }
     if(!sent.empty){
@@ -1275,7 +1451,7 @@ async function loadPvPMenu(){
       const playerMap={};playerSnap.docs.forEach(function(d){playerMap[d.id]=d.data()});
       friends.forEach(function(f){
         var p=playerMap[f.uid]||{};
-        html+='<button class="fb" data-challenge-uid="'+f.uid+'" data-challenge-pseudo="'+(p.pseudo||f.pseudo)+'">'+(p.avatar||f.avatar||'📐')+' '+(p.pseudo||f.pseudo)+'</button>';
+        html+='<button class="fb" data-challenge-uid="'+f.uid+'" data-challenge-pseudo="'+esc(p.pseudo||f.pseudo)+'">'+(p.avatar||f.avatar||'📐')+' '+(p.pseudo||f.pseudo)+pTag(f.uid)+'</button>';
       });
       html+='</div>';
     }
