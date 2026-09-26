@@ -439,6 +439,8 @@ async function wpQuery(params){
   return await jsonp(API+'?'+qs);
 }
 async function fetchCat(c){try{const d=await wpQuery({action:'query',format:'json',list:'categorymembers',cmtitle:c,cmnamespace:'0',cmlimit:'500'});if(!d)return[];const items=((d.query&&d.query.categorymembers)||[]).map(function(m){return m.title}).filter(function(t){return!t.startsWith('Liste ')});console.log('Cat:',c,'->',items.length);return items}catch(e){console.error('fetchCat:',c,e);return[]}}
+/* Fixed totals per discipline — stable numbers for completion display */
+const DISC_TOTALS={maths:150,francais:120,anglais:100,espagnol:80,allemand:60,latin:120,histoire:130,geo:120,svt:130,physchim:130,techno:100,eps:90,arts:100,musique:100};
 /* College-level well-known articles to inject into each pool */
 const EXTRAS={
 maths:['Théorème de Pythagore','Théorème de Thalès','Équation','Fonction (mathématiques)','Fraction (mathématiques)','Nombre premier','Nombre entier','Nombre décimal','Nombre relatif','Pourcentage','Proportionnalité','Symétrie axiale','Symétrie centrale','Parallélogramme','Triangle rectangle','Cercle','Aire (géométrie)','Volume','Probabilité','Statistique','Médiane (statistiques)','Moyenne','Algorithme','Programme de construction','Calcul littéral','Racine carrée','Puissance d\'un nombre','Cosinus','Sinus (mathématiques)','Tangente (trigonométrie)','Pi','Suite de Fibonacci','Nombre d\'or','Infini','Zéro','Archimède','Pythagore','Euclide','Thalès','Ada Lovelace','Alan Turing','Maryam Mirzakhani'],
@@ -970,18 +972,9 @@ function renderCompletion(){
   S.coll.forEach(function(c){if(byDisc[c.disc])byDisc[c.disc].add(c.title)});
   return DK.map(function(k){
     const d=DISCS[k];const owned=byDisc[k].size;
-    /* Use actual pool count (Wikipedia + EXTRAS) when loaded, otherwise a safe estimate */
-    const poolLoaded=pools[k]&&pools[k]._c;
-    var total;
-    if(poolLoaded){total=pools[k]._c.length}
-    else{
-      /* Pool not loaded yet: use EXTRAS count but never less than owned+1 to avoid false 100% */
-      var ext=(EXTRAS[k]||[]).length;
-      total=owned>=ext?owned+20:ext;/* +20 placeholder until real pool loads */
-    }
-    const pct=total>0?Math.min(poolLoaded?100:99,Math.round(owned/total*100)):0;
-    var suffix=poolLoaded?'':'~';
-    return'<div class="dp"><span class="dp-icon">'+d.i+'</span><div class="dp-info"><div class="dp-name">'+d.n+' <span class="dp-count">'+owned+'/'+suffix+total+' ('+pct+'%)</span></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%;background:'+d.c+'"></div></div></div></div>';
+    const total=DISC_TOTALS[k]||100;
+    const pct=total>0?Math.min(100,Math.round(owned/total*100)):0;
+    return'<div class="dp"><span class="dp-icon">'+d.i+'</span><div class="dp-info"><div class="dp-name">'+d.n+' <span class="dp-count">'+owned+'/'+total+' ('+pct+'%)</span></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%;background:'+d.c+'"></div></div></div></div>';
   }).join('');
 }
 
@@ -1008,19 +1001,7 @@ setInterval(checkNotif,30000);
   if(test&&test.query){console.log('API OK via '+(useJsonp?'JSONP':'fetch'))}
   else{console.warn('API returned empty, trying JSONP...');useJsonp=true;const t2=await wpQuery({action:'query',format:'json',list:'categorymembers',cmtitle:'Catégorie:Mathématiques',cmnamespace:'0',cmlimit:'5'});console.log('JSONP test:',t2?'OK':'FAIL')}
 }catch(e){console.error('API test failed:',e)}
-/* Preload pools one at a time (staggered) so Wikipedia doesn't rate-limit */
-(function preloadPools(){
-  var i=0;
-  function next(){
-    if(i>=DK.length)return;
-    getPool(DK[i]).then(function(){
-      var dprog=document.getElementById('dprog');
-      if(dprog)dprog.innerHTML='<h4 style="grid-column:1/-1;font-size:.82rem;margin-bottom:4px">📖 Progression par discipline</h4>'+renderCompletion();
-      i++;setTimeout(next,800);
-    }).catch(function(){i++;setTimeout(next,1500)});
-  }
-  setTimeout(next,2000);/* wait for API test to finish first */
-})();
+/* Pools are loaded on-demand when packs are opened or catalogue is viewed */
 })();
 window.onerror=function(msg){console.error('Tiroir error:',msg)};
 /* Expose needed symbols to Firebase script */
