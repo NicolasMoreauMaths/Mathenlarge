@@ -1451,8 +1451,9 @@ async function loadAmisAll(){
 let pvpState=null,pvpUnsub=null;
 
 function startPvPChallenge(opponentUid,opponentPseudo){
+  cleanupPvPListener();
   switchView('pvp');
-  pvpState={phase:'pick',opponentUid:opponentUid,opponentPseudo:opponentPseudo,selected:[]};
+  pvpState={phase:'pick',opponentUid:opponentUid,opponentPseudo:opponentPseudo,selected:[],roundTypes:genRoundTypes()};
   renderPvP();
 }
 
@@ -1462,6 +1463,7 @@ function renderPvP(){
   if(!fbUser){if(!S.pseudo){v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Choisissez d\'abord un pseudo dans votre Profil pour activer le multijoueur.</p><button class="duel-btn go" id="fb-pvp-profil" style="margin-top:14px">Aller au Profil</button></header>';v.querySelector('#fb-pvp-profil')?.addEventListener('click',function(){switchView('profil')})}else{v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Connexion en cours…</p></header>';autoConnect()}return}
 
   if(!pvpState){
+    cleanupPvPListener();
     // Main PvP menu: pending challenges + challenge a friend
     v.innerHTML='<header class="vh" style="text-align:center"><h1>⚔ Duel en ligne</h1><p>Défiez vos amis en duel de cartes !</p></header><div id="pvp-content"><p style="color:var(--txt3);font-size:.82rem">Chargement...</p></div>';
     loadPvPMenu();
@@ -1477,23 +1479,28 @@ async function loadPvPMenu(){
   const content=document.getElementById('pvp-content');
   try{
     // Get pending challenges for me
-    const recv=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('opponentUid','==',fbUser.uid).where('status','==','waiting').get();
-    const sent=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('challengerUid','==',fbUser.uid).where('status','in',['waiting','ready','finished']).get();
+    const recv=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('opponentUid','==',fbUser.uid).where('status','in',['waiting','playing']).get();
+    const sent=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('challengerUid','==',fbUser.uid).where('status','in',['waiting','playing','ready','finished']).get();
 
     var html='';
     if(!recv.empty){
       html+='<h3 style="font-size:.9rem;margin-bottom:8px">📩 Défis reçus</h3>';
       recv.docs.forEach(function(d){var data=d.data();
-        html+='<div class="ach rdy" style="cursor:default"><span class="achi">⚔</span><div class="acht"><h4>'+displayName(data.challengerPseudo,data.challengerUid)+' vous défie !</h4><p>5 manches · Répondez avec vos cartes</p></div><button class="bb" data-accept-pvp="'+d.id+'">Accepter</button></div>';
+        if(data.status==='waiting'){
+          html+='<div class="ach rdy" style="cursor:default"><span class="achi">⚔</span><div class="acht"><h4>'+displayName(data.challengerPseudo,data.challengerUid)+' vous défie !</h4><p>5 manches · Répondez avec vos cartes</p></div><button class="bb" data-accept-pvp="'+d.id+'">Accepter</button></div>';
+        }else{
+          html+='<div class="ach rdy" style="cursor:default"><span class="achi">🎮</span><div class="acht"><h4>Duel vs '+displayName(data.challengerPseudo,data.challengerUid)+'</h4><p>Combat en cours !</p></div><button class="bb" data-play-pvp="'+d.id+'">Rejoindre</button></div>';
+        }
       });
     }
     if(!sent.empty){
       html+='<h3 style="font-size:.9rem;margin:14px 0 8px">📤 Défis envoyés</h3>';
       sent.docs.forEach(function(d){var data=d.data();
-        var statusTxt=data.status==='waiting'?'En attente...':data.status==='ready'?'Prêt !':'Terminé';
-        var icon=data.status==='waiting'?'🔄':data.status==='ready'?'✅':'🏁';
+        var statusTxt=data.status==='waiting'?'En attente...':data.status==='playing'?'En cours !':data.status==='ready'?'Prêt !':'Terminé';
+        var icon=data.status==='waiting'?'🔄':data.status==='playing'?'🎮':data.status==='ready'?'✅':'🏁';
         var btns='';
-        if(data.status==='ready'||data.status==='finished'){btns='<button class="bb" data-play-pvp="'+d.id+'">Voir résultat</button>'}
+        if(data.status==='playing'){btns='<button class="bb" data-play-pvp="'+d.id+'">Rejoindre</button>'}
+        else if(data.status==='ready'||data.status==='finished'){btns='<button class="bb" data-play-pvp="'+d.id+'">Voir résultat</button>'}
         else{btns='<button class="sb" data-cancel-pvp="'+d.id+'">✗</button>'}
         html+='<div class="ach" style="cursor:default"><span class="achi">'+icon+'</span><div class="acht"><h4>vs '+data.opponentPseudo+'</h4><p style="font-size:.75rem">'+statusTxt+'</p></div>'+btns+'</div>';
       });
@@ -1536,6 +1543,9 @@ function pvpRoundTypesBar(roundTypes,activeIdx){
     return'<span style="padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:700;'+(active?'transform:scale(1.15);box-shadow:0 0 8px '+(t==='atk'?'rgba(244,63,94,.4)':'rgba(59,130,246,.4)')+';':'opacity:.5;')+'background:'+(t==='atk'?'rgba(244,63,94,.15);color:#f43f5e':'rgba(59,130,246,.15);color:#3b82f6')+'">'+(t==='atk'?'⚔':'🛡')+'</span>'
   }).join('')+'</div>';
 }
+
+var pvpUnsubscribe=null;
+function cleanupPvPListener(){if(pvpUnsubscribe){pvpUnsubscribe();pvpUnsubscribe=null}}
 
 function renderPvPPick(){
   var v=document.getElementById('v-pvp');
@@ -1621,14 +1631,10 @@ function renderPvPPickForAccept(duelId){
     var cards=sel.map(function(c){return{title:c.title,rarity:c.rarity,atk:c.atk,def:c.def,disc:c.disc}});
     await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).update({
       opponentCards:cards,
-      status:'ready'
+      status:'playing'
     });
-    /* Start interactive round-by-round play */
-    pvpState={phase:'battle',duelId:duelId,role:'opponent',
-      myHand:cards.slice(),theirHand:(pvpState.challengerCards||[]).slice(),
-      roundTypes:pvpState.roundTypes,round:1,myScore:0,cpuScore:0,log:[],
-      theirPseudo:pvpState.opponentPseudo,myPlayed:null,cpuPlayed:null};
-    renderPvPRound();
+    var freshDoc=await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).get();
+    enterPvPBattle(duelId,freshDoc.data());
   });
 }
 
@@ -1636,102 +1642,140 @@ async function playPvPDuel(duelId){
   const doc=await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).get();
   if(!doc.exists){toast('Duel introuvable.');pvpState=null;renderPvP();return}
   const data=doc.data();
-  if(data.status!=='ready'&&data.status!=='finished'){toast('L\'adversaire n\'a pas encore répondu.');pvpState={phase:'waiting',duelId:duelId,role:'challenger'};renderPvP();return}
-
-  // Determine role
-  var iAmChallenger=data.challengerUid===fbUser.uid;
-  var myCards=iAmChallenger?data.challengerCards:data.opponentCards;
-  var theirCards=iAmChallenger?data.opponentCards:data.challengerCards;
-  var theirPseudo=iAmChallenger?data.opponentPseudo:data.challengerPseudo;
-  var roundTypes=data.roundTypes||['atk','def','atk','def','atk'];
-
-  // Mark duel as finished
-  await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).update({status:'finished'});
-
-  // Start interactive round-by-round play
-  pvpState={phase:'battle',duelId:duelId,role:iAmChallenger?'challenger':'opponent',
-    myHand:myCards.slice(),theirHand:theirCards.slice(),
-    roundTypes:roundTypes,round:1,myScore:0,cpuScore:0,log:[],
-    theirPseudo:theirPseudo,myPlayed:null,cpuPlayed:null};
-  renderPvPRound();
+  if(data.status==='waiting'){toast('L\'adversaire n\'a pas encore répondu.');pvpState={phase:'waiting',duelId:duelId,role:'challenger'};renderPvP();return}
+  if(data.status==='playing'||data.status==='finished'){
+    enterPvPBattle(duelId,data);
+  }else{
+    toast('Statut du duel inconnu.');pvpState=null;renderPvP();
+  }
 }
 
-function renderPvPBattleAnim(){
-  var v=document.getElementById('v-pvp');var p=pvpState;
-  var mS=0,cS=0;
-  v.innerHTML='<header class="vh" style="text-align:center"><h1>⚔️ Combat PvP</h1><p>Vous vs '+esc(p.theirPseudo)+'</p></header>'+
-    '<div style="text-align:center;margin:12px 0"><span style="font-size:1.6rem;font-weight:800" id="pvp-score-live">0 — 0</span></div>'+
-    '<div id="pvp-rounds" style="max-width:440px;margin:0 auto"></div>'+
-    '<div id="pvp-final" style="text-align:center;margin-top:16px"></div>';
-  var roundsEl=document.getElementById('pvp-rounds');
-  var scoreEl=document.getElementById('pvp-score-live');
-  var finalEl=document.getElementById('pvp-final');
-  var roundIdx=0;
-  function showNextRound(){
-    if(roundIdx>=p.log.length){
-      /* All rounds shown — display final result */
-      setTimeout(function(){
-        pvpState.phase='result';
-        renderPvPResult();
-      },1200);
-      return;
+/* === REAL-TIME PVP BATTLE SYSTEM === */
+function enterPvPBattle(duelId,data){
+  cleanupPvPListener();
+  var iAmChallenger=data.challengerUid===fbUser.uid;
+  var myKey=iAmChallenger?'c':'o';
+  var theirKey=iAmChallenger?'o':'c';
+  var myCards=iAmChallenger?data.challengerCards:data.opponentCards;
+  var theirPseudo=iAmChallenger?data.opponentPseudo:data.challengerPseudo;
+  var roundTypes=data.roundTypes||['atk','def','atk','def','atk'];
+  /* Reconstruct state from already-played rounds */
+  var myScore=0,opScore=0,log=[],round=1;
+  var myHand=myCards.slice();
+  for(var rn=1;rn<=5;rn++){
+    var mc=data['r'+rn+myKey],oc=data['r'+rn+theirKey];
+    if(mc&&oc){
+      var stat=roundTypes[rn-1];var isAtk=stat==='atk';
+      var mV=isAtk?mc.atk:mc.def,oV=isAtk?oc.atk:oc.def;
+      var diff=mV-oV;
+      if(diff>0)myScore++;else if(diff<0)opScore++;
+      log.push({round:rn,myCard:mc,theirCard:oc,stat:isAtk?'ATK':'DEF',myVal:mV,theirVal:oV,result:diff>0?'win':diff<0?'lose':'draw'});
+      /* Remove played card from hand */
+      var idx=myHand.findIndex(function(h){return h.title===mc.title});
+      if(idx>=0)myHand.splice(idx,1);
+      round=rn+1;
+    }else{
+      round=rn;break;
     }
-    var r=p.log[roundIdx];
-    var row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;opacity:0;transform:translateY(12px);transition:all .4s ease';
-    /* Build round content - start hidden */
-    row.innerHTML='<span style="font-weight:700;color:var(--txt3);width:70px;flex-shrink:0">Manche '+r.round+'</span>'+
-      '<div style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:.82rem">'+
-        '<div style="text-align:right;flex:1"><div style="font-weight:600">'+esc(trunc(r.myCard.title,14))+'</div><div style="font-size:.72rem;color:var(--txt2)">'+r.stat+' <span style="font-weight:700">'+fN(r.myVal)+'</span></div></div>'+
-        '<span style="font-size:1.3rem;margin:0 4px" id="pvp-vs-'+roundIdx+'">⚡</span>'+
-        '<div style="text-align:left;flex:1"><div style="font-weight:600">'+esc(trunc(r.theirCard.title,14))+'</div><div style="font-size:.72rem;color:var(--txt2)">'+r.stat+' <span style="font-weight:700">'+fN(r.theirVal)+'</span></div></div>'+
-      '</div>'+
-      '<span style="font-size:1.3rem;width:30px;text-align:center" id="pvp-icon-'+roundIdx+'">❓</span>';
-    roundsEl.appendChild(row);
-    /* Animate in */
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      row.style.opacity='1';row.style.transform='translateY(0)';
-    })});
-    /* After a beat, reveal result */
-    setTimeout(function(){
-      var icon=document.getElementById('pvp-icon-'+roundIdx);
-      var vs=document.getElementById('pvp-vs-'+roundIdx);
-      if(r.result==='win'){
-        if(icon)icon.textContent='✅';
-        if(vs)vs.textContent='💥';
-        row.style.borderLeft='3px solid var(--acc)';
-        mS++;
-      }else if(r.result==='lose'){
-        if(icon)icon.textContent='❌';
-        if(vs)vs.textContent='💥';
-        row.style.borderLeft='3px solid var(--cur)';
-        cS++;
-      }else{
-        if(icon)icon.textContent='➖';
-        if(vs)vs.textContent='🤝';
-        row.style.borderLeft='3px solid var(--txt3)';
-      }
-      if(scoreEl)scoreEl.innerHTML='<span style="color:var(--acc)">'+mS+'</span> — <span style="color:var(--cur)">'+cS+'</span>';
-      roundIdx++;
-      setTimeout(showNextRound,900);
-    },800);
   }
-  /* Start after a brief pause */
-  setTimeout(showNextRound,600);
+  pvpState={phase:'battle',duelId:duelId,role:iAmChallenger?'challenger':'opponent',
+    myKey:myKey,theirKey:theirKey,
+    myHand:myHand,roundTypes:roundTypes,
+    round:round,myScore:myScore,opponentScore:opScore,log:log,
+    theirPseudo:theirPseudo,waitingForOpponent:false,myPlayed:null};
+  if(data.status==='finished'||round>5){
+    pvpState.phase='result';renderPvPResult();return;
+  }
+  /* Check if I already submitted my card this round but opponent hasn't */
+  if(data['r'+round+myKey]&&!data['r'+round+theirKey]){
+    pvpState.myPlayed=data['r'+round+myKey];
+    pvpState.waitingForOpponent=true;
+  }
+  switchView('pvp');
+  renderPvPRound();
+  startPvPBattleListener(duelId);
+}
+
+function startPvPBattleListener(duelId){
+  cleanupPvPListener();
+  pvpUnsubscribe=fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).onSnapshot(function(snap){
+    if(!snap.exists||!pvpState||pvpState.duelId!==duelId)return;
+    var data=snap.data();var p=pvpState;
+    if(!p||p.phase!=='battle')return;
+    var rn=p.round;if(rn>5)return;
+    var myCard=data['r'+rn+p.myKey];
+    var theirCard=data['r'+rn+p.theirKey];
+    /* Both cards submitted for this round → resolve */
+    if(myCard&&theirCard&&!p._resolving){
+      p._resolving=true;
+      resolvePvPRound(myCard,theirCard);
+    }
+  });
+}
+
+function resolvePvPRound(myCard,theirCard){
+  var p=pvpState;if(!p)return;
+  var rn=p.round;
+  var roundType=p.roundTypes[rn-1];var isAtk=roundType==='atk';
+  var typeColor=isAtk?'#f43f5e':'#3b82f6';
+  var mV=isAtk?myCard.atk:myCard.def;
+  var oV=isAtk?theirCard.atk:theirCard.def;
+  var diff=mV-oV;
+  if(diff>0)p.myScore++;else if(diff<0)p.opponentScore++;
+  var statLabel=isAtk?'ATK':'DEF';
+  p.log.push({round:rn,myCard:myCard,theirCard:theirCard,stat:statLabel,myVal:mV,theirVal:oV,result:diff>0?'win':diff<0?'lose':'draw'});
+  /* Remove played card from hand */
+  var idx=p.myHand.findIndex(function(h){return h.title===myCard.title});
+  if(idx>=0)p.myHand.splice(idx,1);
+  /* Animate reveal */
+  var cpuC=document.getElementById('pvp-dcpu');
+  if(cpuC)cpuC.innerHTML=(theirCard.thumb?'<img src="'+theirCard.thumb+'">':'<div class="dp-ph" style="background:var(--bg'+(theirCard.rarity||'c')+')">'+(DISCS[theirCard.disc]||{i:'📐'}).i+'</div>')+'<h5>'+esc(trunc(theirCard.title,20))+'</h5><div class="ds" style="color:'+typeColor+';font-weight:700">'+(isAtk?'⚔ '+fN(oV):'🛡 '+fN(oV))+'</div>';
+  var myC=document.getElementById('pvp-dmy');
+  if(diff>0){if(myC)myC.classList.add('winner');if(cpuC)cpuC.classList.add('loser');sRare()}
+  else if(diff<0){if(cpuC)cpuC.classList.add('winner');if(myC)myC.classList.add('loser')}
+  else{sClick()}
+  var resultText=diff>0?'Victoire ! '+statLabel+' '+fN(mV)+' vs '+fN(oV):diff<0?'Défaite… '+statLabel+' '+fN(mV)+' vs '+fN(oV):'Égalité ! '+statLabel+' '+fN(mV);
+  var actionsEl=document.getElementById('pvp-actions');
+  if(actionsEl)actionsEl.innerHTML='<p style="font-size:.88rem;font-weight:600;color:'+(diff>0?'var(--acc)':diff<0?'var(--cur)':'var(--txt2)')+'">'+resultText+'</p>';
+  /* Update score display */
+  var scoreEl=document.getElementById('pvp-score-display');
+  if(scoreEl)scoreEl.innerHTML='<span style="color:var(--acc)">'+p.myScore+'</span> — <span style="color:var(--cur)">'+p.opponentScore+'</span>';
+  /* After delay, advance to next round or finish */
+  setTimeout(function(){
+    p._resolving=false;
+    p.myPlayed=null;
+    p.waitingForOpponent=false;
+    p.round++;
+    if(p.round>5){
+      /* Mark duel as finished (only challenger writes to avoid conflicts) */
+      if(p.role==='challenger'){
+        fbDb.collection('classes').doc(fbClass).collection('pvp').doc(p.duelId).update({status:'finished'}).catch(function(){});
+      }
+      p.phase='result';
+      cleanupPvPListener();
+      renderPvPResult();
+    }else{
+      renderPvPRound();
+    }
+  },2500);
 }
 
 function renderPvPWaiting(){
   const v=document.getElementById('v-pvp');
+  var duelId=pvpState.duelId;
   v.innerHTML='<header class="vh" style="text-align:center"><h1>⏳ Défi envoyé !</h1><p>En attente de la réponse de votre adversaire...</p></header>'+
-    '<div style="text-align:center;margin-top:20px"><div style="font-size:3rem;animation:pulse 2s infinite">⚔</div><p style="color:var(--txt2);margin-top:12px">Revenez plus tard pour voir si votre adversaire a répondu.</p><button class="duel-btn go" id="pvp-refresh" style="margin-top:16px">Rafraîchir</button><br><button class="duel-btn go" id="pvp-back" style="margin-top:8px;background:var(--bg3);color:var(--txt);border:1px solid var(--brd)">Retour</button></div>';
-  document.getElementById('pvp-refresh')?.addEventListener('click',async function(){
-    const doc=await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(pvpState.duelId).get();
-    if(!doc.exists){toast('Duel introuvable.');pvpState=null;renderPvP();return}
-    var st=doc.data().status;
-    if(st==='ready'||st==='finished'){toast('Adversaire prêt !');playPvPDuel(pvpState.duelId)}
-    else{toast('Toujours en attente...')}
+    '<div style="text-align:center;margin-top:20px"><div style="font-size:3rem;animation:pulse 2s infinite">⚔</div><p style="color:var(--txt2);margin-top:12px" id="pvp-wait-msg">Le duel commencera automatiquement quand votre adversaire accepte.</p><button class="duel-btn go" id="pvp-back" style="margin-top:16px;background:var(--bg3);color:var(--txt);border:1px solid var(--brd)">Retour</button></div>';
+  document.getElementById('pvp-back')?.addEventListener('click',function(){cleanupPvPListener();pvpState=null;renderPvP()});
+  /* Listen for opponent accepting */
+  cleanupPvPListener();
+  pvpUnsubscribe=fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).onSnapshot(function(snap){
+    if(!snap.exists)return;
+    var data=snap.data();
+    if(data.status==='playing'){
+      toast('Adversaire prêt ! Le duel commence !');
+      enterPvPBattle(duelId,data);
+    }
   });
-  document.getElementById('pvp-back')?.addEventListener('click',function(){pvpState=null;renderPvP()});
 }
 
 function renderPvPBattle(){
@@ -1740,73 +1784,79 @@ function renderPvPBattle(){
 
 function renderPvPRound(){
   var v=document.getElementById('v-pvp');var p=pvpState;
-  if(p.round>5){p.phase='result';renderPvPResult();return}
+  if(!p||p.phase!=='battle')return;
+  if(p.round>5){p.phase='result';cleanupPvPListener();renderPvPResult();return}
   var roundType=p.roundTypes[p.round-1];
   var isAtk=roundType==='atk';
   var typeLabel=isAtk?'⚔ ATTAQUE':'🛡 DÉFENSE';
   var typeColor=isAtk?'#f43f5e':'#3b82f6';
   var hand=p.myHand;
 
-  v.innerHTML='<header class="vh" style="text-align:center"><h1>Manche '+p.round+'/5</h1><p style="font-size:1.1rem;font-weight:700;color:'+typeColor+'">'+typeLabel+'</p></header>'+
-    '<div style="text-align:center;margin:6px 0"><span style="font-size:1.4rem;font-weight:800"><span style="color:var(--acc)">'+p.myScore+'</span> — <span style="color:var(--cur)">'+p.cpuScore+'</span></span></div>'+
-    '<div style="display:flex;gap:4px;justify-content:center;margin:8px 0">'+p.roundTypes.map(function(t,i){return'<span style="padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:700;'+(i===p.round-1?'transform:scale(1.15);box-shadow:0 0 8px '+(t==='atk'?'rgba(244,63,94,.4)':'rgba(59,130,246,.4)')+';':'opacity:.5;')+'background:'+(t==='atk'?'rgba(244,63,94,.15);color:#f43f5e':'rgba(59,130,246,.15);color:#3b82f6')+'">'+(t==='atk'?'⚔':'🛡')+'</span>'}).join('')+'</div>'+
-    (p.myPlayed?
+  /* Log of resolved rounds */
+  var logHtml='';
+  if(p.log.length>0){
+    logHtml='<div style="max-width:400px;margin:0 auto 10px">';
+    p.log.forEach(function(r){
+      var c=r.result==='win'?'var(--acc)':r.result==='lose'?'var(--cur)':'var(--txt2)';
+      logHtml+='<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg3);border-radius:5px;margin-bottom:3px;font-size:.75rem"><span style="font-weight:700;color:var(--txt3);width:50px">M.'+r.round+'</span><span style="flex:1">'+esc(trunc(r.myCard.title,12))+' <span style="color:'+c+'">'+fN(r.myVal)+'</span> vs '+esc(trunc(r.theirCard.title,12))+' '+fN(r.theirVal)+'</span><span>'+(r.result==='win'?'✅':r.result==='lose'?'❌':'➖')+'</span></div>';
+    });
+    logHtml+='</div>';
+  }
+
+  if(p.waitingForOpponent&&p.myPlayed){
+    /* State 2: I played, waiting for opponent */
+    v.innerHTML='<header class="vh" style="text-align:center"><h1>Manche '+p.round+'/5</h1><p style="font-size:1.1rem;font-weight:700;color:'+typeColor+'">'+typeLabel+'</p></header>'+
+      '<div style="text-align:center;margin:6px 0"><span style="font-size:1.4rem;font-weight:800" id="pvp-score-display"><span style="color:var(--acc)">'+p.myScore+'</span> — <span style="color:var(--cur)">'+p.opponentScore+'</span></span></div>'+
+      logHtml+
       '<div class="duel-board">'+
         '<div class="duel-side"><h4>Votre carte</h4><div class="duel-crd" id="pvp-dmy">'+
           (p.myPlayed.thumb?'<img src="'+p.myPlayed.thumb+'">':'<div class="dp-ph" style="background:var(--bg'+p.myPlayed.rarity+')">'+(DISCS[p.myPlayed.disc]||{i:'📐'}).i+'</div>')+
           '<h5>'+esc(trunc(p.myPlayed.title,20))+'</h5>'+
           '<div class="ds" style="color:'+typeColor+';font-weight:700">'+(isAtk?'⚔ '+fN(p.myPlayed.atk):'🛡 '+fN(p.myPlayed.def))+'</div>'+
         '</div></div>'+
-        '<div class="duel-vs">VS</div>'+
+        '<div class="duel-vs" style="animation:pulse 2s infinite">VS</div>'+
         '<div class="duel-side"><h4>'+esc(p.theirPseudo)+'</h4><div class="duel-crd" id="pvp-dcpu">'+
-          '<div class="dp-ph" style="background:var(--bg3)">❓</div><h5>???</h5>'+
+          '<div class="dp-ph" style="background:var(--bg3);animation:pulse 2s infinite">🤔</div><h5>Réflexion...</h5>'+
         '</div></div>'+
       '</div>'+
-      '<div class="duel-actions" id="pvp-actions" style="text-align:center"><p style="font-size:.85rem;color:var(--txt2)">Résolution en cours...</p></div>'
-    :
+      '<div class="duel-actions" id="pvp-actions" style="text-align:center"><p style="font-size:.85rem;color:var(--txt2)">En attente de '+esc(p.theirPseudo)+'...</p></div>';
+  }else{
+    /* State 1: Pick a card */
+    v.innerHTML='<header class="vh" style="text-align:center"><h1>Manche '+p.round+'/5</h1><p style="font-size:1.1rem;font-weight:700;color:'+typeColor+'">'+typeLabel+'</p></header>'+
+      '<div style="text-align:center;margin:6px 0"><span style="font-size:1.4rem;font-weight:800" id="pvp-score-display"><span style="color:var(--acc)">'+p.myScore+'</span> — <span style="color:var(--cur)">'+p.opponentScore+'</span></span></div>'+
+      '<div style="display:flex;gap:4px;justify-content:center;margin:8px 0">'+p.roundTypes.map(function(t,i){return'<span style="padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:700;'+(i===p.round-1?'transform:scale(1.15);box-shadow:0 0 8px '+(t==='atk'?'rgba(244,63,94,.4)':'rgba(59,130,246,.4)')+';':'opacity:.5;')+'background:'+(t==='atk'?'rgba(244,63,94,.15);color:#f43f5e':'rgba(59,130,246,.15);color:#3b82f6')+'">'+(t==='atk'?'⚔':'🛡')+'</span>'}).join('')+'</div>'+
+      logHtml+
       '<p style="text-align:center;color:var(--txt2);font-size:.88rem;margin:12px 0">Choisissez une carte pour ce round '+(isAtk?'<b style="color:#f43f5e">ATK</b>':'<b style="color:#3b82f6">DEF</b>')+' :</p>'+
       '<div class="duel-hand" id="pvp-dhand">'+hand.map(function(c,i){return'<div class="dh-card" data-pi="'+i+'">'+
         (c.thumb?'<img src="'+c.thumb+'">':'<div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+(DISCS[c.disc]||{i:'📐'}).i+'</div>')+
         '<div class="dh-nm">'+esc(trunc(c.title,16))+'</div>'+
         '<div class="dh-st"><span style="color:#f43f5e">⚔'+fN(c.atk)+'</span><span style="color:#3b82f6">🛡'+fN(c.def)+'</span></div>'+
-      '</div>'}).join('')+'</div>'
-    );
-
-  if(!p.myPlayed){
-    document.getElementById('pvp-dhand')?.addEventListener('click',function(e){
+      '</div>'}).join('')+'</div>';
+    document.getElementById('pvp-dhand')?.addEventListener('click',async function(e){
       var card=e.target.closest('.dh-card');if(!card)return;
       var i=+card.dataset.pi;
-      p.myPlayed=hand.splice(i,1)[0];
-      /* Opponent card: take from their pre-selected hand in order */
-      p.cpuPlayed=p.theirHand.shift();
+      var played=hand[i];
+      var cardData={title:played.title,rarity:played.rarity,atk:played.atk,def:played.def,disc:played.disc};
+      /* Write my pick to Firestore */
+      var update={};
+      update['r'+p.round+p.myKey]=cardData;
+      try{
+        await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(p.duelId).update(update);
+      }catch(err){toast('Erreur réseau, réessayez.');return}
+      /* Remove from hand locally */
+      hand.splice(i,1);
+      p.myPlayed=cardData;
+      p.waitingForOpponent=true;
       renderPvPRound();
-      /* Auto-resolve after short pause */
-      setTimeout(function(){
-        var stat=roundType;
-        var myStat=stat==='atk'?p.myPlayed.atk:p.myPlayed.def;
-        var theirStat=stat==='atk'?p.cpuPlayed.atk:p.cpuPlayed.def;
-        var diff=myStat-theirStat;
-        if(diff>0)p.myScore++;else if(diff<0)p.cpuScore++;
-        var myC=document.getElementById('pvp-dmy');
-        var cpuC=document.getElementById('pvp-dcpu');
-        if(cpuC)cpuC.innerHTML=(p.cpuPlayed.thumb?'<img src="'+p.cpuPlayed.thumb+'">':'<div class="dp-ph" style="background:var(--bg'+p.cpuPlayed.rarity+')">'+(DISCS[p.cpuPlayed.disc]||{i:'📐'}).i+'</div>')+'<h5>'+esc(trunc(p.cpuPlayed.title,20))+'</h5><div class="ds" style="color:'+typeColor+';font-weight:700">'+(isAtk?'⚔ '+fN(p.cpuPlayed.atk):'🛡 '+fN(p.cpuPlayed.def))+'</div>';
-        if(diff>0){if(myC)myC.classList.add('winner');if(cpuC)cpuC.classList.add('loser');sRare()}
-        else if(diff<0){if(cpuC)cpuC.classList.add('winner');if(myC)myC.classList.add('loser')}
-        else{sClick()}
-        var statLabel=stat==='atk'?'ATK':'DEF';
-        var resultText=diff>0?'Victoire ! '+statLabel+' '+fN(myStat)+' vs '+fN(theirStat):diff<0?'Défaite… '+statLabel+' '+fN(myStat)+' vs '+fN(theirStat):'Égalité ! '+statLabel+' '+fN(myStat);
-        p.log.push({round:p.round,myCard:p.myPlayed,theirCard:p.cpuPlayed,stat:statLabel,myVal:myStat,theirVal:theirStat,result:diff>0?'win':diff<0?'lose':'draw'});
-        var actionsEl=document.getElementById('pvp-actions');
-        if(actionsEl)actionsEl.innerHTML='<p style="font-size:.88rem;font-weight:600;color:'+(diff>0?'var(--acc)':diff<0?'var(--cur)':'var(--txt2)')+'">'+resultText+'</p>';
-        setTimeout(function(){p.myPlayed=null;p.cpuPlayed=null;p.round++;renderPvPRound()},2000);
-      },800);
+      /* onSnapshot will detect when opponent plays and call resolvePvPRound */
     });
   }
 }
 
 function renderPvPResult(){
   const v=document.getElementById('v-pvp');const p=pvpState;
-  const won=p.myScore>p.cpuScore;const draw=p.myScore===p.cpuScore;
+  var opS=p.opponentScore!==undefined?p.opponentScore:p.cpuScore||0;
+  const won=p.myScore>opS;const draw=p.myScore===opS;
   const reward=won?30:draw?15:5;
   if(!p.rewarded){
     S.ecus+=reward;S.stats.duelsPlayed=(S.stats.duelsPlayed||0)+1;S.stats.pvpPlayed=(S.stats.pvpPlayed||0)+1;
@@ -1822,7 +1872,7 @@ function renderPvPResult(){
   }).join('');
 
   v.innerHTML='<div class="duel-result"><h2>'+(won?'🏆 Victoire !':draw?'🤝 Égalité':'💀 Défaite')+'</h2>'+
-    '<div class="duel-score"><span class="you">Vous : '+p.myScore+'</span><span class="cpu">'+p.theirPseudo+' : '+p.cpuScore+'</span></div>'+
+    '<div class="duel-score"><span class="you">Vous : '+p.myScore+'</span><span class="cpu">'+p.theirPseudo+' : '+opS+'</span></div>'+
     '<p style="color:var(--acc);font-weight:600">+'+reward+' écus</p>'+
     '<div style="margin:16px 0;max-width:400px">'+logHtml+'</div>'+
     '<button class="duel-btn go" id="pvp-again" style="margin-top:8px">Retour</button></div>';
@@ -1840,50 +1890,52 @@ if(!document.getElementById('pvp-style')){
 var mpNotifState={trades:0,friends:0,pvp:0};
 async function checkMultiplayerNotifs(){
   if(!fbDb||!fbClass||!fbUser)return;
+  /* Process accepted/rejected trades — individual try/catch so one failure doesn't block the rest */
+  try{await processAcceptedTrades()}catch(e){console.warn('processAcceptedTrades error:',e)}
+  try{await processRejectedTrades()}catch(e){console.warn('processRejectedTrades error:',e)}
+  /* Check new trade offers */
   try{
-    /* Process accepted/rejected trades for proposer */
-    await processAcceptedTrades();
-    await processRejectedTrades();
-    /* Check new trade offers */
     var trSnap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('to','==',fbUser.uid).where('status','==','pending').get();
     if(trSnap.size>mpNotifState.trades&&mpNotifState.trades>=0){
       var diff=trSnap.size-mpNotifState.trades;
       if(diff>0&&mpNotifState.trades>0)toastAction('📩 '+diff+' nouvel'+(diff>1?'les':'')+' offre'+(diff>1?'s':'')+' d\'échange !','Voir','echanges');
     }
     mpNotifState.trades=trSnap.size;
-
-    /* Check new friend requests */
+  }catch(e){console.warn('Trade notif error:',e)}
+  /* Check new friend requests */
+  try{
     var frSnap=await fbDb.collection('classes').doc(fbClass).collection('friends').where('to','==',fbUser.uid).where('status','==','pending').get();
     if(frSnap.size>mpNotifState.friends&&mpNotifState.friends>=0){
       var diff2=frSnap.size-mpNotifState.friends;
       if(diff2>0&&mpNotifState.friends>0)toastAction('👥 '+diff2+' demande'+(diff2>1?'s':'')+' d\'ami'+(diff2>1?'s':'')+' !','Voir','amis');
     }
     mpNotifState.friends=frSnap.size;
-
-    /* Check new PvP challenges */
-    var pvSnap=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('opponentUid','==',fbUser.uid).where('status','==','waiting').get();
-    var pvReady=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('challengerUid','==',fbUser.uid).where('status','in',['ready','finished']).get();
+  }catch(e){console.warn('Friend notif error:',e)}
+  /* Check new PvP challenges — include 'playing' status */
+  try{
+    var pvSnap=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('opponentUid','==',fbUser.uid).where('status','in',['waiting','playing']).get();
+    var pvReady=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('challengerUid','==',fbUser.uid).where('status','in',['playing','finished']).get();
     var totalPvp=pvSnap.size+pvReady.size;
     if(totalPvp>mpNotifState.pvp&&mpNotifState.pvp>=0){
       var diff3=totalPvp-mpNotifState.pvp;
       if(diff3>0&&mpNotifState.pvp>0){
-        if(pvSnap.size>0)toastAction('⚔ Nouveau défi PvP !','Voir','pvp');
+        var newChallenges=0;pvSnap.forEach(function(d){if(d.data().status==='waiting')newChallenges++});
+        if(newChallenges>0)toastAction('⚔ Nouveau défi PvP !','Voir','pvp');
         else toastAction('⚔ Un adversaire a répondu !','Voir','pvp');
       }
     }
     mpNotifState.pvp=totalPvp;
-
     /* Browser notifications */
-    if(document.hidden&&(trSnap.size>0||frSnap.size>0||pvSnap.size>0)){
+    if(document.hidden&&(mpNotifState.trades>0||mpNotifState.friends>0||pvSnap.size>0)){
       var msgs=[];
-      if(trSnap.size)msgs.push(trSnap.size+' échange'+(trSnap.size>1?'s':''));
-      if(frSnap.size)msgs.push(frSnap.size+' demande'+(frSnap.size>1?'s':''));
+      if(mpNotifState.trades)msgs.push(mpNotifState.trades+' échange'+(mpNotifState.trades>1?'s':''));
+      if(mpNotifState.friends)msgs.push(mpNotifState.friends+' demande'+(mpNotifState.friends>1?'s':''));
       if(pvSnap.size)msgs.push(pvSnap.size+' défi'+(pvSnap.size>1?'s':''));
       if(msgs.length)try{new Notification('Tiroir aux Fiches',{body:msgs.join(', ')+' en attente !'})}catch(e){}
     }
-  }catch(e){console.error('Notif check error:',e)}
+  }catch(e){console.warn('PvP notif error:',e)}
 }
-/* Poll every 15 seconds */
+/* Poll every 15 seconds + call on initial auth */
 setInterval(function(){if(fbUser)checkMultiplayerNotifs()},15000);
 
 /* ===== AUTO-CONNECT ===== */
@@ -1907,6 +1959,7 @@ if(FIREBASE_ENABLED){
   fbClass=localStorage.getItem('tiroir-fb-class')||DEFAULT_CLASS;
   fbAuth.onAuthStateChanged(function(user){
     if(user){fbUser=user;syncToCloud().catch(function(){});
+      setTimeout(function(){checkMultiplayerNotifs()},2000);
       var av=document.querySelector('.view.active');
       if(av){var vn=av.id.replace('v-','');switchView(vn)}
     } else if(S.pseudo){
