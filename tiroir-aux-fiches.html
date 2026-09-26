@@ -139,7 +139,7 @@
 .sb2{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:12px;text-align:center}.sv{display:block;font-family:var(--fd);font-size:1.4rem;font-weight:700}.sl{font-size:.7rem;color:var(--txt2)}
 .vit{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rad);padding:14px;margin-bottom:14px}.vit h3{font-size:.9rem;font-weight:700;margin-bottom:10px}
 .vg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.vs{aspect-ratio:3/4;border:2px dashed var(--brd2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.7rem;color:var(--txt3)}.vs:hover{border-color:var(--acc)}.vs.filled{border-style:solid;padding:0;overflow:hidden}
+.vs{aspect-ratio:3/4;border:2px dashed var(--brd2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.7rem;color:var(--txt3);position:relative;overflow:hidden}.vs:hover{border-color:var(--acc)}.vs.filled{border-style:solid;padding:0;overflow:hidden}
 .vs.filled .tiz{width:100%;height:100%;display:flex;align-items:center;justify-content:center}.vs.filled .tiz img{width:100%;height:100%;object-fit:contain}
 /* Disc chart in profile */
 .dchart{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
@@ -965,10 +965,11 @@ function renderCompletion(){
   S.coll.forEach(function(c){if(byDisc[c.disc])byDisc[c.disc].add(c.title)});
   return DK.map(function(k){
     const d=DISCS[k];const owned=byDisc[k].size;
-    const extraCount=(EXTRAS[k]||[]).length;
-    const total=Math.max(extraCount,owned+10);/* Estimate: at least extras count */
-    const pct=Math.min(100,Math.round(owned/Math.max(1,extraCount)*100));
-    return'<div class="dp"><span class="dp-icon">'+d.i+'</span><div class="dp-info"><div class="dp-name">'+d.n+' <span class="dp-count">'+owned+'/'+extraCount+' ('+pct+'%)</span></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%;background:'+d.c+'"></div></div></div></div>';
+    /* Use actual pool count (Wikipedia + EXTRAS) when loaded, otherwise EXTRAS count */
+    const poolLoaded=pools[k]&&pools[k]._c;
+    const total=poolLoaded?pools[k]._c.length:Math.max((EXTRAS[k]||[]).length,owned);
+    const pct=total>0?Math.min(100,Math.round(owned/total*100)):0;
+    return'<div class="dp"><span class="dp-icon">'+d.i+'</span><div class="dp-info"><div class="dp-name">'+d.n+' <span class="dp-count">'+owned+'/'+total+' ('+pct+'%)</span></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%;background:'+d.c+'"></div></div></div></div>';
   }).join('');
 }
 
@@ -1497,14 +1498,13 @@ async function loadConversationList(){
       var f=friendUids[i];
       var convId=getConvId(fbUser.uid,f.uid);
       try{
-        var lastSnap=await fbDb.collection('classes').doc(fbClass).collection('messages').where('convId','==',convId).orderBy('ts','desc').limit(1).get();
+        var allSnap=await fbDb.collection('classes').doc(fbClass).collection('messages').where('convId','==',convId).get();
         var lastMsg=null,unread=0;
-        if(!lastSnap.empty){
-          lastMsg=lastSnap.docs[0].data();
-          /* Count unread */
-          var unreadSnap=await fbDb.collection('classes').doc(fbClass).collection('messages').where('convId','==',convId).where('from','!=',fbUser.uid).where('read','==',false).get();
-          unread=unreadSnap.size;
-        }
+        var allMsgs=[];
+        allSnap.forEach(function(d){var md=d.data();if(md.ts)allMsgs.push(md)});
+        allMsgs.sort(function(a,b){return b.ts.toMillis()-a.ts.toMillis()});
+        if(allMsgs.length)lastMsg=allMsgs[0];
+        unread=allMsgs.filter(function(m){return m.from!==fbUser.uid&&!m.read}).length;
         convs.push({friend:f,lastMsg:lastMsg,unread:unread});
       }catch(e){convs.push({friend:f,lastMsg:null,unread:0})}
     }
@@ -1571,7 +1571,7 @@ function renderConversation(friendUid,friendPseudo){
         ts:firebase.firestore.FieldValue.serverTimestamp(),
         read:false
       });
-    }catch(e){toast('Erreur d\'envoi.');inputEl.value=raw}
+    }catch(e){console.error('Message send error:',e);toast('Erreur d\'envoi : '+(e.code||e.message||'inconnu'));inputEl.value=raw}
     sendBtn.disabled=false;
     inputEl.focus();
   }
@@ -1582,12 +1582,14 @@ function renderConversation(friendUid,friendPseudo){
   var firstLoad=true;
   msgUnsubscribe=fbDb.collection('classes').doc(fbClass).collection('messages')
     .where('convId','==',convId)
-    .orderBy('ts','asc')
     .onSnapshot(function(snap){
       threadEl.innerHTML='';
       if(snap.empty){threadEl.innerHTML='<p style="text-align:center;color:var(--txt3);padding:30px 0;font-size:.85rem">Aucun message. Dites bonjour !</p>';return}
-      snap.forEach(function(doc){
-        var m=doc.data();if(!m.ts)return;
+      /* Sort client-side to avoid needing a Firestore composite index */
+      var msgs=[];
+      snap.forEach(function(doc){var m=doc.data();m._ref=doc.ref;if(m.ts)msgs.push(m)});
+      msgs.sort(function(a,b){return a.ts.toMillis()-b.ts.toMillis()});
+      msgs.forEach(function(m){
         var isMine=m.from===fbUser.uid;
         var t=m.ts.toDate();
         var time=t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
@@ -1598,7 +1600,7 @@ function renderConversation(friendUid,friendPseudo){
         threadEl.appendChild(bubble);
         /* Mark as read if it's theirs */
         if(!isMine&&!m.read){
-          doc.ref.update({read:true}).catch(function(){});
+          m._ref.update({read:true}).catch(function(){});
         }
       });
       threadEl.scrollTop=threadEl.scrollHeight;
@@ -1634,17 +1636,35 @@ function renderPvP(){
   else if(pvpState.phase==='result')renderPvPResult();
 }
 
+/* Auto-expire PvP duels older than 10 minutes */
+var PVP_TIMEOUT_MS=10*60*1000;
+async function expireOldPvP(docs){
+  var now=Date.now();
+  for(var i=0;i<docs.length;i++){
+    var d=docs[i];var data=d.data();
+    if(data.status==='finished')continue;
+    var created=data.createdAt;
+    if(created&&(now-created.toMillis())>PVP_TIMEOUT_MS){
+      try{await d.ref.update({status:'finished',expiredByTimeout:true})}catch(e){console.warn('PvP expire error:',e)}
+    }
+  }
+}
 async function loadPvPMenu(){
   const content=document.getElementById('pvp-content');
   try{
     // Get pending challenges for me
     const recv=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('opponentUid','==',fbUser.uid).where('status','in',['waiting','playing']).get();
     const sent=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('challengerUid','==',fbUser.uid).where('status','in',['waiting','playing','ready','finished']).get();
+    /* Auto-expire old duels */
+    await expireOldPvP(recv.docs.concat(sent.docs.filter(function(d){return d.data().status!=='finished'})));
 
-    var html='';
-    if(!recv.empty){
+    var html='';var now=Date.now();
+    /* Filter out duels that were just expired */
+    var recvActive=recv.docs.filter(function(d){var data=d.data();if(!data.createdAt)return true;return(now-data.createdAt.toMillis())<=PVP_TIMEOUT_MS});
+    var sentActive=sent.docs.filter(function(d){var data=d.data();if(data.status==='finished')return false;if(!data.createdAt)return true;return(now-data.createdAt.toMillis())<=PVP_TIMEOUT_MS});
+    if(recvActive.length){
       html+='<h3 style="font-size:.9rem;margin-bottom:8px">📩 Défis reçus</h3>';
-      recv.docs.forEach(function(d){var data=d.data();
+      recvActive.forEach(function(d){var data=d.data();
         if(data.status==='waiting'){
           html+='<div class="ach rdy" style="cursor:default"><span class="achi">⚔</span><div class="acht"><h4>'+displayName(data.challengerPseudo,data.challengerUid)+' vous défie !</h4><p>5 manches · Répondez avec vos cartes</p></div><button class="bb" data-accept-pvp="'+d.id+'">Accepter</button></div>';
         }else{
@@ -1652,9 +1672,9 @@ async function loadPvPMenu(){
         }
       });
     }
-    if(!sent.empty){
+    if(sentActive.length){
       html+='<h3 style="font-size:.9rem;margin:14px 0 8px">📤 Défis envoyés</h3>';
-      sent.docs.forEach(function(d){var data=d.data();
+      sentActive.forEach(function(d){var data=d.data();
         var statusTxt=data.status==='waiting'?'En attente...':data.status==='playing'?'En cours !':data.status==='ready'?'Prêt !':'Terminé';
         var icon=data.status==='waiting'?'🔄':data.status==='playing'?'🎮':data.status==='ready'?'✅':'🏁';
         var btns='';
@@ -2072,7 +2092,13 @@ async function checkMultiplayerNotifs(){
   try{
     var pvSnap=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('opponentUid','==',fbUser.uid).where('status','in',['waiting','playing']).get();
     var pvReady=await fbDb.collection('classes').doc(fbClass).collection('pvp').where('challengerUid','==',fbUser.uid).where('status','in',['playing','finished']).get();
-    var totalPvp=pvSnap.size+pvReady.size;
+    /* Auto-expire old duels silently */
+    await expireOldPvP(pvSnap.docs.concat(pvReady.docs.filter(function(d){return d.data().status!=='finished'})));
+    /* Recount after expiry — only count non-expired */
+    var now2=Date.now();
+    var activePv=pvSnap.docs.filter(function(d){var c=d.data().createdAt;return!c||(now2-c.toMillis())<=PVP_TIMEOUT_MS}).length;
+    var activeReady=pvReady.docs.filter(function(d){var dd=d.data();if(dd.status==='finished')return false;var c=dd.createdAt;return!c||(now2-c.toMillis())<=PVP_TIMEOUT_MS}).length;
+    var totalPvp=activePv+activeReady;
     if(totalPvp>mpNotifState.pvp&&mpNotifState.pvp>=0){
       var diff3=totalPvp-mpNotifState.pvp;
       if(diff3>0&&mpNotifState.pvp>0){
