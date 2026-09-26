@@ -404,9 +404,10 @@ let removed=0;S.coll=S.coll.filter(function(c){if(c.title===title&&removed<3){re
 // Add 1 copy at next rarity
 const newRar=RAR_ORDER[ri+1];const newCard=Object.assign({},card,{rarity:newRar});
 // Scale stats up for new rarity
-const mults=[[.35,.55],[.5,.72],[.7,.95],[.9,1.2],[1.15,1.5],[1.45,1.85]];const[lo,hi]=mults[ri+1];const mult=lo+Math.random()*(hi-lo);
+const mults=[[.35,.55],[.5,.72],[.7,.95],[.9,1.2],[1.15,1.5],[1.45,1.85]];const[lo,hi]=mults[ri+1];
+const multA=lo+Math.random()*(hi-lo);const multD=lo+Math.random()*(hi-lo);
 const baseA=Math.max(800,Math.round(Math.sqrt((card.views||100))*18+500));const baseD=Math.max(600,Math.round(500+Math.sqrt((card.views||100))*4));
-newCard.atk=Math.min(9999,Math.round(baseA*mult));newCard.def=Math.min(9999,Math.round(baseD*mult));
+newCard.atk=Math.min(9999,Math.round(baseA*multA));newCard.def=Math.min(9999,Math.round(baseD*multD));
 newCard.qscore=Math.round((newCard.atk*.45+newCard.def*.55)/100*100)/100;
 S.coll.push(newCard);S.stats.fusions=(S.stats.fusions||0)+1;dailyProgress.fusionsToday=(dailyProgress.fusionsToday||0)+1;
 addXP(15);save();checkMissions();ckAch();sRare();toast('⚡ Fusion ! → '+rT(newRar).l);renderColl()}
@@ -479,8 +480,9 @@ function mkCard(page,rar,disc,views){
   const el=(page.extract||'').length;
   const baseA=Math.max(800,Math.round(Math.sqrt(views)*18+500));const baseD=Math.max(600,Math.round(Math.sqrt(el*15)*14+400+Math.sqrt(views)*4));
   const mults=[[.35,.55],[.5,.72],[.7,.95],[.9,1.2],[1.15,1.5],[1.45,1.85]];
-  const ri=RAR.findIndex(r=>r.id===rar);const[lo,hi]=mults[ri]||mults[0];const mult=lo+Math.random()*(hi-lo);
-  const atk=Math.min(9999,Math.round(baseA*mult));const def=Math.min(9999,Math.round(baseD*mult));
+  const ri=RAR.findIndex(r=>r.id===rar);const[lo,hi]=mults[ri]||mults[0];
+  const multA=lo+Math.random()*(hi-lo);const multD=lo+Math.random()*(hi-lo);
+  const atk=Math.min(9999,Math.round(baseA*multA));const def=Math.min(9999,Math.round(baseD*multD));
   return{title:page.title,extract:page.extract||'',url:page.fullurl||`https://fr.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g,'_'))}`,thumb:page.thumbnail?page.thumbnail.source:null,views,rarity:rar,disc:disc||'maths',atk,def,qscore:Math.round((atk*.45+def*.55)/100*100)/100}
 }
 function addCard(c){S.coll.push(c);S.stats.rarO[c.rarity]=true;if(!S.stats.distO.includes(c.title))S.stats.distO.push(c.title);dailyProgress.collectedToday=(dailyProgress.collectedToday||0)+1;if(['r','sr','ur','l'].includes(c.rarity))dailyProgress.gotRareToday=true}
@@ -765,7 +767,13 @@ function startDuelPick(){
   let cpuHand=sample(cpuPool.slice(0,Math.max(10,cpuPool.length)),5);
   // Ensure exactly 5 cards - fill with random if needed
   while(cpuHand.length<5){cpuHand.push(all[Math.floor(Math.random()*all.length)])}
-  duelState={phase:'mulligan',selected:[],mullCount:0,myDeck:myHand,cpuDeck:cpuHand,myHand:[...myHand],cpuHand:[...cpuHand],round:0,myScore:0,cpuScore:0,myPlayed:null,cpuPlayed:null,log:[]};
+  /* Generate random round types: mix of ATK and DEF */
+  var rt=[];for(var ri2=0;ri2<5;ri2++)rt.push(Math.random()<.5?'atk':'def');
+  /* Ensure at least 2 of each */
+  var atkC=rt.filter(function(t){return t==='atk'}).length;
+  if(atkC<2){rt[rt.indexOf('def')]='atk';if(atkC<1)rt[rt.lastIndexOf('def')]='atk'}
+  else if(atkC>3){rt[rt.indexOf('atk')]='def';if(atkC>4)rt[rt.lastIndexOf('atk')]='def'}
+  duelState={phase:'mulligan',selected:[],mullCount:0,myDeck:myHand,cpuDeck:cpuHand,myHand:[...myHand],cpuHand:[...cpuHand],round:0,myScore:0,cpuScore:0,myPlayed:null,cpuPlayed:null,log:[],roundTypes:rt};
   renderDuel();
 }
 
@@ -823,24 +831,28 @@ function renderDuelMulligan(){
 function renderDuelBattle(){
   const v=$('v-duel');const d=duelState;const hand=d.myHand;const r=d.round;
   if(r>5){duelState.phase='result';renderDuel();return}
-  v.innerHTML=`<header class="vh" style="text-align:center"><h1>Manche ${r}/5</h1></header>
+  const roundType=d.roundTypes[r-1];
+  const isAtk=roundType==='atk';
+  const typeLabel=isAtk?'⚔ ATTAQUE':'🛡 DÉFENSE';
+  const typeColor=isAtk?'#f43f5e':'#3b82f6';
+  v.innerHTML=`<header class="vh" style="text-align:center"><h1>Manche ${r}/5</h1><p style="font-size:1.1rem;font-weight:700;color:${typeColor}">${typeLabel}</p></header>
     <div class="duel-score"><span class="you">Vous : ${d.myScore}</span><span class="cpu">CPU : ${d.cpuScore}</span></div>
+    <div style="display:flex;gap:4px;justify-content:center;margin:8px 0">${d.roundTypes.map((t,i)=>'<span style="padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:700;'+(i===r-1?'transform:scale(1.15);box-shadow:0 0 8px '+(t==='atk'?'rgba(244,63,94,.4)':'rgba(59,130,246,.4)')+';':'opacity:.5;')+'background:'+(t==='atk'?'rgba(244,63,94,.15);color:#f43f5e':'rgba(59,130,246,.15);color:#3b82f6')+'">'+(t==='atk'?'⚔':'🛡')+'</span>').join('')}</div>
     ${d.myPlayed?`
       <div class="duel-board">
         <div class="duel-side"><h4>Votre carte</h4><div class="duel-crd" id="dmy">
           ${d.myPlayed.thumb?`<img src="${d.myPlayed.thumb}">`:`<div class="dp-ph" style="background:var(--bg${d.myPlayed.rarity})">${(DISCS[d.myPlayed.disc]||{i:'📐'}).i}</div>`}
           <h5>${esc(trunc(d.myPlayed.title,20))}</h5>
-          <div class="ds" style="color:#f43f5e">⚔ ${fN(d.myPlayed.atk)}</div><div class="ds" style="color:#3b82f6">🛡 ${fN(d.myPlayed.def)}</div>
+          <div class="ds" style="color:${typeColor};font-weight:700">${isAtk?'⚔ '+fN(d.myPlayed.atk):'🛡 '+fN(d.myPlayed.def)}</div>
         </div></div>
         <div class="duel-vs">VS</div>
         <div class="duel-side"><h4>CPU</h4><div class="duel-crd" id="dcpu">
           <div class="dp-ph" style="background:var(--bg3)">❓</div><h5>???</h5>
         </div></div>
       </div>
-      <p style="text-align:center;color:var(--txt2);font-size:.85rem;margin:8px 0">Choisissez votre stratégie :</p>
-      <div class="duel-actions"><button class="duel-btn atk" id="datk">⚔ Attaque</button><button class="duel-btn def" id="ddef">🛡 Défense</button></div>
+      <div class="duel-actions" style="text-align:center"><p style="font-size:.85rem;color:var(--txt2)">Résolution en cours...</p></div>
     `:`
-      <p style="text-align:center;color:var(--txt2);font-size:.88rem;margin:12px 0">Choisissez une carte à jouer :</p>
+      <p style="text-align:center;color:var(--txt2);font-size:.88rem;margin:12px 0">Choisissez une carte pour ce round ${isAtk?'<b style="color:#f43f5e">ATK</b>':'<b style="color:#3b82f6">DEF</b>'} :</p>
       <div class="duel-hand" id="dhand">${hand.map((c,i)=>`<div class="dh-card" data-pi="${i}">
         ${c.thumb?`<img src="${c.thumb}">`:`<div class="dp-ph" style="background:var(--bg${c.rarity})">${(DISCS[c.disc]||{i:'📐'}).i}</div>`}
         <div class="dh-nm">${esc(trunc(c.title,16))}</div>
@@ -855,26 +867,24 @@ function renderDuelBattle(){
       const cpuIdx=Math.floor(Math.random()*d.cpuHand.length);
       d.cpuPlayed=d.cpuHand.splice(cpuIdx,1)[0];
       renderDuelBattle();
+      // Auto-resolve after short pause
+      setTimeout(function(){
+        const stat=roundType;
+        const myStat=stat==='atk'?d.myPlayed.atk:d.myPlayed.def;
+        const cpuStat=stat==='atk'?d.cpuPlayed.atk:d.cpuPlayed.def;
+        const diff=myStat-cpuStat;
+        if(diff>0)d.myScore++;else if(diff<0)d.cpuScore++;
+        const myC=$('dmy'),cpuC=$('dcpu');
+        cpuC.innerHTML=`${d.cpuPlayed.thumb?`<img src="${d.cpuPlayed.thumb}">`:`<div class="dp-ph" style="background:var(--bg${d.cpuPlayed.rarity})">${(DISCS[d.cpuPlayed.disc]||{i:'📐'}).i}</div>`}<h5>${esc(trunc(d.cpuPlayed.title,20))}</h5><div class="ds" style="color:${typeColor};font-weight:700">${isAtk?'⚔ '+fN(d.cpuPlayed.atk):'🛡 '+fN(d.cpuPlayed.def)}</div>`;
+        if(diff>0){myC.classList.add('winner');cpuC.classList.add('loser');sRare()}
+        else if(diff<0){cpuC.classList.add('winner');myC.classList.add('loser')}
+        else{sClick()}
+        const statLabel=stat==='atk'?'ATK':'DEF';
+        const resultText=diff>0?'Victoire ! '+statLabel+' '+fN(myStat)+' vs '+fN(cpuStat):diff<0?'Défaite… '+statLabel+' '+fN(myStat)+' vs '+fN(cpuStat):'Égalité ! '+statLabel+' '+fN(myStat);
+        document.querySelector('.duel-actions').innerHTML='<p style="font-size:.88rem;font-weight:600;color:'+(diff>0?'var(--acc)':diff<0?'var(--cur)':'var(--txt2)')+'">'+resultText+'</p>';
+        setTimeout(()=>{d.myPlayed=null;d.cpuPlayed=null;d.round++;renderDuelBattle()},2000);
+      },800);
     });
-  } else {
-    function resolve(stat){
-      const myStat=stat==='atk'?d.myPlayed.atk:d.myPlayed.def;
-      const cpuStat=stat==='atk'?d.cpuPlayed.atk:d.cpuPlayed.def;
-      const diff=myStat-cpuStat;
-      if(diff>0)d.myScore++;else if(diff<0)d.cpuScore++;
-      // Show result
-      const myC=$('dmy'),cpuC=$('dcpu');
-      cpuC.innerHTML=`${d.cpuPlayed.thumb?`<img src="${d.cpuPlayed.thumb}">`:`<div class="dp-ph" style="background:var(--bg${d.cpuPlayed.rarity})">${(DISCS[d.cpuPlayed.disc]||{i:'📐'}).i}</div>`}<h5>${esc(trunc(d.cpuPlayed.title,20))}</h5><div class="ds" style="color:#f43f5e">⚔ ${fN(d.cpuPlayed.atk)}</div><div class="ds" style="color:#3b82f6">🛡 ${fN(d.cpuPlayed.def)}</div>`;
-      if(diff>0){myC.classList.add('winner');cpuC.classList.add('loser');sRare()}
-      else if(diff<0){cpuC.classList.add('winner');myC.classList.add('loser')}
-      else{sClick()}
-      const statLabel=stat==='atk'?'ATK':'DEF';
-      const resultText=diff>0?`Victoire ! ${statLabel} ${fN(myStat)} vs ${fN(cpuStat)}`:diff<0?`Défaite… ${statLabel} ${fN(myStat)} vs ${fN(cpuStat)}`:`Égalité ! ${statLabel} ${fN(myStat)}`;
-      document.querySelector('.duel-actions').innerHTML=`<p style="font-size:.88rem;font-weight:600;color:${diff>0?'var(--acc)':diff<0?'var(--cur)':'var(--txt2)'}">${resultText}</p>`;
-      setTimeout(()=>{d.myPlayed=null;d.cpuPlayed=null;d.round++;renderDuelBattle()},2000);
-    }
-    $('datk')?.addEventListener('click',()=>resolve('atk'));
-    $('ddef')?.addEventListener('click',()=>resolve('def'));
   }
 }
 
@@ -1047,6 +1057,19 @@ async function getPlayers(){
 async function proposeTrade(toId,toPseudo,offerCards,offerEcus,wantCards,wantEcus){
   if(!fbDb||!fbClass||!fbUser)return;
   if(!offerCards.length&&!offerEcus&&!wantCards.length&&!wantEcus){toast('Échange vide.');return}
+  /* Check I have enough ecus */
+  if((offerEcus||0)>S.ecus){toast('Pas assez d\'écus.');return}
+  /* Check I have the offered cards */
+  for(var ci=0;ci<offerCards.length;ci++){
+    if(!S.coll.find(function(c){return c.title===offerCards[ci].title})){toast('Carte manquante : '+offerCards[ci].title);return}
+  }
+  /* Immediately deduct my offered cards and ecus so I can't double-spend */
+  offerCards.forEach(function(oc){
+    var idx=S.coll.findIndex(function(c){return c.title===oc.title});
+    if(idx>=0)S.coll.splice(idx,1);
+  });
+  S.ecus-=(offerEcus||0);
+  save();refreshUI();
   await fbDb.collection('classes').doc(fbClass).collection('trades').add({
     from:fbUser.uid,
     fromPseudo:S.pseudo,
@@ -1086,6 +1109,57 @@ async function rejectTrade(tradeId){
   toast('Échange refusé.');
 }
 
+/* Process trades that were accepted — proposer receives wantCards + wantEcus */
+/* (offerCards & offerEcus were already deducted at proposal time) */
+async function processAcceptedTrades(){
+  if(!fbDb||!fbClass||!fbUser)return;
+  try{
+    var snap=await fbDb.collection('classes').doc(fbClass).collection('trades')
+      .where('from','==',fbUser.uid).where('status','==','accepted').get();
+    if(snap.empty)return;
+    var changed=false;
+    snap.forEach(function(doc){
+      var d=doc.data();
+      /* Receive cards I wanted */
+      (d.wantCards||[]).forEach(function(c){
+        S.coll.push(Object.assign({},c,{views:0,extract:'',url:'',thumb:null,qscore:0}));
+      });
+      /* Receive ecus I wanted */
+      S.ecus=(S.ecus||0)+(d.wantEcus||0);
+      /* Mark as completed so it's not processed again */
+      fbDb.collection('classes').doc(fbClass).collection('trades').doc(doc.id).update({status:'completed'});
+      toast('Échange avec '+(d.toPseudo||'?')+' complété !');
+      changed=true;
+    });
+    if(changed){save();syncToCloud();refreshUI()}
+  }catch(e){console.warn('processAcceptedTrades error',e)}
+}
+
+/* Process rejected trades — return offerCards & offerEcus to proposer */
+async function processRejectedTrades(){
+  if(!fbDb||!fbClass||!fbUser)return;
+  try{
+    var snap=await fbDb.collection('classes').doc(fbClass).collection('trades')
+      .where('from','==',fbUser.uid).where('status','==','rejected').get();
+    if(snap.empty)return;
+    var changed=false;
+    snap.forEach(function(doc){
+      var d=doc.data();
+      /* Return my offered cards */
+      (d.offerCards||[]).forEach(function(c){
+        S.coll.push(Object.assign({},c,{views:0,extract:'',url:'',thumb:null,qscore:0}));
+      });
+      /* Return my offered ecus */
+      S.ecus=(S.ecus||0)+(d.offerEcus||0);
+      /* Mark as returned so it's not processed again */
+      fbDb.collection('classes').doc(fbClass).collection('trades').doc(doc.id).update({status:'returned'});
+      toast('Échange refusé — cartes/écus récupérés.');
+      changed=true;
+    });
+    if(changed){save();syncToCloud();refreshUI()}
+  }catch(e){console.warn('processRejectedTrades error',e)}
+}
+
 /* ===== TRADE CARD PICKER COMPONENT ===== */
 function renderCardPicker(containerId,cards,selectedTitles,onSelect,searchId){
   var el=document.getElementById(containerId);if(!el)return;
@@ -1111,6 +1185,9 @@ function renderEchanges(){
     const list=document.getElementById('trades-list');
     try{
       if(tab==='new'){showNewTrade();return}
+      /* Process accepted/rejected trades for proposer side before showing */
+      await processAcceptedTrades();
+      await processRejectedTrades();
       let snap;
       if(tab==='recv'){snap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('to','==',fbUser.uid).where('status','==','pending').get()}
       else{snap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('from','==',fbUser.uid).get()}
@@ -1445,17 +1522,34 @@ async function loadPvPMenu(){
   }catch(e){content.innerHTML='<p class="eh">Erreur : '+e.message+'</p>'}
 }
 
+function genRoundTypes(){
+  var rt=[];for(var i=0;i<5;i++)rt.push(Math.random()<.5?'atk':'def');
+  var ac=rt.filter(function(t){return t==='atk'}).length;
+  if(ac<2){rt[rt.indexOf('def')]='atk';if(ac<1)rt[rt.lastIndexOf('def')]='atk'}
+  else if(ac>3){rt[rt.indexOf('atk')]='def';if(ac>4)rt[rt.lastIndexOf('atk')]='def'}
+  return rt;
+}
+
+function pvpRoundTypesBar(roundTypes,activeIdx){
+  return'<div style="display:flex;gap:4px;justify-content:center;margin:8px 0">'+roundTypes.map(function(t,i){
+    var active=i===activeIdx;
+    return'<span style="padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:700;'+(active?'transform:scale(1.15);box-shadow:0 0 8px '+(t==='atk'?'rgba(244,63,94,.4)':'rgba(59,130,246,.4)')+';':'opacity:.5;')+'background:'+(t==='atk'?'rgba(244,63,94,.15);color:#f43f5e':'rgba(59,130,246,.15);color:#3b82f6')+'">'+(t==='atk'?'⚔':'🛡')+'</span>'
+  }).join('')+'</div>';
+}
+
 function renderPvPPick(){
-  const v=document.getElementById('v-pvp');
-  const unique=new Map();S.coll.forEach(function(c){if(!unique.has(c.title))unique.set(c.title,c)});
-  const all=[...unique.values()];const rk={l:5,ur:4,sr:3,r:2,pc:1,c:0};all.sort(function(a,b){return rk[b.rarity]-rk[a.rarity]});
-  const sel=pvpState.selected;
+  var v=document.getElementById('v-pvp');
+  var unique=new Map();S.coll.forEach(function(c){if(!unique.has(c.title))unique.set(c.title,c)});
+  var all=[].concat(Array.from(unique.values()));var rk={l:5,ur:4,sr:3,r:2,pc:1,c:0};all.sort(function(a,b){return rk[b.rarity]-rk[a.rarity]});
+  var sel=pvpState.selected;var rt=pvpState.roundTypes;
   if(all.length<5){v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Il faut au moins 5 fiches uniques pour jouer.</p></header>';pvpState=null;return}
-  v.innerHTML='<header class="vh" style="text-align:center"><h1>⚔ Duel vs '+pvpState.opponentPseudo+'</h1><p>Choisissez 5 cartes ('+sel.length+'/5)</p></header>'+
-    '<div class="duel-sel" id="pvp-sel">'+sel.map(function(c,i){return'<div class="ds-card" data-rm="'+i+'"><div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+(DISCS[c.disc]||{i:'📐'}).i+'</div><div class="dp-nm">'+esc(trunc(c.title,18))+'</div></div>'}).join('')+Array(5-sel.length).fill('<div class="ds-card" style="opacity:.3"><div class="dp-ph">?</div></div>').join('')+'</div>'+
+  v.innerHTML='<header class="vh" style="text-align:center"><h1>⚔ Duel vs '+esc(pvpState.opponentPseudo)+'</h1><p>Choisissez 5 cartes ('+sel.length+'/5)</p><p style="font-size:.75rem;color:var(--txt2)">Placez vos meilleures cartes ATK sur les rounds ⚔ et DEF sur les rounds 🛡</p></header>'+
+    pvpRoundTypesBar(rt,-1)+
+    '<div class="duel-sel" id="pvp-sel">'+sel.map(function(c,i){var t=rt[i];return'<div class="ds-card" data-rm="'+i+'" style="border-color:'+(t==='atk'?'#f43f5e':'#3b82f6')+'"><div style="font-size:.5rem;font-weight:700;color:'+(t==='atk'?'#f43f5e':'#3b82f6')+';text-align:center">'+(t==='atk'?'⚔ATK':'🛡DEF')+'</div><div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+(DISCS[c.disc]||{i:'📐'}).i+'</div><div class="dp-nm">'+esc(trunc(c.title,18))+'</div></div>'}).join('')+
+    (function(){var empty='';for(var ei=sel.length;ei<5;ei++){var t2=rt[ei];empty+='<div class="ds-card" style="opacity:.5;border-color:'+(t2==='atk'?'#f43f5e':'#3b82f6')+'"><div style="font-size:.5rem;font-weight:700;color:'+(t2==='atk'?'#f43f5e':'#3b82f6')+';text-align:center">'+(t2==='atk'?'⚔ATK':'🛡DEF')+'</div><div class="dp-ph">?</div></div>'}return empty})()+
+    '</div>'+
     (sel.length===5?'<div style="text-align:center;margin:12px 0"><button class="duel-btn go" id="pvp-go">Envoyer le défi !</button></div>':'')+
     '<input type="search" class="si" id="pvp-filter" placeholder="Rechercher…" style="max-width:280px;margin:8px auto;display:block"><div class="duel-pick" id="pvp-pick"></div>';
-
   function fillPick(){
     var q=(document.getElementById('pvp-filter')?.value||'').toLowerCase();
     var list=q?all.filter(function(c){return c.title.toLowerCase().includes(q)}):all;
@@ -1470,17 +1564,16 @@ function renderPvPPick(){
 
 async function sendPvPChallenge(){
   if(!fbDb||!fbClass||!fbUser||!pvpState)return;
-  const cards=pvpState.selected.map(function(c){return{title:c.title,rarity:c.rarity,atk:c.atk,def:c.def,disc:c.disc}});
+  var cards=pvpState.selected.map(function(c){return{title:c.title,rarity:c.rarity,atk:c.atk,def:c.def,disc:c.disc}});
   try{
-    const docRef=await fbDb.collection('classes').doc(fbClass).collection('pvp').add({
+    var docRef=await fbDb.collection('classes').doc(fbClass).collection('pvp').add({
       challengerUid:fbUser.uid,
       challengerPseudo:S.pseudo,
       challengerCards:cards,
       opponentUid:pvpState.opponentUid,
       opponentPseudo:pvpState.opponentPseudo,
       opponentCards:[],
-      rounds:[],
-      currentRound:0,
+      roundTypes:pvpState.roundTypes,
       status:'waiting',
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -1491,25 +1584,28 @@ async function sendPvPChallenge(){
 }
 
 async function acceptPvPChallenge(duelId){
-  pvpState={phase:'pick',duelId:duelId,role:'opponent',opponentUid:'',opponentPseudo:'',selected:[]};
-  // Load duel to get challenger info
-  const doc=await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).get();
+  pvpState={phase:'pick',duelId:duelId,role:'opponent',opponentUid:'',opponentPseudo:'',selected:[],roundTypes:[]};
+  var doc=await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).get();
   if(!doc.exists){toast('Défi introuvable.');pvpState=null;renderPvP();return}
-  const data=doc.data();
+  var data=doc.data();
   pvpState.opponentPseudo=data.challengerPseudo;
   pvpState.opponentUid=data.challengerUid;
-  pvpState.challengerCards=data.challengerCards; // Save for local resolution
+  pvpState.challengerCards=data.challengerCards;
+  pvpState.roundTypes=data.roundTypes||['atk','def','atk','def','atk'];
   renderPvPPickForAccept(duelId);
 }
 
 function renderPvPPickForAccept(duelId){
-  const v=document.getElementById('v-pvp');
-  const unique=new Map();S.coll.forEach(function(c){if(!unique.has(c.title))unique.set(c.title,c)});
-  const all=[...unique.values()];const rk={l:5,ur:4,sr:3,r:2,pc:1,c:0};all.sort(function(a,b){return rk[b.rarity]-rk[a.rarity]});
-  const sel=pvpState.selected;
+  var v=document.getElementById('v-pvp');
+  var unique=new Map();S.coll.forEach(function(c){if(!unique.has(c.title))unique.set(c.title,c)});
+  var all=[].concat(Array.from(unique.values()));var rk={l:5,ur:4,sr:3,r:2,pc:1,c:0};all.sort(function(a,b){return rk[b.rarity]-rk[a.rarity]});
+  var sel=pvpState.selected;var rt=pvpState.roundTypes;
   if(all.length<5){v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Il faut au moins 5 fiches.</p></header>';pvpState=null;return}
-  v.innerHTML='<header class="vh" style="text-align:center"><h1>⚔ Répondre au défi de '+pvpState.opponentPseudo+'</h1><p>Choisissez 5 cartes ('+sel.length+'/5)</p></header>'+
-    '<div class="duel-sel" id="pvp-sel">'+sel.map(function(c,i){return'<div class="ds-card" data-rm="'+i+'"><div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+(DISCS[c.disc]||{i:'📐'}).i+'</div><div class="dp-nm">'+esc(trunc(c.title,18))+'</div></div>'}).join('')+Array(5-sel.length).fill('<div class="ds-card" style="opacity:.3"><div class="dp-ph">?</div></div>').join('')+'</div>'+
+  v.innerHTML='<header class="vh" style="text-align:center"><h1>⚔ Répondre au défi de '+esc(pvpState.opponentPseudo)+'</h1><p>Choisissez 5 cartes ('+sel.length+'/5)</p><p style="font-size:.75rem;color:var(--txt2)">Placez vos meilleures cartes ATK sur les rounds ⚔ et DEF sur les rounds 🛡</p></header>'+
+    pvpRoundTypesBar(rt,-1)+
+    '<div class="duel-sel" id="pvp-sel">'+sel.map(function(c,i){var t=rt[i];return'<div class="ds-card" data-rm="'+i+'" style="border-color:'+(t==='atk'?'#f43f5e':'#3b82f6')+'"><div style="font-size:.5rem;font-weight:700;color:'+(t==='atk'?'#f43f5e':'#3b82f6')+';text-align:center">'+(t==='atk'?'⚔ATK':'🛡DEF')+'</div><div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+(DISCS[c.disc]||{i:'📐'}).i+'</div><div class="dp-nm">'+esc(trunc(c.title,18))+'</div></div>'}).join('')+
+    (function(){var empty='';for(var ei=sel.length;ei<5;ei++){var t2=rt[ei];empty+='<div class="ds-card" style="opacity:.5;border-color:'+(t2==='atk'?'#f43f5e':'#3b82f6')+'"><div style="font-size:.5rem;font-weight:700;color:'+(t2==='atk'?'#f43f5e':'#3b82f6')+';text-align:center">'+(t2==='atk'?'⚔ATK':'🛡DEF')+'</div><div class="dp-ph">?</div></div>'}return empty})()+
+    '</div>'+
     (sel.length===5?'<div style="text-align:center;margin:12px 0"><button class="duel-btn go" id="pvp-accept-go">Accepter et jouer !</button></div>':'')+
     '<input type="search" class="si" id="pvp-filter" placeholder="Rechercher…" style="max-width:280px;margin:8px auto;display:block"><div class="duel-pick" id="pvp-pick"></div>';
   function fillPick(){
@@ -1527,22 +1623,12 @@ function renderPvPPickForAccept(duelId){
       opponentCards:cards,
       status:'ready'
     });
-    // Resolve duel locally using saved challenger cards (no re-read needed)
-    var myCards=cards;
-    var theirCards=pvpState.challengerCards||[];
-    var myScore=0,cpuScore=0,log=[];
-    for(var i=0;i<5;i++){
-      var mine=myCards[i],theirs=theirCards[i];
-      if(!mine||!theirs)continue;
-      var useAtk=i%2===0;
-      var myStat=useAtk?mine.atk:mine.def;
-      var theirStat=useAtk?theirs.atk:theirs.def;
-      var diff=myStat-theirStat;
-      if(diff>0)myScore++;else if(diff<0)cpuScore++;
-      log.push({round:i+1,myCard:mine,theirCard:theirs,stat:useAtk?'ATK':'DEF',myVal:myStat,theirVal:theirStat,result:diff>0?'win':diff<0?'lose':'draw'});
-    }
-    pvpState={phase:'result',duelId:duelId,myScore:myScore,cpuScore:cpuScore,log:log,theirPseudo:pvpState.opponentPseudo,role:'opponent'};
-    renderPvP();
+    /* Start interactive round-by-round play */
+    pvpState={phase:'battle',duelId:duelId,role:'opponent',
+      myHand:cards.slice(),theirHand:(pvpState.challengerCards||[]).slice(),
+      roundTypes:pvpState.roundTypes,round:1,myScore:0,cpuScore:0,log:[],
+      theirPseudo:pvpState.opponentPseudo,myPlayed:null,cpuPlayed:null};
+    renderPvPRound();
   });
 }
 
@@ -1553,29 +1639,85 @@ async function playPvPDuel(duelId){
   if(data.status!=='ready'&&data.status!=='finished'){toast('L\'adversaire n\'a pas encore répondu.');pvpState={phase:'waiting',duelId:duelId,role:'challenger'};renderPvP();return}
 
   // Determine role
-  const iAmChallenger=data.challengerUid===fbUser.uid;
-  const myCards=iAmChallenger?data.challengerCards:data.opponentCards;
-  const theirCards=iAmChallenger?data.opponentCards:data.challengerCards;
-  const theirPseudo=iAmChallenger?data.opponentPseudo:data.challengerPseudo;
-
-  // Auto-resolve 5 rounds: compare cards by position, alternating ATK/DEF
-  var myScore=0,cpuScore=0,log=[];
-  for(var i=0;i<5;i++){
-    var mine=myCards[i],theirs=theirCards[i];
-    var useAtk=i%2===0; // alternate ATK/DEF
-    var myStat=useAtk?mine.atk:mine.def;
-    var theirStat=useAtk?theirs.atk:theirs.def;
-    var diff=myStat-theirStat;
-    if(diff>0)myScore++;else if(diff<0)cpuScore++;
-    log.push({round:i+1,myCard:mine,theirCard:theirs,stat:useAtk?'ATK':'DEF',myVal:myStat,theirVal:theirStat,result:diff>0?'win':diff<0?'lose':'draw'});
-  }
-
-  pvpState={phase:'result',duelId:duelId,myScore:myScore,cpuScore:cpuScore,log:log,theirPseudo:theirPseudo,role:iAmChallenger?'challenger':'opponent'};
+  var iAmChallenger=data.challengerUid===fbUser.uid;
+  var myCards=iAmChallenger?data.challengerCards:data.opponentCards;
+  var theirCards=iAmChallenger?data.opponentCards:data.challengerCards;
+  var theirPseudo=iAmChallenger?data.opponentPseudo:data.challengerPseudo;
+  var roundTypes=data.roundTypes||['atk','def','atk','def','atk'];
 
   // Mark duel as finished
   await fbDb.collection('classes').doc(fbClass).collection('pvp').doc(duelId).update({status:'finished'});
 
-  renderPvP();
+  // Start interactive round-by-round play
+  pvpState={phase:'battle',duelId:duelId,role:iAmChallenger?'challenger':'opponent',
+    myHand:myCards.slice(),theirHand:theirCards.slice(),
+    roundTypes:roundTypes,round:1,myScore:0,cpuScore:0,log:[],
+    theirPseudo:theirPseudo,myPlayed:null,cpuPlayed:null};
+  renderPvPRound();
+}
+
+function renderPvPBattleAnim(){
+  var v=document.getElementById('v-pvp');var p=pvpState;
+  var mS=0,cS=0;
+  v.innerHTML='<header class="vh" style="text-align:center"><h1>⚔️ Combat PvP</h1><p>Vous vs '+esc(p.theirPseudo)+'</p></header>'+
+    '<div style="text-align:center;margin:12px 0"><span style="font-size:1.6rem;font-weight:800" id="pvp-score-live">0 — 0</span></div>'+
+    '<div id="pvp-rounds" style="max-width:440px;margin:0 auto"></div>'+
+    '<div id="pvp-final" style="text-align:center;margin-top:16px"></div>';
+  var roundsEl=document.getElementById('pvp-rounds');
+  var scoreEl=document.getElementById('pvp-score-live');
+  var finalEl=document.getElementById('pvp-final');
+  var roundIdx=0;
+  function showNextRound(){
+    if(roundIdx>=p.log.length){
+      /* All rounds shown — display final result */
+      setTimeout(function(){
+        pvpState.phase='result';
+        renderPvPResult();
+      },1200);
+      return;
+    }
+    var r=p.log[roundIdx];
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;opacity:0;transform:translateY(12px);transition:all .4s ease';
+    /* Build round content - start hidden */
+    row.innerHTML='<span style="font-weight:700;color:var(--txt3);width:70px;flex-shrink:0">Manche '+r.round+'</span>'+
+      '<div style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:.82rem">'+
+        '<div style="text-align:right;flex:1"><div style="font-weight:600">'+esc(trunc(r.myCard.title,14))+'</div><div style="font-size:.72rem;color:var(--txt2)">'+r.stat+' <span style="font-weight:700">'+fN(r.myVal)+'</span></div></div>'+
+        '<span style="font-size:1.3rem;margin:0 4px" id="pvp-vs-'+roundIdx+'">⚡</span>'+
+        '<div style="text-align:left;flex:1"><div style="font-weight:600">'+esc(trunc(r.theirCard.title,14))+'</div><div style="font-size:.72rem;color:var(--txt2)">'+r.stat+' <span style="font-weight:700">'+fN(r.theirVal)+'</span></div></div>'+
+      '</div>'+
+      '<span style="font-size:1.3rem;width:30px;text-align:center" id="pvp-icon-'+roundIdx+'">❓</span>';
+    roundsEl.appendChild(row);
+    /* Animate in */
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      row.style.opacity='1';row.style.transform='translateY(0)';
+    })});
+    /* After a beat, reveal result */
+    setTimeout(function(){
+      var icon=document.getElementById('pvp-icon-'+roundIdx);
+      var vs=document.getElementById('pvp-vs-'+roundIdx);
+      if(r.result==='win'){
+        if(icon)icon.textContent='✅';
+        if(vs)vs.textContent='💥';
+        row.style.borderLeft='3px solid var(--acc)';
+        mS++;
+      }else if(r.result==='lose'){
+        if(icon)icon.textContent='❌';
+        if(vs)vs.textContent='💥';
+        row.style.borderLeft='3px solid var(--cur)';
+        cS++;
+      }else{
+        if(icon)icon.textContent='➖';
+        if(vs)vs.textContent='🤝';
+        row.style.borderLeft='3px solid var(--txt3)';
+      }
+      if(scoreEl)scoreEl.innerHTML='<span style="color:var(--acc)">'+mS+'</span> — <span style="color:var(--cur)">'+cS+'</span>';
+      roundIdx++;
+      setTimeout(showNextRound,900);
+    },800);
+  }
+  /* Start after a brief pause */
+  setTimeout(showNextRound,600);
 }
 
 function renderPvPWaiting(){
@@ -1593,18 +1735,86 @@ function renderPvPWaiting(){
 }
 
 function renderPvPBattle(){
-  // This shouldn't normally be called directly, but just in case
-  renderPvP();
+  renderPvPRound();
+}
+
+function renderPvPRound(){
+  var v=document.getElementById('v-pvp');var p=pvpState;
+  if(p.round>5){p.phase='result';renderPvPResult();return}
+  var roundType=p.roundTypes[p.round-1];
+  var isAtk=roundType==='atk';
+  var typeLabel=isAtk?'⚔ ATTAQUE':'🛡 DÉFENSE';
+  var typeColor=isAtk?'#f43f5e':'#3b82f6';
+  var hand=p.myHand;
+
+  v.innerHTML='<header class="vh" style="text-align:center"><h1>Manche '+p.round+'/5</h1><p style="font-size:1.1rem;font-weight:700;color:'+typeColor+'">'+typeLabel+'</p></header>'+
+    '<div style="text-align:center;margin:6px 0"><span style="font-size:1.4rem;font-weight:800"><span style="color:var(--acc)">'+p.myScore+'</span> — <span style="color:var(--cur)">'+p.cpuScore+'</span></span></div>'+
+    '<div style="display:flex;gap:4px;justify-content:center;margin:8px 0">'+p.roundTypes.map(function(t,i){return'<span style="padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:700;'+(i===p.round-1?'transform:scale(1.15);box-shadow:0 0 8px '+(t==='atk'?'rgba(244,63,94,.4)':'rgba(59,130,246,.4)')+';':'opacity:.5;')+'background:'+(t==='atk'?'rgba(244,63,94,.15);color:#f43f5e':'rgba(59,130,246,.15);color:#3b82f6')+'">'+(t==='atk'?'⚔':'🛡')+'</span>'}).join('')+'</div>'+
+    (p.myPlayed?
+      '<div class="duel-board">'+
+        '<div class="duel-side"><h4>Votre carte</h4><div class="duel-crd" id="pvp-dmy">'+
+          (p.myPlayed.thumb?'<img src="'+p.myPlayed.thumb+'">':'<div class="dp-ph" style="background:var(--bg'+p.myPlayed.rarity+')">'+(DISCS[p.myPlayed.disc]||{i:'📐'}).i+'</div>')+
+          '<h5>'+esc(trunc(p.myPlayed.title,20))+'</h5>'+
+          '<div class="ds" style="color:'+typeColor+';font-weight:700">'+(isAtk?'⚔ '+fN(p.myPlayed.atk):'🛡 '+fN(p.myPlayed.def))+'</div>'+
+        '</div></div>'+
+        '<div class="duel-vs">VS</div>'+
+        '<div class="duel-side"><h4>'+esc(p.theirPseudo)+'</h4><div class="duel-crd" id="pvp-dcpu">'+
+          '<div class="dp-ph" style="background:var(--bg3)">❓</div><h5>???</h5>'+
+        '</div></div>'+
+      '</div>'+
+      '<div class="duel-actions" id="pvp-actions" style="text-align:center"><p style="font-size:.85rem;color:var(--txt2)">Résolution en cours...</p></div>'
+    :
+      '<p style="text-align:center;color:var(--txt2);font-size:.88rem;margin:12px 0">Choisissez une carte pour ce round '+(isAtk?'<b style="color:#f43f5e">ATK</b>':'<b style="color:#3b82f6">DEF</b>')+' :</p>'+
+      '<div class="duel-hand" id="pvp-dhand">'+hand.map(function(c,i){return'<div class="dh-card" data-pi="'+i+'">'+
+        (c.thumb?'<img src="'+c.thumb+'">':'<div class="dp-ph" style="background:var(--bg'+c.rarity+')">'+(DISCS[c.disc]||{i:'📐'}).i+'</div>')+
+        '<div class="dh-nm">'+esc(trunc(c.title,16))+'</div>'+
+        '<div class="dh-st"><span style="color:#f43f5e">⚔'+fN(c.atk)+'</span><span style="color:#3b82f6">🛡'+fN(c.def)+'</span></div>'+
+      '</div>'}).join('')+'</div>'
+    );
+
+  if(!p.myPlayed){
+    document.getElementById('pvp-dhand')?.addEventListener('click',function(e){
+      var card=e.target.closest('.dh-card');if(!card)return;
+      var i=+card.dataset.pi;
+      p.myPlayed=hand.splice(i,1)[0];
+      /* Opponent card: take from their pre-selected hand in order */
+      p.cpuPlayed=p.theirHand.shift();
+      renderPvPRound();
+      /* Auto-resolve after short pause */
+      setTimeout(function(){
+        var stat=roundType;
+        var myStat=stat==='atk'?p.myPlayed.atk:p.myPlayed.def;
+        var theirStat=stat==='atk'?p.cpuPlayed.atk:p.cpuPlayed.def;
+        var diff=myStat-theirStat;
+        if(diff>0)p.myScore++;else if(diff<0)p.cpuScore++;
+        var myC=document.getElementById('pvp-dmy');
+        var cpuC=document.getElementById('pvp-dcpu');
+        if(cpuC)cpuC.innerHTML=(p.cpuPlayed.thumb?'<img src="'+p.cpuPlayed.thumb+'">':'<div class="dp-ph" style="background:var(--bg'+p.cpuPlayed.rarity+')">'+(DISCS[p.cpuPlayed.disc]||{i:'📐'}).i+'</div>')+'<h5>'+esc(trunc(p.cpuPlayed.title,20))+'</h5><div class="ds" style="color:'+typeColor+';font-weight:700">'+(isAtk?'⚔ '+fN(p.cpuPlayed.atk):'🛡 '+fN(p.cpuPlayed.def))+'</div>';
+        if(diff>0){if(myC)myC.classList.add('winner');if(cpuC)cpuC.classList.add('loser');sRare()}
+        else if(diff<0){if(cpuC)cpuC.classList.add('winner');if(myC)myC.classList.add('loser')}
+        else{sClick()}
+        var statLabel=stat==='atk'?'ATK':'DEF';
+        var resultText=diff>0?'Victoire ! '+statLabel+' '+fN(myStat)+' vs '+fN(theirStat):diff<0?'Défaite… '+statLabel+' '+fN(myStat)+' vs '+fN(theirStat):'Égalité ! '+statLabel+' '+fN(myStat);
+        p.log.push({round:p.round,myCard:p.myPlayed,theirCard:p.cpuPlayed,stat:statLabel,myVal:myStat,theirVal:theirStat,result:diff>0?'win':diff<0?'lose':'draw'});
+        var actionsEl=document.getElementById('pvp-actions');
+        if(actionsEl)actionsEl.innerHTML='<p style="font-size:.88rem;font-weight:600;color:'+(diff>0?'var(--acc)':diff<0?'var(--cur)':'var(--txt2)')+'">'+resultText+'</p>';
+        setTimeout(function(){p.myPlayed=null;p.cpuPlayed=null;p.round++;renderPvPRound()},2000);
+      },800);
+    });
+  }
 }
 
 function renderPvPResult(){
   const v=document.getElementById('v-pvp');const p=pvpState;
   const won=p.myScore>p.cpuScore;const draw=p.myScore===p.cpuScore;
   const reward=won?30:draw?15:5;
-  S.ecus+=reward;S.stats.duelsPlayed=(S.stats.duelsPlayed||0)+1;S.stats.pvpPlayed=(S.stats.pvpPlayed||0)+1;
-  if(won){S.stats.duelsWon=(S.stats.duelsWon||0)+1;S.stats.pvpWon=(S.stats.pvpWon||0)+1;addXP(35)}else if(draw){addXP(15)}else{addXP(8)}
-  save();ckAch();refreshUI();
-  if(won){sLeg();fireConfetti()}else if(draw){sRare()}
+  if(!p.rewarded){
+    S.ecus+=reward;S.stats.duelsPlayed=(S.stats.duelsPlayed||0)+1;S.stats.pvpPlayed=(S.stats.pvpPlayed||0)+1;
+    if(won){S.stats.duelsWon=(S.stats.duelsWon||0)+1;S.stats.pvpWon=(S.stats.pvpWon||0)+1;addXP(35)}else if(draw){addXP(15)}else{addXP(8)}
+    save();ckAch();refreshUI();
+    if(won){sLeg();fireConfetti()}else if(draw){sRare()}
+    p.rewarded=true;
+  }
 
   var logHtml=p.log.map(function(r){
     var color=r.result==='win'?'var(--acc)':r.result==='lose'?'var(--cur)':'var(--txt2)';
@@ -1631,6 +1841,9 @@ var mpNotifState={trades:0,friends:0,pvp:0};
 async function checkMultiplayerNotifs(){
   if(!fbDb||!fbClass||!fbUser)return;
   try{
+    /* Process accepted/rejected trades for proposer */
+    await processAcceptedTrades();
+    await processRejectedTrades();
     /* Check new trade offers */
     var trSnap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('to','==',fbUser.uid).where('status','==','pending').get();
     if(trSnap.size>mpNotifState.trades&&mpNotifState.trades>=0){
