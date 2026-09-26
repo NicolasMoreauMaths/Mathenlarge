@@ -515,15 +515,19 @@ async function drawPack(){
   try{
     var pool,drawDisc;
     if(isU){var rp=await getRandomPool();pool=rp.pool;drawDisc=rp.disc}else{pool=await getPool(curD);drawDisc=curD}
+    /* Retry once if pool came back empty (e.g. from a failed preload) */
+    if(!pool.length){delete pools[isU?drawDisc:curD];if(isU){var rp2=await getRandomPool();pool=rp2.pool;drawDisc=rp2.disc}else{pool=await getPool(curD);drawDisc=curD}}
     console.log('Pool:',pool.length,drawDisc);if(!pool.length)throw new Error('Pool vide');
     S.pity=(S.pity||0)+1;const isPity=S.pity>=PITY;
     let rarities;
     if(isU){rarities=['l']}
     else{rarities=isPity?rollPack(true):rollPack(false);if(isPity)S.pity=0}
     if(free)S.freePacks--;else S.ecus-=cost;
-    const batch=sample(pool,Math.min(12,pool.length));const pages=await fetchPages(batch);
+    var batch=sample(pool,Math.min(12,pool.length));var pages=await fetchPages(batch);
+    /* Retry with different sample if first attempt failed */
+    if(!pages.length){await new Promise(function(r){setTimeout(r,1000)});batch=sample(pool,Math.min(12,pool.length));pages=await fetchPages(batch)}
     console.log('Batch:',batch.slice(0,3),'... Pages:',pages.length);
-    if(!pages.length)throw new Error('Aucune page valide');
+    if(!pages.length)throw new Error('Aucune page valide — vérifiez votre connexion');
     const withViews=pages.map(function(p){return{page:p,views:estimatePopularity(p)}});
     withViews.sort((a,b)=>b.views-a.views);
     const rOrder=['l','ur','sr','r','pc','c'];const cards=[];const used=new Set();
@@ -966,11 +970,18 @@ function renderCompletion(){
   S.coll.forEach(function(c){if(byDisc[c.disc])byDisc[c.disc].add(c.title)});
   return DK.map(function(k){
     const d=DISCS[k];const owned=byDisc[k].size;
-    /* Use actual pool count (Wikipedia + EXTRAS) when loaded, otherwise EXTRAS count */
+    /* Use actual pool count (Wikipedia + EXTRAS) when loaded, otherwise a safe estimate */
     const poolLoaded=pools[k]&&pools[k]._c;
-    const total=poolLoaded?pools[k]._c.length:Math.max((EXTRAS[k]||[]).length,owned);
-    const pct=total>0?Math.min(100,Math.round(owned/total*100)):0;
-    return'<div class="dp"><span class="dp-icon">'+d.i+'</span><div class="dp-info"><div class="dp-name">'+d.n+' <span class="dp-count">'+owned+'/'+total+' ('+pct+'%)</span></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%;background:'+d.c+'"></div></div></div></div>';
+    var total;
+    if(poolLoaded){total=pools[k]._c.length}
+    else{
+      /* Pool not loaded yet: use EXTRAS count but never less than owned+1 to avoid false 100% */
+      var ext=(EXTRAS[k]||[]).length;
+      total=owned>=ext?owned+20:ext;/* +20 placeholder until real pool loads */
+    }
+    const pct=total>0?Math.min(poolLoaded?100:99,Math.round(owned/total*100)):0;
+    var suffix=poolLoaded?'':'~';
+    return'<div class="dp"><span class="dp-icon">'+d.i+'</span><div class="dp-info"><div class="dp-name">'+d.n+' <span class="dp-count">'+owned+'/'+suffix+total+' ('+pct+'%)</span></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%;background:'+d.c+'"></div></div></div></div>';
   }).join('');
 }
 
@@ -997,12 +1008,19 @@ setInterval(checkNotif,30000);
   if(test&&test.query){console.log('API OK via '+(useJsonp?'JSONP':'fetch'))}
   else{console.warn('API returned empty, trying JSONP...');useJsonp=true;const t2=await wpQuery({action:'query',format:'json',list:'categorymembers',cmtitle:'Catégorie:Mathématiques',cmnamespace:'0',cmlimit:'5'});console.log('JSONP test:',t2?'OK':'FAIL')}
 }catch(e){console.error('API test failed:',e)}
-/* Preload all discipline pools so completion percentages are accurate from the start */
-DK.forEach(function(k){getPool(k).then(function(){
-  /* Refresh collection progress display if visible */
-  var dprog=document.getElementById('dprog');
-  if(dprog)dprog.innerHTML='<h4 style="grid-column:1/-1;font-size:.82rem;margin-bottom:4px">📖 Progression par discipline</h4>'+renderCompletion();
-})});
+/* Preload pools one at a time (staggered) so Wikipedia doesn't rate-limit */
+(function preloadPools(){
+  var i=0;
+  function next(){
+    if(i>=DK.length)return;
+    getPool(DK[i]).then(function(){
+      var dprog=document.getElementById('dprog');
+      if(dprog)dprog.innerHTML='<h4 style="grid-column:1/-1;font-size:.82rem;margin-bottom:4px">📖 Progression par discipline</h4>'+renderCompletion();
+      i++;setTimeout(next,800);
+    }).catch(function(){i++;setTimeout(next,1500)});
+  }
+  setTimeout(next,2000);/* wait for API test to finish first */
+})();
 })();
 window.onerror=function(msg){console.error('Tiroir error:',msg)};
 /* Expose needed symbols to Firebase script */
