@@ -666,7 +666,7 @@ $('pedit').addEventListener('click',function(){
   openM();
   let chosen=S.avatar||'📐';
   $('avpk').addEventListener('click',function(e){const b=e.target.closest('[data-av]');if(!b)return;chosen=b.dataset.av;$('avpk').querySelectorAll('button').forEach(function(x){x.classList.toggle('sel',x.dataset.av===chosen)})});
-  $('psave').addEventListener('click',function(){const p=$('pnew').value.trim();if(p)S.pseudo=p.slice(0,20);S.avatar=chosen;save();closeM();renderProfil();toast('Profil mis à jour')});
+  $('psave').addEventListener('click',function(){const p=$('pnew').value.trim();if(p)S.pseudo=p.slice(0,20);S.avatar=chosen;save();closeM();renderProfil();toast('Profil mis à jour');if(window.autoConnect)window.autoConnect();if(window.syncToCloud)window.syncToCloud()});
 });
 // Share
 $('pshare')?.addEventListener('click',function(){const txt=`🏆 Tiroir aux Fiches — ${esc(S.pseudo||'Collectionneur')}\nNv.${lv} ${title} | ${d} fiches | ${S.stats.packs} tiroirs | ${S.stats.duelsWon||0} duels gagnés | 🔥 Streak ${S.streak||0}j`;navigator.clipboard?.writeText(txt).then(function(){toast('Stats copiées !')}).catch(function(){toast(txt)})});
@@ -1011,52 +1011,10 @@ if(FIREBASE_ENABLED){
 }
 
 /* ===== CLOUD AUTH ===== */
-function showLoginScreen(){
-  const modal=document.getElementById('modal'),mbody=document.getElementById('mbody');
-  mbody.innerHTML=`<div class="mbd">
-    <h3 style="text-align:center">🌐 Connexion multijoueur</h3>
-    <p style="text-align:center;color:var(--txt2);font-size:.82rem">Connectez-vous pour échanger des cartes avec vos camarades.</p>
-    <p style="margin:12px 0 4px;font-size:.82rem">Pseudo :</p>
-    <input type="text" class="si" id="fb-pseudo" value="${S.pseudo||''}" maxlength="20" style="max-width:100%">
-    <p style="margin:12px 0 4px;font-size:.82rem">Code classe :</p>
-    <input type="text" class="si" id="fb-class" placeholder="Ex: chevreul4e" maxlength="30" style="max-width:100%">
-    <div style="text-align:center;margin-top:16px">
-      <button class="duel-btn go" id="fb-login">Se connecter</button>
-    </div>
-    <p id="fb-err" style="color:var(--cur);font-size:.78rem;text-align:center;margin-top:8px"></p>
-    <p style="font-size:.7rem;color:var(--txt3);text-align:center;margin-top:12px">Pas de compte ? La connexion en crée un automatiquement.</p>
-  </div>`;
-  modal.classList.add('open');
-  document.getElementById('fb-login').addEventListener('click',async function(){
-    const pseudo=document.getElementById('fb-pseudo').value.trim();
-    const classCode=document.getElementById('fb-class').value.trim().toLowerCase();
-    if(!pseudo||pseudo.length<2){document.getElementById('fb-err').textContent='Pseudo trop court.';return}
-    if(!classCode||classCode.length<3){document.getElementById('fb-err').textContent='Code classe trop court.';return}
-    try{
-      document.getElementById('fb-err').textContent='Connexion...';
-      /* Anonymous auth */
-      let cred;
-      const savedUid=localStorage.getItem('tiroir-fb-uid');
-      if(savedUid){try{cred=await fbAuth.signInAnonymously()}catch(e){cred=await fbAuth.signInAnonymously()}}
-      else{cred=await fbAuth.signInAnonymously()}
-      fbUser=cred.user;
-      localStorage.setItem('tiroir-fb-uid',fbUser.uid);
-      fbClass=classCode;
-      localStorage.setItem('tiroir-fb-class',classCode);
-      S.pseudo=pseudo;save();
-      /* Save player profile to Firestore */
-      await syncToCloud();
-      modal.classList.remove('open');
-      toast('🌐 Connecté ! Votre tag : '+pseudo+pTag(fbUser.uid));
-      refreshUI();
-      /* Re-render active view so it shows logged-in state */
-      var av=document.querySelector('.view.active');
-      if(av){var vn=av.id.replace('v-','');switchView(vn)}
-    }catch(e){document.getElementById('fb-err').textContent='Erreur : '+e.message;console.error(e)}
-  });
-}
+var DEFAULT_CLASS='chevreul4e';
 
 /* Sync local collection to cloud */
+window.syncToCloud=syncToCloud;
 async function syncToCloud(){
   if(!fbUser||!fbClass||!fbDb)return;
   const ref=fbDb.collection('classes').doc(fbClass).collection('players').doc(fbUser.uid);
@@ -1136,7 +1094,7 @@ function renderCardPicker(containerId,cards,selectedTitles,onSelect,searchId){
 function renderEchanges(){
   const v=document.getElementById('v-echanges');
   if(!FIREBASE_ENABLED){v.innerHTML='<header class="vh" style="text-align:center"><h1>Échanges</h1><p>Le multijoueur nécessite la configuration Firebase.</p></header>';return}
-  if(!fbUser){v.innerHTML='<header class="vh" style="text-align:center"><h1>Échanges</h1><p>Connectez-vous pour échanger des cartes.</p><button class="duel-btn go" id="fb-connect" style="margin-top:14px">Se connecter</button></header>';v.querySelector('#fb-connect')?.addEventListener('click',showLoginScreen);return}
+  if(!fbUser){if(!S.pseudo){v.innerHTML='<header class="vh" style="text-align:center"><h1>Échanges</h1><p>Choisissez d\'abord un pseudo dans votre Profil pour activer le multijoueur.</p><button class="duel-btn go" id="fb-go-profil" style="margin-top:14px">Aller au Profil</button></header>';v.querySelector('#fb-go-profil')?.addEventListener('click',function(){switchView('profil')})}else{v.innerHTML='<header class="vh" style="text-align:center"><h1>Échanges</h1><p>Connexion en cours…</p></header>';autoConnect()}return}
   v.innerHTML='<header class="vh"><h1>🔄 Échanges</h1><p>Proposez et recevez des échanges de cartes et d\'écus.</p></header>'+
     '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><button class="fb active" id="et-recv">📩 Reçues</button><button class="fb" id="et-sent">📤 Envoyées</button><button class="fb" id="et-new">+ Proposer</button></div>'+
     '<div id="trades-list"><p style="color:var(--txt3)">Chargement...</p></div>';
@@ -1149,15 +1107,19 @@ function renderEchanges(){
       if(tab==='recv'){snap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('to','==',fbUser.uid).where('status','==','pending').get()}
       else{snap=await fbDb.collection('classes').doc(fbClass).collection('trades').where('from','==',fbUser.uid).orderBy('createdAt','desc').get()}
       if(snap.empty){list.innerHTML='<p class="eh">Aucun échange '+(tab==='recv'?'reçu':'envoyé')+'.</p>';return}
+      /* Load fresh player profiles to get up-to-date pseudos */
+      var tPlayerSnap=await fbDb.collection('classes').doc(fbClass).collection('players').get();
+      var tPlayerMap={};tPlayerSnap.docs.forEach(function(d){tPlayerMap[d.id]=d.data()});
       list.innerHTML=snap.docs.map(function(d){
         var t=d.data();var isRecv=tab==='recv';
         var oCards=(t.offerCards||[]).map(function(c){return esc(trunc(c.title,18))+' <span class="rb rb-'+c.rarity+'" style="font-size:.5rem">'+rT(c.rarity).s+'</span>'}).join(', ')||(t.offerCard?esc(t.offerCard.title):'');
         var wCards=(t.wantCards||[]).map(function(c){return esc(trunc(c.title,18))+' <span class="rb rb-'+c.rarity+'" style="font-size:.5rem">'+rT(c.rarity).s+'</span>'}).join(', ')||'';
         var oEcus=t.offerEcus||0;var wEcus=t.wantEcus||0;
         var statusIcon=t.status==='accepted'?'✅':t.status==='rejected'?'❌':t.status==='negotiating'?'💬':'🔄';
+        var otherUid=isRecv?t.from:t.to;var otherPseudo=(tPlayerMap[otherUid]||{}).pseudo||(isRecv?t.fromPseudo:t.toPseudo);
         return'<div class="ach '+(t.status==='pending'&&isRecv?'rdy':t.status==='accepted'?'done':'')+'" style="cursor:default;flex-wrap:wrap">'+
           '<span class="achi">'+statusIcon+'</span>'+
-          '<div class="acht" style="flex:1;min-width:180px"><h4>'+(isRecv?displayName(t.fromPseudo,t.from):displayName(t.toPseudo,t.to))+'</h4>'+
+          '<div class="acht" style="flex:1;min-width:180px"><h4>'+displayName(otherPseudo,otherUid)+'</h4>'+
           '<p style="line-height:1.6"><span style="color:var(--acc)">Donne :</span> '+(oCards||'rien')+(oEcus?' + '+fN(oEcus)+' écus':'')+
           '<br><span style="color:var(--cur)">Veut :</span> '+(wCards||'rien')+(wEcus?' + '+fN(wEcus)+' écus':'')+'</p></div>'+
           (t.status==='pending'&&isRecv?'<div style="display:flex;gap:5px;flex-wrap:wrap"><button class="bb" data-accept="'+d.id+'">✓ Accepter</button><button class="duel-btn go" data-negotiate="'+d.id+'" style="font-size:.78rem;padding:6px 12px;background:var(--bg3);color:var(--acc);border:1px solid var(--acc)">💬 Négocier</button><button class="sb" data-reject="'+d.id+'">✗ Refuser</button></div>':'<span class="achr" style="opacity:.5">'+t.status+'</span>')+
@@ -1324,7 +1286,7 @@ async function removeFriend(docId){
 function renderAmis(){
   const v=document.getElementById('v-amis');
   if(!FIREBASE_ENABLED){v.innerHTML='<header class="vh" style="text-align:center"><h1>Amis</h1><p>Le multijoueur nécessite Firebase.</p></header>';return}
-  if(!fbUser){v.innerHTML='<header class="vh" style="text-align:center"><h1>Amis</h1><p>Connectez-vous pour ajouter des amis.</p><button class="duel-btn go" id="fb-amis-connect" style="margin-top:14px">Se connecter</button></header>';v.querySelector('#fb-amis-connect')?.addEventListener('click',showLoginScreen);return}
+  if(!fbUser){if(!S.pseudo){v.innerHTML='<header class="vh" style="text-align:center"><h1>Amis</h1><p>Choisissez d\'abord un pseudo dans votre Profil pour activer le multijoueur.</p><button class="duel-btn go" id="fb-amis-profil" style="margin-top:14px">Aller au Profil</button></header>';v.querySelector('#fb-amis-profil')?.addEventListener('click',function(){switchView('profil')})}else{v.innerHTML='<header class="vh" style="text-align:center"><h1>Amis</h1><p>Connexion en cours…</p></header>';autoConnect()}return}
   v.innerHTML='<header class="vh"><h1>👥 Amis</h1><p>Votre code : <strong>'+esc(S.pseudo||'?')+pTag(fbUser.uid)+'</strong></p></header>'+
     '<div id="amis-requests"></div>'+
     '<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">'+
@@ -1348,7 +1310,8 @@ async function loadAmisAll(){
     if(reqs.length){
       reqDiv.innerHTML='<div style="background:var(--acc2);border:1px solid rgba(45,212,168,.25);border-radius:var(--rad);padding:14px;margin-bottom:18px"><h3 style="font-size:.95rem;margin-bottom:10px">📩 Demandes d\'amis ('+reqs.length+')</h3>'+
         reqs.map(function(r){
-          return'<div class="ach rdy" style="cursor:default;margin-bottom:4px"><span class="achi" style="font-size:1.3rem">'+(r.fromAvatar||'📐')+'</span><div class="acht"><h4>'+displayName(r.fromPseudo,r.from)+'</h4><p>Veut être votre ami</p></div><div style="display:flex;gap:6px"><button class="bb" data-accfriend="'+r.id+'" style="padding:6px 14px">Accepter</button><button class="sb" data-decfriend="'+r.id+'" style="padding:6px 10px">Refuser</button></div></div>'
+          var rp=playerMap[r.from]||{};
+          return'<div class="ach rdy" style="cursor:default;margin-bottom:4px"><span class="achi" style="font-size:1.3rem">'+(rp.avatar||r.fromAvatar||'📐')+'</span><div class="acht"><h4>'+displayName(rp.pseudo||r.fromPseudo,r.from)+'</h4><p>Veut être votre ami</p></div><div style="display:flex;gap:6px"><button class="bb" data-accfriend="'+r.id+'" style="padding:6px 14px">Accepter</button><button class="sb" data-decfriend="'+r.id+'" style="padding:6px 10px">Refuser</button></div></div>'
         }).join('')+'</div>';
       reqDiv.querySelectorAll('[data-accfriend]').forEach(function(b){b.addEventListener('click',function(){acceptFriend(b.dataset.accfriend).then(loadAmisAll)})});
       reqDiv.querySelectorAll('[data-decfriend]').forEach(function(b){b.addEventListener('click',function(){fbDb.collection('classes').doc(fbClass).collection('friends').doc(b.dataset.decfriend).delete().then(loadAmisAll)})});
@@ -1407,7 +1370,7 @@ function startPvPChallenge(opponentUid,opponentPseudo){
 function renderPvP(){
   const v=document.getElementById('v-pvp');
   if(!FIREBASE_ENABLED){v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Le multijoueur nécessite Firebase.</p></header>';return}
-  if(!fbUser){v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Connectez-vous pour jouer en ligne.</p><button class="duel-btn go" id="fb-pvp-connect" style="margin-top:14px">Se connecter</button></header>';v.querySelector('#fb-pvp-connect')?.addEventListener('click',showLoginScreen);return}
+  if(!fbUser){if(!S.pseudo){v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Choisissez d\'abord un pseudo dans votre Profil pour activer le multijoueur.</p><button class="duel-btn go" id="fb-pvp-profil" style="margin-top:14px">Aller au Profil</button></header>';v.querySelector('#fb-pvp-profil')?.addEventListener('click',function(){switchView('profil')})}else{v.innerHTML='<header class="vh" style="text-align:center"><h1>Duel PvP</h1><p>Connexion en cours…</p></header>';autoConnect()}return}
 
   if(!pvpState){
     // Main PvP menu: pending challenges + challenge a friend
@@ -1631,11 +1594,33 @@ if(!document.getElementById('pvp-style')){
   document.head.appendChild(pvpCss);
 }
 
-/* Auto-login if previously connected */
+/* ===== AUTO-CONNECT ===== */
+/* If pseudo exists, silently connect via anonymous auth — no login screen needed */
+window.autoConnect=autoConnect;
+function autoConnect(){
+  if(!FIREBASE_ENABLED||!S.pseudo||fbUser)return;
+  fbClass=DEFAULT_CLASS;
+  localStorage.setItem('tiroir-fb-class',fbClass);
+  fbAuth.signInAnonymously().then(function(cred){
+    fbUser=cred.user;
+    localStorage.setItem('tiroir-fb-uid',fbUser.uid);
+    syncToCloud().catch(function(){});
+    toast('🌐 Connecté : '+esc(S.pseudo)+pTag(fbUser.uid));
+    /* Refresh current view to show logged-in state */
+    var av=document.querySelector('.view.active');
+    if(av){var vn=av.id.replace('v-','');switchView(vn)}
+  }).catch(function(e){console.error('Auto-connect failed:',e)});
+}
 if(FIREBASE_ENABLED){
-  fbClass=localStorage.getItem('tiroir-fb-class');
+  fbClass=localStorage.getItem('tiroir-fb-class')||DEFAULT_CLASS;
   fbAuth.onAuthStateChanged(function(user){
-    if(user){fbUser=user;syncToCloud().catch(function(){})}
+    if(user){fbUser=user;syncToCloud().catch(function(){});
+      var av=document.querySelector('.view.active');
+      if(av){var vn=av.id.replace('v-','');switchView(vn)}
+    } else if(S.pseudo){
+      /* Not logged in yet but pseudo exists — auto-connect */
+      autoConnect();
+    }
   });
 }
 </script>
