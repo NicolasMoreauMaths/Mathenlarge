@@ -37,6 +37,7 @@ EXCLUDE_CONTAINS = [
     "component",
     "_partial",
     "test",
+    "-prof",
     # "starter",   # <- décommente cette ligne pour exclure TOUS les Starters
 ]
 
