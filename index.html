@@ -4314,23 +4314,45 @@ ${clone.outerHTML}
 
         try {
             const GROQ_KEY = '%%GROQ_KEY_P1%%' + '%%GROQ_KEY_P2%%';
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + GROQ_KEY
-                },
-                body: JSON.stringify({
-                    model: 'llama-3.3-70b-versatile',
-                    max_tokens: ficheMode ? 900 : 300,
-                    messages: [
-                        { role: 'system', content: buildMargotSystem() },
-                        ...getHistoryForAPI()
-                    ]
-                })
-            });
-            const data = await response.json();
-            const reply = data.choices?.[0]?.message?.content || 'Erreur API : ' + JSON.stringify(data);
+            // Modèles essayés dans l'ordre : si le 1er est saturé (limite gratuite) ou indisponible, on passe au suivant.
+            // Chaque modèle a ses propres limites chez Groq, donc ça augmente la capacité.
+            const MARGOT_MODELS = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
+            let reply = null;
+            for (const model of MARGOT_MODELS) {
+                try {
+                    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + GROQ_KEY
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            // gpt-oss "réfléchit" avant de répondre : ces réflexions comptent dans la limite, donc on laisse de la marge
+                            max_completion_tokens: ficheMode ? 1800 : 700,
+                            reasoning_effort: 'low',
+                            messages: [
+                                { role: 'system', content: buildMargotSystem() },
+                                ...getHistoryForAPI()
+                            ]
+                        })
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    const content = data.choices?.[0]?.message?.content;
+                    if (response.ok && content && content.trim()) { reply = content; break; }
+                    console.warn('Margot : modèle', model, 'indisponible', response.status, data);
+                } catch (err) {
+                    console.warn('Margot : échec réseau avec', model, err);
+                }
+            }
+            if (!reply) {
+                // Aucun modèle n'a répondu : message gentil pour l'élève, et on retire sa question de l'historique
+                margotHistory.pop();
+                removeTyping();
+                addMargotMessage('bot', "Oups, je suis un peu débordée là 😅 Réessaie dans une minute !");
+                margotSend.disabled = false;
+                return;
+            }
             margotHistory.push({ role: 'assistant', content: reply });
 
             // Rendu spécial fiche
@@ -4361,7 +4383,7 @@ ${clone.outerHTML}
         } catch (e) {
             removeTyping();
             console.error('Margot error:', e);
-            addMargotMessage('bot', 'Erreur : ' + (e?.message || JSON.stringify(e)));
+            addMargotMessage('bot', "Oups, je n'arrive pas à te répondre là. Réessaie dans un instant 🦊");
         }
 
         margotSend.disabled = false;
