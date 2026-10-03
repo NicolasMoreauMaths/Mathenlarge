@@ -1,0 +1,34 @@
+name: Générer le sitemap
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'sitemap.xml'        # évite une boucle infinie (le job modifie ce fichier)
+  workflow_dispatch:          # bouton "Run workflow" pour le lancer à la main
+
+permissions:
+  contents: write             # autorise le commit du sitemap
+
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # historique complet = dates <lastmod> correctes
+
+      - name: Générer sitemap.xml
+        run: python3 scripts/generate_sitemap.py
+
+      - name: Committer si modifié
+        run: |
+          if [[ -n "$(git status --porcelain sitemap.xml)" ]]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add sitemap.xml
+            git commit -m "Mise à jour automatique du sitemap [skip ci]"
+            git push
+          else
+            echo "sitemap.xml inchangé, rien à committer."
+          fi
