@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orient'Action — multi</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap">
+
+<!-- Firebase (compat) — chargé depuis gstatic, OK sur ton site -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+
+<style>
+:root{
+  --bg:#FBFAF5; --surface:#FFFFFF; --ink:#17233D; --muted:#5B6576; --line:#E6E2D6;
+  --teal:#0E8C80; --teal-deep:#0A5F58; --teal-soft:#E9F3F1;
+  --amber:#E0892E; --amber-soft:#FBEEDD;
+  --shadow:0 10px 30px rgba(23,35,61,.10);
+  --disp:'Fredoka','Trebuchet MS',sans-serif; --body:'Nunito Sans','Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10192B;--surface:#18233B;--ink:#F3F6F4;--muted:#AEBAC8;--line:#2A3750;
+  --teal:#3FC9BC;--teal-deep:#8FE3D9;--teal-soft:#17304A;--amber:#F0A94E;--amber-soft:#2A2416;
+  --shadow:0 10px 30px rgba(0,0,0,.35);color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#10192B;--surface:#18233B;--ink:#F3F6F4;--muted:#AEBAC8;--line:#2A3750;
+  --teal:#3FC9BC;--teal-deep:#8FE3D9;--teal-soft:#17304A;--amber:#F0A94E;--amber-soft:#2A2416;
+  --shadow:0 10px 30px rgba(0,0,0,.35);color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);display:flex;flex-direction:column;min-height:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+h1,h2,h3{font-family:var(--disp);font-weight:600;margin:0;text-wrap:balance}
+[hidden]{display:none!important}
+header{display:flex;align-items:center;gap:14px;padding:14px clamp(16px,3vw,34px);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:12px;margin-right:auto}
+.brand b{font-family:var(--disp);font-size:clamp(20px,3vw,28px);font-weight:700}
+.brand span{font-size:clamp(11px,1.6vw,14px);color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.status{font-size:13px;font-weight:700;color:var(--muted);display:flex;gap:8px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;background:#bbb}
+.dot.ok{background:#2BA84A}.dot.err{background:#D94C4C}
+.themebtn{border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;color:var(--muted)}
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+.wrap{flex:1;min-height:0;width:100%;max-width:1200px;margin:0 auto;padding:clamp(18px,3vh,32px) clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:clamp(14px,2.4vh,24px)}
+.eyebrow{font-size:clamp(12px,1.6vw,14px);font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--teal-deep)}
+.prompt{font-size:clamp(24px,4vw,44px);line-height:1.12}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.spacer{flex:1}
+.hint{color:var(--muted);font-size:clamp(13px,1.7vw,16px)}
+.btn{background:var(--teal);color:#fff;border-radius:14px;padding:14px 24px;font-weight:800;font-size:clamp(16px,2vw,20px);box-shadow:var(--shadow);transition:transform .08s}
+.btn:active{transform:translateY(2px)}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.amber{background:var(--amber)}
+.btn.small{padding:10px 16px;font-size:15px;border-radius:12px}
+.btn.big{font-size:clamp(20px,3vw,26px);padding:18px 40px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+input,select,textarea{font-family:inherit;font-size:clamp(16px,2vw,20px);padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+input:focus,select:focus,textarea:focus{outline:3px solid var(--teal);outline-offset:1px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,40px);box-shadow:var(--shadow)}
+.center{flex:1;display:flex;flex-direction:column;gap:22px;align-items:center;justify-content:center;text-align:center}
+.choice{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.choice .btn{min-width:200px}
+.codebox{font-family:var(--disp);font-weight:700;font-size:clamp(40px,10vw,90px);letter-spacing:.12em;color:var(--teal);line-height:1}
+.codetag{font-family:var(--disp);font-weight:700;font-size:clamp(22px,3vw,30px);letter-spacing:.1em;background:var(--teal-soft);color:var(--teal-deep);padding:6px 16px;border-radius:12px}
+/* tabs */
+nav{display:flex;gap:8px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);border-radius:999px;padding:10px 18px;font-weight:700;font-size:clamp(14px,1.8vw,17px);color:var(--muted);background:var(--surface)}
+.tab[aria-selected="true"]{background:var(--teal);color:#fff;border-color:var(--teal)}
+/* poll bars */
+.pollbars{display:flex;flex-direction:column;gap:clamp(10px,2vh,18px)}
+.pbar .lab{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.pbar .lab b{font-family:var(--disp);font-size:clamp(18px,2.4vw,26px);font-weight:600}
+.pbar .lab em{font-style:normal;font-weight:800;color:var(--teal-deep);font-variant-numeric:tabular-nums}
+.track{height:clamp(32px,5vh,52px);background:var(--teal-soft);border-radius:14px;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-deep));border-radius:14px;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+/* walls */
+.wall{min-height:160px;background:var(--teal-soft);border:2px dashed var(--line);border-radius:18px;padding:18px;display:flex;flex-wrap:wrap;gap:12px;align-content:flex-start}
+.chip-word{color:#17233D;border-radius:999px;padding:10px 18px;font-weight:800;font-family:var(--disp);font-size:24px;box-shadow:0 2px 6px rgba(23,35,61,.12);animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.sect-picker{display:flex;gap:8px;flex-wrap:wrap}
+.sect{border-radius:999px;padding:10px 16px;font-weight:700;font-size:15px;color:#17233D;border:2px solid transparent}
+.sect[aria-pressed="true"]{border-color:var(--ink)}
+.opt-btn{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:18px 20px;font-weight:800;font-size:clamp(17px,2.4vw,22px);text-align:left;width:100%}
+.opt-btn[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft)}
+.vf-state{font-family:var(--disp);font-size:clamp(24px,4.4vw,48px);line-height:1.15;max-width:22ch;margin:0 auto}
+.verdict{font-family:var(--disp);font-weight:700;font-size:clamp(28px,5vw,54px)}
+.verdict.vrai{color:var(--teal)}.verdict.faux{color:var(--amber)}
+.explain{font-size:clamp(16px,2.2vw,22px);color:var(--muted);max-width:40ch;margin:10px auto 0;line-height:1.4}
+.picked{font-family:var(--disp);font-weight:700;font-size:clamp(56px,15vw,150px);color:var(--teal);line-height:1;min-height:1.1em}
+.picked.spin{color:var(--muted)}
+.count-pill{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:800;color:var(--teal-deep)}
+.banner{background:var(--amber-soft);border:1px solid var(--amber);border-radius:14px;padding:18px 22px;font-weight:700;color:var(--ink)}
+.banner code{font-family:monospace;background:rgba(0,0,0,.06);padding:2px 6px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>Orient'Action</b><span>en direct avec la classe</span></div>
+  <div class="status"><span class="dot" id="cdot"></span><span id="cstat">Connexion…</span></div>
+  <button class="themebtn" id="themebtn" type="button">Thème</button>
+</header>
+
+<main>
+<!-- CONFIG manquante -->
+<section class="wrap" id="screen-config" hidden>
+  <div class="center">
+    <div class="banner" style="max-width:640px;text-align:left">
+      <p style="margin:0 0 10px">⚙️ <b>Configuration Firebase à compléter.</b></p>
+      <p style="margin:0" class="hint">Ouvre ce fichier et colle ta config Firebase dans le bloc <code>firebaseConfig</code> en bas du fichier, puis recharge la page. (Instructions détaillées fournies avec le fichier.)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ACCUEIL -->
+<section class="wrap" id="screen-home" hidden>
+  <div class="center">
+    <p class="eyebrow">Mode enseignant</p>
+    <h1 style="font-size:clamp(34px,7vw,64px)">Orient'Action</h1>
+    <p class="hint" style="max-width:36ch">Lance la séance : un code s'affiche, les élèves le saisissent sur leur téléphone.</p>
+    <div class="choice">
+      <button class="btn big" id="goProf" type="button" disabled>Démarrer la séance</button>
+    </div>
+    <button class="themebtn" id="backEleve" type="button">← Accès élève</button>
+  </div>
+</section>
+
+<!-- JOIN ELEVE -->
+<section class="wrap" id="screen-join" hidden>
+  <div class="center">
+    <p class="eyebrow">Rejoindre la classe</p>
+    <h2 style="font-size:clamp(26px,5vw,40px)">Entre le code affiché au tableau</h2>
+    <input id="joinCode" maxlength="6" placeholder="CODE" autocomplete="off"
+      style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--disp);font-weight:700;font-size:clamp(28px,8vw,48px);text-align:center;width:min(360px,80vw)">
+    <input id="joinName" maxlength="20" placeholder="Ton prénom (facultatif)" autocomplete="off" style="width:min(360px,80vw)">
+    <button class="btn big" id="joinGo" type="button">Rejoindre</button>
+    <p class="hint" id="joinErr" style="color:#D94C4C"></p>
+    <button class="themebtn" id="toProf" type="button" style="margin-top:6px">Je suis l'enseignant →</button>
+  </div>
+</section>
+
+<!-- CODE ENSEIGNANT -->
+<section class="wrap" id="screen-proflock" hidden>
+  <div class="center">
+    <p class="eyebrow">Accès enseignant</p>
+    <h2 style="font-size:clamp(26px,5vw,40px)">Code enseignant</h2>
+    <input id="pinInput" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off"
+      style="letter-spacing:.4em;font-family:var(--disp);font-weight:700;font-size:clamp(28px,8vw,48px);text-align:center;width:min(280px,70vw)">
+    <button class="btn big" id="pinGo" type="button">Entrer</button>
+    <p class="hint" id="pinErr" style="color:#D94C4C"></p>
+    <button class="themebtn" id="pinBack" type="button">← Accès élève</button>
+  </div>
+</section>
+
+<!-- PROF DASHBOARD -->
+<section class="wrap" id="screen-prof" hidden>
+  <div class="row">
+    <span class="codetag">Code : <span id="profCode">—</span></span>
+    <span class="count-pill" id="profCount">0 connecté·e·s</span>
+    <span class="spacer"></span>
+    <button class="btn ghost small" id="profLeave" type="button">Quitter</button>
+  </div>
+  <nav id="profTabs" role="tablist" aria-label="Activités">
+    <button class="tab" role="tab" data-a="poll" aria-selected="true">Sondage</button>
+    <button class="tab" role="tab" data-a="mots" aria-selected="false">Mur de mots</button>
+    <button class="tab" role="tab" data-a="metiers" aria-selected="false">Mur des métiers</button>
+    <button class="tab" role="tab" data-a="vf" aria-selected="false">Vrai ou Faux</button>
+    <button class="tab" role="tab" data-a="pioche" aria-selected="false">La pioche</button>
+  </nav>
+  <div id="profBody" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:18px"></div>
+</section>
+
+<!-- ELEVE PARTICIPATE -->
+<section class="wrap" id="screen-eleve" hidden>
+  <div class="row">
+    <span class="codetag">Code : <span id="eleveCode">—</span></span>
+    <span class="hint" id="eleveName"></span>
+    <span class="spacer"></span>
+    <button class="btn ghost small" id="eleveLeave" type="button">Quitter</button>
+  </div>
+  <div id="eleveBody" class="center"></div>
+</section>
+</main>
+
+<script>
+"use strict";
+/* ====== DONNÉES DES ACTIVITÉS (identiques au diaporama) ====== */
+var POLLS=[
+  {q:"Quelle question te semble la plus difficile ?",opts:["Qui suis-je ?","Quels métiers existent ?","Quels chemins après la 3e ?"]},
+  {q:"As-tu déjà une idée de métier ?",opts:["Oui, une idée assez précise","Un peu / plusieurs idées","Pas encore"]},
+  {q:"Te sens-tu informé·e sur l'orientation ?",opts:["Oui","Moyen","Pas vraiment"]}
+];
+var MOTS=["Une qualité qui te caractérise","Quelque chose que tu aimes faire","Une matière où tu te sens à l'aise"];
+var MOTCOLORS=["#FAD4D4","#D4E4FA","#FAE6C8","#D9F0D4","#EBD9FA","#D4F0F0","#FCE1C4","#E2E2EE"];
+var SECTEURS=[["Santé & social","#FAD4D4"],["Numérique & IA","#D4E4FA"],["Industrie & artisanat","#FAE6C8"],
+  ["Commerce & services","#D9F0D4"],["Environnement & nature","#CDEBD6"],["Arts & culture","#EBD9FA"],
+  ["Sciences & technique","#D4F0F0"],["Sécurité & justice","#E2E2EE"],["Autre","#ECEAE2"]];
+var VF=[
+  {t:"Après la 4e, on peut déjà entrer en 3e prépa-métiers.",a:true,e:"Vrai. La 3e prépa-métiers se fait après la 4e : on y explore la voie professionnelle avec des stages, et on passe quand même le brevet."},
+  {t:"On choisit sa voie d'orientation définitivement en 4e.",a:false,e:"Faux. En 4e on explore. Les vrais choix se font surtout en fin de 3e — et on peut encore ajuster après."},
+  {t:"La 2de générale et technologique, c'est déjà un bac général.",a:false,e:"Faux. La 2de GT est une année commune : c'est à la fin qu'on choisit entre bac général et bac technologique."},
+  {t:"Avec un CAP, il est impossible de continuer ses études.",a:false,e:"Faux. Après un CAP, on peut travailler… ou poursuivre, par exemple vers un bac pro, puis un BTS."},
+  {t:"L'apprentissage, c'est étudier et travailler en entreprise en même temps.",a:true,e:"Vrai. En alternance, on partage son temps entre le centre de formation (CFA) et l'entreprise — et on est payé."},
+  {t:"Le bac technologique mène exactement aux mêmes études que le bac général.",a:false,e:"Faux. Les deux ouvrent les études supérieures, mais le bac techno est plus appliqué (BTS, BUT…)."},
+  {t:"Le stage d'observation est obligatoire en 3e.",a:true,e:"Vrai. C'est la séquence d'observation en entreprise (5 jours, sur le temps scolaire). Un stage facultatif est aussi possible dès la 4e, pendant les vacances."}
+];
+
+/* ====== OUTILS ====== */
+var $=function(id){return document.getElementById(id);};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function showScreen(id){["screen-config","screen-home","screen-proflock","screen-join","screen-prof","screen-eleve"].forEach(function(s){$(s).hidden=(s!==id);});}
+function randCode(){var a="ABCDEFGHJKMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<4;i++)s+=a[Math.floor(Math.random()*a.length)];return s;}
+/* --- regroupement "nuage de mots" tolérant aux fautes --- */
+function normalize(s){return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]/g,"");}
+function lev(a,b){var m=a.length,n=b.length;if(!m)return n;if(!n)return m;var d=[],i,j;for(i=0;i<=m;i++)d[i]=[i];for(j=0;j<=n;j++)d[0][j]=j;for(i=1;i<=m;i++)for(j=1;j<=n;j++){var c=a.charCodeAt(i-1)===b.charCodeAt(j-1)?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);}return d[m][n];}
+function cluster(entries){
+  var cs=[]; // {key,count,s,variants}
+  entries.forEach(function(m){
+    var n=normalize(m.t); if(!n) return;
+    var best=null,bestD=99;
+    for(var i=0;i<cs.length;i++){
+      var L=Math.min(n.length,cs[i].key.length), thr=L<=4?0:(L<=7?1:2), d=lev(n,cs[i].key);
+      if(d<=thr && d<bestD){best=cs[i];bestD=d;}
+    }
+    if(best){best.count++;best.variants[m.t]=(best.variants[m.t]||0)+1;if(best.s===8&&m.s>=0)best.s=m.s;}
+    else{var c={key:n,count:1,s:(m.s>=0&&m.s<SECTEURS.length)?m.s:8,variants:{}};c.variants[m.t]=1;cs.push(c);}
+  });
+  cs.forEach(function(c){var lab="",bn=-1;for(var k in c.variants){if(c.variants[k]>bn){bn=c.variants[k];lab=k;}}c.label=lab;});
+  cs.sort(function(a,b){return b.count-a.count;});
+  return cs;
+}
+function renderCloud(wall,entries){
+  wall.innerHTML="";
+  var cs=cluster(entries);
+  if(!cs.length){wall.innerHTML='<p class="hint" style="margin:auto">En attente des métiers proposés par les élèves…</p>';return;}
+  cs.forEach(function(c){
+    var size=Math.min(22+(c.count-1)*9,78);
+    var chip=document.createElement("span");chip.className="chip-word";
+    chip.style.background=SECTEURS[c.s][1];chip.style.fontSize=size+"px";
+    chip.textContent=c.label;chip.title=SECTEURS[c.s][0]+(c.count>1?(" · cité "+c.count+" fois"):"");
+    if(c.count>1){var badge=document.createElement("span");badge.textContent=" ×"+c.count;badge.style.fontSize="0.55em";badge.style.opacity="0.6";chip.appendChild(badge);}
+    wall.appendChild(chip);
+  });
+}
+$("themebtn").addEventListener("click",function(){var r=document.documentElement,c=r.getAttribute("data-theme");var dark=c?c==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.setAttribute("data-theme",dark?"light":"dark");});
+
+/* ====== FIREBASE ====== */
+var db=null, auth=null, uid=null, ready=false;
+function setStatus(ok,txt){var d=$("cdot");d.className="dot"+(ok===true?" ok":ok===false?" err":"");$("cstat").textContent=txt;}
+function initFirebase(){
+  if(!window.FB_CONFIG || !FB_CONFIG.apiKey || /COLLE|VOTRE|XXXX/i.test(FB_CONFIG.apiKey) || /COLLE|VOTRE/i.test(FB_CONFIG.databaseURL||"")){
+    setStatus(false,"Config manquante"); showScreen("screen-config"); return;
+  }
+  try{
+    firebase.initializeApp(FB_CONFIG);
+    db=firebase.database(); auth=firebase.auth();
+    setStatus(null,"Connexion…");
+    auth.signInAnonymously().catch(function(e){
+      setStatus(false,"Auth désactivée ?");
+      showScreen("screen-config");
+      document.querySelector("#screen-config .banner").innerHTML="<p style='margin:0 0 8px'>🔐 <b>Connexion anonyme refusée.</b></p><p class='hint' style='margin:0'>Dans Firebase → Authentication → Sign-in method, active le fournisseur <b>Anonyme</b>, puis recharge. ("+esc(e.code||"")+")</p>";
+    });
+    auth.onAuthStateChanged(function(u){
+      if(!u) return;
+      uid=u.uid; ready=true; setStatus(true,"Connecté");
+      $("goProf").disabled=false;
+      routeStart();
+    });
+  }catch(e){ setStatus(false,"Erreur Firebase"); showScreen("screen-config"); }
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initFirebase); else initFirebase();
+
+/* ====== NAVIGATION ACCUEIL ====== */
+var code=null, role=null, myName="";
+var subs=[]; function clearSubs(){subs.forEach(function(off){try{off();}catch(e){}});subs=[];}
+var PROF_PIN="7532";
+function profUnlocked(){ try{return localStorage.getItem("oa_prof")==="1";}catch(e){return false;} }
+$("goProf").addEventListener("click",startProf);
+$("toProf").addEventListener("click",function(){ location.hash="prof"; routeStart(); });
+$("backEleve").addEventListener("click",function(){ location.hash=""; routeStart(); });
+$("pinBack").addEventListener("click",function(){ location.hash=""; routeStart(); });
+function checkPin(){ if(($("pinInput").value||"").trim()===PROF_PIN){ try{localStorage.setItem("oa_prof","1");}catch(e){} $("pinErr").textContent=""; showScreen("screen-home"); } else { $("pinErr").textContent="Code incorrect."; } }
+$("pinGo").addEventListener("click",checkPin);
+$("pinInput").addEventListener("keydown",function(e){ if(e.key==="Enter") checkPin(); });
+function routeStart(){
+  var h=(location.hash||"").replace(/^#/,"").toUpperCase();
+  if(h==="PROF"){
+    if(profUnlocked()){ showScreen("screen-home"); }
+    else { showScreen("screen-proflock"); $("pinInput").value=""; $("pinErr").textContent=""; $("pinInput").focus(); }
+    return;
+  }
+  showScreen("screen-join");
+  if(/^[A-Z0-9]{4,6}$/.test(h)){ $("joinCode").value=h; }
+  else { try{var last=localStorage.getItem("oa_code")||""; if(last)$("joinCode").value=last;}catch(e){} }
+  $("joinName").focus();
+}
+$("profLeave").addEventListener("click",function(){clearSubs();showScreen("screen-home");});
+$("eleveLeave").addEventListener("click",function(){clearSubs();if(presRef){try{presRef.remove();}catch(e){}}showScreen("screen-home");});
+
+/* ====== PROF ====== */
+function sref(p){return db.ref("sessions/"+code+"/"+p);}
+function startProf(){
+  code=randCode(); role="prof";
+  sref("meta").set({activity:"poll0",createdAt:firebase.database.ServerValue.TIMESTAMP});
+  $("profCode").textContent=code;
+  showScreen("screen-prof");
+  clearSubs();
+  // compteur de connectés
+  var offC=sref("students").on("value",function(snap){var n=snap.numChildren();$("profCount").textContent=n+" connecté·e·s";});
+  subs.push(function(){sref("students").off("value",offC);});
+  // tabs
+  var tabs=Array.prototype.slice.call(document.querySelectorAll("#profTabs .tab"));
+  tabs.forEach(function(t){t.onclick=function(){tabs.forEach(function(x){x.setAttribute("aria-selected",x===t?"true":"false");});profActivity(t.dataset.a);};});
+  profActivity("poll");
+}
+var profState={poll:0,mot:0,vf:0};
+function profActivity(a){
+  clearActivitySubs();
+  if(a==="poll"){ setActivity("poll"+profState.poll); renderProfPoll(); }
+  else if(a==="mots"){ setActivity("mots"+profState.mot); renderProfMots(); }
+  else if(a==="metiers"){ setActivity("metiers"); renderProfMetiers(); }
+  else if(a==="vf"){ setActivity("vf"+profState.vf,true); renderProfVF(); }
+  else if(a==="pioche"){ setActivity("pioche"); renderProfPioche(); }
+}
+var actSubs=[]; function clearActivitySubs(){actSubs.forEach(function(off){try{off();}catch(e){}});actSubs=[];}
+function setActivity(key,resetReveal){
+  var up={activity:key};
+  sref("meta").update(up);
+  if(resetReveal){ var i=key.replace("vf",""); sref("vf/"+i+"/revealed").set(false); }
+}
+function renderProfPoll(){
+  var b=$("profBody");
+  b.innerHTML='<div class="row"><p class="eyebrow">Sondage — projeté</p><span class="spacer"></span>'+
+    '<select id="pp"></select><button class="btn ghost small" id="ppReset">Remettre à zéro</button></div>'+
+    '<h2 class="prompt" id="ppq"></h2><div class="pollbars" id="ppbars"></div>'+
+    '<p class="hint">Les élèves votent sur leur téléphone. Les barres se mettent à jour en direct.</p>';
+  var sel=$("pp");POLLS.forEach(function(p,i){var o=document.createElement("option");o.value=i;o.textContent=(i+1)+". "+p.q;sel.appendChild(o);});
+  sel.value=profState.poll;
+  sel.onchange=function(){profState.poll=+sel.value;setActivity("poll"+profState.poll);bindPoll();};
+  $("ppReset").onclick=function(){sref("poll/"+profState.poll).remove();};
+  bindPoll();
+  function bindPoll(){
+    clearActivitySubs();
+    var p=POLLS[profState.poll];$("ppq").textContent=p.q;
+    var off=sref("poll/"+profState.poll+"/votes").on("value",function(snap){
+      var counts=p.opts.map(function(){return 0;}),total=0;
+      snap.forEach(function(ch){var v=ch.val();if(v>=0&&v<counts.length){counts[v]++;total++;}});
+      var box=$("ppbars");box.innerHTML="";
+      p.opts.forEach(function(opt,i){
+        var pct=total?Math.round(counts[i]/total*100):0;
+        var el=document.createElement("div");el.className="pbar";
+        el.innerHTML='<div class="lab"><b>'+esc(opt)+'</b><em>'+counts[i]+' ('+pct+'%)</em></div><div class="track"><div class="fill" style="width:'+pct+'%"></div></div>';
+        box.appendChild(el);
+      });
+    });
+    actSubs.push(function(){sref("poll/"+profState.poll+"/votes").off("value",off);});
+  }
+}
+function renderProfMots(){
+  var b=$("profBody");
+  b.innerHTML='<div class="row"><p class="eyebrow">Mur de mots — projeté</p><span class="spacer"></span>'+
+    '<select id="pm"></select><button class="btn ghost small" id="pmClear">Vider</button></div>'+
+    '<h2 class="prompt" id="pmq"></h2><div class="wall" id="pmwall"></div>';
+  var sel=$("pm");MOTS.forEach(function(q,i){var o=document.createElement("option");o.value=i;o.textContent=q;sel.appendChild(o);});
+  sel.value=profState.mot;
+  sel.onchange=function(){profState.mot=+sel.value;setActivity("mots"+profState.mot);bind();};
+  $("pmClear").onclick=function(){sref("mots/"+profState.mot).remove();};
+  bind();
+  function bind(){
+    clearActivitySubs();$("pmq").textContent=MOTS[profState.mot];
+    var off=sref("mots/"+profState.mot).on("value",function(snap){
+      var wall=$("pmwall");wall.innerHTML="";var i=0;
+      snap.forEach(function(ch){var w=(ch.val()||{}).w||"";if(!w)return;
+        var c=document.createElement("span");c.className="chip-word";c.style.background=MOTCOLORS[i%MOTCOLORS.length];c.textContent=w;wall.appendChild(c);i++;});
+      if(!i)wall.innerHTML='<p class="hint" style="margin:auto">En attente des propositions des élèves…</p>';
+    });
+    actSubs.push(function(){sref("mots/"+profState.mot).off("value",off);});
+  }
+}
+function renderProfMetiers(){
+  var b=$("profBody");
+  b.innerHTML='<div class="row"><p class="eyebrow">Mur des métiers — projeté</p><span class="spacer"></span>'+
+    '<button class="btn ghost small" id="pmetClear">Vider</button></div>'+
+    '<h2 class="prompt">Un métier qui t\'intéresse ?</h2><div class="wall" id="pmetwall"></div>';
+  $("pmetClear").onclick=function(){sref("metiers").remove();};
+  clearActivitySubs();
+  var off=sref("metiers").on("value",function(snap){
+    var entries=[];snap.forEach(function(ch){var m=ch.val()||{};if(m.t)entries.push(m);});
+    renderCloud($("pmetwall"),entries);
+  });
+  actSubs.push(function(){sref("metiers").off("value",off);});
+}
+function renderProfVF(){
+  var b=$("profBody");
+  b.innerHTML='<div class="row"><p class="eyebrow">Vrai ou Faux — projeté</p><span class="spacer"></span><span class="count-pill" id="vfprog"></span></div>'+
+    '<div class="center" style="gap:18px"><p class="vf-state" id="vfs"></p>'+
+    '<div id="vfcountwrap"><span class="count-pill" id="vfcount" style="font-size:clamp(18px,3vw,26px)">0 réponse</span></div>'+
+    '<div id="vfsplit" class="row" style="justify-content:center;gap:26px" hidden>'+
+    '<div class="count-pill" style="font-size:clamp(18px,3vw,26px)">Vrai : <span id="vfv">0</span></div>'+
+    '<div class="count-pill" style="font-size:clamp(18px,3vw,26px)">Faux : <span id="vff">0</span></div></div>'+
+    '<p class="verdict" id="vfverd" hidden></p><p class="explain" id="vfex" hidden></p></div>'+
+    '<div class="row" style="justify-content:center"><button class="btn ghost" id="vfp">← Précédent</button>'+
+    '<button class="btn amber" id="vfr">Révéler</button><button class="btn" id="vfn">Suivant →</button></div>';
+  function go(){ setActivity("vf"+profState.vf,true); bind(); }
+  $("vfp").onclick=function(){profState.vf=(profState.vf-1+VF.length)%VF.length;go();};
+  $("vfn").onclick=function(){profState.vf=(profState.vf+1)%VF.length;go();};
+  $("vfr").onclick=function(){sref("vf/"+profState.vf+"/revealed").set(true);};
+  bind();
+  function bind(){
+    clearActivitySubs();var q=VF[profState.vf];
+    $("vfs").textContent=q.t;$("vfprog").textContent="Question "+(profState.vf+1)+" / "+VF.length;
+    var st={v:0,f:0,rev:false};
+    function paint(){
+      var total=st.v+st.f;
+      if(st.rev){
+        $("vfcountwrap").hidden=true;$("vfsplit").hidden=false;
+        $("vfv").textContent=st.v;$("vff").textContent=st.f;
+        var verd=$("vfverd");verd.textContent=q.a?"VRAI":"FAUX";verd.className="verdict "+(q.a?"vrai":"faux");verd.hidden=false;
+        var ex=$("vfex");ex.textContent=q.e;ex.hidden=false;
+      }else{
+        $("vfcountwrap").hidden=false;$("vfsplit").hidden=true;
+        $("vfcount").textContent=total+(total<=1?" réponse":" réponses");
+        $("vfverd").hidden=true;$("vfex").hidden=true;
+      }
+    }
+    var offV=sref("vf/"+profState.vf+"/votes").on("value",function(snap){
+      var v=0,f=0;snap.forEach(function(ch){if(ch.val()==="v")v++;else if(ch.val()==="f")f++;});
+      st.v=v;st.f=f;paint();
+    });
+    var offR=sref("vf/"+profState.vf+"/revealed").on("value",function(snap){ st.rev=snap.val()===true; paint(); });
+    actSubs.push(function(){sref("vf/"+profState.vf+"/votes").off("value",offV);sref("vf/"+profState.vf+"/revealed").off("value",offR);});
+  }
+}
+function renderProfPioche(){
+  var b=$("profBody");
+  b.innerHTML='<p class="eyebrow">La pioche — participation au hasard</p>'+
+    '<div class="center"><div class="picked" id="pk">—</div>'+
+    '<button class="btn big" id="pkgo">Piocher 🎲</button>'+
+    '<p class="hint" id="pkhint"></p></div>';
+  var names=[],done=[];
+  clearActivitySubs();
+  var off=sref("students").on("value",function(snap){names=[];snap.forEach(function(ch){var n=(ch.val()||{}).name;names.push(n&&n.trim()?n:"Élève");});updateHint();});
+  actSubs.push(function(){sref("students").off("value",off);});
+  function updateHint(){$("pkhint").textContent=names.length?(names.length-done.length)+" élève(s) pas encore pioché(s) sur "+names.length:"Aucun élève connecté — demande-leur de rejoindre avec le code.";}
+  $("pkgo").onclick=function(){
+    var pool=names.filter(function(n,i){return done.indexOf(i)<0;}).map(function(n,i){return i;});
+    var remaining=names.map(function(_,i){return i;}).filter(function(i){return done.indexOf(i)<0;});
+    if(!remaining.length){$("pk").textContent="Tout le monde est passé !";return;}
+    var el=$("pk");el.classList.add("spin");var ticks=0;
+    var iv=setInterval(function(){el.textContent=names[remaining[Math.floor(Math.random()*remaining.length)]];
+      if(++ticks>10){clearInterval(iv);var idx=remaining[Math.floor(Math.random()*remaining.length)];done.push(idx);el.textContent=names[idx];el.classList.remove("spin");updateHint();}},60);
+  };
+}
+
+/* ====== ÉLÈVE ====== */
+var presRef=null;
+$("joinGo").addEventListener("click",function(){
+  var c=($("joinCode").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+  if(c.length<4){$("joinErr").textContent="Entre le code (4 lettres/chiffres) affiché au tableau.";return;}
+  myName=($("joinName").value||"").slice(0,20);
+  db.ref("sessions/"+c+"/meta").get().then(function(snap){
+    if(!snap.exists()){$("joinErr").textContent="Code introuvable — vérifie auprès du prof.";return;}
+    code=c;role="eleve";try{localStorage.setItem("oa_code",c);}catch(e){}
+    presRef=db.ref("sessions/"+code+"/students/"+uid);
+    presRef.set({name:myName,t:firebase.database.ServerValue.TIMESTAMP});
+    presRef.onDisconnect().remove();
+    $("eleveCode").textContent=code;$("eleveName").textContent=myName?("👋 "+myName):"";
+    showScreen("screen-eleve");
+    clearSubs();
+    var off=sref("meta").on("value",function(s){var a=(s.val()||{}).activity||"none";renderEleve(a);});
+    subs.push(function(){sref("meta").off("value",off);});
+  }).catch(function(e){$("joinErr").textContent="Erreur de connexion. Réessaie.";});
+});
+var curActivity=null, eleveSubs=[];
+function clearEleveSubs(){eleveSubs.forEach(function(off){try{off();}catch(e){}});eleveSubs=[];}
+function renderEleve(a){
+  if(a===curActivity && a.indexOf("vf")!==0) {/* re-render vf for reveal updates handled by sub */}
+  curActivity=a;clearEleveSubs();
+  var body=$("eleveBody");
+  if(a.indexOf("poll")===0){
+    var pi=+a.replace("poll","");var p=POLLS[pi];
+    body.innerHTML='<p class="eyebrow">Sondage</p><h2 class="prompt">'+esc(p.q)+'</h2><div id="eopts" style="display:flex;flex-direction:column;gap:12px;width:min(520px,90vw)"></div><p class="hint" id="emsg"></p>';
+    var box=$("eopts");
+    p.opts.forEach(function(opt,i){var btn=document.createElement("button");btn.className="opt-btn";btn.type="button";btn.textContent=opt;
+      btn.onclick=function(){sref("poll/"+pi+"/votes/"+uid).set(i);Array.prototype.forEach.call(box.children,function(c,ci){c.setAttribute("aria-pressed",ci===i?"true":"false");});$("emsg").textContent="Réponse envoyée ✓ (tu peux changer)";};
+      box.appendChild(btn);});
+    var off=sref("poll/"+pi+"/votes/"+uid).on("value",function(s){var v=s.val();Array.prototype.forEach.call(box.children,function(c,ci){c.setAttribute("aria-pressed",ci===v?"true":"false");});});
+    eleveSubs.push(function(){sref("poll/"+pi+"/votes/"+uid).off("value",off);});
+  }
+  else if(a.indexOf("mots")===0){
+    var mi=+a.replace("mots","");
+    body.innerHTML='<p class="eyebrow">Mur de mots</p><h2 class="prompt">'+esc(MOTS[mi])+'</h2>'+
+      '<div class="row" style="justify-content:center;width:min(520px,90vw)"><input id="ein" placeholder="Ton mot…" autocomplete="off" style="flex:1"><button class="btn amber" id="eadd">Envoyer</button></div><p class="hint" id="emsg">Tu peux en proposer plusieurs.</p>';
+    function send(){var v=($("ein").value||"").trim();if(!v)return;sref("mots/"+mi).push({w:v.slice(0,40),by:uid});$("ein").value="";$("emsg").textContent="Envoyé ✓ — regarde le tableau !";}
+    $("eadd").onclick=send;$("ein").addEventListener("keydown",function(e){if(e.key==="Enter")send();});
+  }
+  else if(a==="metiers"){
+    var cur=0;
+    body.innerHTML='<p class="eyebrow">Mur des métiers</p><h2 class="prompt">Un métier qui t\'intéresse ?</h2>'+
+      '<div class="sect-picker" id="esect" style="justify-content:center;max-width:560px"></div>'+
+      '<div class="row" style="justify-content:center;width:min(520px,90vw)"><input id="ein" placeholder="Ton métier…" autocomplete="off" style="flex:1"><button class="btn amber" id="eadd">Envoyer</button></div><p class="hint" id="emsg"></p>';
+    var pick=$("esect");
+    SECTEURS.forEach(function(s,i){var btn=document.createElement("button");btn.className="sect";btn.type="button";btn.style.background=s[1];btn.textContent=s[0];btn.setAttribute("aria-pressed",i===0?"true":"false");
+      btn.onclick=function(){cur=i;Array.prototype.forEach.call(pick.children,function(c,ci){c.setAttribute("aria-pressed",ci===i?"true":"false");});};pick.appendChild(btn);});
+    function send(){var v=($("ein").value||"").trim();if(!v)return;sref("metiers").push({t:v.slice(0,36),s:cur,by:uid});$("ein").value="";$("emsg").textContent="Envoyé ✓ — regarde le tableau !";}
+    $("eadd").onclick=send;$("ein").addEventListener("keydown",function(e){if(e.key==="Enter")send();});
+  }
+  else if(a.indexOf("vf")===0){
+    var vi=+a.replace("vf","");var q=VF[vi];
+    body.innerHTML='<p class="eyebrow">Vrai ou Faux</p><p class="vf-state">'+esc(q.t)+'</p>'+
+      '<div class="row" style="justify-content:center;gap:16px"><button class="btn big" id="bv">Vrai</button><button class="btn big amber" id="bf">Faux</button></div>'+
+      '<p class="hint" id="emsg">Vote, puis attends que le prof révèle.</p>'+
+      '<p class="verdict" id="everd" hidden></p><p class="explain" id="eex" hidden></p>';
+    $("bv").onclick=function(){sref("vf/"+vi+"/votes/"+uid).set("v");mark("v");};
+    $("bf").onclick=function(){sref("vf/"+vi+"/votes/"+uid).set("f");mark("f");};
+    function mark(x){$("bv").style.opacity=x==="v"?"1":".5";$("bf").style.opacity=x==="f"?"1":".5";$("emsg").textContent="Vote envoyé ✓";}
+    var off=sref("vf/"+vi+"/revealed").on("value",function(s){var rev=s.val()===true;var verd=$("everd"),ex=$("eex");
+      if(rev){verd.textContent=q.a?"VRAI":"FAUX";verd.className="verdict "+(q.a?"vrai":"faux");verd.hidden=false;ex.textContent=q.e;ex.hidden=false;}
+      else{verd.hidden=true;ex.hidden=true;}});
+    eleveSubs.push(function(){sref("vf/"+vi+"/revealed").off("value",off);});
+  }
+  else if(a==="pioche"){
+    body.innerHTML='<p class="eyebrow">La pioche</p><h2 class="prompt">Regarde le tableau 👀</h2><p class="hint">Le prof pioche un·e élève au hasard.</p>';
+  }
+  else{
+    body.innerHTML='<h2 class="prompt">En attente du prof…</h2><p class="hint">L\'activité va s\'afficher ici.</p>';
+  }
+}
+</script>
+
+<!-- =================================================================== -->
+<!--  ⬇️⬇️⬇️  COLLE ICI TA CONFIG FIREBASE (Console → Paramètres du projet → Web app)  -->
+<!-- =================================================================== -->
+<script>
+window.FB_CONFIG = {
+  apiKey: "AIzaSyDRqW0KKONcAUlC6wIWvBDQS5C_7s07sRk",
+  authDomain: "orientaction-10f12.firebaseapp.com",
+  databaseURL: "https://orientaction-10f12-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "orientaction-10f12",
+  appId: "1:1039111187592:web:5f814bd58cd1630fd9833d"
+};
+</script>
+</body>
+</html>
