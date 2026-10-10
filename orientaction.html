@@ -3,18 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Orient'Action — L'orientation en direct — 4ème | Mathenlarge</title>
-<!-- seo-auto:start -->
-<meta name="description" content="Orient&#x27;Action — L&#x27;orientation en direct : exercice interactif de maths (Orientation, 4ème) à faire en ligne sur Mathenlarge.">
-<link rel="canonical" href="https://mathenlarge.fr/orientaction.html">
-<meta property="og:title" content="Orient&#x27;Action — L&#x27;orientation en direct — 4ème | Mathenlarge">
-<meta property="og:description" content="Orient&#x27;Action — L&#x27;orientation en direct : exercice interactif de maths (Orientation, 4ème) à faire en ligne sur Mathenlarge.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://mathenlarge.fr/orientaction.html">
-<meta property="og:site_name" content="Mathenlarge">
-<meta property="og:image" content="https://mathenlarge.fr/apercu.png">
-<meta name="twitter:card" content="summary_large_image">
-<!-- seo-auto:end -->
+<title>Orient'Action — multi</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap">
 
@@ -99,8 +88,6 @@ nav{display:flex;gap:8px;flex-wrap:wrap}
 .verdict{font-family:var(--disp);font-weight:700;font-size:clamp(28px,5vw,54px)}
 .verdict.vrai{color:var(--teal)}.verdict.faux{color:var(--amber)}
 .explain{font-size:clamp(16px,2.2vw,22px);color:var(--muted);max-width:40ch;margin:10px auto 0;line-height:1.4}
-.picked{font-family:var(--disp);font-weight:700;font-size:clamp(56px,15vw,150px);color:var(--teal);line-height:1;min-height:1.1em}
-.picked.spin{color:var(--muted)}
 .count-pill{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:800;color:var(--teal-deep)}
 .banner{background:var(--amber-soft);border:1px solid var(--amber);border-radius:14px;padding:18px 22px;font-weight:700;color:var(--ink)}
 .banner code{font-family:monospace;background:rgba(0,0,0,.06);padding:2px 6px;border-radius:6px}
@@ -145,7 +132,8 @@ nav{display:flex;gap:8px;flex-wrap:wrap}
     <h2 style="font-size:clamp(26px,5vw,40px)">Entre le code affiché au tableau</h2>
     <input id="joinCode" maxlength="6" placeholder="CODE" autocomplete="off"
       style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--disp);font-weight:700;font-size:clamp(28px,8vw,48px);text-align:center;width:min(360px,80vw)">
-    <input id="joinName" maxlength="20" placeholder="Ton prénom (facultatif)" autocomplete="off" style="width:min(360px,80vw)">
+    <input id="joinName" maxlength="20" placeholder="Vos prénoms (facultatif)" autocomplete="off" style="width:min(360px,80vw)">
+    <label class="inline" style="display:flex;gap:10px;align-items:center;cursor:pointer;font-size:17px;color:var(--ink)"><input type="checkbox" id="joinDuo" style="width:22px;height:22px;flex:none;margin:0"> Nous sommes deux sur ce téléphone</label>
     <button class="btn big" id="joinGo" type="button">Rejoindre</button>
     <p class="hint" id="joinErr" style="color:#D94C4C"></p>
     <button class="themebtn" id="toProf" type="button" style="margin-top:6px">Je suis l'enseignant →</button>
@@ -178,7 +166,6 @@ nav{display:flex;gap:8px;flex-wrap:wrap}
     <button class="tab" role="tab" data-a="mots" aria-selected="false">Mur de mots</button>
     <button class="tab" role="tab" data-a="metiers" aria-selected="false">Mur des métiers</button>
     <button class="tab" role="tab" data-a="vf" aria-selected="false">Vrai ou Faux</button>
-    <button class="tab" role="tab" data-a="pioche" aria-selected="false">La pioche</button>
   </nav>
   <div id="profBody" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:18px"></div>
 </section>
@@ -242,15 +229,18 @@ function cluster(entries){
   cs.sort(function(a,b){return b.count-a.count;});
   return cs;
 }
-function renderCloud(wall,entries){
+function renderCloud(wall,entries,opts){
+  opts=opts||{};
   wall.innerHTML="";
   var cs=cluster(entries);
-  if(!cs.length){wall.innerHTML='<p class="hint" style="margin:auto">En attente des métiers proposés par les élèves…</p>';return;}
-  cs.forEach(function(c){
+  if(!cs.length){wall.innerHTML='<p class="hint" style="margin:auto">'+(opts.placeholder||"En attente des propositions des élèves…")+'</p>';return;}
+  cs.forEach(function(c,idx){
     var size=Math.min(22+(c.count-1)*9,78);
     var chip=document.createElement("span");chip.className="chip-word";
-    chip.style.background=SECTEURS[c.s][1];chip.style.fontSize=size+"px";
-    chip.textContent=c.label;chip.title=SECTEURS[c.s][0]+(c.count>1?(" · cité "+c.count+" fois"):"");
+    chip.style.background=opts.colorFn?opts.colorFn(c,idx):SECTEURS[c.s][1];
+    chip.style.fontSize=size+"px";
+    chip.textContent=c.label;
+    chip.title=(opts.titleFn?opts.titleFn(c):"")+(c.count>1?(" · cité "+c.count+" fois"):"");
     if(c.count>1){var badge=document.createElement("span");badge.textContent=" ×"+c.count;badge.style.fontSize="0.55em";badge.style.opacity="0.6";chip.appendChild(badge);}
     wall.appendChild(chip);
   });
@@ -333,7 +323,6 @@ function profActivity(a){
   else if(a==="mots"){ setActivity("mots"+profState.mot); renderProfMots(); }
   else if(a==="metiers"){ setActivity("metiers"); renderProfMetiers(); }
   else if(a==="vf"){ setActivity("vf"+profState.vf,true); renderProfVF(); }
-  else if(a==="pioche"){ setActivity("pioche"); renderProfPioche(); }
 }
 var actSubs=[]; function clearActivitySubs(){actSubs.forEach(function(off){try{off();}catch(e){}});actSubs=[];}
 function setActivity(key,resetReveal){
@@ -382,10 +371,8 @@ function renderProfMots(){
   function bind(){
     clearActivitySubs();$("pmq").textContent=MOTS[profState.mot];
     var off=sref("mots/"+profState.mot).on("value",function(snap){
-      var wall=$("pmwall");wall.innerHTML="";var i=0;
-      snap.forEach(function(ch){var w=(ch.val()||{}).w||"";if(!w)return;
-        var c=document.createElement("span");c.className="chip-word";c.style.background=MOTCOLORS[i%MOTCOLORS.length];c.textContent=w;wall.appendChild(c);i++;});
-      if(!i)wall.innerHTML='<p class="hint" style="margin:auto">En attente des propositions des élèves…</p>';
+      var entries=[];snap.forEach(function(ch){var w=(ch.val()||{}).w||"";if(w)entries.push({t:w,s:-1});});
+      renderCloud($("pmwall"),entries,{placeholder:"En attente des propositions des élèves…",colorFn:function(c,idx){return MOTCOLORS[idx%MOTCOLORS.length];}});
     });
     actSubs.push(function(){sref("mots/"+profState.mot).off("value",off);});
   }
@@ -399,7 +386,7 @@ function renderProfMetiers(){
   clearActivitySubs();
   var off=sref("metiers").on("value",function(snap){
     var entries=[];snap.forEach(function(ch){var m=ch.val()||{};if(m.t)entries.push(m);});
-    renderCloud($("pmetwall"),entries);
+    renderCloud($("pmetwall"),entries,{placeholder:"En attente des métiers proposés par les élèves…",colorFn:function(c){return SECTEURS[c.s][1];},titleFn:function(c){return SECTEURS[c.s][0];}});
   });
   actSubs.push(function(){sref("metiers").off("value",off);});
 }
@@ -444,33 +431,13 @@ function renderProfVF(){
     actSubs.push(function(){sref("vf/"+profState.vf+"/votes").off("value",offV);sref("vf/"+profState.vf+"/revealed").off("value",offR);});
   }
 }
-function renderProfPioche(){
-  var b=$("profBody");
-  b.innerHTML='<p class="eyebrow">La pioche — participation au hasard</p>'+
-    '<div class="center"><div class="picked" id="pk">—</div>'+
-    '<button class="btn big" id="pkgo">Piocher 🎲</button>'+
-    '<p class="hint" id="pkhint"></p></div>';
-  var names=[],done=[];
-  clearActivitySubs();
-  var off=sref("students").on("value",function(snap){names=[];snap.forEach(function(ch){var n=(ch.val()||{}).name;names.push(n&&n.trim()?n:"Élève");});updateHint();});
-  actSubs.push(function(){sref("students").off("value",off);});
-  function updateHint(){$("pkhint").textContent=names.length?(names.length-done.length)+" élève(s) pas encore pioché(s) sur "+names.length:"Aucun élève connecté — demande-leur de rejoindre avec le code.";}
-  $("pkgo").onclick=function(){
-    var pool=names.filter(function(n,i){return done.indexOf(i)<0;}).map(function(n,i){return i;});
-    var remaining=names.map(function(_,i){return i;}).filter(function(i){return done.indexOf(i)<0;});
-    if(!remaining.length){$("pk").textContent="Tout le monde est passé !";return;}
-    var el=$("pk");el.classList.add("spin");var ticks=0;
-    var iv=setInterval(function(){el.textContent=names[remaining[Math.floor(Math.random()*remaining.length)]];
-      if(++ticks>10){clearInterval(iv);var idx=remaining[Math.floor(Math.random()*remaining.length)];done.push(idx);el.textContent=names[idx];el.classList.remove("spin");updateHint();}},60);
-  };
-}
-
 /* ====== ÉLÈVE ====== */
-var presRef=null;
+var presRef=null, duo=false;
 $("joinGo").addEventListener("click",function(){
   var c=($("joinCode").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
   if(c.length<4){$("joinErr").textContent="Entre le code (4 lettres/chiffres) affiché au tableau.";return;}
   myName=($("joinName").value||"").slice(0,20);
+  duo=!!($("joinDuo")&&$("joinDuo").checked);
   db.ref("sessions/"+c+"/meta").get().then(function(snap){
     if(!snap.exists()){$("joinErr").textContent="Code introuvable — vérifie auprès du prof.";return;}
     code=c;role="eleve";try{localStorage.setItem("oa_code",c);}catch(e){}
@@ -486,19 +453,34 @@ $("joinGo").addEventListener("click",function(){
 });
 var curActivity=null, eleveSubs=[];
 function clearEleveSubs(){eleveSubs.forEach(function(off){try{off();}catch(e){}});eleveSubs=[];}
+function buildPollGroup(container,pi,voteKey,label){
+  var wrap=document.createElement("div");wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="12px";
+  if(label){var h=document.createElement("p");h.className="eyebrow";h.style.color="var(--amber)";h.style.margin="0 0 2px";h.textContent=label;wrap.appendChild(h);}
+  POLLS[pi].opts.forEach(function(opt,i){
+    var btn=document.createElement("button");btn.className="opt-btn";btn.type="button";btn.textContent=opt;
+    btn.onclick=function(){sref("poll/"+pi+"/votes/"+voteKey).set(i);
+      Array.prototype.forEach.call(wrap.querySelectorAll(".opt-btn"),function(c,ci){c.setAttribute("aria-pressed",ci===i?"true":"false");});
+      $("emsg").textContent="Vote enregistré ✓ (modifiable)";};
+    wrap.appendChild(btn);
+  });
+  container.appendChild(wrap);
+  var off=sref("poll/"+pi+"/votes/"+voteKey).on("value",function(s){var v=s.val();
+    Array.prototype.forEach.call(wrap.querySelectorAll(".opt-btn"),function(c,ci){c.setAttribute("aria-pressed",ci===v?"true":"false");});});
+  eleveSubs.push(function(){sref("poll/"+pi+"/votes/"+voteKey).off("value",off);});
+}
 function renderEleve(a){
   if(a===curActivity && a.indexOf("vf")!==0) {/* re-render vf for reveal updates handled by sub */}
   curActivity=a;clearEleveSubs();
   var body=$("eleveBody");
   if(a.indexOf("poll")===0){
     var pi=+a.replace("poll","");var p=POLLS[pi];
-    body.innerHTML='<p class="eyebrow">Sondage</p><h2 class="prompt">'+esc(p.q)+'</h2><div id="eopts" style="display:flex;flex-direction:column;gap:12px;width:min(520px,90vw)"></div><p class="hint" id="emsg"></p>';
-    var box=$("eopts");
-    p.opts.forEach(function(opt,i){var btn=document.createElement("button");btn.className="opt-btn";btn.type="button";btn.textContent=opt;
-      btn.onclick=function(){sref("poll/"+pi+"/votes/"+uid).set(i);Array.prototype.forEach.call(box.children,function(c,ci){c.setAttribute("aria-pressed",ci===i?"true":"false");});$("emsg").textContent="Réponse envoyée ✓ (tu peux changer)";};
-      box.appendChild(btn);});
-    var off=sref("poll/"+pi+"/votes/"+uid).on("value",function(s){var v=s.val();Array.prototype.forEach.call(box.children,function(c,ci){c.setAttribute("aria-pressed",ci===v?"true":"false");});});
-    eleveSubs.push(function(){sref("poll/"+pi+"/votes/"+uid).off("value",off);});
+    var html='<p class="eyebrow">Sondage</p><h2 class="prompt">'+esc(p.q)+'</h2>'+
+      '<div id="grp1" style="width:min(520px,90vw)"></div>';
+    if(duo) html+='<div id="grp2" style="width:min(520px,90vw);margin-top:16px"></div>';
+    html+='<p class="hint" id="emsg">'+(duo?"Vous êtes deux : chacun vote dans son bloc.":"")+'</p>';
+    body.innerHTML=html;
+    buildPollGroup($("grp1"),pi,uid,duo?"Élève 1":null);
+    if(duo) buildPollGroup($("grp2"),pi,uid+"_b","Élève 2");
   }
   else if(a.indexOf("mots")===0){
     var mi=+a.replace("mots","");
@@ -531,9 +513,6 @@ function renderEleve(a){
       if(rev){verd.textContent=q.a?"VRAI":"FAUX";verd.className="verdict "+(q.a?"vrai":"faux");verd.hidden=false;ex.textContent=q.e;ex.hidden=false;}
       else{verd.hidden=true;ex.hidden=true;}});
     eleveSubs.push(function(){sref("vf/"+vi+"/revealed").off("value",off);});
-  }
-  else if(a==="pioche"){
-    body.innerHTML='<p class="eyebrow">La pioche</p><h2 class="prompt">Regarde le tableau 👀</h2><p class="hint">Le prof pioche un·e élève au hasard.</p>';
   }
   else{
     body.innerHTML='<h2 class="prompt">En attente du prof…</h2><p class="hint">L\'activité va s\'afficher ici.</p>';
