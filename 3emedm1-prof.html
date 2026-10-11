@@ -289,6 +289,7 @@
   .corr-scratch-block.sb-control{background:#FFAB19;color:#5a3800;}
   .corr-scratch-block.sb-motion{background:#4C97FF;}
   .corr-scratch-block.sb-pen{background:#0fBD8C;}
+  .corr-scratch-block.sb-custom{background:#FF6680;}
   .corr-scratch-indent{margin-left:18px;border-left:3px solid #FFAB19;}
   .corr-scratch-empty{font-style:italic;color:var(--muted);font-size:0.85rem;}
   .corr-visual-label{font-size:0.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem;}
@@ -979,7 +980,7 @@ const QUESTIONS = [
   {id:'ex4_3ca', ex:4, label:'3) Côté CA', type:'text', ref:'3x + 6'},
   {id:'ex4_3sum', ex:4, label:'3) Périmètre réduit', type:'text', ref:'12x + 24'},
   {id:'ex4_4concl', ex:4, label:'4) Conclusion programme = périmètre', type:'textarea', ref:'les deux valent 12x+24'},
-  {id:'ex4_5', ex:4, label:'5) Factoriser 12x+24', type:'text', ref:'12(x + 2)'},
+  {id:'ex4_5perim', ex:4, label:'5) Périmètre pour x=1', type:'text', ref:'36'},
   {id:'ex4_6a', ex:4, label:'6a) Longueur AB pour x=1', type:'text', ref:'12'},
   {id:'ex4_6b', ex:4, label:'6b) Largeur CA pour x=1', type:'text', ref:'9'},
   {id:'ex4_6c', ex:4, label:'6c) Aire pour x=1', type:'text', ref:'54'},
@@ -994,12 +995,9 @@ const QUESTIONS = [
   {id:'ex6_move', ex:6, label:'Triangle — Avancer', type:'text', ref:'50'},
   {id:'ex6_turn', ex:6, label:'Triangle — Tourner', type:'text', ref:'120'},
   /* Ex 7 */
-  {id:'ex7_order', ex:7, label:'Ordre des blocs (rosace)', type:'text', ref:'flag7,pendown7,repeatOuter,repeatInner,move7,turnInner,turnOuter'},
-  {id:'ex7_repeat_out', ex:7, label:'Rosace — Répéter (extérieur)', type:'text', ref:'12'},
-  {id:'ex7_repeat_in', ex:7, label:'Rosace — Répéter (intérieur)', type:'text', ref:'3'},
-  {id:'ex7_move', ex:7, label:'Rosace — Avancer', type:'text', ref:'50'},
-  {id:'ex7_turn_in', ex:7, label:'Rosace — Tourner (triangle)', type:'text', ref:'120'},
-  {id:'ex7_turn_out', ex:7, label:'Rosace — Tourner (rosace)', type:'text', ref:'30'},
+  {id:'ex7_order', ex:7, label:'Ordre des blocs (rosace)', type:'text', ref:'flag7,pendown7,repeatOuter,callTriangle,turnOuter'},
+  {id:'ex7_repeat_out', ex:7, label:'Rosace — Répéter', type:'text', ref:'12'},
+  {id:'ex7_turn_out', ex:7, label:'Rosace — Tourner', type:'text', ref:'30'},
   /* Ex 8 */
   {id:'ex8_centre1', ex:8, label:'Rotation 1 — Centre', type:'text', ref:'B'},
   {id:'ex8_angle1', ex:8, label:'Rotation 1 — Angle', type:'text', ref:'72°'},
@@ -1069,7 +1067,7 @@ const CORRECTION_CONFIG = {
         ex4_3ca: { explication: "Côté CA = 3x + 6 (vertical)." },
         ex4_3sum: { explication: "Périmètre = (4x+8)+(5x+10)+(3x+6) = 12x+24." },
         ex4_4concl: { explication: "Programme (Q2) = 12x+24 et périmètre (Q3) = 12x+24. Expressions identiques → toujours égaux." },
-        ex4_5: { explication: "12 est le facteur commun : 12x+24 = 12(x+2)." },
+        ex4_5perim: { explication: "Périmètre = 12x+24 pour x=1 : 12×1+24 = 36 cm." },
         ex4_6a: { explication: "4x+8 pour x=1 : 12 cm." },
         ex4_6b: { explication: "3x+6 pour x=1 : 9 cm." },
         ex4_6c: { explication: "Aire = 12×9÷2 = 54 cm²." },
@@ -1093,11 +1091,8 @@ const CORRECTION_CONFIG = {
     },
     7: {
       questions: {
-        ex7_order: { explication: "Ordre : ⚑ → stylo → répéter 12 fois [extérieur] → répéter 3 fois [intérieur] → avancer 50 → tourner 120° → tourner 30° [rosace]." },
-        ex7_repeat_out: { explication: "12 triangles autour du centre → boucle extérieure = 12 fois." },
-        ex7_repeat_in: { explication: "Chaque motif est un triangle (3 côtés) → boucle intérieure = 3 fois." },
-        ex7_move: { explication: "Même côté que le triangle : 50 pas." },
-        ex7_turn_in: { explication: "Angle du triangle (extérieur) = 120°." },
+        ex7_order: { explication: "Ordre : ⚑ → stylo → répéter 12 fois [ triangle → tourner 30° ]. Le bloc rose « triangle » (créé à l'ex 6) trace tout le triangle d'un coup." },
+        ex7_repeat_out: { explication: "12 triangles autour du centre → répéter 12 fois." },
         ex7_turn_out: { explication: "360° ÷ 12 = 30° entre chaque motif." }
       }
     },
@@ -1190,19 +1185,14 @@ function renderScratchOrder(orderStr, data){
 function renderScratchRosace(orderStr, data){
   const vals = {
     rout: (data.reponses?.ex7_repeat_out||{}).valeur || '?',
-    rin:  (data.reponses?.ex7_repeat_in||{}).valeur || '?',
-    move: (data.reponses?.ex7_move||{}).valeur || '?',
-    tin:  (data.reponses?.ex7_turn_in||{}).valeur || '?',
     tout: (data.reponses?.ex7_turn_out||{}).valeur || '?'
   };
   const defs = {
-    flag7:       {label:'⚑ quand le drapeau vert est cliqué', cls:'sb-event', indent:0},
-    pendown7:    {label:"stylo en position d'écriture", cls:'sb-pen', indent:0},
-    repeatOuter: {label:`répéter <b>${vals.rout}</b> fois`, cls:'sb-control', indent:0},
-    repeatInner: {label:`répéter <b>${vals.rin}</b> fois`, cls:'sb-control', indent:1},
-    move7:       {label:`avancer de <b>${vals.move}</b> pas`, cls:'sb-motion', indent:2},
-    turnInner:   {label:`tourner ↻ de <b>${vals.tin}</b> degrés`, cls:'sb-motion', indent:2},
-    turnOuter:   {label:`tourner ↻ de <b>${vals.tout}</b> degrés`, cls:'sb-motion', indent:1}
+    flag7:        {label:'⚑ quand le drapeau vert est cliqué', cls:'sb-event', indent:0},
+    pendown7:     {label:"stylo en position d'écriture", cls:'sb-pen', indent:0},
+    repeatOuter:  {label:`répéter <b>${vals.rout}</b> fois`, cls:'sb-control', indent:0},
+    callTriangle: {label:'triangle', cls:'sb-custom', indent:1},
+    turnOuter:    {label:`tourner ↻ de <b>${vals.tout}</b> degrés`, cls:'sb-motion', indent:1}
   };
   if(!orderStr) return '<span class="corr-scratch-empty">(non répondu)</span>';
   const ids = orderStr.split(',').map(s=>s.trim()).filter(Boolean);
@@ -1210,7 +1200,7 @@ function renderScratchRosace(orderStr, data){
   ids.forEach(id=>{
     const d = defs[id];
     if(!d) return;
-    const indentStyle = d.indent ? `margin-left:${d.indent*18}px;border-left:3px solid ${d.indent>=2?'#4C97FF':'#FFAB19'};` : '';
+    const indentStyle = d.indent ? `margin-left:${d.indent*18}px;border-left:3px solid #FFAB19;` : '';
     html+=`<div class="corr-scratch-block ${d.cls}" style="${indentStyle}">${d.label}</div>`;
   });
   html+='</div>';
@@ -1306,7 +1296,7 @@ window.renderDoc = function renderDoc(data){
 
       /* Questions Scratch dont la valeur est déjà intégrée dans le rendu visuel
          du bloc parent (ex6_order ou ex7_order) — on les masque */
-      const SKIP_IDS = new Set(['ex6_repeat','ex6_move','ex6_turn','ex7_repeat_out','ex7_repeat_in','ex7_move','ex7_turn_in','ex7_turn_out']);
+      const SKIP_IDS = new Set(['ex6_repeat','ex6_move','ex6_turn','ex7_repeat_out','ex7_turn_out']);
       if (SKIP_IDS.has(q.id)) return;
 
       /* Rendu visuel pour grilles de symétrie et blocs Scratch */
