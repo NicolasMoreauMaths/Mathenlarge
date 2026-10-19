@@ -64,6 +64,7 @@ var{font-style:italic;font-family:var(--font-display)}
 .consigne ol{margin:8px 0 0;padding-left:1.3em}.consigne li{margin:4px 0}.consigne .ctx{margin:0;color:var(--ink-soft)}
 .stage{width:100%;margin:12px 0 2px}
 .stage svg{display:block;width:100%;height:auto;max-width:100%;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.stage.puzzle svg{touch-action:none}
 .tile{touch-action:none}
 .stage.narrow svg{max-width:300px;margin:0 auto}
 .stage.ex svg{max-width:520px;margin:0 auto}
@@ -192,7 +193,7 @@ input.blank.no{border-color:var(--warn);background:color-mix(in srgb,var(--warn)
     <div class="consigne">
       <p class="ctx">Les longueurs sont b = 3, c = 4, a = 5. Tu connais l'aire d'un carré : côté × côté. Suis les trois temps A, B, C.</p>
     </div>
-    <div class="stage"><svg id="svg1" viewBox="0 0 470 490" role="img" aria-label="Figure manipulable : glisser les cases des petits carrés dans le carré de l'hypoténuse"></svg></div>
+    <div class="stage puzzle"><svg id="svg1" viewBox="0 0 470 490" role="img" aria-label="Figure manipulable : glisser les cases des petits carrés dans le carré de l'hypoténuse"></svg></div>
     <p class="hint" id="hint1">A. Commence par calculer les trois aires ci-dessous.</p>
 
     <p class="sub-h">A. Calcule les aires</p>
@@ -403,18 +404,17 @@ function buildWork(){
 }
 function unlockTiles(){if(!S1)return;S1.locked=false;S1.tiles.forEach(rr=>{rr.setAttribute('opacity',1);rr.setAttribute('pointer-events','auto');rr.setAttribute('cursor','grab');});}
 function attachDrag(){
-  const {svg,u,slots,home}=S1;let active=null,offx=0,offy=0;
-  function toFig(ev){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;const cx=ev.touches?ev.touches[0].clientX:ev.clientX,cy=ev.touches?ev.touches[0].clientY:ev.clientY;return{x:(cx-r.left)/r.width*vb.width,y:(cy-r.top)/r.height*vb.height};}
-  function down(e){if(S1.locked)return;const rr=e.currentTarget;active=rr;rr.setAttribute('cursor','grabbing');rr.removeAttribute('transform');svg.appendChild(rr);if(rr._slot){rr._slot.filled=false;rr._slot=null;refreshPlaced();}const p=toFig(e);offx=p.x-parseFloat(rr.getAttribute('x'));offy=p.y-parseFloat(rr.getAttribute('y'));e.preventDefault();}
-  function move(e){if(!active)return;const p=toFig(e);active.setAttribute('x',p.x-offx);active.setAttribute('y',p.y-offy);e.preventDefault();}
-  function up(){if(!active)return;const rr=active;active=null;rr.setAttribute('cursor','grab');
+  const {svg,u,slots,home}=S1;let active=null,offx=0,offy=0,pid=null;
+  function toFig(ev){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;return{x:(ev.clientX-r.left)/r.width*vb.width,y:(ev.clientY-r.top)/r.height*vb.height};}
+  function down(e){if(S1.locked)return;const rr=e.currentTarget;active=rr;pid=e.pointerId;rr.setAttribute('cursor','grabbing');rr.removeAttribute('transform');svg.appendChild(rr);try{rr.setPointerCapture(pid);}catch(_){}if(rr._slot){rr._slot.filled=false;rr._slot=null;refreshPlaced();}const p=toFig(e);offx=p.x-parseFloat(rr.getAttribute('x'));offy=p.y-parseFloat(rr.getAttribute('y'));e.preventDefault();}
+  function move(e){if(!active||e.pointerId!==pid)return;const p=toFig(e);active.setAttribute('x',p.x-offx);active.setAttribute('y',p.y-offy);e.preventDefault();}
+  function end(e){if(!active||(e.pointerId!=null&&e.pointerId!==pid))return;const rr=active;active=null;pid=null;rr.setAttribute('cursor','grab');
     const x=parseFloat(rr.getAttribute('x')),y=parseFloat(rr.getAttribute('y')),cx=x+(u-3)/2,cy=y+(u-3)/2;
     let best=null,bd=1e9;slots.forEach(s=>{if(s.filled)return;const d=(s.cx-cx)**2+(s.cy-cy)**2;if(d<bd){bd=d;best=s;}});
     if(best&&bd<(u*0.95)**2){rr.setAttribute('x',best.cx-(u-3)/2);rr.setAttribute('y',best.cy-(u-3)/2);rr.setAttribute('transform',`rotate(${S1.angle} ${best.cx} ${best.cy})`);best.filled=true;rr._slot=best;}
     else{const h=home[+rr.dataset.idx];rr.setAttribute('x',h.x);rr.setAttribute('y',h.y);}
     refreshPlaced();}
-  S1.tiles.forEach(rr=>rr.addEventListener('pointerdown',down));
-  svg.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
+  S1.tiles.forEach(rr=>{rr.addEventListener('pointerdown',down);rr.addEventListener('pointermove',move);rr.addEventListener('pointerup',end);rr.addEventListener('pointercancel',end);});
 }
 function refreshPlaced(){
   const n=S1.slots.filter(s=>s.filled).length;S1.placed=n;
