@@ -1,0 +1,590 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Le Puzzle de Pythagore</title>
+<style>
+/* Onglets libres ; figure maître (triangle + 3 carrés) ; longueurs en étiquettes encadrées, aires au centre ; étape 2 en A→B→C ; racine carrée construite progressivement ; radical rendu en CSS (sans police externe) */
+:root{
+  --bg:#f4f1ea;--surface:#fffdf8;--ink:#1f2a24;--ink-soft:#5b6b62;--line:#d9d2c3;
+  --accent:#1f6f54;--square-b:#c9772e;--square-c:#3a6ea5;--tri:#2f3b34;
+  --good:#1f6f54;--warn:#b23c17;
+  --cell-line:rgba(31,42,36,.22);--slot:rgba(31,42,36,.07);
+  --shadow:0 2px 0 rgba(31,42,36,.06),0 10px 30px -18px rgba(31,42,36,.5);
+  --radius:14px;
+  --font-display:"Fraunces","Iowan Old Style",Georgia,serif;
+  --font-body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono:"Spline Sans Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131815;--surface:#1b221d;--ink:#eae7dd;--ink-soft:#9aa89f;--line:#2e382f;
+  --accent:#49b58d;--square-b:#e0954f;--square-c:#5f93c9;--tri:#c7cfc8;
+  --cell-line:rgba(234,231,221,.20);--slot:rgba(234,231,221,.06);
+  --shadow:0 2px 0 rgba(0,0,0,.2),0 14px 34px -18px rgba(0,0,0,.8);color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#131815;--surface:#1b221d;--ink:#eae7dd;--ink-soft:#9aa89f;--line:#2e382f;
+  --accent:#49b58d;--square-b:#e0954f;--square-c:#5f93c9;--tri:#c7cfc8;
+  --cell-line:rgba(234,231,221,.20);--slot:rgba(234,231,221,.06);
+  --shadow:0 2px 0 rgba(0,0,0,.2),0 14px 34px -18px rgba(0,0,0,.8);color-scheme:dark;
+}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);line-height:1.55;font-size:16px}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.progress{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);padding-block:12px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.menu-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-body);font-size:.84rem;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--line);background:var(--surface);padding:8px 15px;border-radius:999px;transition:.15s;min-height:38px}
+.menu-btn:hover{background:color-mix(in srgb,var(--accent) 10%,transparent);border-color:var(--accent)}
+.menu-btn:focus-visible{outline:2.5px solid var(--square-c);outline-offset:2px}
+.menu-btn .ic{font-size:1.05em;line-height:1}
+.brand{font-family:var(--font-display);font-weight:600;color:var(--ink-soft);font-size:.92rem}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.steps{display:flex;gap:5px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+.steps li{flex:1 1 0;min-width:62px;text-align:center;font-size:.7rem;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-soft);padding:7px 3px;border-radius:8px;border:1px solid var(--line);transition:.2s;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+.steps li.active{color:var(--surface);background:var(--accent);font-weight:600;border-color:var(--accent)}
+.steps li .chk{color:var(--good);font-weight:800}.steps li.active .chk{color:var(--surface)}
+header{padding-block:18px 8px}
+.eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-family:var(--font-display);font-weight:600;font-size:clamp(2rem,6vw,3rem);line-height:1.05;margin:0;text-wrap:balance}
+.lede{color:var(--ink-soft);max-width:60ch;margin:12px 0 0;font-size:1.02rem}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:clamp(18px,4vw,30px);margin-top:20px}
+.panel h2{font-family:var(--font-display);font-weight:600;font-size:1.4rem;margin:0 0 4px;text-wrap:balance}
+.panel .kicker{font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--square-b);font-weight:700;margin:0 0 10px}
+.sub-h{font-family:var(--font-display);font-weight:600;font-size:1.1rem;margin:24px 0 2px}
+.muted{color:var(--ink-soft);margin:4px 0 0}
+var{font-style:italic;font-family:var(--font-display)}
+.consigne{margin:14px 0 0;padding:14px 16px;background:color-mix(in srgb,var(--accent) 7%,transparent);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
+.consigne ol{margin:8px 0 0;padding-left:1.3em}.consigne li{margin:4px 0}.consigne .ctx{margin:0;color:var(--ink-soft)}
+.stage{width:100%;margin:12px 0 2px}
+.stage svg{display:block;width:100%;height:auto;max-width:100%;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.tile{touch-action:none}
+.stage.narrow svg{max-width:300px;margin:0 auto}
+.stage.ex svg{max-width:520px;margin:0 auto}
+.hint{font-size:.85rem;color:var(--ink-soft);text-align:center;margin:8px 0 0;min-height:1.2em}
+.btn{font-family:var(--font-body);font-size:.95rem;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:var(--surface);padding:11px 20px;border-radius:10px;cursor:pointer;transition:.15s}
+.btn:hover{filter:brightness(1.07)}.btn.ghost{background:transparent;color:var(--accent)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible{outline:2.5px solid var(--square-c);outline-offset:2px}
+.row-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+.aires{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.aire-card{flex:1 1 210px;min-width:0;border:1px solid var(--line);border-radius:12px;padding:12px 14px 16px;background:var(--bg)}
+.aire-card .tt{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:12px}
+.aire-card.b .tt{color:var(--square-b)}.aire-card.c .tt{color:var(--square-c)}.aire-card.a .tt{color:var(--accent)}
+.calc{font-family:var(--font-mono);display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:1.1rem;color:var(--ink-soft)}
+input.blank{width:54px;text-align:center;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-family:var(--font-mono);font-size:1.05rem;padding:8px 4px}
+input.blank.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,transparent)}
+input.blank.no{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.fill-meter{text-align:center;font-family:var(--font-mono);margin-top:12px;font-size:1rem;color:var(--ink-soft)}
+.fill-meter b{color:var(--accent);font-variant-numeric:tabular-nums}
+.answer{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+.answer .q{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.answer .q .lbl{flex:1 1 230px;min-width:0}
+.answer input{font-family:var(--font-mono);font-size:1.05rem;width:104px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)}
+.answer input.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,transparent)}
+.answer input.no{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.feedback{font-size:.92rem;min-height:1.3em;font-weight:600}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--warn)}
+.savoir{margin-top:18px;border:1px solid var(--accent);border-radius:var(--radius);overflow:hidden}
+.savoir h3{margin:0;padding:12px 16px;background:var(--accent);color:var(--surface);font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;font-family:var(--font-body)}
+.savoir .body{padding:16px}.savoir .body p{margin:0 0 8px}
+.formula{font-family:var(--font-mono);text-align:center;font-size:1.25rem;margin:12px 0;color:var(--accent);font-weight:600}
+.eq-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-family:var(--font-mono);font-weight:700}
+.tag-a{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.tag-b{color:var(--square-b);background:color-mix(in srgb,var(--square-b) 16%,transparent)}
+.tag-c{color:var(--square-c);background:color-mix(in srgb,var(--square-c) 16%,transparent)}
+/* radical « maison » : barre bien collée, sans police externe */
+.rad{display:inline-block;white-space:nowrap}
+.radsvg{height:1.35em;width:auto;vertical-align:-.32em;display:inline-block}
+.root-build{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.root-build .ctrl{flex:1 1 150px;min-width:0}
+.root-build label{font-size:.85rem;color:var(--ink-soft);font-weight:600;display:block;margin-bottom:6px}
+.root-build input{font-family:var(--font-mono);font-size:1.1rem;width:84px;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)}
+.fillrow{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;font-family:var(--font-mono);font-size:1.2rem;margin-top:12px;color:var(--ink)}
+.fillrow .item{display:inline-flex;align-items:center;gap:6px}
+.fillrow input{width:58px;text-align:center;padding:8px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:var(--font-mono);font-size:1.05rem}
+.fillrow input.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,transparent)}
+.fillrow input.no{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.reveal-box{margin-top:14px;padding:16px;border:1px dashed var(--accent);border-radius:12px;background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.reveal-box .big{font-size:1.9rem;text-align:center;color:var(--accent);margin:8px 0}
+.stepblock{margin-top:6px}
+.ex-count{font-family:var(--font-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
+.ex-count b{color:var(--good)}
+.schema-note{font-size:.76rem;color:var(--ink-soft);text-align:center;font-style:italic;margin-top:2px}
+.done-badge{margin-top:14px;text-align:center;font-family:var(--font-display);font-size:1.15rem;color:var(--good)}
+/* --- Tablette --- */
+@media (max-width:760px){
+  body{font-size:15.5px}
+  .panel{padding:clamp(16px,4vw,24px)}
+}
+/* --- Téléphone --- */
+@media (max-width:480px){
+  .steps{gap:4px}
+  .steps li{min-width:0;font-size:.63rem;padding:6px 2px;letter-spacing:0;border-radius:7px}
+  .steps li .chk{margin-left:1px}
+  .topbar{margin-bottom:8px}
+  .menu-btn{font-size:.8rem;padding:7px 12px}
+  h1{font-size:1.85rem}
+  .lede{font-size:.98rem}
+  .aire-card{flex:1 1 100%}
+  .answer .q .lbl{flex:1 1 100%}
+  .answer input{width:100%}
+  .fillrow{font-size:1.1rem;gap:10px 12px}
+  .fillrow input,.calc input.blank{font-size:1rem}
+  .reveal-box .big{font-size:1.6rem}
+}
+/* --- Très petits écrans --- */
+@media (max-width:360px){
+  .steps li{font-size:.58rem}
+  .brand{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <nav class="progress" aria-label="Progression">
+    <div class="topbar">
+      <a class="menu-btn" href="index.html" aria-label="Retour au menu du site"><span class="ic" aria-hidden="true">‹</span> Menu</a>
+      <span class="brand">mathenlarge</span>
+    </div>
+    <ol class="steps" id="steps">
+      <li data-s="0">Triangle <span class="chk" hidden>✓</span></li>
+      <li data-s="1">Aires &amp; puzzle <span class="chk" hidden>✓</span></li>
+      <li data-s="2">Théorème <span class="chk" hidden>✓</span></li>
+      <li data-s="3">Racine carrée <span class="chk" hidden>✓</span></li>
+      <li data-s="4">À toi <span class="chk" hidden>✓</span></li>
+    </ol>
+  </nav>
+
+  <header>
+    <p class="eyebrow">Géométrie · 4ᵉ</p>
+    <h1>Le Puzzle de Pythagore</h1>
+    <p class="lede">Un triangle rectangle, trois carrés sur ses côtés. Calcule leurs aires, fais glisser les cases pour remplir le grand carré, découvre le théorème, puis apprends à retrouver un côté avec la racine carrée.</p>
+  </header>
+
+  <!-- 0 OBSERVER -->
+  <section class="panel" data-panel="0">
+    <p class="kicker">Étape 1 — Observer</p>
+    <h2>Longueur d'un côté, aire d'un carré</h2>
+    <div class="consigne">
+      <p class="ctx">Sur chaque côté du triangle rectangle, on a construit un carré. Ne confonds pas : <var>a</var>, <var>b</var>, <var>c</var> sont les <strong>longueurs des côtés</strong> (dans les petites étiquettes) ; a², b², c² sont les <strong>aires des carrés</strong> (au centre des carrés).</p>
+      <ol>
+        <li>Repère la longueur <var>a</var> (l'hypoténuse) et l'aire a² du carré construit dessus.</li>
+        <li>Fais de même pour <var>b</var> et <var>c</var>.</li>
+      </ol>
+    </div>
+    <div class="stage"><svg id="svg0" viewBox="0 0 470 490" role="img" aria-label="Triangle rectangle et ses trois carrés ; longueurs étiquetées sur les côtés, aires au centre des carrés"></svg></div>
+    <p class="hint">La longueur est sur le côté ; l'aire est à l'intérieur du carré.</p>
+    <div class="nav"><span></span><button class="btn" data-next>Calculer les aires →</button></div>
+  </section>
+
+  <!-- 1 AIRES + PUZZLE + ÉGALITÉ -->
+  <section class="panel" data-panel="1" hidden>
+    <p class="kicker">Étape 2 — Calculer, remplir, conclure</p>
+    <h2>Les aires, le puzzle, puis l'égalité</h2>
+    <div class="consigne">
+      <p class="ctx">Les longueurs sont b = 3, c = 4, a = 5. Tu connais l'aire d'un carré : côté × côté. Suis les trois temps A, B, C.</p>
+    </div>
+    <div class="stage"><svg id="svg1" viewBox="0 0 470 490" role="img" aria-label="Figure manipulable : glisser les cases des petits carrés dans le carré de l'hypoténuse"></svg></div>
+    <p class="hint" id="hint1">A. Commence par calculer les trois aires ci-dessous.</p>
+
+    <p class="sub-h">A. Calcule les aires</p>
+    <div class="aires">
+      <div class="aire-card b"><div class="tt">Aire du carré b</div>
+        <div class="calc"><input id="bf1" class="blank" inputmode="numeric" autocomplete="off" aria-label="b facteur 1"> × <input id="bf2" class="blank" inputmode="numeric" autocomplete="off" aria-label="b facteur 2"> = <input id="bres" class="blank" inputmode="numeric" autocomplete="off" aria-label="aire b"> u²</div></div>
+      <div class="aire-card c"><div class="tt">Aire du carré c</div>
+        <div class="calc"><input id="cf1" class="blank" inputmode="numeric" autocomplete="off" aria-label="c facteur 1"> × <input id="cf2" class="blank" inputmode="numeric" autocomplete="off" aria-label="c facteur 2"> = <input id="cres" class="blank" inputmode="numeric" autocomplete="off" aria-label="aire c"> u²</div></div>
+      <div class="aire-card a"><div class="tt">Aire du carré a</div>
+        <div class="calc"><input id="af1" class="blank" inputmode="numeric" autocomplete="off" aria-label="a facteur 1"> × <input id="af2" class="blank" inputmode="numeric" autocomplete="off" aria-label="a facteur 2"> = <input id="ares" class="blank" inputmode="numeric" autocomplete="off" aria-label="aire a"> u²</div></div>
+    </div>
+    <p class="feedback" id="fb1" role="status"></p>
+
+    <div id="blockB" class="stepblock" hidden>
+      <p class="sub-h">B. Fais le puzzle</p>
+      <p class="muted">Fais glisser les cases des carrés b et c dans le carré a. Reste-t-il un trou ou un débordement ?</p>
+      <p class="fill-meter">Cases placées dans le carré a : <b id="placed">0</b> / 25</p>
+      <div class="row-btns"><button class="btn ghost" id="resetBtn">↺ Remettre les cases</button></div>
+    </div>
+
+    <div id="blockC" class="stepblock" hidden>
+      <p class="sub-h">C. Écris l'égalité que tu viens de découvrir</p>
+      <p class="muted">L'aire du grand carré est égale à la somme des aires des deux petits. Écris-la avec les nombres (le plus grand d'abord).</p>
+      <div class="fillrow"><input id="eqA" inputmode="numeric" autocomplete="off" aria-label="aire a"> = <input id="eqB" inputmode="numeric" autocomplete="off" aria-label="aire b"> + <input id="eqC" inputmode="numeric" autocomplete="off" aria-label="aire c"></div>
+      <p class="muted">( aire a = aire b + aire c )</p>
+      <p class="feedback" id="eqFb" role="status"></p>
+    </div>
+
+    <div class="nav"><button class="btn ghost" data-prev>← Retour</button><button class="btn" data-next>Le théorème →</button></div>
+  </section>
+
+  <!-- 2 THÉORÈME -->
+  <section class="panel" data-panel="2" hidden>
+    <p class="kicker">Étape 3 — Formaliser</p>
+    <h2>Le théorème de Pythagore</h2>
+    <div class="consigne">
+      <p class="ctx">Les 25 cases des deux petits carrés ont rempli le grand exactement : 9 + 16 = 25. L'aire du carré de l'hypoténuse est la somme des aires des deux autres.</p>
+    </div>
+    <div class="stage"><svg id="svg2" viewBox="0 0 460 330" role="img" aria-label="Triangle rectangle coté et égalité des aires"></svg></div>
+    <div class="savoir">
+      <h3>Ce qu'il faut savoir</h3>
+      <div class="body">
+        <p>Dans un triangle <strong>rectangle</strong>, l'<strong>hypoténuse</strong> est le côté opposé à l'angle droit (le plus long). On la note <span class="eq-tag tag-a">a</span> ; <span class="eq-tag tag-b">b</span> et <span class="eq-tag tag-c">c</span> sont les côtés de l'angle droit.</p>
+        <p>L'aire du carré construit sur un côté est le carré de sa longueur. Comme le grand carré se remplit avec les deux petits :</p>
+        <p class="formula">a² = b² + c²</p>
+        <p>C'est le <strong>théorème de Pythagore</strong>. Il relie l'aire du carré de l'hypoténuse aux aires des deux autres carrés.</p>
+      </div>
+    </div>
+    <div class="nav"><button class="btn ghost" data-prev>← Retour</button><button class="btn" data-next>La racine carrée →</button></div>
+  </section>
+
+  <!-- 3 RACINE CARRÉE -->
+  <section class="panel" data-panel="3" hidden>
+    <p class="kicker">Étape 4 — Un nouvel outil</p>
+    <h2>La racine carrée</h2>
+    <div class="consigne">
+      <p class="ctx">Le théorème te donne l'aire a². Mais toi, tu veux la <strong>longueur</strong> <var>a</var>. Il faut donc faire l'inverse de « mettre au carré ». Suis les quatre temps.</p>
+    </div>
+
+    <p class="sub-h">1. Mettre au carré (plusieurs fois)</p>
+    <p class="muted">Mettre un nombre au carré, c'est le multiplier par lui-même. Choisis un côté (de 1 à 12) pour le voir, puis calcule.</p>
+    <div class="root-build">
+      <div class="ctrl"><label for="sideIn">Côté du carré (de 1 à 12)</label><input id="sideIn" type="number" min="1" max="12" step="1" value="4" inputmode="numeric"></div>
+      <div class="stage narrow" style="flex:1 1 200px;margin:0"><svg id="svgRoot" viewBox="0 0 240 240" role="img" aria-label="Carré construit à partir de son côté"></svg></div>
+    </div>
+    <div class="fillrow">
+      <span class="item">3² = <input id="fwd0" inputmode="numeric" autocomplete="off" aria-label="3 au carré"></span>
+      <span class="item">6² = <input id="fwd1" inputmode="numeric" autocomplete="off" aria-label="6 au carré"></span>
+      <span class="item">9² = <input id="fwd2" inputmode="numeric" autocomplete="off" aria-label="9 au carré"></span>
+      <span class="item">11² = <input id="fwd3" inputmode="numeric" autocomplete="off" aria-label="11 au carré"></span>
+    </div>
+    <p class="feedback" id="fwdFb" role="status"></p>
+
+    <p class="sub-h">2. Le problème inverse (plusieurs fois)</p>
+    <p class="muted">On connaît l'aire, on cherche le côté. Quel nombre, mis au carré, donne… ?</p>
+    <div class="fillrow">
+      <span class="item"><input id="inv0" inputmode="numeric" autocomplete="off" aria-label="base dont le carré vaut 16">² = 16</span>
+      <span class="item"><input id="inv1" inputmode="numeric" autocomplete="off" aria-label="base dont le carré vaut 49">² = 49</span>
+      <span class="item"><input id="inv2" inputmode="numeric" autocomplete="off" aria-label="base dont le carré vaut 81">² = 81</span>
+      <span class="item"><input id="inv3" inputmode="numeric" autocomplete="off" aria-label="base dont le carré vaut 121">² = 121</span>
+    </div>
+    <p class="feedback" id="invFb" role="status"></p>
+
+    <p class="sub-h">3. On tombe sur un os</p>
+    <p class="muted">Et celui-ci ? Quel nombre, mis au carré, donne 2 ?</p>
+    <div class="fillrow"><span class="item"><input id="osIn" inputmode="numeric" autocomplete="off" aria-label="nombre dont le carré vaut 2">² = <b style="color:var(--warn)">2</b></span></div>
+    <p class="feedback" id="osFb" role="status"></p>
+    <button class="btn" id="osReveal" hidden>Alors comment écrire ce nombre ? →</button>
+    <div class="reveal-box" id="osResult" hidden>
+      <p>Aucun nombre entier ne marche : 1² = 1 (trop petit) et 2² = 4 (trop grand). Le nombre cherché est entre 1 et 2, mais ce n'est pas un nombre « simple ».</p>
+      <p>On lui donne un nom et un symbole : la <strong>racine carrée</strong>. Le nombre positif dont le carré vaut 2 s'écrit :</p>
+      <p class="big"><span class="rad" data-r="2"></span></p>
+      <p class="muted" style="text-align:center">on le lit « racine carrée de 2 » &nbsp;·&nbsp; <span class="rad" data-r="2"></span> ≈ 1,41</p>
+    </div>
+
+    <div class="savoir">
+      <h3>Ce qu'il faut savoir</h3>
+      <div class="body">
+        <p><span class="rad" data-r="a"></span> est le nombre positif dont le carré vaut <var>a</var> : c'est l'inverse de « mettre au carré ».</p>
+        <p>Si <var>a</var> est un carré parfait, la racine est un nombre entier : <span class="rad" data-r="36"></span> = 6 car 6² = 36.</p>
+        <p>Sinon, on laisse le nombre sous le symbole : <span class="rad" data-r="2"></span>, <span class="rad" data-r="5"></span>…</p>
+      </div>
+    </div>
+
+    <p class="sub-h">4. Calculer des racines carrées</p>
+    <p class="muted">La racine carrée donne directement le côté quand l'aire est un carré parfait. Calcule :</p>
+    <div class="fillrow">
+      <span class="item"><span class="rad" data-r="25"></span> = <input id="rt0" inputmode="numeric" autocomplete="off" aria-label="racine de 25"></span>
+      <span class="item"><span class="rad" data-r="64"></span> = <input id="rt1" inputmode="numeric" autocomplete="off" aria-label="racine de 64"></span>
+      <span class="item"><span class="rad" data-r="100"></span> = <input id="rt2" inputmode="numeric" autocomplete="off" aria-label="racine de 100"></span>
+      <span class="item"><span class="rad" data-r="144"></span> = <input id="rt3" inputmode="numeric" autocomplete="off" aria-label="racine de 144"></span>
+    </div>
+    <p class="feedback" id="rtFb" role="status"></p>
+
+    <div class="nav"><button class="btn ghost" data-prev>← Retour</button><button class="btn" data-next>À toi de jouer →</button></div>
+  </section>
+
+  <!-- 4 À TOI -->
+  <section class="panel" data-panel="4" hidden>
+    <p class="kicker">Étape 5 — S'entraîner</p>
+    <h2>À toi de jouer</h2>
+    <p class="ex-count">Exercices réussis : <b id="exOk">0</b> <span id="exGoal">(objectif : 3 pour valider)</span></p>
+    <div class="consigne">
+      <p class="ctx" id="exCtx">—</p>
+      <p class="ctx" id="exRel" style="margin-top:8px;color:var(--accent);font-weight:600"></p>
+    </div>
+    <div class="stage ex"><svg id="svgEx" viewBox="0 0 450 430" role="img" aria-label="Triangle rectangle et ses trois carrés avec une aire à chercher"></svg></div>
+    <p class="schema-note">Schéma non à l'échelle.</p>
+    <div class="answer">
+      <div class="q"><span class="lbl" id="lbl1"></span><input id="q1" inputmode="numeric" autocomplete="off"></div>
+      <div class="q"><span class="lbl" id="lbl2"></span><input id="q2" inputmode="numeric" autocomplete="off"></div>
+      <div class="q"><span class="lbl" id="lbl3"></span><input id="q3" inputmode="numeric" autocomplete="off"></div>
+      <div class="q"><span class="lbl" id="lbl4"></span><input id="q4" inputmode="numeric" autocomplete="off"></div>
+      <p class="feedback" id="fb4" role="status"></p>
+      <div class="row-btns">
+        <button class="btn" id="checkBtn">Vérifier</button>
+        <button class="btn ghost" id="nextExBtn" hidden>Exercice suivant →</button>
+      </div>
+      <div class="done-badge" id="badge" hidden>✓ Bravo, tu maîtrises Pythagore et la racine carrée !</div>
+    </div>
+    <div class="nav"><button class="btn ghost" data-prev>← Retour</button><span></span></div>
+  </section>
+</div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+/* radical dessiné : le crochet et la barre forment un seul tracé, toujours collés */
+function radSVG(s){s=String(s);const H=28,fs=19,charW=11,startBar=12,pad=5;const numW=s.length*charW;const W=startBar+numW+pad;const by=3;return `<svg class="radsvg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="racine carrée de ${s}"><path d="M1,14 L5,25 L10,${by} L${W-2},${by}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><text x="${startBar+2}" y="21" font-family="monospace" font-size="${fs}" font-weight="700" fill="currentColor">${s}</text></svg>`;}
+function fillRadicals(){document.querySelectorAll('.rad[data-r]').forEach(sp=>{sp.innerHTML=radSVG(sp.dataset.r);});}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function txt(svg,x,y,s,fill,size,anchor,weight){const t=el('text',{x,y,fill,'font-size':size||14,'font-weight':weight||700,'font-family':'monospace','text-anchor':anchor||'middle'});t.textContent=s;svg.appendChild(t);return t;}
+function rightAngle(svg,P){const m=13;svg.appendChild(el('path',{d:`M ${P.x+m} ${P.y} L ${P.x+m} ${P.y-m} L ${P.x} ${P.y-m}`,fill:'none',stroke:css('--warn'),'stroke-width':2.2}));}
+function frameA(Pb,Pc,P0){const dx=Pc.x-Pb.x,dy=Pc.y-Pb.y,L=Math.hypot(dx,dy);const du={x:dx/L,y:dy/L};let nu={x:dy/L,y:-dx/L};const mx=(Pb.x+Pc.x)/2,my=(Pb.y+Pc.y)/2;if((P0.x-mx)*nu.x+(P0.y-my)*nu.y>0)nu={x:-nu.x,y:-nu.y};return{du,nu,L};}
+function lenTag(svg,x,y,text,color){const w=text.length*7.6+14,h=21;svg.appendChild(el('rect',{x:x-w/2,y:y-h/2,width:w,height:h,rx:6,fill:css('--surface'),stroke:color,'stroke-width':1.3}));txt(svg,x,y+5,text,color,13);}
+function areaTag(svg,x,y,sym,color){txt(svg,x,y,sym,color,22);txt(svg,x,y+16,'(aire)',color,10,'middle',600);}
+
+/* ---------- 0 : OBSERVER ---------- */
+function drawObserve(){
+  const svg=document.getElementById('svg0');svg.innerHTML='';
+  const u=28,P0={x:200,y:355},Pb={x:P0.x+3*u,y:P0.y},Pc={x:P0.x,y:P0.y-4*u};
+  const cb=css('--square-b'),cc=css('--square-c'),ca=css('--accent');
+  svg.appendChild(el('rect',{x:P0.x,y:P0.y,width:3*u,height:3*u,fill:cb+'22',stroke:cb,'stroke-width':2}));
+  svg.appendChild(el('rect',{x:P0.x-4*u,y:Pc.y,width:4*u,height:4*u,fill:cc+'22',stroke:cc,'stroke-width':2}));
+  const F=frameA(Pb,Pc,P0),q3={x:Pc.x+F.nu.x*F.L,y:Pc.y+F.nu.y*F.L},q4={x:Pb.x+F.nu.x*F.L,y:Pb.y+F.nu.y*F.L};
+  svg.appendChild(el('polygon',{points:`${Pb.x},${Pb.y} ${Pc.x},${Pc.y} ${q3.x},${q3.y} ${q4.x},${q4.y}`,fill:ca+'22',stroke:ca,'stroke-width':2,'stroke-linejoin':'round'}));
+  svg.appendChild(el('polygon',{points:`${P0.x},${P0.y} ${Pb.x},${Pb.y} ${Pc.x},${Pc.y}`,fill:ca+'12',stroke:css('--tri'),'stroke-width':2.6,'stroke-linejoin':'round'}));
+  rightAngle(svg,P0);
+  areaTag(svg,P0.x+1.5*u,P0.y+1.5*u+2,'b²',cb);
+  areaTag(svg,P0.x-2*u,Pc.y+2*u,'c²',cc);
+  areaTag(svg,(Pb.x+q3.x)/2+4,(Pb.y+q3.y)/2-2,'a²',ca);
+  lenTag(svg,(P0.x+Pb.x)/2,P0.y+16,'b = 3',cb);
+  lenTag(svg,P0.x-20,(Pc.y+P0.y)/2,'c = 4',cc);
+  const mh={x:(Pb.x+Pc.x)/2,y:(Pb.y+Pc.y)/2};
+  lenTag(svg,mh.x+F.nu.x*16,mh.y+F.nu.y*16,'a = 5',ca);
+}
+
+/* ---------- 1 : AIRES + PUZZLE + ÉGALITÉ ---------- */
+let S1=null,areasDone=false,equalityDone=false;
+function buildWork(){
+  const svg=document.getElementById('svg1');svg.innerHTML='';
+  const u=28,P0={x:200,y:355},Pb={x:P0.x+3*u,y:P0.y},Pc={x:P0.x,y:P0.y-4*u};
+  const cb=css('--square-b'),cc=css('--square-c'),ca=css('--accent');
+  const F=frameA(Pb,Pc,P0),q3={x:Pc.x+F.nu.x*F.L,y:Pc.y+F.nu.y*F.L},q4={x:Pb.x+F.nu.x*F.L,y:Pb.y+F.nu.y*F.L};
+  svg.appendChild(el('rect',{x:P0.x,y:P0.y,width:3*u,height:3*u,fill:'none',stroke:cb,'stroke-width':2}));
+  svg.appendChild(el('rect',{x:P0.x-4*u,y:Pc.y,width:4*u,height:4*u,fill:'none',stroke:cc,'stroke-width':2}));
+  svg.appendChild(el('polygon',{points:`${Pb.x},${Pb.y} ${Pc.x},${Pc.y} ${q3.x},${q3.y} ${q4.x},${q4.y}`,fill:'none',stroke:ca,'stroke-width':2.4}));
+  const angle=Math.atan2(F.du.y,F.du.x)*180/Math.PI,slots=[];
+  for(let i=0;i<5;i++)for(let j=0;j<5;j++){
+    const cx=Pb.x+F.du.x*u*(i+0.5)+F.nu.x*u*(j+0.5),cy=Pb.y+F.du.y*u*(i+0.5)+F.nu.y*u*(j+0.5);
+    svg.appendChild(el('rect',{x:cx-u/2,y:cy-u/2,width:u,height:u,fill:css('--slot'),stroke:ca,'stroke-width':1,'stroke-dasharray':'3 3',transform:`rotate(${angle} ${cx} ${cy})`}));
+    slots.push({cx,cy,filled:false});
+  }
+  svg.appendChild(el('polygon',{points:`${P0.x},${P0.y} ${Pb.x},${Pb.y} ${Pc.x},${Pc.y}`,fill:ca+'10',stroke:css('--tri'),'stroke-width':2.4,'stroke-linejoin':'round'}));
+  rightAngle(svg,P0);
+  const aStatus=txt(svg,(Pb.x+q3.x)/2+4,(Pb.y+q3.y)/2,'a² = ?',ca,15);
+  const locked=!areasDone;
+  const tiles=[],home=[];
+  function addTile(x,y,tok){const rr=el('rect',{x,y,width:u-3,height:u-3,rx:3,class:'tile',fill:css(tok)+'dd',stroke:css(tok),'stroke-width':1.5,cursor:locked?'default':'grab',opacity:locked?0.45:1,'pointer-events':locked?'none':'auto'});rr.dataset.idx=tiles.length;svg.appendChild(rr);tiles.push(rr);home.push({x,y});}
+  for(let j=0;j<3;j++)for(let i=0;i<3;i++)addTile(P0.x+i*u+1.5,P0.y+j*u+1.5,'--square-b');
+  for(let j=0;j<4;j++)for(let i=0;i<4;i++)addTile(P0.x-4*u+i*u+1.5,Pc.y+j*u+1.5,'--square-c');
+  lenTag(svg,(P0.x+Pb.x)/2,P0.y+3*u+18,'b = 3',cb);
+  lenTag(svg,P0.x-4*u-22,(Pc.y+P0.y)/2,'c = 4',cc);
+  lenTag(svg,(q3.x+q4.x)/2+F.nu.x*16,(q3.y+q4.y)/2+F.nu.y*16,'a = 5',ca);
+  S1={svg,u,slots,tiles,home,angle,aStatus,placed:0,locked};
+  const placedEl=document.getElementById('placed');if(placedEl)placedEl.textContent='0';
+  attachDrag();
+}
+function unlockTiles(){if(!S1)return;S1.locked=false;S1.tiles.forEach(rr=>{rr.setAttribute('opacity',1);rr.setAttribute('pointer-events','auto');rr.setAttribute('cursor','grab');});}
+function attachDrag(){
+  const {svg,u,slots,home}=S1;let active=null,offx=0,offy=0;
+  function toFig(ev){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;const cx=ev.touches?ev.touches[0].clientX:ev.clientX,cy=ev.touches?ev.touches[0].clientY:ev.clientY;return{x:(cx-r.left)/r.width*vb.width,y:(cy-r.top)/r.height*vb.height};}
+  function down(e){if(S1.locked)return;const rr=e.currentTarget;active=rr;rr.setAttribute('cursor','grabbing');rr.removeAttribute('transform');svg.appendChild(rr);if(rr._slot){rr._slot.filled=false;rr._slot=null;refreshPlaced();}const p=toFig(e);offx=p.x-parseFloat(rr.getAttribute('x'));offy=p.y-parseFloat(rr.getAttribute('y'));e.preventDefault();}
+  function move(e){if(!active)return;const p=toFig(e);active.setAttribute('x',p.x-offx);active.setAttribute('y',p.y-offy);e.preventDefault();}
+  function up(){if(!active)return;const rr=active;active=null;rr.setAttribute('cursor','grab');
+    const x=parseFloat(rr.getAttribute('x')),y=parseFloat(rr.getAttribute('y')),cx=x+(u-3)/2,cy=y+(u-3)/2;
+    let best=null,bd=1e9;slots.forEach(s=>{if(s.filled)return;const d=(s.cx-cx)**2+(s.cy-cy)**2;if(d<bd){bd=d;best=s;}});
+    if(best&&bd<(u*0.95)**2){rr.setAttribute('x',best.cx-(u-3)/2);rr.setAttribute('y',best.cy-(u-3)/2);rr.setAttribute('transform',`rotate(${S1.angle} ${best.cx} ${best.cy})`);best.filled=true;rr._slot=best;}
+    else{const h=home[+rr.dataset.idx];rr.setAttribute('x',h.x);rr.setAttribute('y',h.y);}
+    refreshPlaced();}
+  S1.tiles.forEach(rr=>rr.addEventListener('pointerdown',down));
+  svg.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
+}
+function refreshPlaced(){
+  const n=S1.slots.filter(s=>s.filled).length;S1.placed=n;
+  const pe=document.getElementById('placed');if(pe)pe.textContent=n;
+  if(n===25){document.getElementById('hint1').textContent='Pile 25 cases, aucun trou ni débordement : les deux petits carrés remplissent exactement le grand !';document.getElementById('blockC').hidden=false;}
+  else if(!S1.locked){document.getElementById('hint1').textContent='B. Glisse les 25 cases dans le carré a.';}
+  updateDone1();
+}
+function checkWork(){
+  const specs=[['b',3,9],['c',4,16],['a',5,25]];let allOk=true,anyWrong=false;
+  specs.forEach(([k,side,area])=>{
+    const f1=document.getElementById(k+'f1'),f2=document.getElementById(k+'f2'),rs=document.getElementById(k+'res');
+    const o1=f1.value!==''&&+f1.value===side,o2=f2.value!==''&&+f2.value===side,orr=rs.value!==''&&+rs.value===area;
+    f1.className='blank '+(f1.value===''?'':(o1?'ok':'no'));
+    f2.className='blank '+(f2.value===''?'':(o2?'ok':'no'));
+    rs.className='blank '+(rs.value===''?'':(orr?'ok':'no'));
+    if((f1.value&&!o1)||(f2.value&&!o2)||(rs.value&&!orr))anyWrong=true;
+    if(!(o1&&o2&&orr))allOk=false;
+    if(k==='a'&&S1&&S1.aStatus)S1.aStatus.textContent=(o1&&o2&&orr)?'a² = 25':'a² = ?';
+  });
+  areasDone=allOk;
+  const fb=document.getElementById('fb1');
+  if(allOk){fb.textContent='Les trois aires sont justes. Passe au puzzle ci-dessous (B).';fb.className='feedback ok';
+    document.getElementById('blockB').hidden=false;unlockTiles();
+    if(S1&&S1.placed<25)document.getElementById('hint1').textContent='B. Glisse les 25 cases dans le carré a.';}
+  else if(anyWrong){fb.textContent='Un calcul est faux. Rappel : l\'aire d\'un carré, c\'est côté × côté.';fb.className='feedback no';}
+  else{fb.textContent='';fb.className='feedback';}
+  updateDone1();
+}
+function checkEquality(){
+  const a=document.getElementById('eqA'),b=document.getElementById('eqB'),c=document.getElementById('eqC'),fb=document.getElementById('eqFb');
+  if(a.value===''||b.value===''||c.value===''){equalityDone=false;['eqA','eqB','eqC'].forEach(id=>document.getElementById(id).className='');fb.textContent='';fb.className='feedback';updateDone1();return;}
+  const va=+a.value,set=[+b.value,+c.value].sort((x,y)=>x-y);
+  const ok=va===25&&set[0]===9&&set[1]===16;
+  a.className=va===25?'ok':'no';
+  b.className=(set.includes(+b.value)&&(+b.value===9||+b.value===16))?'ok':'no';
+  c.className=(+c.value===9||+c.value===16)?'ok':'no';
+  if(ok){fb.textContent='Oui : 25 = 9 + 16. Autrement dit a² = b² + c². C\'est le théorème de Pythagore !';fb.className='feedback ok';equalityDone=true;}
+  else{fb.textContent='Pas encore. Le grand carré vaut 25, les deux petits 9 et 16.';fb.className='feedback no';equalityDone=false;}
+  updateDone1();
+}
+function updateDone1(){completed[1]=areasDone&&S1&&S1.placed===25&&equalityDone;renderTabs();}
+['bf1','bf2','bres','cf1','cf2','cres','af1','af2','ares'].forEach(id=>document.addEventListener('input',e=>{if(e.target.id===id)checkWork();}));
+['eqA','eqB','eqC'].forEach(id=>document.addEventListener('input',e=>{if(e.target.id===id)checkEquality();}));
+document.getElementById('resetBtn').addEventListener('click',()=>{buildWork();if(areasDone)unlockTiles();refreshPlaced();});
+
+/* ---------- 2 : THÉORÈME ---------- */
+function drawTheorem(){
+  const svg=document.getElementById('svg2');svg.innerHTML='';
+  const u=30,P0={x:150,y:230},Pb={x:150+3*u,y:230},Pc={x:150,y:230-4*u};
+  const cb=css('--square-b'),cc=css('--square-c'),ca=css('--accent');
+  svg.appendChild(el('polygon',{points:`${P0.x},${P0.y} ${Pb.x},${Pb.y} ${Pc.x},${Pc.y}`,fill:ca+'16',stroke:css('--tri'),'stroke-width':2.6}));
+  rightAngle(svg,P0);
+  const F=frameA(Pb,Pc,P0);
+  lenTag(svg,(P0.x+Pb.x)/2,P0.y+16,'b = 3',cb);
+  lenTag(svg,P0.x-22,(Pc.y+P0.y)/2,'c = 4',cc);
+  const mh={x:(Pb.x+Pc.x)/2,y:(Pb.y+Pc.y)/2};
+  lenTag(svg,mh.x+F.nu.x*18,mh.y+F.nu.y*18,'a = 5',ca);
+  const cxm=230;
+  const t1=el('text',{x:cxm,y:272,'font-size':20,'font-weight':700,'font-family':'monospace','text-anchor':'middle'});
+  [['a²',ca],[' = ',css('--ink')],['b²',cb],[' + ',css('--ink')],['c²',cc]].forEach(p=>{const s=el('tspan',{fill:p[1]});s.textContent=p[0];t1.appendChild(s);});svg.appendChild(t1);
+  const t2=el('text',{x:cxm,y:300,'font-size':16,'font-weight':700,'font-family':'monospace','text-anchor':'middle'});
+  [['25',ca],[' = ',css('--ink-soft')],['9',cb],[' + ',css('--ink-soft')],['16',cc]].forEach(p=>{const s=el('tspan',{fill:p[1]});s.textContent=p[0];t2.appendChild(s);});svg.appendChild(t2);
+}
+
+/* ---------- 3 : RACINE CARRÉE ---------- */
+function drawBuilder(n){
+  const svg=document.getElementById('svgRoot');svg.innerHTML='';
+  const ca=css('--accent'),O=20,S=200,cell=S/n;
+  svg.appendChild(el('rect',{x:O,y:O,width:S,height:S,fill:ca+'22',stroke:ca,'stroke-width':2.4}));
+  for(let i=1;i<n;i++){svg.appendChild(el('line',{x1:O+i*cell,y1:O,x2:O+i*cell,y2:O+S,stroke:css('--cell-line'),'stroke-width':1}));svg.appendChild(el('line',{x1:O,y1:O+i*cell,x2:O+S,y2:O+i*cell,stroke:css('--cell-line'),'stroke-width':1}));}
+}
+function updateBuilder(){let n=parseInt(document.getElementById('sideIn').value,10);if(isNaN(n))return;n=Math.max(1,Math.min(12,n));drawBuilder(n);}
+document.getElementById('sideIn').addEventListener('input',updateBuilder);
+// vérificateur générique pour une rangée d'inputs
+function makeChecker(ids,answers,fbId,okMsg,noMsg,onState){
+  let allOk=true,anyWrong=false;
+  ids.forEach((id,k)=>{const inp=document.getElementById(id),v=inp.value;const ok=v!==''&&+v===answers[k];inp.className=v===''?'':(ok?'ok':'no');if(v&&!ok)anyWrong=true;if(!ok)allOk=false;});
+  const fb=document.getElementById(fbId);
+  if(allOk){fb.textContent=okMsg;fb.className='feedback ok';}
+  else if(anyWrong){fb.textContent=noMsg;fb.className='feedback no';}
+  else{fb.textContent='';fb.className='feedback';}
+  if(onState)onState(allOk);
+}
+let fwdAll=false,invAll=false,rootAll=false,osRevealed=false;
+function checkFwd(){makeChecker(['fwd0','fwd1','fwd2','fwd3'],[9,36,81,121],'fwdFb','Parfait, tu sais mettre au carré.','Rappel : n² = n × n.',v=>{fwdAll=v;updateDone3();});}
+function checkInv(){makeChecker(['inv0','inv1','inv2','inv3'],[4,7,9,11],'invFb','Bien ! Tu as retrouvé chaque côté.','Cherche le nombre qui, multiplié par lui-même, donne le résultat.',v=>{invAll=v;updateDone3();});}
+function checkRoots(){makeChecker(['rt0','rt1','rt2','rt3'],[5,8,10,12],'rtFb','Excellent, tu calcules des racines carrées !','La racine carrée d\'un carré parfait est un entier.',v=>{rootAll=v;updateDone3();});}
+['fwd0','fwd1','fwd2','fwd3'].forEach(id=>document.getElementById(id).addEventListener('input',checkFwd));
+['inv0','inv1','inv2','inv3'].forEach(id=>document.getElementById(id).addEventListener('input',checkInv));
+['rt0','rt1','rt2','rt3'].forEach(id=>document.getElementById(id).addEventListener('input',checkRoots));
+document.getElementById('osIn').addEventListener('input',()=>{
+  const i=document.getElementById('osIn'),fb=document.getElementById('osFb');
+  if(i.value===''){fb.textContent='';fb.className='feedback';return;}
+  const v=+i.value,sq=v*v;i.className='no';
+  fb.textContent=v+'² = '+sq+(sq<2?' (trop petit)':' (trop grand)')+' — aucun entier ne donne 2…';fb.className='feedback no';
+  document.getElementById('osReveal').hidden=false;
+});
+document.getElementById('osReveal').addEventListener('click',()=>{document.getElementById('osResult').hidden=false;document.getElementById('osReveal').hidden=true;osRevealed=true;updateDone3();});
+function updateDone3(){completed[3]=fwdAll&&invAll&&osRevealed&&rootAll;renderTabs();}
+
+/* ---------- 4 : À TOI ---------- */
+// triplets triés des plus petites longueurs aux plus grandes
+const TRIPLES=[[3,4,5],[6,8,10],[5,12,13],[9,12,15],[8,15,17],[12,16,20]];
+let curEx=null,lastIdx=-1,exOkCount=0;
+function newEx(){
+  const poolMax=exOkCount<2?2:(exOkCount<4?4:TRIPLES.length);
+  let idx;do{idx=Math.floor(Math.random()*poolMax);}while(idx===lastIdx&&poolMax>1);lastIdx=idx;
+  const[p,q,r]=TRIPLES[idx];
+  const addition=exOkCount<3?true:(Math.random()<0.5);
+  if(addition){
+    return{bLab:p+'',cLab:q+'',aLab:'?',target:'a',
+      ctx:`Les côtés de l'angle droit mesurent b = ${p} et c = ${q}. On cherche l'hypoténuse a.`,
+      rel:'On additionne les aires : a² = b² + c².',
+      lbls:['1) b² = ?','2) c² = ?','3) a² = b² + c² = ?','4) a = ?'],ans:[p*p,q*q,p*p+q*q,r]};
+  }else{
+    return{bLab:p+'',cLab:'?',aLab:r+'',target:'c',
+      ctx:`L'hypoténuse mesure a = ${r} et un côté de l'angle droit b = ${p}. On cherche l'autre côté c.`,
+      rel:'On soustrait les aires : c² = a² − b².',
+      lbls:['1) a² = ?','2) b² = ?','3) c² = a² − b² = ?','4) c = ?'],ans:[r*r,p*p,r*r-p*p,q]};
+  }
+}
+function drawEx(ex){
+  const svg=document.getElementById('svgEx');svg.innerHTML='';
+  const P0={x:180,y:320},Pb={x:270,y:320},Pc={x:180,y:200};
+  const cb=css('--square-b'),cc=css('--square-c'),ca=css('--accent'),hi=t=>t===ex.target;
+  const sb=Pb.x-P0.x,sc=P0.y-Pc.y;
+  svg.appendChild(el('rect',{x:P0.x,y:P0.y,width:sb,height:sb,fill:hi('b')?cb+'40':cb+'1a',stroke:cb,'stroke-width':2}));
+  svg.appendChild(el('rect',{x:P0.x-sc,y:Pc.y,width:sc,height:sc,fill:hi('c')?cc+'40':cc+'1a',stroke:cc,'stroke-width':2}));
+  const F=frameA(Pb,Pc,P0),q3={x:Pc.x+F.nu.x*F.L,y:Pc.y+F.nu.y*F.L},q4={x:Pb.x+F.nu.x*F.L,y:Pb.y+F.nu.y*F.L};
+  svg.appendChild(el('polygon',{points:`${Pb.x},${Pb.y} ${Pc.x},${Pc.y} ${q3.x},${q3.y} ${q4.x},${q4.y}`,fill:hi('a')?ca+'40':ca+'1a',stroke:ca,'stroke-width':2}));
+  svg.appendChild(el('polygon',{points:`${P0.x},${P0.y} ${Pb.x},${Pb.y} ${Pc.x},${Pc.y}`,fill:ca+'10',stroke:css('--tri'),'stroke-width':2.4}));
+  rightAngle(svg,P0);
+  if(ex.target!=='b')lenTag(svg,(P0.x+Pb.x)/2,P0.y+16,'b = '+ex.bLab,cb);
+  if(ex.target!=='c')lenTag(svg,P0.x-20,(Pc.y+P0.y)/2,'c = '+ex.cLab,cc);
+  if(ex.target!=='a'){const mh={x:(Pb.x+Pc.x)/2,y:(Pb.y+Pc.y)/2};lenTag(svg,mh.x+F.nu.x*16,mh.y+F.nu.y*16,'a = '+ex.aLab,ca);}
+  if(ex.target==='a')txt(svg,(Pb.x+q3.x)/2+4,(Pb.y+q3.y)/2,'aire ?',ca,15);
+  if(ex.target==='c')txt(svg,P0.x-sc/2,Pc.y+sc/2+5,'aire ?',cc,15);
+  if(ex.target==='b')txt(svg,P0.x+sb/2,P0.y+sb/2+5,'aire ?',cb,15);
+}
+function loadExercise(){
+  curEx=newEx();drawEx(curEx);
+  document.getElementById('exCtx').textContent=curEx.ctx;
+  document.getElementById('exRel').textContent=curEx.rel;
+  curEx.lbls.forEach((t,i)=>document.getElementById('lbl'+(i+1)).textContent=t);
+  for(let i=1;i<=4;i++){const inp=document.getElementById('q'+i);inp.value='';inp.className='';}
+  document.getElementById('fb4').textContent='';document.getElementById('fb4').className='feedback';
+  document.getElementById('nextExBtn').hidden=true;
+}
+document.getElementById('checkBtn').addEventListener('click',()=>{
+  if(!curEx)return;const fb=document.getElementById('fb4');let allOk=true,filled=true;
+  for(let i=1;i<=4;i++){const inp=document.getElementById('q'+i);if(inp.value===''){filled=false;continue;}const ok=parseInt(inp.value,10)===curEx.ans[i-1];inp.className=ok?'ok':'no';if(!ok)allOk=false;}
+  if(!filled){fb.textContent='Complète les quatre étapes.';fb.className='feedback no';return;}
+  if(allOk){fb.textContent='Tout est juste, étape par étape. Bien joué !';fb.className='feedback ok';
+    exOkCount++;document.getElementById('exOk').textContent=exOkCount;document.getElementById('nextExBtn').hidden=false;
+    if(exOkCount>=3){completed[4]=true;renderTabs();document.getElementById('badge').hidden=false;document.getElementById('exGoal').textContent='(validé)';}}
+  else{fb.textContent='Une étape est fausse (en rouge). Reprends le calcul concerné.';fb.className='feedback no';}
+});
+document.getElementById('nextExBtn').addEventListener('click',loadExercise);
+
+/* ---------- Navigation ---------- */
+const panels=[...document.querySelectorAll('[data-panel]')];
+const stepsEls=[...document.querySelectorAll('#steps li')];
+const completed=[false,false,false,false,false];
+let cur=0,init=[false,false,false,false,false];
+function renderTabs(){stepsEls.forEach((li,i)=>{li.classList.toggle('active',i===cur);const c=li.querySelector('.chk');if(c)c.hidden=!completed[i];});}
+function show(n){
+  cur=Math.max(0,Math.min(panels.length-1,n));
+  panels.forEach((p,i)=>p.hidden=i!==cur);
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(cur===0){if(!init[0]){drawObserve();init[0]=true;}completed[0]=true;}
+  if(cur===1){if(!init[1]){buildWork();checkWork();init[1]=true;}}
+  if(cur===2){if(!init[2]){drawTheorem();init[2]=true;}completed[2]=true;}
+  if(cur===3){if(!init[3]){updateBuilder();init[3]=true;}}
+  if(cur===4){if(!init[4]){loadExercise();init[4]=true;}}
+  renderTabs();
+}
+document.querySelectorAll('[data-next]').forEach(b=>b.addEventListener('click',()=>show(cur+1)));
+document.querySelectorAll('[data-prev]').forEach(b=>b.addEventListener('click',()=>show(cur-1)));
+stepsEls.forEach(li=>li.addEventListener('click',()=>show(+li.dataset.s)));
+fillRadicals();
+show(0);
+</script>
